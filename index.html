@@ -53,6 +53,7 @@
         "p": { "$p": { ".write": "auth != null && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "pdata": { "$p": { ".write": "auth != null && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "ev": { "$e": { ".write": "auth != null && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "edits": { "$c": { ".write": "auth != null && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "snaps": { "$p": { ".write": "auth != null && auth.uid === $p" } }
       }
     },
@@ -205,6 +206,29 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .res-i { width: 24px; height: 24px; image-rendering: pixelated; }
 .res.bump, .ibtn.bump { animation: bump 0.35s ease; }
 .inv-it.mat { cursor: default; }
+.menu-srv { position: absolute; right: calc(var(--safe-r) + 24px); top: calc(var(--safe-t) + 84px); width: min(340px, 34vw); max-height: calc(100% - 200px); overflow: auto; padding: 14px; border-radius: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; }
+#msList { min-width: 0; }
+.ms-row .btn { flex: none; }
+.ms-h { display: flex; justify-content: space-between; align-items: center; }
+.ms-h b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
+.ms-row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 6px; }
+.ms-row .ms-m { flex: 1; min-width: 0; }
+.ms-row .ms-m b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-row .ms-m span { display: block; font-size: 12px; color: var(--muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-row .btn { padding: 8px 12px; font-size: 13px; }
+.ms-row .ms-on { width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 8px var(--leaf); flex: none; }
+.ms-row .ms-off { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); flex: none; }
+.ms-empty { font-size: 13px; color: var(--muted); font-weight: 600; line-height: 1.45; }
+@media (max-width: 640px) { .menu-srv { left: 12px; right: 12px; width: auto; top: calc(var(--safe-t) + 60px); max-height: 30vh; padding: 10px; } }
+.inv-sheet { max-width: 640px; }
+.inv-slots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+.inv-slots.hot { grid-template-columns: repeat(10, 1fr); }
+.islot { position: relative; aspect-ratio: 1; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); display: grid; place-items: center; padding: 0; color: var(--text); cursor: pointer; }
+.islot canvas { width: 70%; height: 70%; image-rendering: pixelated; }
+.islot b { position: absolute; right: 4px; bottom: 2px; font-family: var(--font-display); font-weight: 400; font-size: 13px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
+.islot.held { border-color: var(--ember); background: rgba(255, 177, 92, 0.16); }
+.islot:hover { border-color: rgba(255, 255, 255, 0.3); }
+.inv-acts { margin-top: 12px; }
 .sup-msg { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 10px; }
 .sup-h { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
 .sup-h span { color: var(--muted); font-weight: 700; }
@@ -269,6 +293,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .tbtn { position: absolute; pointer-events: auto; border-radius: 99px; border: 1.5px solid var(--line); background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--text); font-weight: 800; font-size: 13px; touch-action: none; }
 .t-jump { right: calc(var(--safe-r) + 6px); bottom: calc(var(--safe-b) + 92px); width: 84px; height: 84px; }
 .t-sprint { right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 190px); width: 64px; height: 64px; font-size: 11.5px; }
+.t-drop { right: calc(var(--safe-r) + 10px); bottom: calc(var(--safe-b) + 18px); width: 58px; height: 58px; font-size: 10.5px; line-height: 1.1; padding: 0 4px; }
 .t-sprint[aria-pressed="true"] { background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .t-act { right: calc(var(--safe-r) + 92px); bottom: calc(var(--safe-b) + 112px); height: 52px; padding: 0 18px; background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .tbtn:active { transform: scale(0.94); }
@@ -550,6 +575,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div id="joyBase" class="joy" hidden><div id="joyKnob" class="joy-k"></div></div>
     <button id="tJump" class="tbtn t-jump">Springen</button>
     <button id="tSprint" class="tbtn t-sprint" aria-pressed="false">Sprinten</button>
+    <button id="tDrop" class="tbtn t-drop" aria-label="Wegwerfen">Weg&shy;werfen</button>
     <button id="tAct" class="tbtn t-act" hidden>Aktion</button>
   </div>
 </div>
@@ -566,6 +592,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="menu-top">
     <button id="btnAccount" class="chip panel" type="button"><canvas id="accAvatar" width="64" height="64"></canvas><span id="accName">Anmelden</span><i class="sync-dot" id="accSync" hidden></i></button>
   </div>
+  <aside class="menu-srv panel" id="menuSrv" aria-label="Server">
+    <div class="ms-h"><b>Server</b><button class="link" id="msReload" type="button">Neu laden</button></div>
+    <div id="msList"></div>
+  </aside>
   <div class="menu-inner">
     <p class="eyebrow">Überlebe die Nächte</p>
     <h1 class="title">Blood Moon</h1>
@@ -573,7 +603,6 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="menu-actions">
       <button id="btnPlay" class="btn primary" type="button">Spielen</button>
       <button id="btnWorlds" class="btn" type="button">Welten</button>
-      <button id="btnServers" class="btn" type="button">Server</button>
       <button id="btnFriends" class="btn" type="button">Freunde<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
     </div>
@@ -688,9 +717,14 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlInv" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle">
-  <div class="sheet narrow panel">
-    <div class="sheet-h"><div class="grow"><h2 id="invTitle">Inventar</h2><p>Tippe auf etwas, um es in den gewählten Hotbar-Platz zu legen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="sheet-b"><p class="sec-t">Materialien</p><div class="inv-grid" id="invMats"></div><p class="sec-t">Gegenstände</p><div class="inv-grid" id="invGrid"></div><p class="sec-t">Werkzeuge</p><div class="inv-grid" id="invTools"></div></div>
+  <div class="sheet panel inv-sheet">
+    <div class="sheet-h"><div class="grow"><h2 id="invTitle">Inventar</h2><p id="invSub">Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div class="inv-slots" id="invBag"></div>
+      <p class="sec-t">Hotbar</p>
+      <div class="inv-slots hot" id="invHot"></div>
+      <div class="btnrow inv-acts"><button class="btn" id="invDrop1" type="button" disabled>1 wegwerfen</button><button class="btn" id="invDropAll" type="button" disabled>Alles davon wegwerfen</button></div>
+    </div>
   </div>
 </div>
 
@@ -741,6 +775,22 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="form-msg" id="weMsg" hidden></p>
       <p class="sec-t">Mehr</p>
       <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlInvite" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="invtTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="invtTitle">Leute einladen</h2><p id="invtSub"></p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <p class="sec-t">Deine Freunde</p>
+      <p class="hint">Sie sehen den Server sofort in ihrer Serverliste auf dem Startbildschirm.</p>
+      <div class="list" id="invtFriends"></div>
+      <p class="sec-t">Andere Spieler einladen</p>
+      <p class="hint">Wer noch nicht dein Freund ist, bekommt zuerst eine Anfrage. Nimmt er sie an, sieht er den Server.</p>
+      <form class="newworld" id="invtForm" autocomplete="off"><input class="field" id="invtName" maxlength="16" placeholder="Benutzername" aria-label="Benutzername" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Einladen</button></form>
+      <p class="form-msg" id="invtMsg" hidden></p>
+      <button class="btn" id="invtDone" type="button" style="margin-top:14px">Fertig</button>
     </div>
   </div>
 </div>
@@ -3673,7 +3723,7 @@ function computeEnv(time, viewDist) {
   }
   ENV.sunVis = smoothstep(-0.06, 0.02, es) * (1 - blood * 0.7);
   ENV.fogEnd = viewDist * CS - 6;
-  ENV.fogDen = lerp(lerp(1 / 150, 1 / 300, dayF), 1 / 75, blood);
+  ENV.fogDen = lerp(lerp(1 / 280, 1 / 320, dayF), 1 / 75, blood);   // clear air near the spawn, by day and by night
   ENV.exposure = lerp(1.75, 1.5, dayF);
   ENV.wind = 1 + blood * 0.6;
   applyWeatherEnv();
@@ -4418,6 +4468,21 @@ const DROPS = [];
 function spawnDrop(kind, x, y, z, vx, vy, vz, delay, forceMagnet) {
   DROPS.push({ kind, x, y, z, vx, vy, vz, t: 0, delay: delay || 0.35, magnet: false, force: !!forceMagnet, spin: Math.random() * TAU, bob: Math.random() * TAU, rest: false });
 }
+/* things a player threw away or lost when dying: anybody can pick them up, they never vanish
+   (they are in the save, and every player in the world sees them) */
+let dropSeq = 1;
+function dropItem(k, n, x, y, z, vx, vy, vz, id) {
+  if (!n || n <= 0) return;
+  id = id || ((NET.uid && NET.uid()) || 'p') + '-' + Date.now().toString(36) + '-' + (dropSeq++);
+  spawnDrop(k, x, y, z, vx, vy, vz, 1.4, false);
+  const d = DROPS[DROPS.length - 1];
+  d.n = n; d.nid = id; d.keep = true;
+  return d;
+}
+function sendDrop(d) { if (MP.active() && d) MP.send({ t: 'drop', id: d.nid, k: d.kind, n: d.n, p: [+d.x.toFixed(2), +d.y.toFixed(2), +d.z.toFixed(2), +d.vx.toFixed(2), +d.vy.toFixed(2), +d.vz.toFixed(2)] }); }
+function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if (k >= 0) DROPS.splice(k, 1); }
+function keptDrops() { return DROPS.filter((d) => d.keep).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
+function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
 const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0] };
 const DROP_GLOW = { diamond: 0.35, crystal: 0.7 };
@@ -5087,6 +5152,7 @@ function resHint(cost) {
   return '';
 }
 function itemName(k) {
+  if (RES_NAME[k]) return RES_NAME[k];
   const it = ITEMS[k]; if (!it) return '';
   if (it.tool) { const n = TOOL_LEVEL_NAMES[it.tool]; return n[G.tools[it.tool]] || n[n.length - 1]; }
   return it.name;
@@ -5134,11 +5200,11 @@ function weaponStats() {
 }
 /* campfire levels: protection radius, clear sight from the spawn, seconds it keeps burning into a blood moon */
 const CAMP_LV = [null,
-  { r: 11, clear: 80, burn: 0 },
-  { r: 15, clear: 150, burn: 90, cost: { wood: 12, iron: 3 } },
-  { r: 20, clear: 250, burn: 200, cost: { wood: 20, iron: 8 } },
-  { r: 26, clear: 420, burn: 330, cost: { wood: 30, iron: 12, diamond: 2 } },
-  { r: 32, clear: 750, burn: 480, cost: { wood: 40, diamond: 4, crystal: 6 } },
+  { r: 11, clear: 150, burn: 0 },
+  { r: 15, clear: 230, burn: 90, cost: { wood: 12, iron: 3 } },
+  { r: 20, clear: 330, burn: 200, cost: { wood: 20, iron: 8 } },
+  { r: 26, clear: 480, burn: 330, cost: { wood: 30, iron: 12, diamond: 2 } },
+  { r: 32, clear: 800, burn: 480, cost: { wood: 40, diamond: 4, crystal: 6 } },
 ];
 function campR(o) { return (CAMP_LV[o.level || 1] || CAMP_LV[1]).r; }
 const REACH = 5.6;
@@ -5198,8 +5264,28 @@ function afterEdit(x0, z0, x1, z1, lightChanged) {
 }
 
 /* ---------- inventory ---------- */
-function itemCount(k) { const it = ITEMS[k]; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
+function itemCount(k) { if (!k) return 0; if (RES_NAME[k]) return G.inv[k] || 0; const it = ITEMS[k]; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
+const BAG_N = 27;
+/* everything you have sits in one slot: the hotbar first, then the bag (Tab) */
+function syncSlots() {
+  if (!Array.isArray(G.bag)) G.bag = [];
+  while (G.bag.length < BAG_N) G.bag.push(null);
+  if (G.bag.length > BAG_N) G.bag.length = BAG_N;
+  const seen = new Set();
+  const clean = (arr) => { for (let i = 0; i < arr.length; i++) { const k = arr[i]; if (!k || itemCount(k) <= 0 || seen.has(k)) arr[i] = null; else seen.add(k); } };
+  clean(G.hotbar); clean(G.bag);
+  const want = [...RES_KEYS, ...Object.keys(G.inv.items), 'axe', 'sword', 'pickaxe', 'shears'];
+  for (const k of want) {
+    if (seen.has(k) || itemCount(k) <= 0 || (!RES_NAME[k] && !ITEMS[k])) continue;
+    let s = G.hotbar.indexOf(null);
+    if (s >= 0) G.hotbar[s] = k;
+    else { s = G.bag.indexOf(null); if (s < 0) continue; G.bag[s] = k; }
+    seen.add(k);
+  }
+}
 function addItem(k, n) {
+  // a tool from the ground: you keep the better one
+  if (ITEMS[k] && ITEMS[k].tool) { const t = ITEMS[k].tool; G.tools[t] = Math.max(G.tools[t] || 0, n || 1); UI.tools && UI.tools(); UI.hotbar(); return; }
   if (RES_NAME[k]) { G.inv[k] = (G.inv[k] || 0) + n; UI.res(); return; }
   G.inv.items[k] = (G.inv.items[k] || 0) + n;
   if (!G.hotbar.includes(k)) { const free = G.hotbar.indexOf(null); if (free >= 0) G.hotbar[free] = k; }
@@ -5217,6 +5303,8 @@ function selectedItem() { return G.sel >= 0 ? G.hotbar[G.sel] : null; }
 /* ---------- shop ---------- */
 function shopState(e) {
   if (e.tool && G.tools[e.tool] >= e.level) return 'owned';
+  // only one campfire per player, ever
+  if (e.id === 'campfire' && (G.stats.campfires || 0) >= 1) return 'owned';
   return canAfford(e.cost) ? 'ok' : 'poor';
 }
 function buy(id) {
@@ -5234,6 +5322,7 @@ function buy(id) {
     if (e.tool === 'shears' && G.goal === 4) setGoal(5);
   }
   else { addItem(e.item, e.qty); UI.toast(e.name + ' gekauft', 'good'); }
+  if (e.id === 'campfire') G.stats.campfires = (G.stats.campfires || 0) + 1;
   SFX.buy();
   if (e.item === 'campfire' && G.goal <= 2) setGoal(3);
   UI.res(); UI.hotbar(); UI.tools(); UI.shopRefresh();
@@ -5271,7 +5360,7 @@ function startNight() {
   T.phase = 'night'; T.t = 0; T.night++;
   T.blood = T.night % 10 === 0;
   T.afterBlood = false;
-  G.spawnT = T.blood ? 2 : 6;
+  G.spawnT = T.blood ? 2 : 10; G.nightSpawned = 0;
   if (T.blood) {
     const n = bloodNo();
     UI.banner(n > 1 ? 'Blood Moon ' + n : 'Blood Moon', n <= 3 ? BLOOD_SUB[n] : 'Stärker als je zuvor. Halte durch!', 'blood');
@@ -5369,7 +5458,8 @@ function makeSave() {
   return {
     v: 2, seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: [PL.x, PL.y, PL.z, PL.yaw, PL.hp], cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
-    inv: G.inv, tools: G.tools, hotbar: G.hotbar, sel: G.sel, goal: G.goal, stats: G.stats, bed: G.bedSpawn,
+    inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
+    drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
@@ -5386,11 +5476,14 @@ function saveGame(flushCloud) {
 /* inventory data that went through the database may come back without empty parts */
 function normalizePlayerData(d) {
   const hb = new Array(10).fill(null);
-  if (d.hotbar) for (let i = 0; i < 10; i++) { const v = d.hotbar[i]; if (v && ITEMS[v]) hb[i] = v; }
+  if (d.hotbar) for (let i = 0; i < 10; i++) { const v = d.hotbar[i]; if (v && (ITEMS[v] || RES_NAME[v])) hb[i] = v; }
+  const bag = new Array(BAG_N).fill(null);
+  if (d.bag) for (let i = 0; i < BAG_N; i++) { const v = d.bag[i]; if (v && (ITEMS[v] || RES_NAME[v])) bag[i] = v; }
   return {
+    bag,
     inv: normalizeInv(d.inv),
     tools: Object.assign({ axe: 0, sword: 0, pickaxe: 0, shears: 0 }, d.tools || {}),
-    hotbar: hb, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
+    hotbar: hb, stats: d.stats || null, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
   };
 }
 function normalizeInv(inv) {
@@ -5421,7 +5514,10 @@ function applySave(s, convert) {
   G.playTime = s.playTime || 0;
   G.inv = normalizeInv(s.inv); G.tools = Object.assign({ axe: 0, sword: 0, pickaxe: 0, shears: 0 }, s.tools || {});
   G.hotbar = new Array(10).fill(null);
-  if (s.hotbar) for (let i = 0; i < 10; i++) { const v = s.hotbar[i]; if (v && ITEMS[v]) G.hotbar[i] = v; }
+  if (s.hotbar) for (let i = 0; i < 10; i++) { const v = s.hotbar[i]; if (v && (ITEMS[v] || RES_NAME[v])) G.hotbar[i] = v; }
+  G.bag = new Array(BAG_N).fill(null);
+  if (s.bag) for (let i = 0; i < BAG_N; i++) { const v = s.bag[i]; if (v && (ITEMS[v] || RES_NAME[v])) G.bag[i] = v; }
+  restoreDrops(s.drops);
   G.sel = typeof s.sel === 'number' ? s.sel : -1; G.goal = s.goal | 0; G.stats = s.stats || G.stats;
   ensureTools();
   if (v2 && !fix) {
@@ -5616,10 +5712,44 @@ function hurtPlayer(dmg, fromX, fromZ) {
   UI.hurt(); SFX.hurt();
   if (PL.hp <= 0) {
     PL.dead = true; PL.deadT = 0;
+    dropEverything();
     UI.death(); SFX.death();
   }
 }
 
+/* Q: throw the thing in the hand forward (one, or all of it) */
+function dropSelected(all) {
+  const k = selectedItem(); if (!k || PL.dead) return false;
+  const tool = ITEMS[k] && ITEMS[k].tool;
+  let n;
+  if (tool) { n = G.tools[tool]; G.tools[tool] = 0; }
+  else { n = all ? itemCount(k) : 1; if (RES_NAME[k]) G.inv[k] -= n; else takeItem(k, n); }
+  if (!n) return false;
+  const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw + Math.PI;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  const d = dropItem(k, n, PL.x + fx * 0.6, PL.y + 1.3, PL.z + fz * 0.6, fx * 4.5, 2.5, fz * 4.5);
+  sendDrop(d);
+  UI.res(); UI.hotbar(); UI.tools && UI.tools();
+  SFX.ui();
+  saveGame();
+  return true;
+}
+/* dying: everything you carry falls on the ground, and stays there until somebody picks it up */
+function dropEverything() {
+  const all = [];
+  for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
+  for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
+  G.inv.items = {};
+  for (const t of ['axe', 'sword', 'pickaxe', 'shears']) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
+  all.forEach(([k, n], j) => {
+    const a = j / Math.max(1, all.length) * TAU;
+    sendDrop(dropItem(k, n, PL.x, PL.y + 1, PL.z, Math.cos(a) * 2.2, 3.5, Math.sin(a) * 2.2));
+  });
+  G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
+  UI.res(); UI.hotbar(); UI.tools && UI.tools();
+  if (all.length) setTimeout(() => UI.toast('Deine Sachen liegen dort, wo du gestorben bist. Sie bleiben liegen, bis sie jemand aufhebt.', 'warn', 6500), 900);
+  saveGame(true);
+}
 function moveInput() {
   let mx = 0, mz = 0;
   if (INPUT.down('KeyW') || INPUT.down('ArrowUp')) mz += 1;
@@ -6044,7 +6174,7 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   const meta = W.meta.get(i) || 0;
   const store = id === B.CHEST && isStoreMeta(meta);
   const drop = store ? 'chest' : BDROP[id];
-  if (store) chestBroken(i, x, y, z, !!byPlayer && !remote);
+  if (store) { if (remote) { W.chests.delete(i); if (UI._chest && UI._chest.i === i) UI.closeModal('mdlChest'); } else chestBroken(i, x, y, z, !!byPlayer); }
   const c = BCOLOR[id] || DROP_COLOR[drop] || [0.6, 0.6, 0.6];
   burst(x + 0.5, y + 0.5, z + 0.5, 12, c, { speed: 2.4, up: 3, life: 0.8, size: 0.09, spread: 0.8 });
   if (id === B.DOOR) { const oy = (meta & 8) ? y - 1 : y + 1; if (getB(x, oy, z) === B.DOOR) setBlock(x, oy, z, B.AIR); }
@@ -6335,10 +6465,17 @@ function updateSpawns(dt) {
   if (G.spawnT > 0) return;
   const blood = G.time.blood;
   const bl = blood ? bloodStats(bloodNo()) : null;
-  G.spawnT = (blood ? 1.4 : 4.2) / Math.min(2, players.length);
+  // normal nights: a few zombies, and the ones you kill do not all come back.
+  // blood moons: a lot of them, all night long
+  G.spawnT = (blood ? 1.0 : 16) / Math.min(2, players.length);
   const alive = G.zombies.filter((z) => z.state !== 'die' && z.type === 'zombie').length;
-  const max = Math.round((blood ? 22 * bl.countMul : Math.min(3 + Math.floor(G.time.night * 0.9), 12)) * (1 + (players.length - 1) * 0.5));
+  const more = 1 + (players.length - 1) * 0.5;
+  const max = Math.round((blood ? 30 * bl.countMul : Math.min(2 + Math.floor(G.time.night / 4), 4)) * more);
   if (alive >= max) return;
+  if (!blood) {
+    const budget = Math.round(Math.min(3 + Math.floor(G.time.night / 3), 7) * more);
+    if ((G.nightSpawned || 0) >= budget) return;
+  }
   const P0 = players[Math.floor(Math.random() * players.length)];
   for (let tries = 0; tries < 14; tries++) {
     const a = Math.random() * TAU, d = blood ? 14 + Math.random() * 16 : 18 + Math.random() * 16;
@@ -6355,6 +6492,7 @@ function updateSpawns(dt) {
     if (!blood) for (const o of OBJS.values()) if (o.id === B.TORCH && o.lit > 0.3 && Math.hypot(o.x - x, o.z - z) < 6) { nearTorch = true; break; }
     if (nearTorch) continue;
     spawnZombie(x + 0.5, si.y + 1, z + 0.5);
+    G.nightSpawned = (G.nightSpawned || 0) + 1;
     break;
   }
 }
@@ -7062,7 +7200,8 @@ function updateFarFog(dt, x, z) {
   // underground (caves) there is no fog of the far lands
   const sk = getSky(Math.floor(CAM.eye[0]), Math.floor(CAM.eye[1]), Math.floor(CAM.eye[2])) / 15;
   const target = W.mode === 'island' ? 0 : smoothstep(clear, clear + 130, d) * smoothstep(0.05, 0.5, sk);
-  WEATHER.farFog = dt > 0 ? damp(WEATHER.farFog, target, 1.2, dt) : target;
+  // back near the spawn it clears quickly
+  WEATHER.farFog = dt > 0 ? damp(WEATHER.farFog, target, target < WEATHER.farFog ? 3.5 : 1.2, dt) : target;
   if (G.state === 'playing' && target > 0.4 && !G._fogHint && W.campLv < 5) {
     G._fogHint = true;
     UI.toast('Hier draußen wird es neblig. Verbessere dein Lagerfeuer (E am Feuer), dann siehst du weiter.', 'info', 6500);
@@ -7096,7 +7235,8 @@ function resetWeather() {
 function pickWeather() {
   const r = Math.random();
   // thunderstorms only come from the daily roll
-  const kind = r < 0.48 ? 'clear' : r < 0.7 ? 'cloudy' : r < 0.91 ? 'rain' : 'fog';
+  // (fog only out in the far lands, never as weather at the spawn)
+  const kind = r < 0.52 ? 'clear' : r < 0.76 ? 'cloudy' : 'rain';
   setWeather(kind, 150 + Math.random() * 270);
 }
 /* a thunderstorm: lightning everywhere, and sometimes a tornado comes down from it */
@@ -7853,7 +7993,8 @@ function updateDrops(dt) {
       d.rest = false;
       if (dist < 0.7) {
         DROPS.splice(k, 1);
-        addItem(d.kind, 1);
+        addItem(d.kind, d.n || 1);
+        if (d.nid && MP.active()) MP.send({ t: 'pick', id: d.nid });
         G._pickN = (G._pickT > G.playTime - 0.6 ? (G._pickN || 0) + 1 : 0); G._pickT = G.playTime;
         SFX.pickup(G._pickN);
         UI.floatText(d.kind);
@@ -7871,7 +8012,7 @@ function updateDrops(dt) {
         if (Math.abs(d.vy) < 1) { d.vy = 0; d.rest = true; }
       } else if (getB(Math.floor(d.x), Math.floor(ny), Math.floor(d.z)) === B.WATER) { d.y = ny; d.vy = Math.min(d.vy + 30 * dt, 1); }
       else { d.y = ny; d.rest = false; }
-      if (d.t > 300) DROPS.splice(k, 1);
+      if (d.t > 300 && !d.keep) DROPS.splice(k, 1);
     }
   }
 }
@@ -7974,13 +8115,14 @@ function initInput() {
     INPUT.keys.add(e.code);
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
     if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
+    if ((e.code === 'Tab' || e.code === 'KeyI') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
     if (!playing()) return;
     if (G.sleep && G.sleep.mp && ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE'].includes(e.code)) { leaveBed(); return; }
     if (e.code.startsWith('Digit')) { const n = e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1; UI.select(G.sel === n ? -1 : n); }
     if (e.code === 'KeyV' || e.code === 'F5') toggleCamMode();
     if (e.code === 'KeyE' || e.code === 'KeyF') INPUT.interactPressed = true;
-    if (e.code === 'KeyI' || e.code === 'Tab') UI.openInventory();
-    if (e.code === 'KeyQ') CAMC.yawPending = (CAMC.yawPending || 0) + Math.PI / 4;
+    if (e.code === 'KeyI' || e.code === 'Tab') { e.preventDefault(); UI.openInventory(); }
+    if (e.code === 'KeyQ') dropSelected(e.ctrlKey || e.shiftKey);
     if (e.code === 'KeyR') CAMC.yawPending = (CAMC.yawPending || 0) - Math.PI / 4;
   });
   window.addEventListener('keyup', (e) => INPUT.keys.delete(e.code));
@@ -8030,7 +8172,7 @@ function initInput() {
     const mx = e.movementX || 0, my = e.movementY || 0;
     if (CAMC.mode === 'fp') {
       // first person: just move the mouse to look around (locked pointer, or plain movement as fallback)
-      if (INPUT.locked || (INPUT.lockFailed && e.target === canvas)) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
+      if (INPUT.locked || ((INPUT.lockFailed || INPUT.lockSoft) && e.target === canvas)) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
       return;
     }
     const d = INPUT.drag;
@@ -8057,7 +8199,7 @@ function initInput() {
   document.addEventListener('pointerlockchange', () => {
     const was = INPUT.locked;
     INPUT.locked = document.pointerLockElement === canvas;
-    if (INPUT.locked) { INPUT.lockFailed = false; return; }
+    if (INPUT.locked) { INPUT.lockFailed = false; INPUT.lockSoft = false; return; }
     if (!was) return;
     const quiet = performance.now() < INPUT.unlockQuiet;
     if (INPUT.lockPurpose === 'drag') { INPUT.drag = null; return; }
@@ -8075,7 +8217,7 @@ function initInput() {
     if (G.sleep && G.sleep.mp) { leaveBed(); return; }
     const joyAllowed = touchUI();
     // a finger that just misses the jump or sprint button does not dig or place
-    const near = (t) => ['tJump', 'tSprint', 'tAct'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
+    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
     for (const t of e.changedTouches) {
       if (near(t)) continue;
       const left = t.clientX < window.innerWidth * 0.42;
@@ -8362,18 +8504,21 @@ UI.res = function () {
     const box = $(ids[0]);
     // wood and wool live in the inventory (the bag button bumps); ores show up top once you have some
     const bag = k === 'wood' || k === 'wool';
-    const bumpEl = bag ? $('btnBag') : box;
+    const bumpEl = $('btnBag');
     if (UI._last['r' + k] !== undefined && v > UI._last['r' + k]) { bumpEl.classList.remove('bump'); void bumpEl.offsetWidth; bumpEl.classList.add('bump'); }
     UI._last['r' + k] = v;
     $(ids[1]).textContent = v; $(ids[2]).textContent = v;
-    if (bag) box.hidden = true;
-    else { box.hidden = v <= 0; $(ids[2]).parentNode.hidden = v <= 0; }
+    // everything sits in the hotbar now: no counters at the top
+    box.hidden = true;
+    if (!bag) $(ids[2]).parentNode.hidden = v <= 0;
   }
+  UI.hotbar();
   if (!$('mdlShop').hidden) UI.shopRefresh();
   if (!$('mdlCamp').hidden) UI.campRefresh();
   if (!$('mdlInv').hidden) UI.invRefresh();
 };
 UI.hotbar = function () {
+  syncSlots();
   const hb = $('hotbar');
   if (!hb.children.length) {
     for (let i = 0; i < 10; i++) {
@@ -8414,7 +8559,7 @@ UI.select = function (i) {
   if (i >= 0 && !G.hotbar[i]) G.sel = i;
   UI.hotbar();
   const k = selectedItem();
-  if (k) UI.toast(itemName(k) + (ITEMS[k].place === 'block' ? ': Rechtsklick zum Bauen' : ITEMS[k].tool ? ' in der Hand' : ''), 'info', 1400, 'sel');
+  if (k) UI.toast(itemName(k) + (RES_NAME[k] ? ' (' + itemCount(k) + ')' : ITEMS[k].place === 'block' ? ': Rechtsklick zum Bauen' : ITEMS[k].tool ? ' in der Hand' : ''), 'info', 1400, 'sel');
   else if (i >= 0) UI.toast('Leere Hand', 'info', 900, 'sel');
 };
 UI.cycle = function (dir) {
@@ -8667,7 +8812,7 @@ UI.shopRefresh = function (rebuild) {
     const st = shopState(e);
     const b = card.querySelector('.buy');
     b.className = 'buy ' + (st === 'ok' ? '' : st);
-    b.textContent = st === 'owned' ? 'Besitzt du' : 'Kaufen';
+    b.textContent = st === 'owned' ? (e.id === 'campfire' ? 'Nur eins erlaubt' : 'Besitzt du') : 'Kaufen';
     b.disabled = st === 'owned';
     for (const s of card.querySelectorAll('.price span')) s.classList.toggle('lack', (G.inv[s.dataset.k] || 0) < e.cost[s.dataset.k]);
   }
@@ -8724,42 +8869,70 @@ UI.openInventory = function () {
   if (document.pointerLockElement) document.exitPointerLock();
   INPUT.clear();
   G.state = 'inv';
+  UI._invHeld = null;
   $('mdlInv').hidden = false;
   UI.invRefresh();
 };
+/* the bag (27 places) and the hotbar (10): pick a thing up, put it somewhere else (like Minecraft) */
 UI.invRefresh = function () {
-  // materials: wood and wool always, ores once you have some
-  const mg = $('invMats'); mg.innerHTML = '';
-  for (const k of RES_KEYS) {
-    const n = G.inv[k] || 0;
-    if (n <= 0 && k !== 'wood' && k !== 'wool') continue;
-    const d = document.createElement('div'); d.className = 'inv-it mat'; d.title = RES_NAME[k] + ' bezahlst du beim Händler';
-    d.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
-    drawItemIcon(d.firstChild, k); d.querySelector('b').textContent = n; d.querySelector('span').textContent = RES_NAME[k];
-    mg.appendChild(d);
-  }
-  const g = $('invGrid'); g.innerHTML = '';
-  const keys = Object.keys(G.inv.items).filter((k) => G.inv.items[k] > 0);
-  if (!keys.length) g.innerHTML = '<p class="hint">Noch leer. Kauf beim Händler ein oder bau Blöcke ab.</p>';
-  for (const k of keys) {
-    const b = document.createElement('button'); b.className = 'inv-it'; b.type = 'button';
-    b.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
-    drawItemIcon(b.firstChild, k); b.querySelector('b').textContent = G.inv.items[k]; b.querySelector('span').textContent = ITEMS[k].name;
-    b.addEventListener('click', () => UI.putInHotbar(k));
-    g.appendChild(b);
-  }
-  const tg = $('invTools'); tg.innerHTML = '';
-  const tools = [['axe', 'Keine Axt'], ['sword', 'Kein Schwert'], ['pickaxe', 'Keine Spitzhacke'], ['shears', 'Keine Schere']];
-  for (const [k, none] of tools) {
-    const lvl = G.tools[k];
-    const d = document.createElement(lvl ? 'button' : 'div'); d.className = 'inv-it'; d.style.opacity = lvl ? 1 : 0.4;
-    if (lvl) d.type = 'button';
-    d.innerHTML = '<canvas width="80" height="80"></canvas><span></span>';
-    drawToolIcon(d.firstChild.getContext('2d'), k, Math.max(1, lvl), 80); d.lastChild.textContent = lvl ? itemName(k) : none;
-    if (lvl) d.addEventListener('click', () => UI.putInHotbar(k));
-    tg.appendChild(d);
-  }
+  syncSlots();
+  const held = UI._invHeld;
+  const fill = (el, arr, where) => {
+    if (el.children.length !== arr.length) {
+      el.innerHTML = '';
+      for (let i = 0; i < arr.length; i++) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'islot';
+        b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>';
+        b.addEventListener('click', () => UI.invClick(where, i));
+        el.appendChild(b);
+      }
+    }
+    for (let i = 0; i < arr.length; i++) {
+      const b = el.children[i], k = arr[i];
+      const tool = k && ITEMS[k] && ITEMS[k].tool;
+      const icon = tool ? tool + Math.max(1, G.tools[tool]) : k;
+      if (b.dataset.key !== (icon || '')) { drawItemIcon(b.firstChild, icon); b.dataset.key = icon || ''; }
+      const n = itemCount(k);
+      b.querySelector('b').textContent = k && !tool && n > 1 ? n : '';
+      b.title = k ? itemName(k) + (tool ? '' : ' (' + n + ')') : 'Leer';
+      b.classList.toggle('held', !!held && held.where === where && held.i === i);
+    }
+  };
+  fill($('invBag'), G.bag, 'bag');
+  fill($('invHot'), G.hotbar, 'hot');
+  const hk = held ? (held.where === 'bag' ? G.bag : G.hotbar)[held.i] : null;
+  $('invDrop1').disabled = $('invDropAll').disabled = !hk;
+  $('invSub').textContent = hk ? itemName(hk) + ' ist ausgewählt. Tippe einen Platz an, um es dorthin zu legen.' : 'Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.';
 };
+UI.invClick = function (where, i) {
+  const arr = where === 'bag' ? G.bag : G.hotbar;
+  const held = UI._invHeld;
+  if (!held) { if (arr[i]) UI._invHeld = { where, i }; }
+  else {
+    const src = held.where === 'bag' ? G.bag : G.hotbar;
+    const t = src[held.i]; src[held.i] = arr[i]; arr[i] = t;
+    UI._invHeld = null;
+    UI.hotbar();
+  }
+  SFX.ui();
+  UI.invRefresh();
+};
+function invDropHeld(all) {
+  const h = UI._invHeld; if (!h) return;
+  const arr = h.where === 'bag' ? G.bag : G.hotbar;
+  const k = arr[h.i]; if (!k) return;
+  // drop it as if it were in the hand
+  const keepSel = G.sel, slot = G.hotbar.indexOf(k);
+  let tmp = -1;
+  if (slot < 0) { tmp = G.hotbar.indexOf(null); if (tmp < 0) tmp = 9; G._swap = G.hotbar[tmp]; G.hotbar[tmp] = k; G.sel = tmp; }
+  else G.sel = slot;
+  dropSelected(all);
+  if (tmp >= 0 && G._swap) { G.hotbar[tmp] = G._swap; }
+  G._swap = null;
+  G.sel = keepSel;
+  if (!itemCount(k)) UI._invHeld = null;
+  UI.hotbar(); UI.invRefresh();
+}
 /* inventory: put something on the selected hotbar slot (or the first free one) */
 UI.putInHotbar = function (k) {
   const slot = G.sel >= 0 ? G.sel : Math.max(0, G.hotbar.indexOf(null));
@@ -8912,7 +9085,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -8931,7 +9104,11 @@ UI.closeModal = function (id) {
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
-  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') { G.state = 'playing'; INPUT.clear(); updateCursorStyle(); }
+  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
+    G.state = 'playing'; INPUT.clear(); updateCursorStyle();
+    // first person: the mouse looks around again right away, no extra click needed
+    if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); }
+  }
 };
 /* confirmation built into the page (browser dialogs are not used) */
 UI.confirm = function (o) {
@@ -8971,7 +9148,7 @@ UI.pause = function (on) {
 UI.controlsHtml = function () {
   const k = (keys, label) => '<div>' + keys.map((x) => '<kbd>' + x + '</kbd>').join('') + '<span>' + label + '</span></div>';
   if (touchUI()) return k(['◐'], 'Links ziehen: laufen') + k(['↻'], 'Rechts ziehen: Kamera drehen') + k(['•'], 'Tippen: angreifen, öffnen, bauen') + k(['⧗'], 'Gedrückt halten: abbauen') + k(['⤢'], 'Zwei Finger: Zoom') + k(['⇡'], 'Springen-Knopf');
-  return k(['W', 'A', 'S', 'D'], 'Laufen') + k(['␣'], 'Springen') + k(['⇧'], 'Sprinten') + k(['R-Maus'], 'Ziehen: Kamera drehen') + k(['Mausrad'], 'Drehen: Zoom, gedrückt ziehen: Kamera') + k(['L-Maus'], 'Halten: abbauen, angreifen') + k(['R-Maus'], 'Klick: bauen') + k(['E'], 'Handeln, Tür, Bett, Truhe, Lagerfeuer') + k(['V'], 'Ego-Perspektive, Maus zum Umsehen') + k(['1–0'], 'Hotbar') + k(['I'], 'Inventar') + k(['Q', 'R'], 'Kamera drehen') + k(['Esc'], 'Pause');
+  return k(['W', 'A', 'S', 'D'], 'Laufen') + k(['␣'], 'Springen') + k(['⇧'], 'Sprinten') + k(['R-Maus'], 'Ziehen: Kamera drehen') + k(['Mausrad'], 'Drehen: Zoom, gedrückt ziehen: Kamera') + k(['L-Maus'], 'Halten: abbauen, angreifen') + k(['R-Maus'], 'Klick: bauen') + k(['E'], 'Handeln, Tür, Bett, Truhe, Lagerfeuer') + k(['V'], 'Ego-Perspektive, Maus zum Umsehen') + k(['1–0'], 'Hotbar') + k(['Tab', 'I'], 'Inventar') + k(['Q'], 'Wegwerfen (Strg+Q: alles)') + k(['R'], 'Kamera drehen') + k(['Esc'], 'Pause');
 };
 UI.openControls = function (from) {
   UI._from = from;
@@ -9134,7 +9311,13 @@ function bindWorldEditUI() {
     const e = UI._edit; if (!e) return;
     const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Wird hochgeladen …';
     $('weServer').disabled = true;
-    try { await SERVER.upload(e); m.textContent = '„' + e.name + '“ ist jetzt ein Server. Du findest ihn unter „Server“.'; }
+    try {
+      const wid = await SERVER.upload(e);
+      m.textContent = '„' + e.name + '“ ist jetzt ein Server.';
+      // straight on to inviting people
+      UI.openInvite({ owner: NET.uid(), wid, name: e.name, ownerName: NET.name, mine: true });
+      UI.menuServers(true);
+    }
     catch (err) { m.className = 'form-msg'; m.textContent = err && err.message ? err.message : String(err); }
     $('weServer').disabled = !NET.uid();
   });
@@ -9436,6 +9619,11 @@ function bindUI() {
   const calmTouches = () => { for (const s of INPUT.touches.values()) { if (s.hold) { s.hold = false; INPUT.primaryHeld = false; } s.moved = Math.max(s.moved, 99); } };
   tj.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.jump = true; calmTouches(); }, { passive: false });
   tj.addEventListener('touchcancel', (e) => { e.preventDefault(); INPUT.jump = false; }, { passive: false });
+  const td = $('tDrop');
+  td.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); dropSelected(false); }, { passive: false });
+  td.addEventListener('click', () => dropSelected(false));
+  $('invDrop1').addEventListener('click', () => invDropHeld(false));
+  $('invDropAll').addEventListener('click', () => invDropHeld(true));
   const ts = $('tSprint');
   ts.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); }, { passive: false });
   ts.addEventListener('click', () => { INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); });
@@ -9648,7 +9836,7 @@ function resetGameState() {
   G.playTime = 0;
   G.inv = emptyInv();
   G.tools = { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
-  G.hotbar = new Array(10).fill(null); G.sel = -1;
+  G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
   G.zombies = []; G.falling = []; G.goal = 0; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
   PL.charge = 1; PL.chargeVis = 0;
@@ -9685,8 +9873,8 @@ async function loadWorld(seed, save, opts = {}) {
     const you = opts.you ? normalizePlayerData(opts.you) : null;
     G.inv = you ? you.inv : emptyInv();
     G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
-    G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.sel = -1;
-    G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
+    G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.bag = you ? you.bag : new Array(BAG_N).fill(null); G.sel = -1;
+    G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = you && you.stats ? Object.assign({ trees: 0, zombies: 0 }, you.stats) : { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
     PL.hp = you ? clamp(you.hp, 20, 100) : 100; PL.dead = false;
     if (you && you.pos) { PL.x = you.pos[0]; PL.y = you.pos[1] + 0.05; PL.z = you.pos[2]; PL.yaw = you.pos[3] || 0; }
@@ -9759,6 +9947,7 @@ function showMenu() {
   applyTouchMode(false);
   updateCursorStyle();
   UI.menuRefresh();
+  UI.menuServers(true);
   CAMC.menuA = Math.atan2(CAM.eye[2] - PL.z, CAM.eye[0] - PL.x) || 0.6;
 }
 async function toMenu(fromMp) {
@@ -10408,7 +10597,7 @@ const NET = {
     if (!u) {
       this.stopWatching();
       this.user = null; this.name = '';
-      UI.account(); UI.worldsRefresh(); UI.friendsRefresh();
+      UI.account(); UI.worldsRefresh(); UI.friendsRefresh(); if (UI.menuServers) UI.menuServers(true);
       return;
     }
     this.user = u;
@@ -10491,7 +10680,7 @@ const NET = {
     const uid = this.uid(); if (!uid) return;
     this.stopFriends();
     this.fRef = this.db.ref('users/' + uid + '/friends');
-    this.fCb = (s) => { this.friends = s.val() || {}; this.syncStatusWatchers(); this.cleanRequests(); UI.friendsRefresh(); };
+    this.fCb = (s) => { this.friends = s.val() || {}; this.syncStatusWatchers(); this.cleanRequests(); UI.friendsRefresh(); UI.menuServers && UI.menuServers(); };
     this.fRef.on('value', this.fCb);
     this.rRef = this.db.ref('users/' + uid + '/requests');
     let first = true;
@@ -10500,7 +10689,7 @@ const NET = {
       this.requests = s.val() || {};
       this.cleanRequests();
       // tell the player about new requests, also while playing
-      if (!first) for (const fid in this.requests) if (!before[fid] && !this.friends[fid]) { UI.toast((this.requests[fid].name || 'Jemand') + ' möchte mit dir spielen. Nimm die Anfrage unter „Freunde“ an.', 'good', 6000, 'req'); SFX.ui(); }
+      if (!first) for (const fid in this.requests) if (!before[fid] && !this.friends[fid]) { UI.toast((this.requests[fid].name || 'Jemand') + (this.requests[fid].srv ? ' lädt dich auf den Server „' + this.requests[fid].srv + '“ ein.' : ' möchte mit dir spielen.') + ' Nimm die Anfrage unter „Freunde“ an.', 'good', 6000, 'req'); SFX.ui(); }
       first = false;
       UI.friendsRefresh();
     };
@@ -10530,7 +10719,7 @@ const NET = {
     this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {};
   },
   stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
-  async addFriend(name) {
+  async addFriend(name, srvName) {
     const lower = (name || '').trim().toLowerCase();
     if (!NAME_RE.test(lower)) throw new Error('Benutzernamen haben 3 bis 16 Zeichen: Buchstaben, Zahlen oder _.');
     if (lower === this.name.toLowerCase()) throw new Error('Das bist du selbst.');
@@ -10539,7 +10728,7 @@ const NET = {
     if (this.friends[fid]) throw new Error((this.friends[fid].name || name) + ' ist schon in deiner Liste.');
     const fname = (await withTimeout(this.db.ref('users/' + fid + '/profile/name').once('value'), 15000)).val() || name.trim();
     await withTimeout(this.db.ref('users/' + this.uid() + '/friends/' + fid).set({ name: fname, at: this.TS() }), 15000);
-    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS() }).catch(() => { });
+    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS(), srv: srvName || null }).catch(() => { });
     return fname;
   },
   async accept(fid) {
@@ -10580,7 +10769,7 @@ const MP_REJOIN_AFTER = 30000; // a guest offline for longer loads the world aga
 const MP = {
   role: 'solo', hostUid: null, hostName: '', base: '', refs: [], ready: false,
   evBuf: [], applied: new Map(), lastP: '', pT: 0, mobT: 0, mobN: 0, pdataT: 0, cleanT: 0,
-  snapWait: null, zidNext: 1, leaving: false,
+  snapWait: null, zidNext: 1, leaving: false, editBuf: [],
   connRef: null, connCb: null, online: undefined, offAt: 0, lastMsgAt: 0, closeT: null, closeWait: 0, warnT: null, warned: false,
   srv: null,          // server world being played (null: somebody's own world)
   infoOpen: true, roomGone: false, leaveT: {}, lastRemote: {}, byeUids: new Set(), closing: false, rejoining: false,
@@ -10599,7 +10788,34 @@ const MP = {
   send(ev) {
     if (!this.active() || !NET.db || (this.isClient() && !this.ready)) return;
     ev.u = NET.uid();
-    this.ref('ev').push(ev).catch(() => { });
+    this.ref('ev').push(ev).catch((e) => this.writeFailed(e));
+    // the lasting state of every changed block: even if a message gets lost on the way,
+    // all computers end up with the same blocks
+    const upd = {};
+    if (ev.t === 'brk') upd[I(ev.x, ev.y, ev.z)] = 0;
+    else if (ev.t === 'plc') {
+      upd[I(ev.x, ev.y, ev.z)] = ev.id === B.AIR ? 0 : [ev.id, ev.m === undefined || ev.m === null ? -1 : ev.m];
+      if (ev.two) upd[I(ev.x + ev.two[0], ev.y + ev.two[1], ev.z + ev.two[2])] = [ev.id, (ev.m | 0) | 8];
+    } else if (ev.t === 'tor' && ev.c) for (let k = 0; k + 3 < ev.c.length; k += 4) upd[I(ev.c[k], ev.c[k + 1], ev.c[k + 2])] = ev.c[k + 3] === B.AIR ? 0 : [ev.c[k + 3], -1];
+    if (Object.keys(upd).length) this.ref('edits').update(upd).catch((e) => this.writeFailed(e));
+  },
+  writeFailed(e) {
+    if (this._warnedWrite || !/PERMISSION|permission/.test(String(e && (e.code || e.message)))) return;
+    this._warnedWrite = true;
+    UI.toast('Deine Änderungen kommen bei den anderen nicht an (keine Berechtigung). Prüfe die Regeln in Firebase.', 'warn', 8000);
+  },
+  /* a block somebody changed: make it the same here */
+  onEdit(key, v) {
+    if (this.isClient() && !this.ready) { this.editBuf.push([key, v]); return; }
+    const i = Number(key); if (!Number.isFinite(i)) return;
+    const [x, y, z] = cellPos(i);
+    const id = Array.isArray(v) ? v[0] | 0 : v | 0;
+    const m = Array.isArray(v) && v[1] >= 0 ? v[1] : null;
+    const loaded = !!chunkForBlock(x, z);
+    const cur = loaded ? getB(x, y, z) : (W.changes.has(i) ? W.changes.get(i) : -1);
+    if (cur === id) return;
+    if (id === B.AIR && loaded) breakBlockAt(x, y, z, false, true);
+    else setBlock(x, y, z, id, m);
   },
 
   /* ---------- hosting ---------- */
@@ -10652,7 +10868,7 @@ const MP = {
     this.lastRemote = {}; this.byeUids.clear();
     this.role = 'solo'; this.hostUid = null; this.base = ''; this.ready = false; this.evBuf = []; this.applied.clear(); this.srv = null;
     for (const k in REMOTE) delete REMOTE[k];
-    this.snapWait = null;
+    this.snapWait = null; this.editBuf = [];
     UI.mpChip();
   },
 
@@ -10786,6 +11002,8 @@ const MP = {
     buf.sort((a, b) => (a[0] < b[0] ? -1 : 1));
     for (const [key, v] of buf) if (!seen.has(key)) this.onEvent(key, v); else this.applied.set(key, performance.now());
     for (const k of seen) this.applied.set(k, performance.now());
+    const eb = this.editBuf; this.editBuf = [];
+    for (const [k, v] of eb) this.onEdit(k, v);
     NET.setActivity({ w: snap.worldName || null, h: false });
     UI.mpChip();
   },
@@ -10823,6 +11041,8 @@ const MP = {
     this.on(this.ref('p'), 'child_added', (s) => this.onP(s.key, s.val()));
     this.on(this.ref('p'), 'child_changed', (s) => this.onP(s.key, s.val()));
     this.on(this.ref('ev'), 'child_added', (s) => this.onEvent(s.key, s.val()));
+    this.on(this.ref('edits'), 'child_added', (s) => this.onEdit(s.key, s.val()));
+    this.on(this.ref('edits'), 'child_changed', (s) => this.onEdit(s.key, s.val()));
     if (this.isHost()) {
       this.on(this.ref('pdata'), 'child_added', (s) => this.onPdata(s.key, s.val()));
       this.on(this.ref('pdata'), 'child_changed', (s) => this.onPdata(s.key, s.val()));
@@ -10960,7 +11180,7 @@ const MP = {
   },
   sendPdata(bye) {
     if (!this.isClient() || !this.ready) return;
-    this.ref('pdata/' + NET.uid()).set({ inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
+    this.ref('pdata/' + NET.uid()).set({ inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
   },
   sendMobs() {
     const r2 = (v) => Math.round(v * 100) / 100;
@@ -11171,6 +11391,8 @@ function applyNetEvent(v) {
     }
     case 'chest': openChest(v.x, v.y, v.z, true); break;
     case 'chst': applyChestEvent(v); break;
+    case 'drop': if (v.p && !DROPS.some((d) => d.nid === v.id)) dropItem(v.k, v.n, v.p[0], v.p[1], v.p[2], v.p[3], v.p[4], v.p[5], v.id); break;
+    case 'pick': removeDropById(v.id); break;
     case 'camp': upgradeCampfire(v.x, v.y, v.z, v.lv); break;
     case 'clr': clearTower(v.id, true); break;
     case 'arw': if (!MP.isHost() && v.p) fireArrow(v.p[0], v.p[1], v.p[2], v.p[3], v.p[4], v.p[5], false); break;
@@ -11203,7 +11425,7 @@ function srvPath(s) { return 'srv/' + s.owner + '/' + s.wid; }
 function srvRoomPath(s) { return srvPath(s) + '/room'; }
 /* what a player carries: inventory, tools, hotbar, position, health, bed */
 function myPlayerData() {
-  return { inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
+  return { inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
 }
 const SERVER = {
   lastUp: 0, busy: false,
@@ -11374,7 +11596,18 @@ UI.serversRefresh = async function () {
 };
 function esc(t) { return String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function bindServerUI() {
-  $('btnServers').addEventListener('click', () => UI.openServers());
+  $('msReload').addEventListener('click', () => UI.menuServers(true));
+  $('invtDone').addEventListener('click', () => UI.closeModal('mdlInvite'));
+  $('invtForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const m = $('invtMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Wird eingeladen …';
+    try {
+      const n = await NET.addFriend($('invtName').value, UI._invSrv ? UI._invSrv.name : null);
+      m.textContent = 'Anfrage an ' + n + ' geschickt. Sobald ' + n + ' annimmt, steht der Server in der Liste.';
+      $('invtName').value = '';
+      UI.inviteRefresh();
+    } catch (e) { m.className = 'form-msg'; m.textContent = e && e.message ? e.message : String(e); }
+  });
   $('srvLogin').addEventListener('click', () => { UI.closeAll(); UI.openAccount(); });
   $('srvUpForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -11389,6 +11622,62 @@ function bindServerUI() {
     $('srvUpBtn').disabled = false;
   });
 }
+
+/* ---------- the server list on the start screen ---------- */
+UI.menuServers = function (force) {
+  const el = $('msList'); if (!el) return;
+  if (!force && UI._msT && performance.now() - UI._msT < 4000) return;
+  UI._msT = performance.now();
+  if (!NET.uid()) {
+    el.innerHTML = '<p class="ms-empty">Melde dich an, dann siehst du hier deine Server und die deiner Freunde.</p>';
+    return;
+  }
+  if (!el.children.length) el.innerHTML = '<p class="ms-empty">Lädt …</p>';
+  const ask = ++UI._msN || (UI._msN = 1);
+  SERVER.list().then((list) => {
+    if (ask !== UI._msN) return;
+    el.innerHTML = '';
+    if (!list.length) { el.innerHTML = '<p class="ms-empty">Noch keine Server. Mach eine Welt zum Server: Welten, dann Bearbeiten, dann „Zum Server machen“. Server deiner Freunde erscheinen hier von selbst.</p>'; return; }
+    for (const s of list) {
+      const row = document.createElement('div'); row.className = 'ms-row';
+      row.innerHTML = '<i class="' + (s.players.length ? 'ms-on' : 'ms-off') + '"></i><div class="ms-m"><b></b><span></span></div>';
+      row.querySelector('b').textContent = s.name;
+      row.querySelector('span').textContent = (s.mine ? 'Dein Server' : 'von ' + s.ownerName) + ' · ' + (s.players.length ? s.players.join(', ') : 'gerade leer');
+      const go = document.createElement('button'); go.className = 'btn primary'; go.type = 'button'; go.textContent = 'Beitreten';
+      go.addEventListener('click', () => playServer(s));
+      row.appendChild(go);
+      if (s.mine) {
+        const inv = document.createElement('button'); inv.className = 'btn'; inv.type = 'button'; inv.textContent = 'Einladen'; inv.title = 'Leute einladen';
+        inv.addEventListener('click', () => UI.openInvite(s));
+        row.appendChild(inv);
+      }
+      el.appendChild(row);
+    }
+  }).catch(() => { el.innerHTML = '<p class="ms-empty">Server konnten nicht geladen werden.</p>'; });
+};
+setInterval(() => { if (G.state === 'menu' && !$('scrMenu').hidden) UI.menuServers(true); }, 20000);
+
+/* ---------- inviting people to a server ---------- */
+UI.openInvite = function (srv) {
+  UI._invSrv = srv;
+  UI.closeAll();
+  $('mdlInvite').hidden = false;
+  $('invtSub').textContent = 'Wer soll auf „' + srv.name + '“ spielen dürfen?';
+  $('invtMsg').hidden = true;
+  UI.inviteRefresh();
+};
+UI.inviteRefresh = function () {
+  const el = $('invtFriends'); el.innerHTML = '';
+  const ids = Object.keys(NET.friends);
+  if (!ids.length) { el.innerHTML = '<div class="list-empty">Noch keine Freunde. Lade unten jemanden ein.</div>'; return; }
+  for (const fid of ids) {
+    const f = NET.friends[fid];
+    const li = document.createElement('div'); li.className = 'li';
+    li.innerHTML = '<div class="li-main"><b></b><span>Darf rein ✓</span></div>';
+    li.querySelector('b').textContent = f.name || 'Freund';
+    el.appendChild(li);
+  }
+};
 
 /* ---- 19s_support.js ---- */
 /* =========================================================================
