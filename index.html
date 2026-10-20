@@ -59,14 +59,28 @@
     },
     "srvmeta": {
       "$owner": {
-        ".read": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())",
-        "$wid": { ".write": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())" }
+        ".read": "auth != null && auth.uid === $owner",
+        "$wid": {
+          ".read": "auth != null && data.child('members/' + auth.uid).exists()",
+          ".write": "auth != null && auth.uid === $owner",
+          "updated": { ".write": "auth != null && data.parent().child('members/' + auth.uid).exists()" },
+          "day": { ".write": "auth != null && data.parent().child('members/' + auth.uid).exists()" },
+          "members": { "$m": { "ok": { ".write": "auth != null && auth.uid === $m && data.parent().exists()" } } }
+        }
       }
     },
     "srv": {
       "$owner": {
-        ".read": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())",
-        ".write": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())"
+        "$wid": {
+          ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists())",
+          ".write": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists())"
+        }
+      }
+    },
+    "srvin": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$k": { ".write": "auth != null && (auth.uid === $uid || auth.uid === newData.child('owner').val() || auth.uid === data.child('owner').val())" }
       }
     },
     "support": {
@@ -220,10 +234,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .ms-row .ms-off { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); flex: none; }
 .ms-empty { font-size: 13px; color: var(--muted); font-weight: 600; line-height: 1.45; }
 @media (max-width: 640px) { .menu-srv { left: 12px; right: 12px; width: auto; top: calc(var(--safe-t) + 60px); max-height: 30vh; padding: 10px; } }
+/* short landscape screens (phones turned sideways): the server list sits on the right, the menu keeps the left */
+@media (max-height: 520px) and (min-width: 520px) { .menu-srv { left: auto; right: calc(var(--safe-r) + 10px); top: calc(var(--safe-t) + 56px); width: min(300px, 38vw); max-height: calc(100% - 70px); padding: 10px; } .menu-inner { width: min(560px, 58vw); } .ms-row { flex-wrap: wrap; } }
 .inv-sheet { max-width: 640px; }
 .inv-slots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
 .inv-slots.hot { grid-template-columns: repeat(10, 1fr); }
 .islot { position: relative; aspect-ratio: 1; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); display: grid; place-items: center; padding: 0; color: var(--text); cursor: pointer; }
+.inv-armor { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.inv-arm { display: grid; grid-template-columns: repeat(4, 44px); gap: 6px; }
+.inv-arm .islot { cursor: default; }
+.inv-arm .islot.off canvas { opacity: 0.18; }
 .islot canvas { width: 70%; height: 70%; image-rendering: pixelated; }
 .islot b { position: absolute; right: 4px; bottom: 2px; font-family: var(--font-display); font-weight: 400; font-size: 13px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
 .islot.held { border-color: var(--ember); background: rgba(255, 177, 92, 0.16); }
@@ -648,10 +668,11 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button class="tab" role="tab" data-tab="survive" aria-selected="true" type="button">Überleben</button>
         <button class="tab" role="tab" data-tab="build" aria-selected="false" type="button">Bauen</button>
         <button class="tab" role="tab" data-tab="tools" aria-selected="false" type="button">Werkzeuge</button>
+        <button class="tab" role="tab" data-tab="armor" aria-selected="false" type="button">Rüstung</button>
       </div>
     </div>
     <div class="sheet-b"><div class="grid" id="shopGrid"></div></div>
-    <div class="sheet-f"><span>Dein Vorrat</span><div class="wallet"><span><canvas id="walWood" width="40" height="40"></canvas><b id="walWoodN">0</b> Holz</span><span><canvas id="walWool" width="40" height="40"></canvas><b id="walWoolN">0</b> Wolle</span><span hidden><canvas id="walIron" width="40" height="40"></canvas><b id="walIronN">0</b> Eisen</span><span hidden><canvas id="walDia" width="40" height="40"></canvas><b id="walDiaN">0</b> Diamanten</span><span hidden><canvas id="walCry" width="40" height="40"></canvas><b id="walCryN">0</b> Kristalle</span></div></div>
+    <div class="sheet-f"><span>Dein Vorrat</span><div class="wallet"><span><canvas id="walWood" width="40" height="40"></canvas><b id="walWoodN">0</b> Holz</span><span><canvas id="walWool" width="40" height="40"></canvas><b id="walWoolN">0</b> Wolle</span><span hidden><canvas id="walIron" width="40" height="40"></canvas><b id="walIronN">0</b> Eisen</span><span hidden><canvas id="walDia" width="40" height="40"></canvas><b id="walDiaN">0</b> Diamanten</span><span hidden><canvas id="walCry" width="40" height="40"></canvas><b id="walCryN">0</b> Kristalle</span><span hidden><canvas id="walRuby" width="40" height="40"></canvas><b id="walRubyN">0</b> Rubine</span><span hidden><canvas id="walMyth" width="40" height="40"></canvas><b id="walMythN">0</b> Mythril</span></div></div>
   </div>
 </div>
 
@@ -691,6 +712,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="sec-t">Sonstiges</p>
       <div class="rows">
         <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
+        <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
         <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
       </div>
       <div id="testBox">
@@ -720,6 +742,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="sheet panel inv-sheet">
     <div class="sheet-h"><div class="grow"><h2 id="invTitle">Inventar</h2><p id="invSub">Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
+      <div class="inv-armor"><div class="inv-arm" id="invArmor"></div><span id="invArmorTxt">Keine Rüstung</span></div>
       <div class="inv-slots" id="invBag"></div>
       <p class="sec-t">Hotbar</p>
       <div class="inv-slots hot" id="invHot"></div>
@@ -759,6 +782,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button type="button" data-v="island" role="radio" aria-checked="false"><b>Insel</b><span>Eine große Insel im Meer. Alles liegt näher beieinander, kein Nebel.</span></button>
       </div>
       <div class="list" id="worldList"></div>
+      <div class="btnrow" style="margin-top:12px"><button class="btn ghost" id="wImport" type="button">Welt importieren</button><input type="file" id="wImportFile" accept=".json,application/json" hidden></div>
     </div>
   </div>
 </div>
@@ -773,8 +797,26 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="hint" id="weSrvHint"></p>
       <button class="btn primary" id="weServer" type="button">Zum Server machen</button>
       <p class="form-msg" id="weMsg" hidden></p>
+      <p class="sec-t">Backup</p>
+      <p class="hint">Ein Backup ist eine Kopie in deinen Welten. Exportieren lädt die Welt als Datei herunter.</p>
+      <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
       <p class="sec-t">Mehr</p>
       <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlSrvAdmin" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="saTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="saTitle">Server</h2><p id="saSub"></p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <p class="sec-t">Mitglieder</p>
+      <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
+      <p class="sec-t">Server-Welt</p>
+      <div class="btnrow"><button class="btn" id="saCopy" type="button">In meine Welten kopieren</button><button class="btn" id="saBackup" type="button">Backup machen</button><button class="btn" id="saExport" type="button">Exportieren</button></div>
+      <p class="form-msg" id="saMsg" hidden></p>
+      <p class="sec-t">Backups auf dem Server</p>
+      <div class="list" id="saList"></div>
     </div>
   </div>
 </div>
@@ -783,8 +825,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="invtTitle">Leute einladen</h2><p id="invtSub"></p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <p class="sec-t">Deine Freunde</p>
-      <p class="hint">Sie sehen den Server sofort in ihrer Serverliste auf dem Startbildschirm.</p>
+      <p class="sec-t">Auf dem Server</p>
+      <div class="list" id="invtMembers"></div>
+      <p class="sec-t">Vorschläge: deine Freunde</p>
+      <p class="hint">Nur wen du hinzufügst, sieht den Server in seiner Serverliste.</p>
       <div class="list" id="invtFriends"></div>
       <p class="sec-t">Andere Spieler einladen</p>
       <p class="hint">Wer noch nicht dein Freund ist, bekommt zuerst eine Anfrage. Nimmt er sie an, sieht er den Server.</p>
@@ -1159,6 +1203,7 @@ const TILE_LIST = [
   'roof', 'sapling', 'pine_top_leaf',
   'iron_ore', 'diamond_ore', 'crystal', 'dark_side', 'dark_top', 'dark_leaves', 'mycel_top', 'mycel_side',
   'shroom_stem', 'shroom_cap', 'glow_shroom', 'tower_brick', 'tower_moss', 'chest', 'dark_grass_top', 'dark_grass_side',
+  'ruby_ore', 'mythril_ore', 'lava',
 ];
 const TI = {}; TILE_LIST.forEach((n, i) => (TI[n] = i));
 
@@ -1172,6 +1217,7 @@ const B = {
   TALLGRASS: 40, FLOWER_RED: 41, FLOWER_YELLOW: 42, FLOWER_VIOLET: 43, MUSHROOM: 44, DEADBUSH: 45, SAPLING: 46,
   CRYSTAL: 47, GLOW_SHROOM: 48,
   TORCH: 50, CAMPFIRE: 51, BED: 52, DOOR: 53, CHEST: 54,
+  RUBY_ORE: 55, MYTHRIL_ORE: 56, LAVA: 57,
 };
 const K_AIR = 0, K_CUBE = 1, K_WATER = 2, K_GLASS = 3, K_PLANT = 4, K_OBJ = 5;
 const KIND = new Uint8Array(256);
@@ -1231,8 +1277,8 @@ defB(B.PLANKS, 'Holzbretter', K_CUBE, 'planks', { hard: 1.0, drop: 'planks' });
 defB(B.BRICKS, 'Steinziegel', K_CUBE, 'bricks', { hard: 1.8, pick: 1, drop: 'bricks' });
 defB(B.GLASS, 'Glas', K_GLASS, 'glass', { hard: 0.45, drop: 'glass' });
 defB(B.COBBLE, 'Bruchstein', K_CUBE, 'cobble', { hard: 1.6, pick: 1, drop: 'cobble' });
-defB(B.WOOL_RED, 'Rote Wolle', K_CUBE, 'wool_red', { hard: 0.6, drop: null });
-defB(B.WOOL_WHITE, 'Weiße Wolle', K_CUBE, 'wool_white', { hard: 0.6, drop: null });
+defB(B.WOOL_RED, 'Rote Wolle', K_CUBE, 'wool_red', { hard: 0.6, drop: 'wool' });
+defB(B.WOOL_WHITE, 'Weiße Wolle', K_CUBE, 'wool_white', { hard: 0.6, drop: 'wool' });
 defB(B.PATH, 'Weg', K_CUBE, ['path_top', 'dirt', 'path_side'], { hard: 0.6, drop: 'dirt' });
 defB(B.BEDROCK, 'Grundgestein', K_CUBE, 'bedrock', { hard: 9999 });
 defB(B.ROOF, 'Dachschindeln', K_CUBE, 'roof', { hard: 1.0, drop: 'planks' });
@@ -1250,6 +1296,10 @@ defB(B.DOOR, 'Tür', K_OBJ, null, { hard: 0.9, drop: 'door', solid: 0 });
 defB(B.CHEST, 'Truhe', K_OBJ, null, { hard: 99, solid: 0 });
 defB(B.IRON_ORE, 'Eisenerz', K_CUBE, 'iron_ore', { hard: 2.2, pick: 1, drop: 'iron' });
 defB(B.DIAMOND_ORE, 'Diamanterz', K_CUBE, 'diamond_ore', { hard: 3.0, pick: 2, drop: 'diamond' });
+defB(B.RUBY_ORE, 'Rubinerz', K_CUBE, 'ruby_ore', { hard: 3.6, pick: 3, drop: 'ruby', emit: 5 });
+defB(B.MYTHRIL_ORE, 'Mythrilerz', K_CUBE, 'mythril_ore', { hard: 4.2, pick: 3, drop: 'mythril', emit: 7 });
+/* lava: glows, can not be dug, burns whoever steps in (you sink into it) */
+defB(B.LAVA, 'Lava', K_CUBE, 'lava', { hard: 9999, emit: 15, solid: 0 });
 defB(B.CRYSTAL, 'Leuchtkristall', K_PLANT, 'crystal', { hard: 0.7, drop: 'crystal', emit: 12 });
 defB(B.GLOW_SHROOM, 'Leuchtpilz', K_PLANT, 'glow_shroom', { hard: 0.05, emit: 9 });
 defB(B.DARK_LOG, 'Schattenstamm', K_CUBE, ['dark_top', 'dark_top', 'dark_side'], { hard: 99, tree: 1, log: 1 });
@@ -1323,6 +1373,11 @@ const PAL = {
   roof: pal(['#8e4b3a', '#814335', '#9a5343', '#753c2f']),
   ironSpot: pal(['#d9a679', '#c98f5f', '#e6b98e']),
   diaSpot: pal(['#57e3e6', '#3fc6d8', '#8ff1f2']),
+  rubySpot: pal(['#ff3b5c', '#e01f45', '#ff7a8f', '#b8123a']),
+  mythSpot: pal(['#a77bff', '#7c5cff', '#d2b8ff', '#5be1ff']),
+  deepStone: pal(['#5d6168', '#545860', '#676b72', '#4b4f56']),
+  lava: pal(['#ff7a1a', '#ff9a2e', '#f25a0f', '#ffc34a']),
+  lavaCrust: pal(['#a8320b', '#7d230a', '#c4410f']),
   crystal: pal(['#8fe9ff', '#b8a6ff', '#6fd3ff', '#d6c8ff']),
   darkBark: pal(['#3a2e35', '#30262c', '#44363e', '#2a2126']),
   darkRing: pal(['#6b5560', '#5d4952', '#77606b', '#52404a']),
@@ -1473,6 +1528,25 @@ function genTile(name, R, seed) {
       for (let k = 0; k < n; k++) { const x = Math.floor(rnd() * R), y = Math.floor(rnd() * R); put(x, y, pick(sp)); if (R >= 8 && x + 1 < R) put(x + 1, y, pick(sp)); }
       break;
     }
+    case 'ruby_ore': case 'mythril_ore': {
+      // dark deep stone with big, glowing crystals in it
+      noisy(PAL.deepStone);
+      const sp = name === 'ruby_ore' ? PAL.rubySpot : PAL.mythSpot;
+      if (R <= 2) { put(1, 0, sp[0]); put(0, 1, sp[2]); break; }
+      const n = Math.max(2, Math.round(R * R / 8));
+      for (let k = 0; k < n; k++) {
+        const x = Math.floor(rnd() * R), y = Math.floor(rnd() * R);
+        put(x, y, pick(sp));
+        if (R >= 8) { if (x + 1 < R) put(x + 1, y, sp[0]); if (y + 1 < R) put(x, y + 1, sp[1]); if (x + 1 < R && y + 1 < R && rnd() < 0.5) put(x + 1, y + 1, sp[2]); }
+      }
+      break;
+    }
+    case 'lava':
+      for (let y = 0; y < R; y++) for (let x = 0; x < R; x++) {
+        const v = Math.sin(x * 1.7 / R * 6 + Math.sin(y * 2.3 / R * 6) * 1.5) + Math.sin(y * 1.3 / R * 6 + x * 0.4);
+        put(x, y, v > 1.1 ? PAL.lava[3] : v < -1.2 && R >= 4 ? pick(PAL.lavaCrust) : pick(PAL.lava));
+      }
+      break;
     case 'crystal': noisy(PAL.crystal); break;
     case 'dark_side': {
       for (let x = 0; x < R; x++) { const col = PAL.darkBark[(x * 5 + Math.floor(rnd() * 2)) % 4]; for (let y = 0; y < R; y++) put(x, y, rnd() < 0.8 ? col : pick(PAL.darkBark)); }
@@ -2339,6 +2413,7 @@ const W = {
   sheepState: new Map(),   // sheep id -> [wool, regrowAt] (shorn sheep)
   chests: new Map(),       // cell -> contents of a chest the player built
   explored: new Set(),     // chunk keys that have been loaded at some point
+  genOld: new Set(),       // chunks that existed before the big caves: they keep the old caves
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
@@ -2926,7 +3001,7 @@ function generateChunk(cx, cz) {
     for (let y = 0; y <= top; y++) bl[base + y] = y === 0 ? B.BEDROCK : y === top ? surf : y > top - depth ? fill : B.STONE;
     for (let y = top + 1; y <= SEA; y++) bl[base + y] = B.WATER;
   }
-  carveCaves(c, H, info);
+  if (W.genOld.has(c.key)) carveCaves(c, H, info); else carveCaves2(c, H, info);
   // structures
   const structs = structuresFor(cx, cz);
   c.structs = structs;
@@ -3080,6 +3155,106 @@ function carveCaves(c, H, info) {
   }
 }
 
+/* ---------- caves, second version (only for land nobody has seen yet) ----------
+   Wide craters lead down, tunnels and halls are bigger, the deepest floors are lava.
+   Diamonds sit in small hidden nests of two or three; rubies and mythril glow deep down. */
+const LAVA_Y = 8;
+function carveCaves2(c, H, info) {
+  const N = W.N, seed = W.seed, bl = c.blocks;
+  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
+    const x = c.x0 + lx, z = c.z0 + lz;
+    const ci = (lx << 4) | lz;
+    const o = info[lx * CS + lz];
+    const top = H[ci];
+    const far = smoothstep(110, 460, o.dd);
+    const tunnelW = lerp(0.06, 0.12, far);
+    // the mouth of a cave: where the entrance noise is high the ground opens into a wide crater
+    const eN = o.d > 26 && top > SEA + 2 ? fbm(N.ent, x / 34, z / 34, 2) - lerp(0.34, 0.44, far) : -1;
+    const entrance = eN > 0;
+    const pockets = o.d > 22;
+    const underWater = top <= SEA + 1;
+    const lavaOk = far > 0.12;
+    const base = ci * WY;
+    for (let y = 2; y <= top; y++) {
+      const depth = top - y;
+      if (depth <= 3 && !entrance) continue;
+      if (underWater && depth < 6) continue;
+      let carve = false;
+      if (entrance && depth < Math.min(26, eN * 150) + N.c1(x / 8, y / 8, z / 8) * 3) carve = true;
+      if (!carve && pockets && depth < 20) { const n = N.c1(x / 14, y / 9, z / 14); if (n > 0.44 + far * 0.1) carve = true; }
+      if (!carve && far > 0.02 && y < top - 2) {
+        const a = N.c2(x / 44, y / 22, z / 44);
+        if (Math.abs(a) < tunnelW) { const b = N.c3(x / 44 + 50, y / 22, z / 44 - 50); if (Math.abs(b) < tunnelW) carve = true; }
+      }
+      if (!carve && far > 0.15 && y < 36 && y > 3) { const n = N.c4(x / 64, y / 30, z / 64); if (n > 0.55 - far * 0.18) carve = true; }
+      if (carve) bl[base + y] = y <= LAVA_Y && lavaOk ? B.LAVA : B.AIR;
+    }
+  }
+  // ores and crystals
+  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
+    const x = c.x0 + lx, z = c.z0 + lz;
+    const ci = (lx << 4) | lz;
+    const o = info[lx * CS + lz];
+    const top = H[ci];
+    const far = smoothstep(110, 460, o.dd);
+    const base = ci * WY;
+    for (let y = 2; y < top - 2; y++) {
+      const id = bl[base + y];
+      if (id === B.AIR) {
+        if (far > 0.2 && bl[base + y - 1] === B.STONE && hashi(x, y, z, seed + 7) < 0.04 * far) bl[base + y] = B.CRYSTAL;
+        else if (far > 0.05 && y < 34 && bl[base + y - 1] === B.STONE && hashi(x, y, z, seed + 8) < 0.012) bl[base + y] = B.GLOW_SHROOM;
+        continue;
+      }
+      if (id !== B.STONE) continue;
+      const inner = lx > 0 && lx < 15 && lz > 0 && lz < 15;
+      const open = (v) => v === B.AIR || v === B.LAVA;
+      const exposed = inner && (open(bl[base + y + 1]) || open(bl[base + y - 1]) || open(bl[base + y + 16 * WY]) || open(bl[base + y - 16 * WY]) || open(bl[base + y + WY]) || open(bl[base + y - WY]));
+      const hc = hashi(x >> 1, y >> 1, z >> 1, seed + 3);
+      if (hc < (exposed ? 0.026 : 0.005) && hashi(x, y, z, seed + 4) < 0.7) { bl[base + y] = B.IRON_ORE; continue; }
+      // rubies: small glowing clusters, deep and far out
+      if (y < 20 && far > 0.25 && hashi(x >> 1, y >> 1, z >> 1, seed + 31) < 0.0016 * far && hashi(x, y, z, seed + 32) < 0.55) { bl[base + y] = B.RUBY_ORE; continue; }
+      // mythril: the rarest, only at the very bottom near the lava
+      if (y < 13 && far > 0.4 && exposed && hashi(x, y, z, seed + 33) < 0.0035 * far) bl[base + y] = B.MYTHRIL_ORE;
+    }
+  }
+  diamondNests(c);
+}
+/* small hidden caves with two or three diamonds and a glowing crystal (one per 36 x 36 cell at most) */
+const NEST_G = 36;
+const _nci = {};
+function diamondNests(c) {
+  const seed = W.seed, bl = c.blocks;
+  for (let gx = Math.floor((c.x0 - 4) / NEST_G); gx <= Math.floor((c.x0 + CS + 4) / NEST_G); gx++)
+    for (let gz = Math.floor((c.z0 - 4) / NEST_G); gz <= Math.floor((c.z0 + CS + 4) / NEST_G); gz++) {
+      const h = hashi(gx, 77, gz, seed + 41);
+      if (h > 0.55) continue;
+      const nx = gx * NEST_G + 4 + Math.floor(hashi(gx, 78, gz, seed + 41) * (NEST_G - 8));
+      const nz = gz * NEST_G + 4 + Math.floor(hashi(gx, 79, gz, seed + 41) * (NEST_G - 8));
+      colInfo(nx, nz, _nci);
+      if (smoothstep(110, 460, _nci.dd) < 0.08 || _nci.d < 30) continue;
+      const top = Math.round(clamp(_nci.h, 2, WY - 14));
+      const ny = 6 + Math.floor(hashi(gx, 80, gz, seed + 41) * 12);
+      if (ny > top - 8) continue;
+      const inC = (x, z) => x >= c.x0 && x < c.x0 + CS && z >= c.z0 && z < c.z0 + CS;
+      const at = (x, y, z) => LI(x & 15, y, z & 15);
+      for (let dx = -3; dx <= 3; dx++) for (let dy = -2; dy <= 2; dy++) for (let dz = -3; dz <= 3; dz++) {
+        const x = nx + dx, y = ny + dy, z = nz + dz;
+        if (!inC(x, z)) continue;
+        if ((dx / 2.4) ** 2 + (dy / 1.6) ** 2 + (dz / 2.4) ** 2 <= 1) bl[at(x, y, z)] = B.AIR;
+      }
+      const n = h < 0.3 ? 3 : 2;
+      const a0 = hashi(gx, 81, gz, seed + 41) * TAU;
+      for (let k = 0; k < n; k++) {
+        const a = a0 + k * TAU / n;
+        const x = nx + Math.round(Math.cos(a) * 2.9), z = nz + Math.round(Math.sin(a) * 2.9), y = ny + (k === 2 ? -1 : 0);
+        // in the wall; where a cave cut through it, the next cell up or down
+        if (!inC(x, z)) continue;
+        for (const yy of [y, y - 1, y + 1, y - 2]) { const v = bl[at(x, yy, z)]; if (v !== B.AIR && v !== B.LAVA && v !== B.BEDROCK) { bl[at(x, yy, z)] = B.DIAMOND_ORE; break; } }
+      }
+      if (inC(nx, nz) && bl[at(nx, ny - 1, nz)] === B.AIR && SOLID[bl[at(nx, ny - 2, nz)]]) bl[at(nx, ny - 1, nz)] = B.CRYSTAL;
+    }
+}
+
 /* =========================================================================
    Light: sky light and block light (0..15), recomputed in boxes.
    relight(target box, spread box): resets the target, lets light flow in
@@ -3201,7 +3376,7 @@ function resetWorld(seed, mode) {
   W.seed = seed; W.N = makeWorldNoise(seed);
   W.meta.clear(); W.changes.clear(); W.metaChanges.clear(); W.chEdits.clear();
   W.prot.clear(); W.treeAt.clear(); W.hidden.clear(); W.cleared.clear();
-  W.sheepState.clear(); W.explored.clear(); W.chests.clear(); W.campLv = 1;
+  W.sheepState.clear(); W.explored.clear(); W.genOld.clear(); W.chests.clear(); W.campLv = 1;
   for (const t of W.trees.values()) if (t.model) freeModel(t.model);
   W.trees.clear(); W.treeStates.clear(); TREES_BY_CHUNK.clear();
   STRUCT_CACHE.clear(); TOWERS.clear();
@@ -4484,8 +4659,8 @@ function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if
 function keptDrops() { return DROPS.filter((d) => d.keep).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
 function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
-const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0] };
-const DROP_GLOW = { diamond: 0.35, crystal: 0.7 };
+const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
+const DROP_GLOW = { diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
 
 /* ---------- placed objects (torch, campfire, bed, door) ---------- */
 const OBJS = new Map(); // cell -> obj
@@ -4507,7 +4682,10 @@ const COL = {
   ember: [0.9, 0.25, 0.05], white: hexToRgb('#f1ede6'), red: hexToRgb('#c8443c'), blue: hexToRgb('#3f6fb3'), glass: hexToRgb('#bfe3f7'),
   iron: hexToRgb('#c9cfd4'), gold: hexToRgb('#f2c94c'), stoneTool: hexToRgb('#8b8f93'), handle: hexToRgb('#7a5233'), charcoal: hexToRgb('#2b2522'),
   diamond: hexToRgb('#5fe3e6'), chest: hexToRgb('#8e5c35'), chestDark: hexToRgb('#5a3820'),
+  ruby: hexToRgb('#ff3b5c'), rubyDark: hexToRgb('#b8123a'), mythril: hexToRgb('#a77bff'), mythrilDark: hexToRgb('#6a3fe0'),
 };
+/* armor colors per tier: [main, dark, glow] */
+const ARMOR_COL = [null, [hexToRgb('#cfd4d9'), hexToRgb('#8d9399'), 0], [hexToRgb('#5fe3e6'), hexToRgb('#2fb7c4'), 0.12], [hexToRgb('#a77bff'), hexToRgb('#6a3fe0'), 0.35]];
 const _oms = new MatStack();
 function drawObject(o, solid, t, blood) {
   const sky = skyAt(o.x, o.y, o.z);
@@ -4608,7 +4786,7 @@ function skyAt(x, y, z) {
 }
 
 /* ---------- tools held in hand ---------- */
-function toolColor(level) { return level >= 3 ? COL.diamond : level === 2 ? COL.iron : COL.stoneTool; }
+function toolColor(level) { return level >= 4 ? COL.ruby : level >= 3 ? COL.diamond : level === 2 ? COL.iron : COL.stoneTool; }
 function drawTool(Bt, ms, tool, level, sky, item) {
   const box = (w, h, d, x, y, z, c, em = 0, s = sky) => Bt.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, s);
   if (tool === 'axe') {
@@ -4617,11 +4795,12 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     box(0.07, 0.22, 0.2, 0, 0.47, 0.09, c);
     box(0.08, 0.26, 0.05, 0, 0.47, 0.2, [c[0] * 1.08, c[1] * 1.08, c[2] * 1.08]);
   } else if (tool === 'sword') {
-    const c = toolColor(level);
+    const c = toolColor(level), em = level >= 4 ? 0.45 : 0;
     box(0.06, 0.2, 0.06, 0, 0.0, 0, COL.handle);
-    box(0.22, 0.05, 0.08, 0, 0.12, 0, COL.charcoal);
-    box(0.08, 0.66, 0.03, 0, 0.47, 0, c);
-    box(0.05, 0.08, 0.035, 0, 0.83, 0, c);
+    box(0.22, 0.05, 0.08, 0, 0.12, 0, level >= 4 ? COL.gold : COL.charcoal);
+    box(0.08, 0.66, 0.03, 0, 0.47, 0, c, em);
+    box(0.05, 0.08, 0.035, 0, 0.83, 0, c, em);
+    if (level >= 4) box(0.025, 0.6, 0.036, 0, 0.47, 0, [1, 0.75, 0.8], 0.8);
   } else if (tool === 'pickaxe') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
     box(0.07, 0.07, 0.56, 0, 0.53, 0, toolColor(level));
@@ -4653,6 +4832,60 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     const c = BCOLOR[item] || [0.7, 0.7, 0.7];
     box(0.24, 0.24, 0.24, 0, 0.12, 0.05, c);
   }
+}
+
+/* ---------- things lying on the ground: small models of what they are ---------- */
+function drawItemModel(Bt, ms, k, n, sky) {
+  const box = (w, h, d, x, y, z, c, em = 0) => Bt.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, sky);
+  const it = ITEMS[k] || {};
+  if (it.tool) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, it.tool, Math.max(1, n || 1), sky); ms.pop(); return; }
+  if (it.armor) { drawArmorPiece(box, it.armor, Math.max(1, n || 1)); return; }
+  if (k === 'torch') { ms.push().t(0, -0.28, 0); drawTool(Bt, ms, 'torch', 0, sky); ms.pop(); return; }
+  if (k === 'iron') {
+    box(0.42, 0.13, 0.22, 0, -0.06, 0, [0.62, 0.65, 0.69]);
+    box(0.34, 0.06, 0.15, 0, 0.03, 0, [0.88, 0.9, 0.93]);
+    box(0.2, 0.012, 0.03, 0.02, 0.065, -0.03, [1, 1, 1], 0.4);
+    return;
+  }
+  if (k === 'diamond' || k === 'crystal' || k === 'ruby' || k === 'mythril') {
+    const c = DROP_COLOR[k], g = DROP_GLOW[k] || 0.3;
+    ms.push().rz(Math.PI / 4);
+    box(0.26, 0.26, 0.12, 0, 0, 0, c, g);
+    box(0.15, 0.15, 0.14, -0.03, 0.03, 0, [Math.min(1, c[0] + 0.4), Math.min(1, c[1] + 0.4), Math.min(1, c[2] + 0.4)], g + 0.3);
+    ms.pop();
+    return;
+  }
+  if (k === 'chest') {
+    const wd = COL.chest, dk = COL.chestDark;
+    box(0.5, 0.3, 0.42, 0, -0.08, 0, wd); box(0.52, 0.17, 0.44, 0, 0.15, 0, [wd[0] * 1.08, wd[1] * 1.08, wd[2] * 1.08]);
+    box(0.52, 0.04, 0.44, 0, 0.06, 0, dk); box(0.08, 0.1, 0.03, 0, 0.06, 0.23, COL.gold, 0.2);
+    return;
+  }
+  if (k === 'bucket' || k === 'water_bucket') {
+    box(0.3, 0.32, 0.3, 0, 0, 0, COL.iron); box(0.34, 0.04, 0.34, 0, 0.16, 0, [0.6, 0.63, 0.67]);
+    if (k === 'water_bucket') box(0.26, 0.02, 0.26, 0, 0.15, 0, [0.3, 0.55, 0.92], 0.15);
+    else box(0.24, 0.02, 0.24, 0, 0.15, 0, [0.25, 0.26, 0.28]);
+    box(0.02, 0.16, 0.02, -0.17, 0.25, 0, [0.4, 0.42, 0.45]); box(0.02, 0.16, 0.02, 0.17, 0.25, 0, [0.4, 0.42, 0.45]); box(0.36, 0.02, 0.02, 0, 0.33, 0, [0.4, 0.42, 0.45]);
+    return;
+  }
+  if (k === 'campfire') {
+    ms.push().ry(0.7); box(0.5, 0.1, 0.1, 0, -0.12, 0, COL.wood); ms.pop();
+    ms.push().ry(-0.7); box(0.5, 0.1, 0.1, 0, -0.06, 0, COL.woodDark); ms.pop();
+    box(0.14, 0.18, 0.14, 0, 0.06, 0, COL.flameO, 1); box(0.07, 0.12, 0.07, 0, 0.08, 0, COL.flameW, 1);
+    return;
+  }
+  if (k === 'bed') { box(0.3, 0.1, 0.52, 0, -0.05, 0, COL.red); box(0.28, 0.06, 0.14, 0, 0.03, -0.18, COL.white); box(0.32, 0.06, 0.54, 0, -0.12, 0, COL.plank); return; }
+  if (k === 'door') { box(0.3, 0.56, 0.05, 0, 0, 0, COL.plank); box(0.16, 0.12, 0.06, 0, 0.14, 0, COL.glass, 0.2); box(0.03, 0.05, 0.08, 0.1, -0.02, 0, COL.charcoal); return; }
+  const c = DROP_COLOR[k] || [0.8, 0.8, 0.8];
+  box(0.3, 0.3, 0.3, 0, 0, 0, c);
+}
+/* one armor piece on its own (ground, held up in the shop) */
+function drawArmorPiece(box, slot, lv) {
+  const A = ARMOR_COL[lv] || ARMOR_COL[1], c = A[0], d = A[1], g = A[2];
+  if (slot === 'helmet') { box(0.42, 0.12, 0.42, 0, 0.12, 0, c, g); box(0.42, 0.22, 0.06, 0, 0, -0.18, d, g); box(0.06, 0.22, 0.42, -0.18, 0, 0, d, g); box(0.06, 0.22, 0.42, 0.18, 0, 0, d, g); }
+  else if (slot === 'chestplate') { box(0.5, 0.42, 0.22, 0, 0, 0, c, g); box(0.2, 0.12, 0.26, -0.27, 0.15, 0, d, g); box(0.2, 0.12, 0.26, 0.27, 0.15, 0, d, g); }
+  else if (slot === 'leggings') { box(0.44, 0.1, 0.24, 0, 0.17, 0, d, g); box(0.18, 0.4, 0.22, -0.12, -0.06, 0, c, g); box(0.18, 0.4, 0.22, 0.12, -0.06, 0, c, g); }
+  else { box(0.16, 0.18, 0.24, -0.11, 0, 0.02, c, g); box(0.16, 0.18, 0.24, 0.11, 0, 0.02, c, g); box(0.17, 0.05, 0.28, -0.11, -0.1, 0.04, d, g); box(0.17, 0.05, 0.28, 0.11, -0.1, 0.04, d, g); }
 }
 
 /* ---------- humanoid model ---------- */
@@ -4838,10 +5071,13 @@ const SKIN_BY_ID = {}; SKINS.forEach((s) => (SKIN_BY_ID[s.id] = s));
 function skinOf(id) { return SKIN_BY_ID[id] || SKINS[0]; }
 
 /* ---------- 3D character ---------- */
+const NO_ARMOR = { h: 0, c: 0, l: 0, b: 0 };
+function armorOf(T) { return { h: T.helmet | 0, c: T.chestplate | 0, l: T.leggings | 0, b: T.boots | 0 }; }
 function drawCharacter(Bt, ms, skinId, P, sky, t) {
   const sk = skinOf(skinId), C = sk.c;
   const box = (w, h, d, x, y, z, c, em = 0) => Bt.box(ms.m, w, h, d, x, y, z, c[0] * P.tint, c[1] * P.tintG, c[2] * P.tintB, em, sky);
   const LL = 0.78;
+  const AR = P.armor || NO_ARMOR;   // worn armor tiers: h(elmet), c(hest), l(egs), b(oots)
   ms.push();
   ms.t(0, P.bob, 0);
   // legs: trousers, boots, soles
@@ -4851,6 +5087,8 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
     box(0.215, 0.24, 0.235, 0, -0.62, 0, C.boots);
     box(0.225, 0.07, 0.29, 0, -LL + 0.035, 0.03, C.sole);
     if (sk.torso === 'suit') box(0.225, 0.05, 0.245, 0, -0.5, 0, C.cuff);
+    if (AR.l) { const A = ARMOR_COL[AR.l]; box(0.235, 0.46, 0.255, 0, -0.24, 0, A[0], A[2]); box(0.24, 0.05, 0.26, 0, -0.03, 0, A[1], A[2]); }
+    if (AR.b) { const A = ARMOR_COL[AR.b]; box(0.24, 0.26, 0.26, 0, -0.63, 0.005, A[0], A[2]); box(0.245, 0.07, 0.3, 0, -LL + 0.04, 0.03, A[1], A[2]); }
     ms.pop();
   }
   // torso
@@ -4903,6 +5141,7 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
     for (let k = 0; k < 4; k++) box(0.03, 0.03, 0.02, -0.15 + k * 0.1, 0.55, 0.156, C.metal);
     box(0.1, 0.1, 0.025, 0, 0.36, 0.165, C.eye, 0.85);
   }
+  if (AR.c) { const A = ARMOR_COL[AR.c]; box(0.57, 0.6, 0.335, 0, 0.33, 0, A[0], A[2]); box(0.4, 0.3, 0.02, 0, 0.36, 0.17, A[1], A[2]); box(0.59, 0.07, 0.345, 0, 0.6, 0, A[1], A[2]); }
   // back accessories
   const Bk = sk.back;
   if (Bk === 'pack') {
@@ -4922,6 +5161,14 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
   // head
   ms.push().t(0, 0.62, 0).ry(P.headYaw).rx(P.headPitch).rz(P.headRoll);
   drawSkinHead(box, sk, P, t);
+  if (AR.h) {
+    const A = ARMOR_COL[AR.h];
+    box(0.47, 0.12, 0.47, 0, 0.45, 0, A[0], A[2]);
+    box(0.47, 0.34, 0.06, 0, 0.27, -0.215, A[0], A[2]);
+    box(0.06, 0.34, 0.47, -0.215, 0.27, 0, A[0], A[2]);
+    box(0.06, 0.34, 0.47, 0.215, 0.27, 0, A[0], A[2]);
+    box(0.47, 0.05, 0.05, 0, 0.36, 0.22, A[1], A[2]);
+  }
   ms.pop();
   // arms
   for (const side of [-1, 1]) {
@@ -4929,6 +5176,7 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
     box(0.17, 0.32, 0.19, 0, -0.13, 0, C.sleeve);
     box(0.175, 0.07, 0.195, 0, -0.32, 0, C.cuff);
     box(0.15, 0.2, 0.17, 0, -0.45, 0, C.hand);
+    if (AR.c) { const A = ARMOR_COL[AR.c]; box(0.22, 0.17, 0.24, 0, -0.04, 0, A[1], A[2]); box(0.19, 0.2, 0.21, 0, -0.2, 0, A[0], A[2]); }
     if (side > 0 && P.tool) { ms.push().t(0, -0.55, 0.02).rx(Math.PI / 2 + (P.toolRx || 0)); drawTool(Bt, ms, P.tool, P.toolLevel, sky, P.item); ms.pop(); }
     ms.pop();
   }
@@ -5086,7 +5334,7 @@ const QUALITY = {
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
-  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false,
+  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false,
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
@@ -5127,19 +5375,37 @@ const ITEMS = {
   pickaxe: { name: 'Spitzhacke', tool: 'pickaxe' },
   sword: { name: 'Schwert', tool: 'sword' },
   shears: { name: 'Schere', tool: 'shears' },
+  // armor is worn, not held: it never takes a slot
+  helmet: { name: 'Helm', armor: 'helmet' },
+  chestplate: { name: 'Brustplatte', armor: 'chestplate' },
+  leggings: { name: 'Beinschutz', armor: 'leggings' },
+  boots: { name: 'Stiefel', armor: 'boots' },
 };
+const ARMOR_SLOTS = ['helmet', 'chestplate', 'leggings', 'boots'];
+const ARMOR_TIER = [null, 'iron', 'diamond', 'mythril'];
+const ARMOR_NAMES = {
+  helmet: ['Helm', 'Eisenhelm', 'Diamanthelm', 'Mythrilhelm'],
+  chestplate: ['Brustplatte', 'Eisenbrustplatte', 'Diamantbrustplatte', 'Mythrilbrustplatte'],
+  leggings: ['Beinschutz', 'Eisenbeinschutz', 'Diamantbeinschutz', 'Mythrilbeinschutz'],
+  boots: ['Stiefel', 'Eisenstiefel', 'Diamantstiefel', 'Mythrilstiefel'],
+};
+/* armor points like Minecraft (iron 15, diamond 20 for the full set); mythril a little more */
+const ARMOR_PTS = { helmet: [0, 2, 3, 4], chestplate: [0, 6, 8, 9], leggings: [0, 5, 6, 7], boots: [0, 2, 3, 4] };
+const ARMOR_COST_N = { helmet: 5, chestplate: 8, leggings: 7, boots: 4 };
+function armorPoints() { let p = 0; for (const s of ARMOR_SLOTS) p += ARMOR_PTS[s][G.tools[s] | 0] || 0; return p; }
+function armorReduce() { return Math.min(0.84, armorPoints() * 0.035); }
 const TOOL_LEVEL_NAMES = {
-  axe: ['Axt', 'Steinaxt', 'Eisenaxt', 'Diamantaxt'],
-  sword: ['Schwert', 'Steinschwert', 'Eisenschwert', 'Diamantschwert'],
-  pickaxe: ['Spitzhacke', 'Spitzhacke', 'Eisenspitzhacke'],
+  axe: ['Axt', 'Steinaxt', 'Eisenaxt', 'Diamantaxt', 'Rubinaxt'],
+  sword: ['Schwert', 'Steinschwert', 'Eisenschwert', 'Diamantschwert', 'Rubinschwert'],
+  pickaxe: ['Spitzhacke', 'Spitzhacke', 'Eisenspitzhacke', 'Diamantspitzhacke'],
   shears: ['Schere', 'Schere'],
 };
 /* raw materials: counted, not placed */
-const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal'];
-const RES_NAME = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamanten', crystal: 'Kristalle' };
-const RES_ONE = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant', crystal: 'Kristall' };
+const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal', 'ruby', 'mythril'];
+const RES_NAME = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamanten', crystal: 'Kristalle', ruby: 'Rubine', mythril: 'Mythril' };
+const RES_ONE = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant', crystal: 'Kristall', ruby: 'Rubin', mythril: 'Mythril' };
 function resName(k, n) { return n === 1 ? RES_ONE[k] : RES_NAME[k]; }
-function emptyInv() { return { wood: 0, wool: 0, iron: 0, diamond: 0, crystal: 0, items: {} }; }
+function emptyInv() { return { wood: 0, wool: 0, iron: 0, diamond: 0, crystal: 0, ruby: 0, mythril: 0, items: {} }; }
 function canAfford(cost) { for (const k in cost) if ((G.inv[k] || 0) < cost[k]) return false; return true; }
 function pay(cost) { for (const k in cost) G.inv[k] = (G.inv[k] || 0) - cost[k]; }
 function missingText(cost) { const m = []; for (const k in cost) { const d = cost[k] - (G.inv[k] || 0); if (d > 0) m.push(d + ' ' + resName(k, d)); } return m.join(', '); }
@@ -5147,6 +5413,8 @@ function resHint(cost) {
   if (cost.wool && G.inv.wool < cost.wool) return ' Schafe grasen weit weg vom Spawn.';
   if (cost.iron && G.inv.iron < cost.iron) return ' Eisenerz steckt in den kleinen Höhlen rund ums Lager.';
   if (cost.diamond && G.inv.diamond < cost.diamond) return ' Diamanten liegen tief in den großen Höhlen weiter draußen.';
+  if (cost.ruby && (G.inv.ruby || 0) < cost.ruby) return ' Rubine glühen tief unten in Höhlen weit draußen. Du brauchst eine Diamantspitzhacke.';
+  if (cost.mythril && (G.inv.mythril || 0) < cost.mythril) return ' Mythril liegt ganz unten bei der Lava, weit weg vom Spawn. Du brauchst eine Diamantspitzhacke.';
   if (cost.crystal && G.inv.crystal < cost.crystal) return ' Leuchtkristalle wachsen hinter dem Schattenwald und tief in den Höhlen.';
   if (cost.wood && G.inv.wood < cost.wood) return ' Fäll noch ein paar Bäume.';
   return '';
@@ -5155,6 +5423,7 @@ function itemName(k) {
   if (RES_NAME[k]) return RES_NAME[k];
   const it = ITEMS[k]; if (!it) return '';
   if (it.tool) { const n = TOOL_LEVEL_NAMES[it.tool]; return n[G.tools[it.tool]] || n[n.length - 1]; }
+  if (it.armor) return ARMOR_NAMES[it.armor][Math.max(1, G.tools[it.armor] | 0)];
   return it.name;
 }
 /* the tool in the hand right now (null: hand, block, torch …) */
@@ -5185,10 +5454,19 @@ const SHOP = [
   { id: 'sword3', tab: 'tools', tool: 'sword', level: 3, cost: { wood: 16, diamond: 4 }, name: 'Diamantschwert', desc: '34 Schaden. Damit traust du dich in den Schattenwald.' },
   { id: 'pickaxe', tab: 'tools', tool: 'pickaxe', level: 1, cost: { wood: 6 }, name: 'Spitzhacke', desc: 'Baut Stein und Eisenerz ab, wenn du sie in der Hand hast.' },
   { id: 'pickaxe2', tab: 'tools', tool: 'pickaxe', level: 2, cost: { wood: 10, iron: 6 }, name: 'Eisenspitzhacke', desc: 'Gräbt schneller und baut auch Diamanterz ab.' },
+  { id: 'pickaxe3', tab: 'tools', tool: 'pickaxe', level: 3, cost: { wood: 16, diamond: 3 }, name: 'Diamantspitzhacke', desc: 'Gräbt am schnellsten und baut Rubin und Mythril ab.' },
+  { id: 'sword4', tab: 'tools', tool: 'sword', level: 4, cost: { wood: 16, ruby: 4 }, name: 'Rubinschwert', desc: '48 Schaden. Glüht rot, auch im Dunkeln.' },
+  { id: 'axe4', tab: 'tools', tool: 'axe', level: 4, cost: { wood: 16, ruby: 3 }, name: 'Rubinaxt', desc: 'Nur 3 Schläge pro Baum.' },
   { id: 'shears', tab: 'tools', tool: 'shears', level: 1, cost: { wood: 4 }, name: 'Schere', desc: 'In die Hand nehmen und Schafe scheren. Schafe leben weit weg vom Spawn.' },
 ];
-const CHOP_HITS = [50, 25, 12, 6];
-const SWORD_DMG = [1, 14, 24, 34];
+/* armor: helmet 5, chestplate 8, leggings 7, boots 4 (like Minecraft) in iron, diamond or mythril */
+for (let lv = 1; lv <= 3; lv++) for (const sl of ARMOR_SLOTS) {
+  const mat = ARMOR_TIER[lv];
+  SHOP.push({ id: sl + lv, tab: 'armor', armor: sl, level: lv, cost: { [mat]: ARMOR_COST_N[sl] }, name: ARMOR_NAMES[sl][lv],
+    desc: '+' + ARMOR_PTS[sl][lv] + ' Rüstung. Wird sofort angezogen und schützt vor Zombies, Pfeilen und Lava.' });
+}
+const CHOP_HITS = [50, 25, 12, 6, 3];
+const SWORD_DMG = [1, 14, 24, 34, 48];
 /* what the thing in the hand does in a fight: damage at full charge, knockback, seconds to recharge */
 function weaponStats() {
   const k = heldToolKind();
@@ -5264,8 +5542,11 @@ function afterEdit(x0, z0, x1, z1, lightChanged) {
 }
 
 /* ---------- inventory ---------- */
-function itemCount(k) { if (!k) return 0; if (RES_NAME[k]) return G.inv[k] || 0; const it = ITEMS[k]; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
+function itemCount(k) { if (!k) return 0; if (RES_NAME[k]) return G.inv[k] || 0; const it = ITEMS[k]; if (it && it.armor) return 0; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
 const BAG_N = 27;
+/* wood and wool can also be built with: they become logs and wool blocks */
+const PLACE_RES = { wood: { name: 'Holz', block: B.OAK_LOG, place: 'block' }, wool: { name: 'Wolle', block: B.WOOL_WHITE, place: 'block' } };
+function placeDef(k) { return ITEMS[k] || PLACE_RES[k] || null; }
 /* everything you have sits in one slot: the hotbar first, then the bag (Tab) */
 function syncSlots() {
   if (!Array.isArray(G.bag)) G.bag = [];
@@ -5284,6 +5565,8 @@ function syncSlots() {
   }
 }
 function addItem(k, n) {
+  // armor from the ground: put on, the better one stays
+  if (ITEMS[k] && ITEMS[k].armor) { G.tools[k] = Math.max(G.tools[k] | 0, n || 1); return; }
   // a tool from the ground: you keep the better one
   if (ITEMS[k] && ITEMS[k].tool) { const t = ITEMS[k].tool; G.tools[t] = Math.max(G.tools[t] || 0, n || 1); UI.tools && UI.tools(); UI.hotbar(); return; }
   if (RES_NAME[k]) { G.inv[k] = (G.inv[k] || 0) + n; UI.res(); return; }
@@ -5303,6 +5586,7 @@ function selectedItem() { return G.sel >= 0 ? G.hotbar[G.sel] : null; }
 /* ---------- shop ---------- */
 function shopState(e) {
   if (e.tool && G.tools[e.tool] >= e.level) return 'owned';
+  if (e.armor && (G.tools[e.armor] | 0) >= e.level) return 'owned';
   // only one campfire per player, ever
   if (e.id === 'campfire' && (G.stats.campfires || 0) >= 1) return 'owned';
   return canAfford(e.cost) ? 'ok' : 'poor';
@@ -5321,6 +5605,7 @@ function buy(id) {
     UI.toast((e.tool === 'shears' ? 'Schere gekauft. Schafe grasen weit draußen.' : e.name + ' gekauft.') + where, 'good', 5200);
     if (e.tool === 'shears' && G.goal === 4) setGoal(5);
   }
+  else if (e.armor) { G.tools[e.armor] = Math.max(G.tools[e.armor] | 0, e.level); UI.toast(e.name + ' angezogen. Rüstung: ' + Math.round(armorReduce() * 100) + ' % weniger Schaden.', 'good', 4200); }
   else { addItem(e.item, e.qty); UI.toast(e.name + ' gekauft', 'good'); }
   if (e.id === 'campfire') G.stats.campfires = (G.stats.campfires || 0) + 1;
   SFX.buy();
@@ -5461,6 +5746,7 @@ function makeSave() {
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
+    gv: 2, old: [...W.genOld],
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
   };
@@ -5493,6 +5779,15 @@ function normalizeInv(inv) {
   o.items = Object.assign({}, inv.items || {});
   return o;
 }
+/* land that existed before the big caves keeps its old caves: everything explored so far,
+   every chunk with something built in it, and (old saves without that list) the land around the camp */
+function markOldChunks(s) {
+  if (s.gv >= 2) { for (const k of s.old || []) W.genOld.add(k); return; }
+  for (const k of s.ex || []) W.genOld.add(k);
+  const p = [0, 0, 0];
+  for (let k = 0; k + 1 < (s.ch || []).length; k += 2) { cellXYZ(s.ch[k], p); W.genOld.add(ckey(p[0] >> 4, p[2] >> 4)); }
+  if (!(s.ex || []).length) { const cx = Math.floor(W.spawn[0]) >> 4, cz = Math.floor(W.spawn[2]) >> 4; for (let a = -14; a <= 14; a++) for (let b = -14; b <= 14; b++) W.genOld.add(ckey(cx + a, cz + b)); }
+}
 /* load a save into the freshly reset world (before any chunk is generated).
    Saves from the island version (v1) keep the player's things, the world is new. */
 function applySave(s, convert) {
@@ -5508,6 +5803,7 @@ function applySave(s, convert) {
     W.campLv = clamp(s.camp | 0 || 1, 1, 5);
     for (const id of s.clr || []) W.cleared.add(id);
     for (const k of s.ex || []) W.explored.add(k);
+    markOldChunks(s);
     for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
   }
   Object.assign(G.time, s.time);
@@ -5704,6 +6000,7 @@ function respawnPlayer() {
 }
 function hurtPlayer(dmg, fromX, fromZ) {
   if (PL.dead || PL.invuln > 0 || G.sleep) return;
+  dmg *= 1 - armorReduce();
   PL.hp = Math.max(0, PL.hp - dmg);
   PL.lastHurt = G.playTime; PL.hurtT = 0.35;
   const dx = PL.x - fromX, dz = PL.z - fromZ, d = Math.hypot(dx, dz) || 1;
@@ -5740,7 +6037,7 @@ function dropEverything() {
   for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
   for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
   G.inv.items = {};
-  for (const t of ['axe', 'sword', 'pickaxe', 'shears']) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
+  for (const t of ['axe', 'sword', 'pickaxe', 'shears', ...ARMOR_SLOTS]) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
   all.forEach(([k, n], j) => {
     const a = j / Math.max(1, all.length) * TAU;
     sendDrop(dropItem(k, n, PL.x, PL.y + 1, PL.z, Math.cos(a) * 2.2, 3.5, Math.sin(a) * 2.2));
@@ -5775,10 +6072,17 @@ function updatePlayer(dt) {
   const [dx, dz, amt] = moveInput();
   const head = getB(Math.floor(PL.x), Math.floor(PL.y + 1.3), Math.floor(PL.z));
   const feet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.3), Math.floor(PL.z));
-  PL.inWater = feet === B.WATER || head === B.WATER;
+  PL.inLava = feet === B.LAVA || head === B.LAVA;
+  PL.inWater = feet === B.WATER || head === B.WATER || PL.inLava;
+  // lava: thick, slow and burning hot
+  if (PL.inLava) {
+    PL.lavaT = (PL.lavaT || 0) - dt;
+    if (PL.lavaT <= 0) { PL.lavaT = 0.55; hint('lava', 'Lava! Schnell raus, sie verbrennt dich.'); hurtPlayer(7, PL.x, PL.z); }
+    if (Math.random() < dt * 14) spawnPart({ x: PL.x + (Math.random() - 0.5) * 0.6, y: PL.y + 0.6 + Math.random(), z: PL.z + (Math.random() - 0.5) * 0.6, vx: 0, vy: 1.6, vz: 0, life: 0.5, size: 0.12, r: 1, g: 0.5, b: 0.1, kind: 0, grav: -1, drag: 1, em: 1 });
+  } else PL.lavaT = 0;
   PL.sprint = (INPUT.down('ShiftLeft') || INPUT.down('ShiftRight') || INPUT.sprintToggle || INPUT.sprintBtn) && amt > 0.1;
   let speed = PL.sprint ? 6.4 : 4.3;
-  if (PL.inWater) speed = 2.7;
+  if (PL.inWater) speed = PL.inLava ? 1.5 : 2.7;
   if (PL.chopping > 0 && amt < 0.1) speed = 0;
   const tvx = dx * speed, tvz = dz * speed;
   const acc = PL.onGround ? 14 : PL.inWater ? 6 : 3.5;
@@ -5824,7 +6128,7 @@ function updatePlayer(dt) {
   if (PL.onGround && hs > 1) { PL.stepT -= dt * hs; if (PL.stepT <= 0) { PL.stepT = 2.3; SFX.step(feetSurface()); } }
   // regeneration
   if (G.playTime - PL.lastHurt > 7 && PL.hp < PL.maxHp) PL.hp = Math.min(PL.maxHp, PL.hp + 2.2 * dt);
-  if (PL.swingT < 1) PL.swingT = Math.min(1, PL.swingT + dt / (PL.swingKind === 'hit' ? 0.32 : 0.4));
+  if (PL.swingT < 1) PL.swingT = Math.min(1, PL.swingT + dt / (PL.swingKind === 'hit' ? 0.32 : PL.swingKind === 'atk' ? (PL.atkFull ? 0.42 : 0.3) : 0.4));
   if (PL.chopping > 0) PL.chopping -= dt;
 }
 function feetSurface() { const id = getB(Math.floor(PL.x), Math.floor(PL.y - 0.2), Math.floor(PL.z)); return id; }
@@ -6135,11 +6439,11 @@ function hint(key, msg) { if ((G.hintT[key] || 0) > G.playTime) return; G.hintT[
 function canBreak(id, x, y, z) {
   const i = I(x, y, z);
   if (W.prot.has(i)) { hint('prot', 'Das gehört dem Händler.'); return false; }
-  if (TREEBLOCK[id]) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
-  if (id === B.BEDROCK || id === B.SAPLING) return false;
+  if (TREEBLOCK[id] && W.treeAt.has(i)) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
+  if (id === B.BEDROCK || id === B.SAPLING || id === B.LAVA) return false;
   if (id === B.CHEST && !isStoreChest(x, y, z)) { hint('chest', 'Truhen öffnest du mit E.'); return false; }
   if (NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', G.tools.pickaxe ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
-  if (PICKLV[id] > 1 && G.tools.pickaxe < PICKLV[id]) { hint('pick2', 'Diamanterz braucht eine Eisenspitzhacke vom Händler.'); return false; }
+  if (PICKLV[id] > 1 && G.tools.pickaxe < PICKLV[id]) { hint('pick' + PICKLV[id], PICKLV[id] >= 3 ? BNAME[id] + ' braucht eine Diamantspitzhacke vom Händler.' : 'Diamanterz braucht eine Eisenspitzhacke vom Händler.'); return false; }
   return true;
 }
 function updateBreaking(dt, holding, target) {
@@ -6149,8 +6453,9 @@ function updateBreaking(dt, holding, target) {
   if (G.breaking && NEEDPICK[G.breaking.id] && heldToolKind() !== 'pickaxe') G.breaking = null;
   if (!G.breaking || G.breaking.x !== x || G.breaking.y !== y || G.breaking.z !== z) {
     if (!canBreak(id, x, y, z)) { G.breaking = null; return; }
-    const speed = NEEDPICK[id] && heldToolKind() === 'pickaxe' ? (G.tools.pickaxe >= 2 ? 2.3 : 1.5) : 1;
-    const hard = id === B.CHEST ? 1.1 : HARD[id];   // only chests you built can be broken
+    const speed = NEEDPICK[id] && heldToolKind() === 'pickaxe' ? (G.tools.pickaxe >= 3 ? 3.2 : G.tools.pickaxe >= 2 ? 2.3 : 1.5) : 1;
+    // only chests you built can be broken; built logs break like wood
+    const hard = id === B.CHEST ? 1.1 : TREEBLOCK[id] && !W.treeAt.has(I(x, y, z)) ? 1.2 : HARD[id];
     G.breaking = { x, y, z, id, p: 0, need: Math.max(0.05, hard / speed), tick: 0 };
   }
   const b = G.breaking;
@@ -6173,7 +6478,7 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   if (!remote && !nested && MP.active()) MP.send({ t: 'brk', x, y, z });
   const meta = W.meta.get(i) || 0;
   const store = id === B.CHEST && isStoreMeta(meta);
-  const drop = store ? 'chest' : BDROP[id];
+  const drop = store ? 'chest' : TREEBLOCK[id] && !W.treeAt.has(i) ? (ISLOG[id] ? 'wood' : null) : BDROP[id];
   if (store) { if (remote) { W.chests.delete(i); if (UI._chest && UI._chest.i === i) UI.closeModal('mdlChest'); } else chestBroken(i, x, y, z, !!byPlayer); }
   const c = BCOLOR[id] || DROP_COLOR[drop] || [0.6, 0.6, 0.6];
   burst(x + 0.5, y + 0.5, z + 0.5, 12, c, { speed: 2.4, up: 3, life: 0.8, size: 0.09, spread: 0.8 });
@@ -6184,7 +6489,7 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   const above = getB(x, y + 1, z);
   if (KIND[above] === K_PLANT || above === B.TORCH && (W.meta.get(I(x, y + 1, z)) || 0) === 0 || above === B.CAMPFIRE) breakBlockAt(x, y + 1, z, false, remote, true);
   if (drop && !remote && (byPlayer || drop !== 'dirt')) spawnDrop(drop, x + 0.5, y + 0.4, z + 0.5, (Math.random() - 0.5) * 2, 3, (Math.random() - 0.5) * 2, byPlayer ? 0.25 : 1.2, !!byPlayer && !!RES_NAME[drop]);
-  if (byPlayer && (id === B.IRON_ORE || id === B.DIAMOND_ORE || id === B.CRYSTAL)) oreFound(id);
+  if (byPlayer && (id === B.IRON_ORE || id === B.DIAMOND_ORE || id === B.CRYSTAL || id === B.RUBY_ORE || id === B.MYTHRIL_ORE)) oreFound(id);
   if (byPlayer || (remote && Math.hypot(x - PL.x, z - PL.z) < 24)) SFX.breakB(id);
   G.breaking = null;
 }
@@ -6207,10 +6512,10 @@ function pillarLift(x, y, z) {
   for (let cx = x0; cx <= x1; cx++) for (let cz = z0; cz <= z1; cz++) for (let cy = y + 1; cy <= Math.floor(y + 1 + PL.h); cy++) if (SOLID[getB(cx, cy, cz)]) return -1;
   return y + 1;
 }
-function replaceable(id) { return id === B.AIR || id === B.WATER || KIND[id] === K_PLANT && id !== B.SAPLING; }
+function replaceable(id) { return id === B.AIR || id === B.WATER || id === B.LAVA || KIND[id] === K_PLANT && id !== B.SAPLING; }
 function placementFor(target, item) {
   if (!target || target.type !== 'block' || !target.inReach || !item) return null;
-  const def = ITEMS[item]; if (!def) return null;
+  const def = placeDef(item); if (!def) return null;
   let x = target.x + target.nx, y = target.y + target.ny, z = target.z + target.nz;
   if (KIND[target.id] === K_PLANT && target.id !== B.SAPLING) { x = target.x; y = target.y; z = target.z; }
   if (!inWorld(x, y, z) || y >= WY - 2) return null;
@@ -6231,8 +6536,11 @@ function placementFor(target, item) {
   if (def.place === 'campfire') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CAMPFIRE, meta: 0 }; }
   if (def.place === 'chest') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CHEST, meta: STORE_FLAG | (((yawDir() + 2) & 3) << 1) }; }
   if (def.place === 'water') {
+    // water on lava cools it down to stone
+    if (getB(x, y, z) === B.LAVA) return { x, y, z, id: B.COBBLE, meta: null, cool: true };
     // the water runs down until it reaches the ground
-    while (y > 1 && getB(x, y - 1, z) !== B.WATER && replaceable(getB(x, y - 1, z)) && !SOLID[getB(x, y - 1, z)]) y--;
+    while (y > 1 && getB(x, y - 1, z) !== B.WATER && getB(x, y - 1, z) !== B.LAVA && replaceable(getB(x, y - 1, z)) && !SOLID[getB(x, y - 1, z)]) y--;
+    if (getB(x, y - 1, z) === B.LAVA) return { x, y: y - 1, z, id: B.COBBLE, meta: null, cool: true };
     return { x, y, z, id: B.WATER, meta: null };
   }
   if (def.place === 'door') {
@@ -6283,7 +6591,8 @@ function placeSelected(target, retry) {
     return false;
   }
   if (!p) { if (item && target && target.type === 'block' && !target.inReach) hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
-  if (!takeItem(item, 1)) return false;
+  if (RES_NAME[item]) { if ((G.inv[item] || 0) < 1) return false; G.inv[item]--; UI.res(); }
+  else if (!takeItem(item, 1)) return false;
   if (item === 'water_bucket') giveInSlot('bucket', item);
   G.placeBuf = null;
   setBlock(p.x, p.y, p.z, p.id, p.meta);
@@ -6296,6 +6605,7 @@ function placeSelected(target, retry) {
   const c = BCOLOR[p.id] || DROP_COLOR[item] || [0.7, 0.7, 0.7];
   burst(p.x + 0.5, p.y + 0.1, p.z + 0.5, 6, c, { speed: 1.4, up: 1.5, life: 0.5, size: 0.06, spread: 0.9 });
   SFX.place(p.id);
+  if (p.cool) { for (let k = 0; k < 14; k++) spawnPart({ x: p.x + Math.random(), y: p.y + 0.9, z: p.z + Math.random(), vx: (Math.random() - 0.5) * 0.6, vy: 1.5 + Math.random(), vz: (Math.random() - 0.5) * 0.6, life: 1.2, size: 0.3, r: 0.85, g: 0.85, b: 0.88, kind: 1, grav: -0.5, drag: 1.5, alpha: 0.5, grow: 1.4 }); UI.toast('Zischend wird die Lava zu Stein.', 'info', 2200); }
   PL.swingT = 0; PL.swingKind = 'hit';
   if (p.id === B.CAMPFIRE) { if (G.goal <= 3) setGoal(4); UI.toast('Lagerfeuer brennt. Zombies meiden jetzt diesen Kreis. Mit E verbesserst du es.', 'good', 4600); }
   return true;
@@ -6407,7 +6717,9 @@ function attackZombie(z, auto) {
   const w = weaponStats();
   const c = PL.charge;
   PL.charge = 0; PL.attackCd = 0.14; PL.chargeVis = 1;
-  PL.swingT = 0; PL.swingKind = 'hit';
+  // attacks slash in alternating arcs; a fully charged one swings wide
+  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = c > 0.92;
+  if (w.kb > 0) SFX.swish(c > 0.92 ? 1.2 : 0.7);
   PL.faceYaw = Math.atan2(z.x - PL.x, z.z - PL.z); PL.faceT = 0.3;
   const full = c > 0.92;
   const dmg = Math.round(w.dmg * (0.2 + 0.8 * c * c) * 10) / 10;
@@ -7186,6 +7498,8 @@ function oreFound(id) {
   if (id === B.IRON_ORE) UI.toast('Eisen! Damit gibt es beim Händler bessere Werkzeuge, und dein Lagerfeuer lässt sich verbessern.', 'good', 6000);
   else if (id === B.DIAMOND_ORE) UI.toast('Ein Diamant! Die stärksten Werkzeuge und Feuer brauchen Diamanten.', 'good', 6000);
   else if (id === B.CRYSTAL) UI.toast('Ein Leuchtkristall! Das letzte Lagerfeuer-Upgrade braucht sie.', 'good', 6000);
+  else if (id === B.RUBY_ORE) UI.toast('Ein Rubin! Damit schmiedet der Händler Rubinschwert und Rubinaxt.', 'good', 6000);
+  else if (id === B.MYTHRIL_ORE) UI.toast('Mythril! Das seltenste Erz: daraus wird die beste Rüstung.', 'good', 6000);
 }
 
 /* ---------- fog of the far lands ---------- */
@@ -7711,7 +8025,8 @@ function heldTool() {
   if (PL.chopping > 0) return tk === 'axe' ? ['axe', G.tools.axe, null] : [null, 0, null];
   if (tk) return [tk, Math.max(1, G.tools[tk]), null];
   if (it === 'torch') return ['torch', 0, null];
-  if (it && ITEMS[it] && ITEMS[it].block && (KIND[ITEMS[it].block] === K_CUBE || KIND[ITEMS[it].block] === K_GLASS)) return ['block', 0, ITEMS[it].block];
+  const pd = it && placeDef(it);
+  if (pd && pd.block && (KIND[pd.block] === K_CUBE || KIND[pd.block] === K_GLASS)) return ['block', 0, pd.block];
   return [null, 0, null];
 }
 const POSE_W = { armR: -2.55, armRz: 0.55, armL: -1.25, armLz: 0.25, twist: 0.5, lean: 0.02 };
@@ -7736,6 +8051,7 @@ function drawPlayer(t) {
   if (PL.inWater) { P.lean = 0.35; P.legL = Math.sin(t * 6) * 0.4; P.legR = -Math.sin(t * 6) * 0.4; P.armL = -2 + Math.sin(t * 3) * 0.6; P.armR = -2 - Math.sin(t * 3) * 0.6; }
   const [tool, lvl, item] = heldTool();
   P.tool = tool; P.toolLevel = lvl; P.item = item;
+  P.armor = armorOf(G.tools);
   if (PL.chopping > 0) chopPose(P, G.chop.phase);
   else if (PL.swingT < 1) {
     const s = PL.swingT, k = Math.sin(s * Math.PI);
@@ -7761,6 +8077,8 @@ function drawRemote(r, t) {
   if (!(f & 1) && !(f & 32)) { P.legL = -0.55; P.legR = 0.35; P.armL = -0.5; P.armR = -0.35; }
   P.tool = TOOL_NAMES[r.tool] || null; P.toolLevel = r.toolLevel || 1;
   P.item = r.tool === 6 ? r.item : null;
+  const ac = r.armor | 0;
+  P.armor = { h: ac & 3, c: (ac >> 2) & 3, l: (ac >> 4) & 3, b: (ac >> 6) & 3 };
   if (f & 2) chopPose(P, r.chopT);
   else if (r.swingT < 1) { const k = Math.sin(r.swingT * Math.PI); P.armR = lerp(-0.4, -2.2, k); P.armRz = 0.15 - k * 0.35; P.twist = -k * 0.25; }
   P.blink = ((t + r.x) % 4.7) < 0.12; P.walkSway = w * 0.3;
@@ -7841,10 +8159,10 @@ function drawDrops(t) {
       m4T(m, d.x, d.y + bob, d.z); m4RY(m, d.spin); m4RX(m, d.rest ? 0 : d.spin * 0.7); m4S(m, s, s, s); m4T(m, -0.5, -0.5, -0.5);
       MODELS_DRAW.push({ m: blockItemModel(bid), model: m, sky: Math.sqrt(skyAt(d.x, d.y + 0.3, d.z)) * 0.9 + 0.1 });
     } else {
-      const c = DROP_COLOR[d.kind] || [0.8, 0.8, 0.8];
-      _ms.reset().t(d.x, d.y + bob, d.z).ry(d.spin);
-      if (d.kind === 'diamond' || d.kind === 'crystal') { _ms.rx(0.6).rz(0.6); BATCH.solid.box(_ms.m, s * 0.6, s * 0.95, s * 0.6, 0, 0, 0, c[0], c[1], c[2], DROP_GLOW[d.kind], 0.9); }
-      else BATCH.solid.box(_ms.m, s * 0.9, s * (d.kind === 'iron' ? 0.55 : 0.9), s * 0.9, 0, 0, 0, c[0], c[1], c[2], d.kind === 'torch' ? 0.4 : 0, 0.9);
+      // a little model of the thing, standing up and turning (like Minecraft)
+      const sk = Math.sqrt(skyAt(d.x, d.y + 0.3, d.z)) * 0.9 + 0.1;
+      _ms.reset().t(d.x, d.y + bob + 0.06, d.z).ry(d.spin).sc(s * 3, s * 3, s * 3);
+      drawItemModel(BATCH.solid, _ms, d.kind, d.n || 1, sk);
     }
   }
 }
@@ -7908,7 +8226,7 @@ function drawSelection(t) {
 }
 function drawGhost() {
   const it = selectedItem();
-  if (!it || !G.hover || G.breaking) return;
+  if (!SETTINGS.ghost || !it || !G.hover || G.breaking) return;
   const p = placementFor(G.hover, it);
   if (!p || p.blockedByPlayer) return;
   let x1 = p.x + 1, z1 = p.z + 1, y1 = p.y + 1, x0 = p.x, z0 = p.z;
@@ -7919,28 +8237,94 @@ function drawGhost() {
   BATCH.trans.aabb(x0 + 0.02, p.y + 0.02, z0 + 0.02, x1 - 0.02, y1 - 0.02, z1 - 0.02, 1, 1, 1, 1, 0.16);
   edgeBox(BATCH.trans, x0, p.y, z0, x1, y1, z1, 0.01, 1, 1, 1, 0.45);
 }
+/* ---------- first person: the hand and what it holds ----------
+   Poses are [x, y, z, rx, ry, rz] offsets from the resting hand. The hand lags behind when you
+   look around, bobs while walking, drops away when you switch items and dips when you land.
+   Chopping winds up over the shoulder and slams into the trunk; attacks slash in alternating arcs. */
+const VM = { yaw: 0, pitch: 0, swayX: 0, swayY: 0, key: '', swapT: 1, ground: true, air: 0, land: 0, lt: 0, sprint: 0 };
+const VP_REST = [0, 0, 0, 0.05, -0.12, 0];
+const VP_RAISE = [0.08, 0.17, 0.12, 1.2, -0.35, -0.4];
+const VP_IMPACT = [-0.11, -0.13, -0.14, -0.8, 0.12, 0.28];
+const VP_JAB = [-0.04, -0.03, -0.13, -0.75, 0.1, 0.15];
+const VP_PUNCH = [-0.1, 0.05, -0.24, 0.3, 0.3, 0.15];
+const VP_SLASH = {
+  1: [[0.1, 0.15, 0.06, 1.0, -0.5, -0.65], [-0.24, -0.17, -0.2, -0.75, 0.6, 0.75]],
+  '-1': [[-0.2, 0.03, 0.02, 0.3, 0.75, 1.25], [0.2, -0.11, -0.17, -0.25, -0.75, -0.95]],
+};
+const _vp = [0, 0, 0, 0, 0, 0];
+function vpLerp(a, b, k) { for (let i = 0; i < 6; i++) _vp[i] = a[i] + (b[i] - a[i]) * k; return _vp; }
+function viewPose(tool) {
+  if (PL.chopping > 0) {
+    const p = G.chop.phase;
+    if (p < 0.14) {
+      // the blade sticks in the trunk for a moment, shaking, then comes back
+      const k = p / 0.14;
+      vpLerp(VP_IMPACT, VP_REST, easeOutCubic(k) * 0.6);
+      const sh = Math.sin(k * 40) * (1 - k) * 0.035;
+      _vp[0] += sh; _vp[1] += sh * 0.6;
+      return _vp;
+    }
+    const base = p < 0.14 ? VP_IMPACT : vpLerp(VP_IMPACT, VP_REST, 0.6).slice();
+    if (p < 0.72) return vpLerp(base, VP_RAISE, easeInOut((p - 0.14) / 0.58));
+    return vpLerp(VP_RAISE, VP_IMPACT, easeInCubic((p - 0.72) / 0.28));
+  }
+  if (PL.swingT >= 1) return VP_REST;
+  const s = PL.swingT;
+  if (PL.swingKind === 'atk') {
+    if (!tool || tool === 'block' || tool === 'torch') {
+      // a punch: straight forward and back
+      return s < 0.3 ? vpLerp(VP_REST, VP_PUNCH, easeOutCubic(s / 0.3)) : vpLerp(VP_PUNCH, VP_REST, easeInOut((s - 0.3) / 0.7));
+    }
+    const arc = VP_SLASH[PL.atkSide < 0 ? '-1' : 1];
+    const big = PL.atkFull ? 1.25 : 0.8;
+    const st = arc[0].map((v) => v * big), en = arc[1].map((v) => v * big);
+    if (PL.atkFull) en[2] -= 0.08;
+    if (s < 0.14) return vpLerp(VP_REST, st, easeOutCubic(s / 0.14));
+    if (s < 0.46) return vpLerp(st, en, easeOutCubic((s - 0.14) / 0.32));
+    return vpLerp(en, VP_REST, easeInOut((s - 0.46) / 0.54));
+  }
+  // digging, building, using: a quick jab
+  return s < 0.35 ? vpLerp(VP_REST, VP_JAB, easeOutCubic(s / 0.35)) : vpLerp(VP_JAB, VP_REST, easeInOut((s - 0.35) / 0.65));
+}
 function drawViewModel(t) {
   if (CAMC.mode !== 'fp' || CAMC.trans < 0.6 || PL.dead || G.sleep) return;
   M4.invert(_invView, CAM.view);
   const sky = skyAt(CAM.eye[0], CAM.eye[1], CAM.eye[2]);
-  const w = PL.walkAmt, ph = PL.walkPhase;
-  const bob = SETTINGS.camShake ? Math.sin(ph * 2) * 0.012 * w : 0;
-  _ms.reset(_invView).t(0.42 + Math.sin(ph) * 0.012 * w, -0.38 + bob, -0.55);
-  let rx = 0.05, ry = -0.12, rz = 0;
-  if (PL.chopping > 0) {
-    const p = G.chop.phase;
-    const k = p < 0.15 ? 1 - easeOutCubic(p / 0.15) * 0.4 : p < 0.8 ? 0.6 - easeInOut((p - 0.15) / 0.65) * 1.6 : -1 + easeInCubic((p - 0.8) / 0.2) * 2;
-    rx = -k * 0.7 + 0.1; ry = -0.12 - k * 0.2;
-    _ms.t(0, -k * 0.05, k * 0.05);
-  } else if (PL.swingT < 1) {
-    const k = Math.sin(PL.swingT * Math.PI);
-    rx = 0.05 - k * 0.9; ry = -0.12 - k * 0.25;
-  }
-  _ms.rx(rx).ry(ry).rz(rz);
-  const box = (wd, hh, d, x, y, z, c, em = 0) => BATCH.view.box(_ms.m, wd, hh, d, x, y, z, c[0], c[1], c[2], em, sky);
-  box(0.13, 0.13, 0.26, 0, 0, 0.08, STYLE_PLAYER.sleeve);
-  box(0.115, 0.115, 0.22, 0, 0, -0.15, STYLE_PLAYER.skin);
+  const dt = clamp(t - VM.lt, 0, 0.1); VM.lt = t;
+  const calm = SETTINGS.camShake ? 1 : 0.35;
+  // look sway
+  const dy = wrapAngle(CAMC.fpYaw - VM.yaw), dpi = CAMC.fpPitch - VM.pitch;
+  VM.yaw = CAMC.fpYaw; VM.pitch = CAMC.fpPitch;
+  VM.swayX = clamp(damp(VM.swayX + clamp(dy, -0.25, 0.25) * 0.6, 0, 10, dt), -0.12, 0.12);
+  VM.swayY = clamp(damp(VM.swayY + clamp(dpi, -0.25, 0.25) * 0.6, 0, 10, dt), -0.12, 0.12);
+  // switching items: the old one drops away, the new one comes up
   const [tool, lvl, item] = heldTool();
+  const key = (tool || '') + lvl + (item || '') + (selectedItem() || '');
+  if (key !== VM.key) { VM.key = key; VM.swapT = 0; }
+  VM.swapT = Math.min(1, VM.swapT + dt / 0.3);
+  const swap = 1 - easeOutBack(VM.swapT);
+  // landing dip
+  if (!VM.ground && PL.onGround) VM.land = clamp(VM.air * 1.3, 0.12, 0.7);
+  VM.air = PL.onGround ? 0 : VM.air + dt; VM.ground = PL.onGround;
+  VM.land = damp(VM.land, 0, 6, dt);
+  VM.sprint = damp(VM.sprint, PL.sprint && PL.onGround && PL.walkAmt > 0.3 && PL.chopping <= 0 && PL.swingT >= 1 ? 1 : 0, 7, dt);
+  const w = PL.onGround || PL.inWater ? PL.walkAmt : 0, ph = PL.walkPhase;
+  const bx = Math.sin(ph) * 0.024 * w * (1 + VM.sprint * 0.7) * calm;
+  const by = -Math.abs(Math.cos(ph)) * 0.022 * w * (1 + VM.sprint * 0.5) * calm + Math.sin(t * 1.9) * 0.006;
+  const low = PL.charge < 1 && tool && tool !== 'block' && tool !== 'torch' ? (1 - PL.charge) : 0;
+  const P = viewPose(tool);
+  _ms.reset(_invView).t(
+    0.42 + P[0] + bx + VM.swayX * 0.25 - VM.sprint * 0.05,
+    -0.38 + P[1] + by - VM.swayY * 0.2 - VM.land * 0.12 - swap * 0.38 - low * 0.05 - VM.sprint * 0.05,
+    -0.55 + P[2]);
+  _ms.rx(P[3] - swap * 0.7 - low * 0.18 - VM.sprint * 0.3 + Math.sin(t * 1.9) * 0.01 + VM.swayY * 0.6)
+    .ry(P[4] + VM.swayX * 0.8 + VM.sprint * 0.35)
+    .rz(P[5] + Math.sin(ph) * 0.05 * w * calm + VM.sprint * 0.2);
+  const box = (wd, hh, d, x, y, z, c, em = 0) => BATCH.view.box(_ms.m, wd, hh, d, x, y, z, c[0], c[1], c[2], em, sky);
+  const ac = G.tools.chestplate | 0;
+  if (ac) { const A = ARMOR_COL[ac]; box(0.145, 0.145, 0.27, 0, 0, 0.08, A[0], A[2]); box(0.15, 0.15, 0.05, 0, 0, -0.04, A[1], A[2]); }
+  else box(0.13, 0.13, 0.26, 0, 0, 0.08, STYLE_PLAYER.sleeve);
+  box(0.115, 0.115, 0.22, 0, 0, -0.15, STYLE_PLAYER.skin);
   if (tool) {
     _ms.push().t(0, 0.03, -0.27).rx(-0.35).sc(0.5, 0.5, 0.5);
     drawTool(BATCH.view, _ms, tool, lvl, sky, item);
@@ -8055,12 +8439,23 @@ function lookDelta(dx, dy, scale) {
 function playing() { return G.state === 'playing'; }
 
 /* ---------- pointer lock ---------- */
-function requestLock(purpose) {
+/* A lock asked for without a click (closing a window with Esc) may be refused by the browser.
+   That is no reason to give up: the mouse keeps looking around (soft mode) and the next click locks.
+   Only when locks after real clicks keep failing does the game fall back for good. */
+function lockRefused() {
+  if (INPUT.lockByClick) {
+    INPUT.lockFails = (INPUT.lockFails || 0) + 1;
+    if (INPUT.lockFails >= 2) { INPUT.lockFailed = true; if (INPUT.lockPurpose === 'fp' && CAMC.mode === 'fp') hint('lock', 'Dein Browser erlaubt hier keine Maussperre. Bewege die Maus über dem Spiel, um dich umzusehen.'); }
+  }
+  if (INPUT.lockPurpose === 'fp') INPUT.lockSoft = true;
+}
+function requestLock(purpose, byClick) {
   INPUT.lockPurpose = purpose;
+  INPUT.lockByClick = !!byClick;
   if (INPUT.locked) return;
   if (!canvas.requestPointerLock) { INPUT.lockFailed = true; return; }
   const plain = () => {
-    try { const r2 = canvas.requestPointerLock(); if (r2 && r2.catch) r2.catch(() => { INPUT.lockFailed = true; }); } catch (e) { INPUT.lockFailed = true; }
+    try { const r2 = canvas.requestPointerLock(); if (r2 && r2.catch) r2.catch(() => { if (!INPUT.locked) lockRefused(); }); } catch (e) { lockRefused(); }
   };
   try {
     // raw mouse input in first person feels most direct; fall back where it is not supported
@@ -8116,6 +8511,7 @@ function initInput() {
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
     if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
     if ((e.code === 'Tab' || e.code === 'KeyI') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
+    if (e.code.startsWith('Digit') && !$('mdlInv').hidden) { UI.invHotkey(e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1); return; }
     if (!playing()) return;
     if (G.sleep && G.sleep.mp && ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE'].includes(e.code)) { leaveBed(); return; }
     if (e.code.startsWith('Digit')) { const n = e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1; UI.select(G.sel === n ? -1 : n); }
@@ -8142,7 +8538,7 @@ function initInput() {
     INPUT.pointer = [e.clientX, e.clientY]; INPUT.hasPointer = true;
     SFX.unlock();
     if (CAMC.mode === 'fp') {
-      if (!INPUT.locked && !INPUT.lockFailed) requestLock('fp');
+      if (!INPUT.locked && !INPUT.lockFailed) requestLock('fp', true);
       if (e.button === 0) { INPUT.primaryHeld = true; INPUT.primaryPressed = true; }
       else if (e.button === 2) INPUT.secondaryPressed = true;
       return;
@@ -8172,7 +8568,8 @@ function initInput() {
     const mx = e.movementX || 0, my = e.movementY || 0;
     if (CAMC.mode === 'fp') {
       // first person: just move the mouse to look around (locked pointer, or plain movement as fallback)
-      if (INPUT.locked || ((INPUT.lockFailed || INPUT.lockSoft) && e.target === canvas)) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
+      // (soft mode: anywhere over the page, so it feels exactly like after closing with the X)
+      if (INPUT.locked || ((INPUT.lockFailed || INPUT.lockSoft) && !UI.anyModal())) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
       return;
     }
     const d = INPUT.drag;
@@ -8194,12 +8591,12 @@ function initInput() {
     else UI.cycle(e.deltaY > 0 ? 1 : -1);
   }, { passive: false });
   document.addEventListener('pointerlockerror', () => {
-    if (INPUT.lockPurpose === 'fp' && CAMC.mode === 'fp') { INPUT.lockFailed = true; hint('lock', 'Dein Browser erlaubt hier keine Maussperre. Bewege die Maus über dem Spiel, um dich umzusehen.'); }
+    if (INPUT.lockPurpose === 'fp' && CAMC.mode === 'fp') lockRefused();
   });
   document.addEventListener('pointerlockchange', () => {
     const was = INPUT.locked;
     INPUT.locked = document.pointerLockElement === canvas;
-    if (INPUT.locked) { INPUT.lockFailed = false; INPUT.lockSoft = false; return; }
+    if (INPUT.locked) { INPUT.lockFailed = false; INPUT.lockSoft = false; INPUT.lockFails = 0; return; }
     if (!was) return;
     const quiet = performance.now() < INPUT.unlockQuiet;
     if (INPUT.lockPurpose === 'drag') { INPUT.drag = null; return; }
@@ -8338,7 +8735,8 @@ function flame(ctx, x, y, w, h, outer, inner) {
   ctx.fillStyle = inner;
   ctx.beginPath(); ctx.moveTo(x, y - h * 0.62); ctx.bezierCurveTo(x + w * 0.5, y - h * 0.3, x + w * 0.4, y, x, y); ctx.bezierCurveTo(x - w * 0.4, y, x - w * 0.5, y - h * 0.3, x, y - h * 0.62); ctx.fill();
 }
-const TIER_HEX = ['#9aa0a5', '#9aa0a5', '#d9dee2', '#5fe3e6'];
+const TIER_HEX = ['#9aa0a5', '#9aa0a5', '#d9dee2', '#5fe3e6', '#ff3b5c'];
+const ARMOR_HEX = [null, ['#d9dee2', '#9aa0a5'], ['#5fe3e6', '#2fb7c4'], ['#a77bff', '#6a3fe0']];
 function drawToolIcon(ctx, kind, level, S) {
   const k = S / 64;
   ctx.save(); ctx.scale(k, k);
@@ -8374,6 +8772,28 @@ function drawToolIcon(ctx, kind, level, S) {
     ctx.fillStyle = '#2b2522'; ctx.beginPath(); ctx.arc(0, 1, 2.5, 0, TAU); ctx.fill();
     ctx.restore();
   }
+  ctx.restore();
+}
+function drawArmorIcon(ctx, slot, level, S) {
+  const k = S / 64;
+  const c = ARMOR_HEX[level] || ARMOR_HEX[1];
+  ctx.save(); ctx.scale(k, k);
+  const fill = (col, pts) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); ctx.fill(); };
+  if (slot === 'helmet') {
+    fill(c[1], [10, 44, 10, 22, 18, 12, 46, 12, 54, 22, 54, 44, 44, 44, 44, 30, 20, 30, 20, 44]);
+    fill(c[0], [14, 26, 20, 16, 44, 16, 50, 26, 50, 28, 14, 28]);
+  } else if (slot === 'chestplate') {
+    fill(c[1], [8, 14, 22, 8, 26, 14, 38, 14, 42, 8, 56, 14, 54, 30, 46, 28, 46, 56, 18, 56, 18, 28, 10, 30]);
+    fill(c[0], [22, 18, 42, 18, 42, 50, 22, 50]);
+  } else if (slot === 'leggings') {
+    fill(c[1], [14, 8, 50, 8, 50, 56, 36, 56, 32, 24, 28, 56, 14, 56]);
+    fill(c[0], [16, 10, 48, 10, 48, 16, 16, 16]);
+  } else {
+    fill(c[1], [10, 20, 26, 20, 26, 54, 6, 54, 6, 44, 10, 44]);
+    fill(c[1], [38, 20, 54, 20, 54, 44, 58, 44, 58, 54, 38, 54]);
+    fill(c[0], [12, 22, 24, 22, 24, 30, 12, 30]); fill(c[0], [40, 22, 52, 22, 52, 30, 40, 30]);
+  }
+  if (level === 3) { ctx.fillStyle = 'rgba(91,225,255,0.85)'; ctx.fillRect(30, 30, 4, 6); }
   ctx.restore();
 }
 function drawObjIcon(ctx, key, S) {
@@ -8439,6 +8859,15 @@ function drawResIcon(ctx, key, S) {
     ctx.fillStyle = '#7ff0f2'; ctx.beginPath(); ctx.moveTo(18, 12); ctx.lineTo(46, 12); ctx.lineTo(56, 26); ctx.lineTo(8, 26); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#c8fbfb'; ctx.beginPath(); ctx.moveTo(24, 14); ctx.lineTo(32, 14); ctx.lineTo(28, 24); ctx.lineTo(16, 24); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#4fd5de'; ctx.beginPath(); ctx.moveTo(32, 56); ctx.lineTo(24, 26); ctx.lineTo(40, 26); ctx.closePath(); ctx.fill();
+  } else if (key === 'ruby' || key === 'mythril') {
+    const ru = key === 'ruby';
+    const g = ctx.createRadialGradient(32, 34, 4, 32, 34, 30); g.addColorStop(0, ru ? 'rgba(255,60,90,0.55)' : 'rgba(170,120,255,0.6)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    const c = ru ? ['#b8123a', '#ff3b5c', '#ffb3c0'] : ['#5a2fd0', '#a77bff', '#e2d4ff'];
+    ctx.fillStyle = c[0]; ctx.beginPath(); ctx.moveTo(32, 6); ctx.lineTo(54, 24); ctx.lineTo(46, 54); ctx.lineTo(18, 54); ctx.lineTo(10, 24); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = c[1]; ctx.beginPath(); ctx.moveTo(32, 12); ctx.lineTo(46, 26); ctx.lineTo(40, 48); ctx.lineTo(24, 48); ctx.lineTo(18, 26); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = c[2]; ctx.beginPath(); ctx.moveTo(32, 14); ctx.lineTo(40, 24); ctx.lineTo(30, 28); ctx.lineTo(22, 24); ctx.closePath(); ctx.fill();
+    if (!ru) { ctx.fillStyle = 'rgba(91,225,255,0.9)'; ctx.fillRect(30, 32, 4, 12); }
   } else if (key === 'crystal') {
     const g = ctx.createRadialGradient(32, 36, 4, 32, 36, 30); g.addColorStop(0, 'rgba(160,180,255,0.55)'); g.addColorStop(1, 'rgba(160,180,255,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
@@ -8457,7 +8886,9 @@ function drawItemIcon(canvasEl, key) {
   if (!key) return;
   if (key === 'wood') { drawIsoBlock(ctx, B.OAK_LOG, S); return; }
   if (key === 'wool') { drawIsoBlock(ctx, B.WOOL_WHITE, S); return; }
-  if (key === 'iron' || key === 'diamond' || key === 'crystal') { drawResIcon(ctx, key, S); return; }
+  if (key === 'iron' || key === 'diamond' || key === 'crystal' || key === 'ruby' || key === 'mythril') { drawResIcon(ctx, key, S); return; }
+  const am = /^(helmet|chestplate|leggings|boots)(\d)?$/.exec(key);
+  if (am) { drawArmorIcon(ctx, am[1], parseInt(am[2] || String(Math.max(1, G.tools[am[1]] | 0)), 10), S); return; }
   const it = ITEMS[key];
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
   if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
@@ -8497,17 +8928,18 @@ function drawClockIcon(c, phaseProg, isNightNow, blood) {
 }
 
 /* ---------- HUD ---------- */
-const RES_UI = { wood: ['resWoodBox', 'resWood', 'walWoodN'], wool: ['resWoolBox', 'resWool', 'walWoolN'], iron: ['resIronBox', 'resIron', 'walIronN'], diamond: ['resDiaBox', 'resDia', 'walDiaN'], crystal: ['resCryBox', 'resCry', 'walCryN'] };
+const RES_UI = { wood: ['resWoodBox', 'resWood', 'walWoodN'], wool: ['resWoolBox', 'resWool', 'walWoolN'], iron: ['resIronBox', 'resIron', 'walIronN'], diamond: ['resDiaBox', 'resDia', 'walDiaN'], crystal: ['resCryBox', 'resCry', 'walCryN'], ruby: ['resRubyBox', 'resRuby', 'walRubyN'], mythril: ['resMythBox', 'resMyth', 'walMythN'] };
 UI.res = function () {
   for (const k of RES_KEYS) {
     const v = G.inv[k] || 0, ids = RES_UI[k];
-    const box = $(ids[0]);
+    const box = $(ids[0]) || { hidden: true };
     // wood and wool live in the inventory (the bag button bumps); ores show up top once you have some
     const bag = k === 'wood' || k === 'wool';
     const bumpEl = $('btnBag');
     if (UI._last['r' + k] !== undefined && v > UI._last['r' + k]) { bumpEl.classList.remove('bump'); void bumpEl.offsetWidth; bumpEl.classList.add('bump'); }
     UI._last['r' + k] = v;
-    $(ids[1]).textContent = v; $(ids[2]).textContent = v;
+    if ($(ids[1])) $(ids[1]).textContent = v;
+    $(ids[2]).textContent = v;
     // everything sits in the hotbar now: no counters at the top
     box.hidden = true;
     if (!bag) $(ids[2]).parentNode.hidden = v <= 0;
@@ -8781,7 +9213,7 @@ UI.openShop = function () {
   $('mdlShop').hidden = false;
   G.state = 'shop';
   drawMerchantFace($('shopFace'));
-  for (const [id, k] of [['walWood', 'wood'], ['walWool', 'wool'], ['walIron', 'iron'], ['walDia', 'diamond'], ['walCry', 'crystal']]) drawItemIcon($(id), k);
+  for (const [id, k] of [['walWood', 'wood'], ['walWool', 'wool'], ['walIron', 'iron'], ['walDia', 'diamond'], ['walCry', 'crystal'], ['walRuby', 'ruby'], ['walMyth', 'mythril']]) drawItemIcon($(id), k);
   const lines = ['Holz gegen Waren. Faire Preise.', 'Ein Lagerfeuer zuerst, glaub mir.', 'Für Wolle musst du weit raus.', 'Ziegel halten mehr aus als Bretter.', 'Eisen steckt in den kleinen Höhlen hier in der Gegend.', W.mode === 'island' ? 'An der Küste hinter dem Schattenwald wachsen leuchtende Kristalle …' : 'Der Nebel draußen? Ein stärkeres Lagerfeuer vertreibt ihn.', 'Hinter dem Schattenwald soll es leuchtende Kristalle geben …'];
   $('shopLine').textContent = G.inv.wood < 5 && G.goal <= 2 ? 'Komm wieder, wenn du 5 Holz hast. Dann gibt es ein Lagerfeuer.' : lines[Math.floor(Math.random() * lines.length)];
   UI.shopRefresh(true);
@@ -8800,7 +9232,7 @@ UI.shopRefresh = function (rebuild) {
       card.innerHTML = '<canvas width="96" height="96"></canvas><h3></h3><p></p><div class="buyrow"><div class="price"></div><button class="buy" type="button"></button></div>';
       card.querySelector('h3').textContent = e.name;
       card.querySelector('p').textContent = e.desc;
-      drawItemIcon(card.querySelector('canvas'), e.item || (e.tool + e.level));
+      drawItemIcon(card.querySelector('canvas'), e.item || ((e.tool || e.armor) + e.level));
       card.querySelector('.buy').addEventListener('click', () => buy(e.id));
       card.dataset.id = e.id;
       fillPrice(card.querySelector('.price'), e.cost);
@@ -8884,6 +9316,8 @@ UI.invRefresh = function () {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'islot';
         b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>';
         b.addEventListener('click', () => UI.invClick(where, i));
+        b.addEventListener('mouseenter', () => { UI._invHover = { where, i }; });
+        b.addEventListener('mouseleave', () => { if (UI._invHover && UI._invHover.where === where && UI._invHover.i === i) UI._invHover = null; });
         el.appendChild(b);
       }
     }
@@ -8898,11 +9332,25 @@ UI.invRefresh = function () {
       b.classList.toggle('held', !!held && held.where === where && held.i === i);
     }
   };
+  // what you wear
+  const arm = $('invArmor');
+  if (arm.children.length !== 4) {
+    arm.innerHTML = '';
+    for (let i = 0; i < 4; i++) { const b = document.createElement('div'); b.className = 'islot'; b.innerHTML = '<canvas width="64" height="64"></canvas>'; arm.appendChild(b); }
+  }
+  ARMOR_SLOTS.forEach((sl, i) => {
+    const b = arm.children[i], lv = G.tools[sl] | 0, key = sl + Math.max(1, lv);
+    if (b.dataset.key !== key + lv) { drawItemIcon(b.firstChild, key); b.dataset.key = key + lv; }
+    b.classList.toggle('off', !lv);
+    b.title = lv ? ARMOR_NAMES[sl][lv] : ARMOR_NAMES[sl][0] + ': gibt es beim Händler';
+  });
+  const red = Math.round(armorReduce() * 100);
+  $('invArmorTxt').textContent = red ? 'Rüstung: ' + red + ' % weniger Schaden' : 'Keine Rüstung (Händler: Rüstung)';
   fill($('invBag'), G.bag, 'bag');
   fill($('invHot'), G.hotbar, 'hot');
   const hk = held ? (held.where === 'bag' ? G.bag : G.hotbar)[held.i] : null;
   $('invDrop1').disabled = $('invDropAll').disabled = !hk;
-  $('invSub').textContent = hk ? itemName(hk) + ' ist ausgewählt. Tippe einen Platz an, um es dorthin zu legen.' : 'Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.';
+  $('invSub').textContent = hk ? itemName(hk) + ' ist ausgewählt. Tippe einen Platz an, um es dorthin zu legen.' : 'Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.' + (touchUI() ? '' : ' Oder: Maus drüber und 1–0 drücken.');
 };
 UI.invClick = function (where, i) {
   const arr = where === 'bag' ? G.bag : G.hotbar;
@@ -8916,6 +9364,16 @@ UI.invClick = function (where, i) {
   }
   SFX.ui();
   UI.invRefresh();
+};
+/* number key over a slot (like Minecraft): swap that slot with hotbar place n */
+UI.invHotkey = function (n) {
+  const h = UI._invHover; if (!h) return false;
+  const arr = h.where === 'bag' ? G.bag : G.hotbar;
+  if (h.where === 'hot' && h.i === n) return true;
+  const t = arr[h.i]; arr[h.i] = G.hotbar[n]; G.hotbar[n] = t;
+  UI._invHeld = null;
+  SFX.ui(); UI.hotbar(); UI.invRefresh();
+  return true;
 };
 function invDropHeld(all) {
   const h = UI._invHeld; if (!h) return;
@@ -9085,7 +9543,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -9169,7 +9627,7 @@ function bindSettingsUI() {
     $('setFov').value = SETTINGS.fov; $('setFovO').textContent = SETTINGS.fov + '°';
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
-    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
+    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
     $('testBox').hidden = MP.isClient() || !isOwner();
   };
   UI.settingsRefresh = refresh;
@@ -9192,7 +9650,7 @@ function bindSettingsUI() {
   rng('setFov', 'fov', (v) => Math.round(v));
   rng('setSens', 'sens', (v) => v);
   rng('setVol', 'volume', (v) => v);
-  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY']]) {
+  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
   // nobody but the owner can use them, even if the box were shown
@@ -9528,7 +9986,7 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
-  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI();
+  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI();
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
@@ -9718,6 +10176,7 @@ const SFX = (() => {
     dig(id) { const soft = id === B.DIRT || id === B.GRASS || id === B.SAND || id === B.GRAVEL || id === B.SNOW || id === B.PATH; hiss(soft ? 'lowpass' : 'bandpass', soft ? 900 : 1800, soft ? 0.8 : 3, 0.07, 0.22); },
     breakB(id) { const soft = id === B.DIRT || id === B.GRASS || id === B.SAND || id === B.GRAVEL || id === B.SNOW; hiss(soft ? 'lowpass' : 'bandpass', soft ? 1100 : 2400, 1.2, 0.18, 0.32); if (id === B.GLASS) { for (let k = 0; k < 4; k++) tone('sine', r(2500, 4200), r(2000, 3000), 0.12, 0.05, k * 0.03); } },
     hit(k = 1) { hiss('bandpass', 700 + (1 - k) * 500, 1.4, 0.12, 0.45 * k); tone('square', 140, 70, 0.1, 0.12 * k); if (k >= 1) tone('sine', 110, 55, 0.14, 0.22); },
+    swish(k = 1) { hiss('bandpass', 1800 + k * 600, 0.8, 0.16, 0.2 * k); hiss('highpass', 3000, 0.7, 0.1, 0.08 * k); },
     hurt() { tone('sawtooth', 420, 150, 0.22, 0.22); hiss('lowpass', 1200, 1, 0.18, 0.25); },
     death() { tone('sawtooth', 300, 60, 1.2, 0.2); tone('sine', 140, 40, 1.6, 0.3, 0.1); },
     groan(d, k = 1) {
@@ -10085,9 +10544,11 @@ function pickRay(o, d) {
   // from above, tree crowns are ignored so the ground below can be picked;
   // with a block in the hand they count, so you can build against a tree
   const sel = selectedItem();
-  const building = !!(sel && ITEMS[sel] && ITEMS[sel].place);
-  // an empty bucket aims at the water itself
-  const test = sel === 'bucket' ? (id) => !TREEBLOCK[id] || CAMC.mode === 'fp' : CAMC.mode === 'fp' || building ? (id) => id !== B.WATER : (id) => id !== B.WATER && !TREEBLOCK[id];
+  const pdef = sel && placeDef(sel);
+  const building = !!(pdef && pdef.place);
+  // an empty bucket aims at the water itself; built logs count as blocks, real trees not
+  const realTree = (id, x, y, z) => TREEBLOCK[id] && W.treeAt.has(I(x, y, z));
+  const test = sel === 'bucket' ? (id, x, y, z) => !realTree(id, x, y, z) || CAMC.mode === 'fp' : CAMC.mode === 'fp' || building ? (id) => id !== B.WATER && id !== B.LAVA : (id, x, y, z) => id !== B.WATER && id !== B.LAVA && !realTree(id, x, y, z);
   const hit = raycast(o[0], o[1], o[2], d[0], d[1], d[2], bt, test);
   if (hit && hit.t < bt) best = { type: 'block', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, id: hit.id, t: hit.t };
   if (!best) return null;
@@ -10138,6 +10599,10 @@ function handleActions(dt) {
     else if (t && t.type === 'block') hint('reach', 'Zu weit weg. Geh näher ran.');
   }
   if (INPUT.primaryPressed) { G.holdT = 0; if (target && (target.type !== 'block' || isInteractBlock(target))) primaryOn(target); }
+  // a weapon swung at nothing still slashes through the air
+  if (INPUT.primaryPressed && CAMC.mode === 'fp' && PL.swingT >= 0.6 && PL.chopping <= 0 && (!target || (target.type === 'block' && !target.inReach)) && (heldToolKind() === 'sword' || heldToolKind() === 'axe')) {
+    PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = PL.charge > 0.92; SFX.swish(PL.atkFull ? 1.2 : 0.8);
+  }
   if (INPUT.primaryHeld) G.holdT = (G.holdT || 0) + dt; else G.holdT = 0;
   if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
@@ -10719,7 +11184,8 @@ const NET = {
     this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {};
   },
   stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
-  async addFriend(name, srvName) {
+  /* srv: { owner, wid, name } of the server this request also invites to */
+  async addFriend(name, srv) {
     const lower = (name || '').trim().toLowerCase();
     if (!NAME_RE.test(lower)) throw new Error('Benutzernamen haben 3 bis 16 Zeichen: Buchstaben, Zahlen oder _.');
     if (lower === this.name.toLowerCase()) throw new Error('Das bist du selbst.');
@@ -10728,13 +11194,17 @@ const NET = {
     if (this.friends[fid]) throw new Error((this.friends[fid].name || name) + ' ist schon in deiner Liste.');
     const fname = (await withTimeout(this.db.ref('users/' + fid + '/profile/name').once('value'), 15000)).val() || name.trim();
     await withTimeout(this.db.ref('users/' + this.uid() + '/friends/' + fid).set({ name: fname, at: this.TS() }), 15000);
-    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS(), srv: srvName || null }).catch(() => { });
+    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS(), srv: srv ? srv.name : null, srvOwner: srv ? srv.owner : null, srvWid: srv ? srv.wid : null }).catch(() => { });
+    this.lastFid = fid;
     return fname;
   },
   async accept(fid) {
     const r = this.requests[fid]; if (!r) return;
     await this.db.ref('users/' + this.uid() + '/friends/' + fid).set({ name: r.name, at: this.TS() });
+    // the request came with a server: now you are in
+    if (r.srvOwner && r.srvWid) await this.db.ref('srvmeta/' + r.srvOwner + '/' + r.srvWid + '/members/' + this.uid() + '/ok').set(true).catch((e) => console.warn('srv accept', e));
     await this.db.ref('users/' + this.uid() + '/requests/' + fid).remove();
+    if (typeof UI.menuServers === 'function') UI.menuServers(true);
   },
   async decline(fid) { await this.db.ref('users/' + this.uid() + '/requests/' + fid).remove(); },
   async removeFriend(fid) { await this.db.ref('users/' + this.uid() + '/friends/' + fid).remove(); },
@@ -11140,7 +11610,7 @@ const MP = {
     const r = REMOTE[uid]; if (!r) return;
     const nowT = performance.now();
     if (r.seen) { const dtp = Math.max(0.05, (nowT - r.last) / 1000); r.speed = Math.hypot(a[0] - r.tx, a[2] - r.tz) / dtp; }
-    r.tx = a[0]; r.ty = a[1]; r.tz = a[2]; r.tyaw = a[3]; r.flags = a[4] | 0; r.hp = a[5]; r.tool = a[6] | 0; r.toolLevel = a[7] | 0; r.item = a[8] | 0; r.last = nowT;
+    r.tx = a[0]; r.ty = a[1]; r.tz = a[2]; r.tyaw = a[3]; r.flags = a[4] | 0; r.hp = a[5]; r.tool = a[6] | 0; r.toolLevel = a[7] | 0; r.item = a[8] | 0; r.armor = a[9] | 0; r.last = nowT;
     if (!r.seen || Math.hypot(r.x - r.tx, r.z - r.tz) > 12) { r.x = r.tx; r.y = r.ty; r.z = r.tz; r.yaw = r.tyaw; }
     r.seen = true;
     if (r.flags & 4) r.swingT = Math.min(r.swingT, 0);
@@ -11172,7 +11642,7 @@ const MP = {
     let f = 0;
     if (PL.onGround) f |= 1; if (PL.chopping > 0) f |= 2; if (PL.swingT < 0.5) f |= 4; if (G.sleep) f |= 8; if (PL.dead) f |= 16; if (PL.inWater) f |= 32; if (PL.sprint) f |= 64;
     const r2 = (v) => Math.round(v * 100) / 100;
-    const a = [r2(PL.x), r2(PL.y + PL.stepOffset), r2(PL.z), r2(PL.yaw), f, Math.round(PL.hp), toolCode, lvl | 0, item | 0];
+    const a = [r2(PL.x), r2(PL.y + PL.stepOffset), r2(PL.z), r2(PL.yaw), f, Math.round(PL.hp), toolCode, lvl | 0, item | 0, (G.tools.helmet & 3) | ((G.tools.chestplate & 3) << 2) | ((G.tools.leggings & 3) << 4) | ((G.tools.boots & 3) << 6)];
     const key = a.join(',');
     if (key === this.lastP && performance.now() - (this.lastPT || 0) < 2000) return;
     this.lastP = key; this.lastPT = performance.now();
@@ -11465,32 +11935,60 @@ const SERVER = {
     await withTimeout(NET.db.ref().update(upd), 60000);
     return wid;
   },
+  /* who may play on a server: the owner adds people one by one (friends right away, others after they accept) */
+  async members(srv) { return (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/members').once('value'), 15000)).val() || {}; },
+  async addMember(srv, uid, name, ok) {
+    const upd = {};
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/members/' + uid] = { name: name || '', ok: !!ok, at: NET.TS() };
+    upd['srvin/' + uid + '/' + srv.owner + '_' + srv.wid] = { owner: srv.owner, wid: srv.wid };
+    await withTimeout(NET.db.ref().update(upd), 15000);
+  },
+  async removeMember(srv, uid) {
+    const upd = {};
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/members/' + uid] = null;
+    upd['srvin/' + uid + '/' + srv.owner + '_' + srv.wid] = null;
+    await withTimeout(NET.db.ref().update(upd), 15000);
+  },
   async remove(srv) {
+    let mem = {}; try { mem = await this.members(srv); } catch (e) { /* ignore */ }
     const upd = {}; upd[srvPath(srv)] = null; upd['srvmeta/' + srv.owner + '/' + srv.wid] = null;
+    for (const uid in mem) upd['srvin/' + uid + '/' + srv.owner + '_' + srv.wid] = null;
     await withTimeout(NET.db.ref().update(upd), 20000);
   },
-  /* your servers and the ones of friends who added you */
+  /* your servers and the ones you were added to */
   async list() {
     const uid = NET.uid(); if (!uid) return [];
-    const owners = [[uid, NET.name]];
-    for (const fid in NET.friends) owners.push([fid, NET.friends[fid].name || '']);
     const out = [];
-    await Promise.all(owners.map(async ([o, oname]) => {
-      let metas = null;
-      try { metas = (await withTimeout(NET.db.ref('srvmeta/' + o).once('value'), 15000)).val(); } catch (e) { return; }   // no access: that friend has not added you
-      for (const wid in metas || {}) {
-        const m = metas[wid]; if (!m) continue;
-        const s = { owner: o, wid, name: m.name || 'Server', ownerName: m.ownerName || oname, mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: o === uid, players: [] };
-        try {
-          const room = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/info').once('value'), 10000)).val();
-          if (room && room.open) {
-            const pl = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/players').once('value'), 10000)).val() || {};
-            s.players = Object.values(pl).map((p) => p && p.name).filter(Boolean);
-          }
-        } catch (e) { /* ignore */ }
-        out.push(s);
-      }
-    }));
+    const add = async (o, wid, m) => {
+      if (!m) return;
+      const s = { owner: o, wid, name: m.name || 'Server', ownerName: m.ownerName || '', mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: o === uid, players: [], members: m.members || {} };
+      try {
+        const room = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/info').once('value'), 10000)).val();
+        if (room && room.open) {
+          const pl = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/players').once('value'), 10000)).val() || {};
+          s.players = Object.values(pl).map((p) => p && p.name).filter(Boolean);
+        }
+      } catch (e) { /* ignore */ }
+      out.push(s);
+    };
+    const jobs = [];
+    try {
+      const mine = (await withTimeout(NET.db.ref('srvmeta/' + uid).once('value'), 15000)).val() || {};
+      for (const wid in mine) jobs.push(add(uid, wid, mine[wid]));
+    } catch (e) { /* ignore */ }
+    let inn = {};
+    try { inn = (await withTimeout(NET.db.ref('srvin/' + uid).once('value'), 15000)).val() || {}; } catch (e) { /* ignore */ }
+    for (const k in inn) {
+      const r = inn[k]; if (!r || !r.owner || !r.wid || r.owner === uid) continue;
+      jobs.push((async () => {
+        let m = null;
+        try { m = (await withTimeout(NET.db.ref('srvmeta/' + r.owner + '/' + r.wid).once('value'), 15000)).val(); } catch (e) { return; }   // removed again
+        // invited, but the friend request is not accepted yet: not in the list
+        if (!m || !m.members || !m.members[uid] || m.members[uid].ok === false) return;
+        await add(r.owner, r.wid, m);
+      })());
+    }
+    await Promise.all(jobs);
     out.sort((a, b) => (b.mine - a.mine) || (b.players.length - a.players.length) || (b.updated - a.updated));
     return out;
   },
@@ -11510,7 +12008,7 @@ async function playServer(srv, keep) {
   try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); }
   catch (e) {
     showMenu();
-    UI.toast(/PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message))) ? (srv.ownerName || 'Der Besitzer') + ' muss dich zuerst als Freund hinzufügen.' : 'Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600);
+    UI.toast(/PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message))) ? (srv.ownerName || 'Der Besitzer') + ' muss dich zuerst zum Server hinzufügen.' : 'Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600);
     return;
   }
   // somebody runs it already: join them
@@ -11574,6 +12072,9 @@ UI.serversRefresh = async function () {
     go.addEventListener('click', () => playServer(s));
     act.append(go);
     if (s.mine) {
+      const adm = document.createElement('button'); adm.className = 'btn'; adm.type = 'button'; adm.textContent = 'Verwalten';
+      adm.addEventListener('click', () => UI.openSrvAdmin(s));
+      act.append(adm);
       const del = document.createElement('button'); del.className = 'btn ghost'; del.type = 'button'; del.textContent = 'Löschen';
       del.addEventListener('click', async () => {
         const ok = await UI.confirm({ title: 'Server „' + s.name + '“ löschen?', text: 'Die Server-Welt wird für alle gelöscht. Deine eigene Welt auf diesem Gerät bleibt.', yes: 'Löschen' });
@@ -11591,7 +12092,7 @@ UI.serversRefresh = async function () {
   mineEl.innerHTML = ''; frEl.innerHTML = '';
   if (!mine.length) mineEl.innerHTML = '<div class="list-empty">Noch kein Server. Lade oben eine deiner Welten hoch.</div>';
   for (const s of mine) mineEl.appendChild(row(s));
-  if (!fr.length) frEl.innerHTML = '<div class="list-empty">Noch keine. Server von Freunden siehst du, sobald sie dich als Freund hinzugefügt haben.</div>';
+  if (!fr.length) frEl.innerHTML = '<div class="list-empty">Noch keine. Server anderer siehst du, sobald dich jemand hinzufügt.</div>';
   for (const s of fr) frEl.appendChild(row(s));
 };
 function esc(t) { return String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -11602,8 +12103,8 @@ function bindServerUI() {
     ev.preventDefault();
     const m = $('invtMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Wird eingeladen …';
     try {
-      const n = await NET.addFriend($('invtName').value, UI._invSrv ? UI._invSrv.name : null);
-      m.textContent = 'Anfrage an ' + n + ' geschickt. Sobald ' + n + ' annimmt, steht der Server in der Liste.';
+      const [n, now] = await inviteByName(UI._invSrv, $('invtName').value);
+      m.textContent = now ? n + ' ist jetzt auf dem Server und sieht ihn in der Serverliste.' : 'Anfrage an ' + n + ' geschickt. Sobald ' + n + ' annimmt, steht der Server in der Liste.';
       $('invtName').value = '';
       UI.inviteRefresh();
     } catch (e) { m.className = 'form-msg'; m.textContent = e && e.message ? e.message : String(e); }
@@ -11616,7 +12117,7 @@ function bindServerUI() {
     $('srvUpBtn').disabled = true;
     try {
       await SERVER.upload(e);
-      msg.className = 'form-msg ok'; msg.textContent = '„' + e.name + '“ ist jetzt ein Server. Deine Freunde finden ihn hier unter „Server deiner Freunde“.';
+      msg.className = 'form-msg ok'; msg.textContent = '„' + e.name + '“ ist jetzt ein Server. Füg jetzt Leute hinzu, die darauf spielen dürfen.';
       UI.serversRefresh();
     } catch (err) { msg.className = 'form-msg err'; msg.textContent = err && err.message ? err.message : String(err); }
     $('srvUpBtn').disabled = false;
@@ -11637,7 +12138,7 @@ UI.menuServers = function (force) {
   SERVER.list().then((list) => {
     if (ask !== UI._msN) return;
     el.innerHTML = '';
-    if (!list.length) { el.innerHTML = '<p class="ms-empty">Noch keine Server. Mach eine Welt zum Server: Welten, dann Bearbeiten, dann „Zum Server machen“. Server deiner Freunde erscheinen hier von selbst.</p>'; return; }
+    if (!list.length) { el.innerHTML = '<p class="ms-empty">Noch keine Server. Mach eine Welt zum Server: Welten, dann Bearbeiten, dann „Zum Server machen“. Server, zu denen dich jemand hinzufügt, erscheinen hier von selbst.</p>'; return; }
     for (const s of list) {
       const row = document.createElement('div'); row.className = 'ms-row';
       row.innerHTML = '<i class="' + (s.players.length ? 'ms-on' : 'ms-off') + '"></i><div class="ms-m"><b></b><span></span></div>';
@@ -11647,8 +12148,8 @@ UI.menuServers = function (force) {
       go.addEventListener('click', () => playServer(s));
       row.appendChild(go);
       if (s.mine) {
-        const inv = document.createElement('button'); inv.className = 'btn'; inv.type = 'button'; inv.textContent = 'Einladen'; inv.title = 'Leute einladen';
-        inv.addEventListener('click', () => UI.openInvite(s));
+        const inv = document.createElement('button'); inv.className = 'btn'; inv.type = 'button'; inv.textContent = 'Verwalten'; inv.title = 'Mitglieder, Backups, Export';
+        inv.addEventListener('click', () => UI.openSrvAdmin(s));
         row.appendChild(inv);
       }
       el.appendChild(row);
@@ -11666,18 +12167,214 @@ UI.openInvite = function (srv) {
   $('invtMsg').hidden = true;
   UI.inviteRefresh();
 };
-UI.inviteRefresh = function () {
-  const el = $('invtFriends'); el.innerHTML = '';
-  const ids = Object.keys(NET.friends);
-  if (!ids.length) { el.innerHTML = '<div class="list-empty">Noch keine Freunde. Lade unten jemanden ein.</div>'; return; }
-  for (const fid of ids) {
-    const f = NET.friends[fid];
+UI.inviteRefresh = async function () {
+  const srv = UI._invSrv; const el = $('invtFriends'), memEl = $('invtMembers');
+  if (!srv) return;
+  let mem = {};
+  try { mem = await SERVER.members(srv); } catch (e) { memEl.innerHTML = '<div class="list-empty">Mitglieder konnten nicht geladen werden. ' + esc(netMsg(e)) + '</div>'; return; }
+  if (UI._invSrv !== srv) return;
+  const row = (name, sub, btnText, primary, fn) => {
     const li = document.createElement('div'); li.className = 'li';
-    li.innerHTML = '<div class="li-main"><b></b><span>Darf rein ✓</span></div>';
-    li.querySelector('b').textContent = f.name || 'Freund';
+    li.innerHTML = '<div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
+    li.querySelector('b').textContent = name; li.querySelector('span').textContent = sub;
+    if (btnText) {
+      const b = document.createElement('button'); b.className = 'btn' + (primary ? ' primary' : ' ghost'); b.type = 'button'; b.textContent = btnText;
+      b.addEventListener('click', async () => { b.disabled = true; try { await fn(); } catch (e) { UI.toast('Das ging nicht. ' + netMsg(e), 'warn'); } UI.inviteRefresh(); });
+      li.querySelector('.li-act').appendChild(b);
+    }
+    return li;
+  };
+  // who is in
+  memEl.innerHTML = '';
+  const ids = Object.keys(mem);
+  if (!ids.length) memEl.innerHTML = '<div class="list-empty">Noch niemand außer dir. Füg unten Freunde hinzu.</div>';
+  for (const uid of ids) {
+    const m = mem[uid] || {};
+    memEl.appendChild(row(m.name || 'Spieler', m.ok === false ? 'Anfrage verschickt, wartet auf Antwort' : 'Darf rein ✓', 'Entfernen', false, () => SERVER.removeMember(srv, uid)));
+  }
+  // friends as suggestions
+  el.innerHTML = '';
+  const sug = Object.keys(NET.friends).filter((fid) => !mem[fid]);
+  if (!sug.length) el.innerHTML = '<div class="list-empty">' + (Object.keys(NET.friends).length ? 'Alle deine Freunde sind schon drin.' : 'Noch keine Freunde. Lade unten jemanden mit Namen ein.') + '</div>';
+  for (const fid of sug) {
+    const f = NET.friends[fid];
+    el.appendChild(row(f.name || 'Freund', 'Dein Freund', 'Hinzufügen', true, () => SERVER.addMember(srv, fid, f.name, true)));
+  }
+};
+/* invite by name: friends are in at once, everybody else gets a friend request first */
+async function inviteByName(srv, name) {
+  const lower = (name || '').trim().toLowerCase();
+  const fid = NAME_RE.test(lower) ? (await withTimeout(NET.db.ref('usernames/' + lower).once('value'), 15000)).val() : null;
+  if (fid && fid === NET.uid()) throw new Error('Das bist du selbst.');
+  if (fid && NET.friends[fid]) { const n = NET.friends[fid].name || name.trim(); await SERVER.addMember(srv, fid, n, true); return [n, true]; }
+  const n = await NET.addFriend(name, srv);
+  await SERVER.addMember(srv, NET.lastFid, n, false);
+  return [n, false];
+}
+
+/* ---- 19b_backup.js ---- */
+/* =========================================================================
+   Backups: copies of worlds (on this device and in your account), export to
+   a file and import from one. Server owners can copy their server world into
+   their own worlds, keep backups on the server and download it.
+   ========================================================================= */
+const BACKUP_FILE_V = 1;
+const SRV_BACKUP_MAX = 5;
+function stampText(t) { const d = new Date(t || Date.now()); const p = (n) => String(n).padStart(2, '0'); return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+/* a new world entry with this save (a copy: nothing links it to where it came from) */
+function addWorldCopy(name, save, mode) {
+  const s = JSON.parse(JSON.stringify(save));
+  s.mode = s.mode || (mode === 'island' ? 'island' : 'endless');
+  delete s.vis;
+  const e = WORLDS.newEntry(name, s.seed, s.mode);
+  const str = WORLDS.writeLocal(e, s);
+  if (!e.hasLocal) { WORLDS.list = WORLDS.list.filter((w) => w.id !== e.id); WORLDS.saveIndex(); throw new Error('Auf diesem Gerät ist kein Platz mehr für eine Kopie. Lösch eine alte Welt oder exportiere sie.'); }
+  if (NET.uid()) { e.owner = NET.uid(); WORLDS.saveIndex(); WORLDS.pendingCloud.set(e.id, str); WORLDS.flushCloud(); }
+  return e;
+}
+/* save as a file the player downloads */
+function downloadWorldFile(name, save, mode) {
+  const data = { bloodmoon: BACKUP_FILE_V, name, mode: save.mode || mode || 'endless', at: Date.now(), save };
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (name || 'Welt').replace(/[^\w\-äöüÄÖÜß ]+/g, '').trim().replace(/\s+/g, '-') + '.bloodmoon.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+/* read a world file (exported here, or a plain save) */
+function parseWorldFile(text) {
+  let d; try { d = JSON.parse(text); } catch (e) { throw new Error('Das ist keine Blood-Moon-Welt.'); }
+  const save = d && d.save ? d.save : d;
+  if (!save || typeof save.seed !== 'number' || !Array.isArray(save.ch)) throw new Error('Das ist keine Blood-Moon-Welt.');
+  return { name: (d.name || 'Importierte Welt').slice(0, 18), save, mode: d.mode || save.mode };
+}
+async function worldSaveOf(e) {
+  if (G.state !== 'menu' && WORLDS.current === e) saveGame(true);
+  const s = await WORLDS.fetchData(e);
+  if (!s) throw new Error('Diese Welt ist gerade nicht erreichbar.');
+  return s;
+}
+
+/* ---------- server worlds (owner) ---------- */
+const SRVB = {
+  async save(srv) {
+    const raw = (await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000)).val();
+    if (!raw) throw new Error('Diesen Server gibt es nicht mehr.');
+    return JSON.parse(raw);
+  },
+  async list(srv) {
+    const v = (await withTimeout(NET.db.ref(srvPath(srv) + '/backups').once('value'), 30000)).val() || {};
+    return Object.keys(v).map((id) => ({ id, at: v[id].at || 0, day: v[id].day || 1, d: v[id].d })).sort((a, b) => b.at - a.at);
+  },
+  async make(srv) {
+    const raw = (await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000)).val();
+    if (!raw) throw new Error('Diesen Server gibt es nicht mehr.');
+    let day = 1; try { day = JSON.parse(raw).time.day || 1; } catch (e) { /* ignore */ }
+    const old = await this.list(srv);
+    const upd = {};
+    // the oldest go when there are too many
+    for (const b of old.slice(SRV_BACKUP_MAX - 1)) upd[srvPath(srv) + '/backups/' + b.id] = null;
+    upd[srvPath(srv) + '/backups/b' + Date.now().toString(36)] = { at: Date.now(), day, d: raw };
+    await withTimeout(NET.db.ref().update(upd), 60000);
+  },
+  async restore(srv, b) {
+    const upd = {};
+    upd[srvPath(srv) + '/save'] = b.d;
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/updated'] = NET.TS();
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/day'] = b.day;
+    await withTimeout(NET.db.ref().update(upd), 60000);
+  },
+  async drop(srv, b) { await withTimeout(NET.db.ref(srvPath(srv) + '/backups/' + b.id).remove(), 20000); },
+};
+UI.openSrvAdmin = function (srv) {
+  UI._admin = srv;
+  UI.closeAll();
+  $('mdlSrvAdmin').hidden = false;
+  $('saTitle').textContent = srv.name;
+  $('saSub').textContent = 'Tag ' + srv.day + ' · ' + (srv.players.length ? 'drin: ' + srv.players.join(', ') : 'gerade leer');
+  $('saMsg').hidden = true;
+  UI.srvAdminRefresh();
+};
+function saMsg(t, ok) { const m = $('saMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; }
+UI.srvAdminRefresh = async function () {
+  const srv = UI._admin; if (!srv) return;
+  const el = $('saList'); el.innerHTML = '<div class="list-empty">Lädt …</div>';
+  let list = [];
+  try { list = await SRVB.list(srv); } catch (e) { el.innerHTML = '<div class="list-empty">Backups konnten nicht geladen werden. ' + esc(netMsg(e)) + '</div>'; return; }
+  if (UI._admin !== srv) return;
+  el.innerHTML = '';
+  if (!list.length) { el.innerHTML = '<div class="list-empty">Noch keine Backups.</div>'; return; }
+  for (const b of list) {
+    const li = document.createElement('div'); li.className = 'li';
+    li.innerHTML = '<div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
+    li.querySelector('b').textContent = 'Backup vom ' + stampText(b.at);
+    li.querySelector('span').textContent = 'Tag ' + b.day;
+    const act = li.querySelector('.li-act');
+    const res = document.createElement('button'); res.className = 'btn'; res.type = 'button'; res.textContent = 'Zurücksetzen';
+    res.addEventListener('click', async () => {
+      $('mdlSrvAdmin').hidden = true;
+      const ok = await UI.confirm({ title: 'Server zurücksetzen?', text: '„' + srv.name + '“ wird auf den Stand vom ' + stampText(b.at) + ' gesetzt. Was seitdem passiert ist, geht verloren.', yes: 'Zurücksetzen' });
+      $('mdlSrvAdmin').hidden = false;
+      if (!ok) return;
+      try {
+        const info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val();
+        if (info && info.open) { saMsg('Gerade spielt jemand auf dem Server. Zurücksetzen geht nur, wenn er leer ist.'); return; }
+        await SRVB.restore(srv, b); saMsg('Der Server ist zurückgesetzt.', true);
+      } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
+    });
+    const del = document.createElement('button'); del.className = 'btn ghost'; del.type = 'button'; del.textContent = 'Löschen';
+    del.addEventListener('click', async () => { try { await SRVB.drop(srv, b); } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); } UI.srvAdminRefresh(); });
+    act.append(res, del);
     el.appendChild(li);
   }
 };
+function bindBackupUI() {
+  // world edit: copy, export
+  $('weCopy').addEventListener('click', async () => {
+    const e = UI._edit; if (!e) return;
+    const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok';
+    try { const s = await worldSaveOf(e); const c = addWorldCopy((e.name.slice(0, 12) + ' Backup ' + stampText()).slice(0, 24), s, entryMode(e)); m.textContent = 'Backup „' + c.name + '“ ist jetzt in deinen Welten.'; UI.menuRefresh(); }
+    catch (err) { m.className = 'form-msg'; m.textContent = err && err.message ? err.message : String(err); }
+  });
+  $('weExport').addEventListener('click', async () => {
+    const e = UI._edit; if (!e) return;
+    const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok';
+    try { const s = await worldSaveOf(e); downloadWorldFile(e.name, s, entryMode(e)); m.textContent = 'Die Datei wird heruntergeladen. Über „Importieren“ bei Welten holst du sie zurück.'; }
+    catch (err) { m.className = 'form-msg'; m.textContent = err && err.message ? err.message : String(err); }
+  });
+  // worlds: import a file
+  $('wImport').addEventListener('click', () => $('wImportFile').click());
+  $('wImportFile').addEventListener('change', async () => {
+    const f = $('wImportFile').files[0]; $('wImportFile').value = '';
+    if (!f) return;
+    try {
+      const d = parseWorldFile(await f.text());
+      const e = addWorldCopy(d.name, d.save, d.mode);
+      UI.toast('„' + e.name + '“ ist importiert.', 'good');
+      UI.worldsRefresh(); UI.menuRefresh();
+    } catch (err) { UI.toast(err && err.message ? err.message : String(err), 'warn', 5000); }
+  });
+  // server owner
+  $('saCopy').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    saMsg('Wird kopiert …', true);
+    try { const s = await SRVB.save(srv); const e = addWorldCopy((srv.name.slice(0, 14) + ' Kopie').slice(0, 24), s, srv.mode); saMsg('„' + e.name + '“ ist jetzt in deinen eigenen Welten.', true); UI.menuRefresh(); }
+    catch (e) { saMsg(e && e.message ? e.message : String(e)); }
+  });
+  $('saBackup').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    saMsg('Backup wird gemacht …', true);
+    try { await SRVB.make(srv); saMsg('Backup gespeichert. Die letzten ' + SRV_BACKUP_MAX + ' bleiben auf dem Server.', true); UI.srvAdminRefresh(); }
+    catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
+  });
+  $('saExport').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    try { const s = await SRVB.save(srv); delete s.vis; downloadWorldFile(srv.name, s, srv.mode); saMsg('Die Datei wird heruntergeladen.', true); }
+    catch (e) { saMsg(e && e.message ? e.message : String(e)); }
+  });
+  $('saInvite').addEventListener('click', () => { const srv = UI._admin; if (srv) UI.openInvite(srv); });
+}
 
 /* ---- 19s_support.js ---- */
 /* =========================================================================
