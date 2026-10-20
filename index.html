@@ -55,6 +55,25 @@
         "ev": { "$e": { ".write": "auth != null && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "snaps": { "$p": { ".write": "auth != null && auth.uid === $p" } }
       }
+    },
+    "srvmeta": {
+      "$owner": {
+        ".read": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())",
+        "$wid": { ".write": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())" }
+      }
+    },
+    "srv": {
+      "$owner": {
+        ".read": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())",
+        ".write": "auth != null && (auth.uid === $owner || root.child('users/' + $owner + '/friends/' + auth.uid).exists())"
+      }
+    },
+    "support": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('usernames/dynathereal').val() === auth.uid)"
+      }
     }
   }
 }
@@ -186,6 +205,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .res-i { width: 24px; height: 24px; image-rendering: pixelated; }
 .res.bump, .ibtn.bump { animation: bump 0.35s ease; }
 .inv-it.mat { cursor: default; }
+.sup-msg { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 10px; }
+.sup-h { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.sup-h span { color: var(--muted); font-weight: 700; }
+.sup-t { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+.sup-r { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--ember); background: rgba(255, 177, 92, 0.08); border-radius: 8px; font-size: 14px; }
+.sup-r p { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+.sup-reply { margin-top: 10px; }
+#supText { font-family: inherit; font-size: 15px; font-weight: 600; min-height: 96px; }
+select.field { appearance: auto; }
 .li.restore { border-color: rgba(255, 177, 92, 0.45); background: rgba(255, 177, 92, 0.08); }
 .li.restore .li-main span { white-space: normal; }
 .chest-acts { margin-bottom: 4px; }
@@ -542,6 +570,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="menu-actions">
       <button id="btnPlay" class="btn primary" type="button">Spielen</button>
       <button id="btnWorlds" class="btn" type="button">Welten</button>
+      <button id="btnServers" class="btn" type="button">Server</button>
       <button id="btnFriends" class="btn" type="button">Freunde<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
     </div>
@@ -554,6 +583,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="menu-links">
       <button id="btnMenuSettings" class="link" type="button">Einstellungen</button>
       <button id="btnControls" class="link" type="button">Steuerung</button>
+      <button id="btnSupport" class="link" type="button">Support<span class="badge" id="supportBadge" hidden>1</span></button>
     </div>
   </div>
 </section>
@@ -692,6 +722,37 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button type="button" data-v="island" role="radio" aria-checked="false"><b>Insel</b><span>Eine große Insel im Meer. Alles liegt näher beieinander, kein Nebel.</span></button>
       </div>
       <div class="list" id="worldList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlServers" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="srvTitle">
+  <div class="sheet panel">
+    <div class="sheet-h"><div class="grow"><h2 id="srvTitle">Server</h2><p>Welten, die immer offen sind. Deine Freunde kommen rein, auch wenn du nicht da bist.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div id="srvOut" hidden><p class="hint">Melde dich an, um Server zu benutzen.</p><button class="btn primary" id="srvLogin" type="button">Anmelden</button></div>
+      <div id="srvIn" hidden>
+        <p class="sec-t">Welt hochladen</p>
+        <form class="newworld" id="srvUpForm" autocomplete="off"><select class="field" id="srvWorld" aria-label="Welt zum Hochladen"></select><button class="btn primary" id="srvUpBtn" type="submit">Hochladen</button></form>
+        <p class="form-msg" id="srvMsg" hidden></p>
+        <p class="sec-t">Deine Server</p><div class="list" id="srvMine"></div>
+        <p class="sec-t">Server deiner Freunde</p><div class="list" id="srvFriends"></div>
+        <p class="hint" style="margin-top:12px">Hochladen macht eine Kopie, deine eigene Welt bleibt. Wer zuerst reinkommt, lässt die Welt laufen; geht er, übernimmt ein anderer. Ist niemand drin, wartet die Welt. Beitreten dürfen Freunde, die der Besitzer hinzugefügt hat.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlSupport" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="supTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="supTitle">Support</h2><p id="supSub">Schreib DynaTheReal</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div id="supOut" hidden><p class="hint">Melde dich an, damit DynaTheReal dir antworten kann.</p><button class="btn primary" id="supLogin" type="button">Anmelden</button></div>
+      <div id="supIn" hidden>
+        <form id="supForm" autocomplete="off"><textarea class="field area" id="supText" rows="4" maxlength="600" placeholder="Was ist los? Was wünschst du dir?" aria-label="Nachricht an DynaTheReal"></textarea><button class="btn primary" type="submit" style="margin-top:8px">Abschicken</button></form>
+        <p class="form-msg" id="supMsg" hidden></p>
+        <p class="sec-t">Nachrichten</p><div id="supList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -5294,6 +5355,7 @@ function makeSave() {
 function saveGame(flushCloud) {
   if (G.state === 'menu' || G.state === 'loading') return;
   if (MP.isClient()) { MP.sendPdata(); return; }
+  if (G.server) { SERVER.save(flushCloud); return; }
   if (!WORLDS.current) return;
   try { WORLDS.save(makeSave(), flushCloud); } catch (e) { console.warn('save failed', e); }
 }
@@ -8822,7 +8884,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorlds', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -9224,7 +9286,7 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
-  bindChestUI();
+  bindChestUI(); bindServerUI(); bindSupportUI();
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
@@ -9308,7 +9370,7 @@ function bindUI() {
   });
   $('setAllowFriends').addEventListener('click', () => {
     SETTINGS.allowFriends = !SETTINGS.allowFriends; saveSettings(); UI.friendsRefresh();
-    if (!SETTINGS.allowFriends && MP.isHost()) MP.closeRoom();
+    if (!SETTINGS.allowFriends && MP.isHost() && !MP.srv) MP.closeRoom();
   });
   const tj = $('tJump');
   tj.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.jump = true; }, { passive: false });
@@ -9553,13 +9615,13 @@ async function loadWorld(seed, save, opts = {}) {
   TILE_CANVAS.clear();
   resetGameState();
   if (save) applySave(save, opts.convert);
-  if (opts.client) {
-    // a guest keeps its own inventory in the host's world
+  if (opts.client || opts.server) {
+    // a guest keeps its own inventory in the host's world; on a server world everybody does
     const you = opts.you ? normalizePlayerData(opts.you) : null;
     G.inv = you ? you.inv : emptyInv();
     G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
     G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.sel = -1;
-    G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
+    G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
     PL.hp = you ? clamp(you.hp, 20, 100) : 100; PL.dead = false;
     if (you && you.pos) { PL.x = you.pos[0]; PL.y = you.pos[1] + 0.05; PL.z = you.pos[2]; PL.yaw = you.pos[3] || 0; }
@@ -9638,6 +9700,7 @@ async function toMenu(fromMp) {
   if (!fromMp) saveGame(true);
   releaseLock();
   if (MP.isHost()) await MP.closeRoom();
+  G.server = null;
   NET.setActivity({ w: null, h: false });
   showMenu();
 }
@@ -9662,7 +9725,8 @@ function startPlaying() {
   if (CAMC.mode === 'fp' && !touchUI()) requestLock('fp');
   updateCursorStyle();
   canvas.focus();
-  if (WORLDS.current && NET.uid() && SETTINGS.allowFriends && !MP.active()) MP.openRoom();
+  if (G.server && NET.uid() && !MP.active()) MP.openRoom(G.server);
+  else if (WORLDS.current && NET.uid() && SETTINGS.allowFriends && !MP.active()) MP.openRoom();
   else if (WORLDS.current) NET.setActivity({ w: WORLDS.current.name, h: false });
 }
 /* play a saved world (downloads it first when the cloud copy is newer) */
@@ -9675,6 +9739,7 @@ async function playWorld(e) {
   catch (err) { showMenu(); UI.toast('Die Welt konnte nicht geladen werden. ' + netMsg(err), 'warn', 5200); return; }
   if (!save && e.cloudOnly) { showMenu(); UI.toast('Diese Welt ist gerade nicht erreichbar. Bist du online?', 'warn', 5200); return; }
   if (MP.isHost()) await MP.closeRoom();
+  G.server = null;
   WORLDS.current = e;
   await loadWorld(e.seed, save, entryLoadOpts(e, save));
   if (e.mode !== W.mode) { e.mode = W.mode; WORLDS.saveIndex(); }
@@ -9686,6 +9751,7 @@ async function playWorld(e) {
 async function createAndPlay(name, mode) {
   if (MP.isClient()) await MP.leave(true);
   if (MP.isHost()) await MP.closeRoom();
+  G.server = null;
   const e = WORLDS.newEntry(name, null, mode);
   WORLDS.current = e;
   await loadWorld(e.seed, null, { mode: e.mode });
@@ -9708,7 +9774,7 @@ async function playLast() {
   }
   return createAndPlay();
 }
-async function joinFriend(fid, name, again) {
+async function joinFriend(fid, name, again, srv) {
   if (MP.isHost() && MP.hasGuests()) {
     $('mdlFriends').hidden = true;
     const ok = await UI.confirm({ title: 'Zu ' + name + ' wechseln?', text: 'Deine Welt wird gespeichert und geschlossen. Deine Gäste müssen sie dann verlassen.', yes: 'Wechseln', danger: false });
@@ -9722,14 +9788,14 @@ async function joinFriend(fid, name, again) {
   $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, again ? 'Verbindung wieder da. Lade die Welt von ' + name + ' neu' : 'Verbinde mit ' + name);
   let data;
   try {
-    const { snap } = await MP.join(fid, name);
+    const { snap } = await MP.join(fid, name, srv);
     data = JSON.parse(snap.d);
   } catch (e) {
     showMenu();
     UI.toast(e && e.message ? e.message : String(e), 'warn', 5600);
     return;
   }
-  WORLDS.current = null; G.loadedWorld = null;
+  WORLDS.current = null; G.loadedWorld = null; G.server = null;
   await loadWorld(data.seed, data, { client: true, host: MP.hostName, you: data.you });
   MP.clientReady(data);
   startPlaying();
@@ -10294,7 +10360,7 @@ const NET = {
     this.pendingName = null;
     this.name = p.name;
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
-    this.startPresence(); this.watchFriends();
+    this.startPresence(); this.watchFriends(); SUPPORT.watch();
     UI.account(); UI.friendsRefresh();
     WORLDS.syncOnLogin();
     if (G.state === 'playing' && WORLDS.current && !MP.active()) MP.openRoom();
@@ -10398,7 +10464,7 @@ const NET = {
     for (const fid in this.statusRefs) { const [r, cb] = this.statusRefs[fid]; r.off('value', cb); }
     this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {};
   },
-  stopWatching() { this.stopPresence(); this.stopFriends(); },
+  stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
   async addFriend(name) {
     const lower = (name || '').trim().toLowerCase();
     if (!NAME_RE.test(lower)) throw new Error('Benutzernamen haben 3 bis 16 Zeichen: Buchstaben, Zahlen oder _.');
@@ -10451,6 +10517,7 @@ const MP = {
   evBuf: [], applied: new Map(), lastP: '', pT: 0, mobT: 0, mobN: 0, pdataT: 0, cleanT: 0,
   snapWait: null, zidNext: 1, leaving: false,
   connRef: null, connCb: null, online: undefined, offAt: 0, lastMsgAt: 0, closeT: null, closeWait: 0, warnT: null, warned: false,
+  srv: null,          // server world being played (null: somebody's own world)
   infoOpen: true, roomGone: false, leaveT: {}, lastRemote: {}, byeUids: new Set(), closing: false, rejoining: false,
   active() { return this.role !== 'solo'; },
   isHost() { return this.role === 'host'; },
@@ -10471,10 +10538,12 @@ const MP = {
   },
 
   /* ---------- hosting ---------- */
-  async openRoom() {
-    if (this.active() || !NET.uid() || !SETTINGS.allowFriends || !WORLDS.current || G.state === 'menu') return;
+  async openRoom(srv) {
+    if (this.active() || !NET.uid() || G.state === 'menu') return;
+    if (!srv && (!SETTINGS.allowFriends || !WORLDS.current)) return;
     const uid = NET.uid();
-    this.role = 'host'; this.hostUid = uid; this.hostName = NET.name; this.base = 'rooms/' + uid; this.ready = true;
+    this.srv = srv || null;
+    this.role = 'host'; this.hostUid = uid; this.hostName = NET.name; this.base = srv ? srvRoomPath(srv) : 'rooms/' + uid; this.ready = true;
     this.applied.clear();
     try {
       this.closing = false;
@@ -10487,7 +10556,7 @@ const MP = {
       this.ref('info/open').onDisconnect().set(false);
       this.listen();
       this.watchConn();
-      NET.setActivity({ w: WORLDS.current.name, h: true });
+      NET.setActivity({ w: this.worldName(), h: !srv });
     } catch (e) {
       console.warn('room', e);
       this.role = 'solo'; this.base = '';
@@ -10495,13 +10564,16 @@ const MP = {
     }
     UI.mpChip();
   },
-  roomInfo() { return { host: NET.name, world: WORLDS.current ? WORLDS.current.name : '', seed: W.seed, mode: W.mode, open: true, v: 1, at: NET.TS() }; },
+  worldName() { return this.srv ? this.srv.name : WORLDS.current ? WORLDS.current.name : ''; },
+  roomInfo() { return { host: NET.name, hostUid: NET.uid(), world: this.worldName(), seed: W.seed, mode: W.mode, srv: this.srv ? 1 : 0, open: true, v: 1, at: NET.TS() }; },
   hostEntry() { return { name: NET.name, skin: SETTINGS.skin, host: true, at: NET.TS() }; },
   async closeRoom() {
     if (!this.isHost()) return;
     this.closing = true;
     this.offAll();
     this.unwatchConn();
+    // a server world: what happened in it stays on the server
+    if (this.srv && G.server) await SERVER.save(true);
     try { await this.ref('info/open').onDisconnect().cancel(); await this.ref('info').update({ open: false, bye: true }); await this.ref().remove(); } catch (e) { /* ignore */ }
     this.reset();
     NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false });
@@ -10513,7 +10585,7 @@ const MP = {
     this.warned = false; this.infoOpen = true; this.roomGone = false; this.lastMsgAt = 0;
     for (const k in this.leaveT) { clearTimeout(this.leaveT[k][0]); delete this.leaveT[k]; }
     this.lastRemote = {}; this.byeUids.clear();
-    this.role = 'solo'; this.hostUid = null; this.base = ''; this.ready = false; this.evBuf = []; this.applied.clear();
+    this.role = 'solo'; this.hostUid = null; this.base = ''; this.ready = false; this.evBuf = []; this.applied.clear(); this.srv = null;
     for (const k in REMOTE) delete REMOTE[k];
     this.snapWait = null;
     UI.mpChip();
@@ -10540,6 +10612,8 @@ const MP = {
     if (!this.active() || !NET.uid() || this.leaving || this.closing) return;
     try {
       if (this.isHost()) {
+        // a server world: somebody else may have taken it over in the meantime
+        if (this.srv) { const cur = (await this.ref('info').once('value')).val(); if (cur && cur.open && cur.hostUid && cur.hostUid !== NET.uid()) { this.yieldServer(); return; } }
         this.ref('info/open').onDisconnect().set(false);
         await this.ref('info').set(this.roomInfo());
         await this.ref('players/' + NET.uid()).set(this.hostEntry());
@@ -10562,13 +10636,36 @@ const MP = {
   async rejoin() {
     if (this.rejoining) return;
     this.rejoining = true;
-    try { await joinFriend(this.hostUid, this.hostName, true); } finally { this.rejoining = false; }
+    try {
+      if (this.srv) { const s = this.srv; await this.leave(true); await playServer(s, true); }
+      else await joinFriend(this.hostUid, this.hostName, true);
+    } finally { this.rejoining = false; }
   },
   /* host: the server can notice a lost connection much later than the game does. Its
      leftover "closed" write must not lock friends out while the host is playing */
   healRoom(v) {
     if (!this.isHost() || this.online !== true || this.leaving || this.closing) return;
+    if (this.srv && v && v.open && v.hostUid && v.hostUid !== NET.uid()) { this.yieldServer(); return; }
     if (!v || !v.open) this.ref('info').set(this.roomInfo()).catch(() => { });
+  },
+  /* server world: somebody else runs it now, so join them */
+  async yieldServer() {
+    const srv = this.srv; if (!srv || this.leaving) return;
+    if (G.server) await SERVER.save(true);
+    await this.leave(true);
+    playServer(srv, true);
+  },
+  /* server world: the host is gone. One of the guests takes over (the others then join that one) */
+  takeOver() {
+    const srv = this.srv; if (!srv) return;
+    const me = NET.uid();
+    const uids = Object.keys(REMOTE).filter((u) => u !== this.hostUid).concat([me]).sort();
+    const wait = 600 + uids.indexOf(me) * 3500;
+    setTimeout(async () => {
+      if (!this.isClient() || this.srv !== srv) return;
+      await this.leave(true);
+      playServer(srv, true);
+    }, wait);
   },
   /* guest: same for your own entry in the room */
   onSelfRemoved() {
@@ -10583,11 +10680,11 @@ const MP = {
   },
 
   /* ---------- joining ---------- */
-  async join(hostUid, hostName) {
+  async join(hostUid, hostName, srv) {
     if (!NET.uid()) throw new Error('Melde dich zuerst an.');
     if (this.active()) await this.leave(true);
     const me = NET.uid();
-    const base = 'rooms/' + hostUid;
+    const base = srv ? srvRoomPath(srv) : 'rooms/' + hostUid;
     let info;
     try { info = (await withTimeout(NET.db.ref(base + '/info').once('value'), 12000)).val(); }
     catch (e) {
@@ -10595,6 +10692,8 @@ const MP = {
       throw new Error(netMsg(e));
     }
     if (!info || !info.open) throw new Error(hostName + ' ist gerade in keiner offenen Welt.');
+    if (srv && info.hostUid) hostUid = info.hostUid;
+    this.srv = srv || null;
     this.role = 'client'; this.hostUid = hostUid; this.hostName = info.host || hostName; this.base = base; this.ready = false; this.evBuf = []; this.applied.clear();
     this.listen();
     const snapPromise = new Promise((res, rej) => {
@@ -10696,6 +10795,7 @@ const MP = {
     const host = this.hostName;
     this.closeT = setTimeout(() => {
       this.closeT = null;
+      if (this.isClient() && this.srv) { this.takeOver(); return; }
       if (this.isClient()) this.leave(false, lost ? host + ' hat keine Verbindung mehr. Du kannst wieder beitreten, sobald ' + host + ' zurück ist.' : host + ' hat die Welt geschlossen.');
     }, wait);
     if (lost && !this.warnT && !this.warned) {
@@ -11021,6 +11121,311 @@ function applyNetEvent(v) {
     case 'hurt': if (v.to === NET.uid()) hurtPlayer(v.dmg, v.fx, v.fz); break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
+}
+
+/* ---- 19_server.js ---- */
+/* =========================================================================
+   Server worlds: a world uploaded to Firebase that the owner's friends can
+   always join, also when the owner is not playing. Whoever comes in first
+   runs the world (time, monsters) and keeps the save on the server up to
+   date; when that player leaves, one of the others takes over. With nobody
+   inside, the world simply waits.
+     srvmeta/{owner}/{wid}  name, seed, kind, owner name, last update
+     srv/{owner}/{wid}/save the world (as text)
+     srv/{owner}/{wid}/room the same room the normal multiplayer uses
+   ========================================================================= */
+function srvPath(s) { return 'srv/' + s.owner + '/' + s.wid; }
+function srvRoomPath(s) { return srvPath(s) + '/room'; }
+/* what a player carries: inventory, tools, hotbar, position, health, bed */
+function myPlayerData() {
+  return { inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
+}
+const SERVER = {
+  lastUp: 0, busy: false,
+  /* host of a server world: put the world on the server (every couple of minutes, or now) */
+  async save(now) {
+    const srv = G.server; if (!srv || !NET.uid() || !MP.isHost()) return;
+    if (!now && performance.now() - this.lastUp < 120000) return;
+    if (this.busy) return;
+    this.busy = true; this.lastUp = performance.now();
+    try {
+      const s = makeSave();
+      s.vis = Object.assign({}, s.vis || {});
+      s.vis[NET.uid()] = myPlayerData();
+      const upd = {};
+      upd[srvPath(srv) + '/save'] = JSON.stringify(s);
+      upd['srvmeta/' + srv.owner + '/' + srv.wid + '/updated'] = NET.TS();
+      upd['srvmeta/' + srv.owner + '/' + srv.wid + '/day'] = G.time.day;
+      await withTimeout(NET.db.ref().update(upd), 30000);
+    } catch (e) { console.warn('server save', e); }
+    this.busy = false;
+  },
+  /* upload one of your own worlds as a new server world (a copy: your own world stays as it is) */
+  async upload(e) {
+    const uid = NET.uid(); if (!uid) throw new Error('Melde dich zuerst an.');
+    if (G.state !== 'menu' && WORLDS.current === e) saveGame(true);
+    const save = await WORLDS.fetchData(e);
+    if (!save) throw new Error('Diese Welt ist gerade nicht erreichbar.');
+    if (needsIslandFix(e, save)) throw new Error('Spiel „' + e.name + '“ zuerst einmal, dann kannst du sie hochladen.');
+    const s = JSON.parse(JSON.stringify(save));
+    s.vis = s.vis || {};
+    s.vis[uid] = { inv: s.inv, tools: s.tools, hotbar: s.hotbar, pos: s.pl ? [s.pl[0], s.pl[1], s.pl[2], s.pl[3]] : null, hp: s.pl ? s.pl[4] : 100, bed: s.bed || null };
+    s.mode = s.mode || entryMode(e);
+    const wid = 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+    const upd = {};
+    upd['srv/' + uid + '/' + wid + '/save'] = JSON.stringify(s);
+    upd['srvmeta/' + uid + '/' + wid] = { name: e.name, seed: s.seed, mode: s.mode, ownerName: NET.name, created: NET.TS(), updated: NET.TS(), day: (s.time && s.time.day) || 1 };
+    await withTimeout(NET.db.ref().update(upd), 60000);
+    return wid;
+  },
+  async remove(srv) {
+    const upd = {}; upd[srvPath(srv)] = null; upd['srvmeta/' + srv.owner + '/' + srv.wid] = null;
+    await withTimeout(NET.db.ref().update(upd), 20000);
+  },
+  /* your servers and the ones of friends who added you */
+  async list() {
+    const uid = NET.uid(); if (!uid) return [];
+    const owners = [[uid, NET.name]];
+    for (const fid in NET.friends) owners.push([fid, NET.friends[fid].name || '']);
+    const out = [];
+    await Promise.all(owners.map(async ([o, oname]) => {
+      let metas = null;
+      try { metas = (await withTimeout(NET.db.ref('srvmeta/' + o).once('value'), 15000)).val(); } catch (e) { return; }   // no access: that friend has not added you
+      for (const wid in metas || {}) {
+        const m = metas[wid]; if (!m) continue;
+        const s = { owner: o, wid, name: m.name || 'Server', ownerName: m.ownerName || oname, mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: o === uid, players: [] };
+        try {
+          const room = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/info').once('value'), 10000)).val();
+          if (room && room.open) {
+            const pl = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/players').once('value'), 10000)).val() || {};
+            s.players = Object.values(pl).map((p) => p && p.name).filter(Boolean);
+          }
+        } catch (e) { /* ignore */ }
+        out.push(s);
+      }
+    }));
+    out.sort((a, b) => (b.mine - a.mine) || (b.players.length - a.players.length) || (b.updated - a.updated));
+    return out;
+  },
+};
+
+/* enter a server world: join whoever is running it, otherwise run it yourself.
+   keep = this player was already inside (a takeover): keep the things in the bag */
+async function playServer(srv, keep) {
+  const mine = keep ? myPlayerData() : null;
+  if (!NET.uid()) { UI.toast('Melde dich zuerst an.', 'warn'); return; }
+  if (MP.active()) await MP.leave(true);
+  if (G.state !== 'menu' && WORLDS.current && !G.server) saveGame(true);
+  UI.closeAll(); releaseLock();
+  G.state = 'loading';
+  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, 'Verbinde mit dem Server „' + srv.name + '“');
+  let info = null;
+  try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); }
+  catch (e) {
+    showMenu();
+    UI.toast(/PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message))) ? (srv.ownerName || 'Der Besitzer') + ' muss dich zuerst als Freund hinzufügen.' : 'Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600);
+    return;
+  }
+  // somebody runs it already: join them
+  if (info && info.open && info.hostUid && info.hostUid !== NET.uid()) {
+    try {
+      const { snap } = await MP.join(info.hostUid, info.host || 'Server', srv);
+      const data = JSON.parse(snap.d);
+      WORLDS.current = null; G.loadedWorld = null; G.server = null;
+      await loadWorld(data.seed, data, { client: true, host: MP.hostName, you: mine || data.you });
+      MP.clientReady(data);
+      startPlaying();
+      if (mine) MP.sendPdata();
+      UI.toast('Du bist auf dem Server „' + srv.name + '“. ' + MP.hostName + ' lässt die Welt gerade laufen.', 'good', 4600);
+      return;
+    } catch (e) {
+      if (MP.active()) await MP.leave(true);
+      // nobody answered: the old host is gone, so run it yourself
+    }
+  }
+  let save = null;
+  try { const raw = await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000); save = raw.val() ? JSON.parse(raw.val()) : null; }
+  catch (e) { showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
+  if (!save) { showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
+  WORLDS.current = null; G.loadedWorld = null;
+  G.server = srv;
+  SERVER.lastUp = performance.now();
+  const you = mine || (save.vis && save.vis[NET.uid()]) || null;
+  await loadWorld(save.seed, save, { mode: save.mode, force: true, server: true, you });
+  startPlaying();
+  UI.toast('Du bist auf dem Server „' + srv.name + '“. Deine Freunde können jetzt jederzeit dazukommen.', 'good', 5200);
+}
+
+/* ---------- the server window ---------- */
+UI.openServers = function () {
+  UI.closeAll();
+  $('mdlServers').hidden = false;
+  UI.serversRefresh();
+};
+UI.serversRefresh = async function () {
+  const inn = !!NET.uid();
+  $('srvOut').hidden = inn; $('srvIn').hidden = !inn;
+  if (!inn) return;
+  const sel = $('srvWorld'); sel.innerHTML = '';
+  for (const e of WORLDS.visible()) { const o = document.createElement('option'); o.value = e.id; o.textContent = e.name + (entryMode(e) === 'island' ? ' (Insel)' : ''); sel.appendChild(o); }
+  $('srvUpBtn').disabled = !sel.options.length;
+  const mineEl = $('srvMine'), frEl = $('srvFriends');
+  mineEl.innerHTML = frEl.innerHTML = '<div class="list-empty">Lädt …</div>';
+  let list = [];
+  try { list = await SERVER.list(); } catch (e) { mineEl.innerHTML = '<div class="list-empty">Server konnten nicht geladen werden. ' + esc(netMsg(e)) + '</div>'; frEl.innerHTML = ''; return; }
+  const row = (s) => {
+    const li = document.createElement('div'); li.className = 'li';
+    const ico = document.createElement('div'); ico.className = 'li-ico';
+    const cv = document.createElement('canvas'); cv.width = cv.height = 84; drawWorldIcon(cv, (s.wid.length * 7919) % 100000, s.mode === 'island' ? 'island' : 'endless'); ico.appendChild(cv);
+    const main = document.createElement('div'); main.className = 'li-main';
+    const b = document.createElement('b'); b.textContent = s.name;
+    const sp = document.createElement('span');
+    sp.textContent = (s.mine ? '' : 'von ' + s.ownerName + ' · ') + 'Tag ' + s.day + ' · ' + (s.players.length ? 'drin: ' + s.players.join(', ') : 'gerade leer');
+    main.append(b, sp);
+    const act = document.createElement('div'); act.className = 'li-act';
+    const go = document.createElement('button'); go.className = 'btn primary'; go.type = 'button'; go.textContent = s.players.length ? 'Beitreten' : 'Betreten';
+    go.addEventListener('click', () => playServer(s));
+    act.append(go);
+    if (s.mine) {
+      const del = document.createElement('button'); del.className = 'btn ghost'; del.type = 'button'; del.textContent = 'Löschen';
+      del.addEventListener('click', async () => {
+        const ok = await UI.confirm({ title: 'Server „' + s.name + '“ löschen?', text: 'Die Server-Welt wird für alle gelöscht. Deine eigene Welt auf diesem Gerät bleibt.', yes: 'Löschen' });
+        $('mdlServers').hidden = false;
+        if (!ok) return;
+        try { await SERVER.remove(s); } catch (e) { UI.toast('Löschen ging nicht. ' + netMsg(e), 'warn'); }
+        UI.serversRefresh();
+      });
+      act.append(del);
+    }
+    li.append(ico, main, act);
+    return li;
+  };
+  const mine = list.filter((s) => s.mine), fr = list.filter((s) => !s.mine);
+  mineEl.innerHTML = ''; frEl.innerHTML = '';
+  if (!mine.length) mineEl.innerHTML = '<div class="list-empty">Noch kein Server. Lade oben eine deiner Welten hoch.</div>';
+  for (const s of mine) mineEl.appendChild(row(s));
+  if (!fr.length) frEl.innerHTML = '<div class="list-empty">Noch keine. Server von Freunden siehst du, sobald sie dich als Freund hinzugefügt haben.</div>';
+  for (const s of fr) frEl.appendChild(row(s));
+};
+function esc(t) { return String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function bindServerUI() {
+  $('btnServers').addEventListener('click', () => UI.openServers());
+  $('srvLogin').addEventListener('click', () => { UI.closeAll(); UI.openAccount(); });
+  $('srvUpForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const e = WORLDS.get($('srvWorld').value); if (!e) return;
+    const msg = $('srvMsg'); msg.hidden = false; msg.className = 'form-msg ok'; msg.textContent = '„' + e.name + '“ wird hochgeladen …';
+    $('srvUpBtn').disabled = true;
+    try {
+      await SERVER.upload(e);
+      msg.className = 'form-msg ok'; msg.textContent = '„' + e.name + '“ ist jetzt ein Server. Deine Freunde finden ihn hier unter „Server deiner Freunde“.';
+      UI.serversRefresh();
+    } catch (err) { msg.className = 'form-msg err'; msg.textContent = err && err.message ? err.message : String(err); }
+    $('srvUpBtn').disabled = false;
+  });
+}
+
+/* ---- 19s_support.js ---- */
+/* =========================================================================
+   Support: players write to the owner of the game (DynaTheReal), the owner
+   answers in the game.  support/{uid}/{id} = { name, text, at, reply, replyAt }
+   ========================================================================= */
+const SUPPORT = {
+  ref: null, cb: null, data: {}, seenKey: 'bloodmoon-support-seen',
+  path() { return isOwner() ? 'support' : 'support/' + NET.uid(); },
+  watch() {
+    this.stop();
+    if (!NET.uid() || !NET.db) return;
+    this.ref = NET.db.ref(this.path());
+    this.cb = (s) => {
+      const v = s.val() || {};
+      this.data = isOwner() ? v : { [NET.uid()]: v };
+      UI.supportBadge();
+      if (!$('mdlSupport').hidden) UI.supportRefresh();
+    };
+    this.ref.on('value', this.cb, () => { /* not allowed (rules not updated yet) */ });
+  },
+  stop() { if (this.ref) { this.ref.off('value', this.cb); this.ref = null; } this.data = {}; },
+  async send(text) {
+    text = (text || '').trim().slice(0, 600);
+    if (!text) throw new Error('Schreib zuerst etwas.');
+    if (!NET.uid()) throw new Error('Melde dich zuerst an.');
+    await withTimeout(NET.db.ref('support/' + NET.uid()).push({ name: NET.name, text, at: NET.TS() }), 15000);
+  },
+  async reply(uid, id, text) {
+    text = (text || '').trim().slice(0, 600); if (!text) return;
+    await withTimeout(NET.db.ref('support/' + uid + '/' + id).update({ reply: text, replyAt: NET.TS() }), 15000);
+  },
+  /* owner: questions without an answer; player: answers not read yet */
+  unread() {
+    let n = 0;
+    const seen = Number(localStorage.getItem(this.seenKey) || 0);
+    for (const uid in this.data) for (const id in this.data[uid] || {}) {
+      const m = this.data[uid][id]; if (!m) continue;
+      if (isOwner() ? !m.reply : m.reply && (m.replyAt || 0) > seen) n++;
+    }
+    return n;
+  },
+};
+UI.supportBadge = function () {
+  const n = SUPPORT.unread();
+  const b = $('supportBadge'); b.hidden = n <= 0; b.textContent = n;
+};
+UI.openSupport = function () {
+  UI.closeAll();
+  $('mdlSupport').hidden = false;
+  UI.supportRefresh();
+};
+UI.supportRefresh = function () {
+  const inn = !!NET.uid(), owner = isOwner();
+  $('supOut').hidden = inn; $('supIn').hidden = !inn;
+  if (!inn) return;
+  $('supForm').hidden = owner;
+  $('supSub').textContent = owner ? 'Nachrichten an dich. Antworte direkt hier.' : 'Schreib DynaTheReal, wenn etwas nicht geht oder du eine Idee hast.';
+  const list = $('supList'); list.innerHTML = '';
+  const msgs = [];
+  for (const uid in SUPPORT.data) for (const id in SUPPORT.data[uid] || {}) { const m = SUPPORT.data[uid][id]; if (m && m.text) msgs.push({ uid, id, m }); }
+  msgs.sort((a, b) => (b.m.at || 0) - (a.m.at || 0));
+  if (!msgs.length) list.innerHTML = '<div class="list-empty">' + (owner ? 'Noch keine Nachrichten.' : 'Du hast noch nichts geschrieben.') + '</div>';
+  for (const { uid, id, m } of msgs) {
+    const d = document.createElement('div'); d.className = 'sup-msg';
+    const when = m.at ? new Date(m.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    d.innerHTML = '<div class="sup-h"><b></b><span></span></div><p class="sup-t"></p>';
+    d.querySelector('b').textContent = owner ? (m.name || 'Spieler') : 'Du';
+    d.querySelector('span').textContent = when;
+    d.querySelector('.sup-t').textContent = m.text;
+    if (m.reply) {
+      const r = document.createElement('div'); r.className = 'sup-r';
+      r.innerHTML = '<b>DynaTheReal</b><p></p>'; r.querySelector('p').textContent = m.reply;
+      d.appendChild(r);
+    }
+    if (owner) {
+      const f = document.createElement('form'); f.className = 'newworld sup-reply'; f.autocomplete = 'off';
+      f.innerHTML = '<input class="field" maxlength="600" placeholder="' + (m.reply ? 'Antwort ändern' : 'Antworten') + '"><button class="btn primary" type="submit">Senden</button>';
+      f.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const t = f.querySelector('input').value;
+        try { await SUPPORT.reply(uid, id, t); UI.toast('Antwort an ' + (m.name || 'Spieler') + ' geschickt.', 'good'); } catch (e) { UI.toast('Ging nicht: ' + netMsg(e), 'warn'); }
+      });
+      d.appendChild(f);
+    }
+    list.appendChild(d);
+  }
+  // the player has seen the answers now
+  if (!owner) { try { localStorage.setItem(SUPPORT.seenKey, String(Date.now() + 1000)); } catch (e) { /* ignore */ } UI.supportBadge(); }
+};
+function bindSupportUI() {
+  $('btnSupport').addEventListener('click', () => UI.openSupport());
+  $('supLogin').addEventListener('click', () => { UI.closeAll(); UI.openAccount(); });
+  $('supForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const msg = $('supMsg'); msg.hidden = false;
+    try {
+      await SUPPORT.send($('supText').value);
+      $('supText').value = '';
+      msg.className = 'form-msg ok'; msg.textContent = 'Abgeschickt. Die Antwort von DynaTheReal erscheint hier.';
+    } catch (e) { msg.className = 'form-msg'; msg.textContent = e && e.message && !/PERMISSION/.test(e.message) ? e.message : 'Das ging nicht. ' + netMsg(e); }
+  });
 }
 
 /* ---- 99_start.js ---- */
