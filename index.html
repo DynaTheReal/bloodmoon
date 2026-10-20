@@ -10006,8 +10006,7 @@ UI.refreshIcons = function () {
 
 function bindUI() {
   bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI();
-  // download the app (not shown inside the app itself)
-  if (/Electron/i.test(navigator.userAgent)) $('btnDownload').hidden = true;
+  // download the app
   $('btnDownload').addEventListener('click', () => { UI.closeAll(); $('mdlDownload').hidden = false; SFX.ui(); });
   for (const id of ['dlWin', 'dlLinux']) $(id).addEventListener('click', () => setTimeout(() => UI.closeModal('mdlDownload'), 200));
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
