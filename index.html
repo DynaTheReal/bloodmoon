@@ -62,13 +62,13 @@
 -->
 <script type="text/plain" id="bloodmoon-firebase">
 const firebaseConfig = {
-  apiKey: "AIzaSyAiodaaX_-62NOubgKH7RtTRLoyOvO3wZc",
-  authDomain: "bloodmoon-eb25d.firebaseapp.com",
-  databaseURL: "https://bloodmoon-eb25d-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "bloodmoon-eb25d",
-  storageBucket: "bloodmoon-eb25d.firebasestorage.app",
-  messagingSenderId: "787692180288",
-  appId: "1:787692180288:web:b2f7d0c599b962cd7c60a5"
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -121,6 +121,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .hp-fill { background: var(--leaf); transition: width 0.12s ease, background-color 0.3s; }
 .hp.fp { left: 50% !important; top: calc(var(--safe-t) + 22px) !important; transform: none !important; width: 180px; margin-left: -90px; height: 12px; }
 .hp.low .hp-fill { animation: hpPulse 0.8s ease-in-out infinite alternate; }
+.charge { width: 44px; height: 4px; margin-left: -22px; margin-top: 9px; border-radius: 99px; background: rgba(8, 12, 13, 0.55); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12); overflow: hidden; }
+.charge i { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--ember); }
+.charge.full i { background: #fff6e8; }
+.charge.fp { left: 50% !important; top: calc(50% + 16px) !important; transform: none !important; margin-top: 0; }
 @keyframes hpPulse { to { filter: brightness(1.45); } }
 .chop { width: 52px; height: 52px; margin: -26px 0 0 -26px; }
 .chop svg { width: 52px; height: 52px; transform: rotate(-90deg); filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4)); }
@@ -451,6 +455,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <div class="fx" aria-hidden="true"><div class="fx-vig"></div><div id="fxBlood" class="fx-blood"></div><div id="fxWater" class="fx-water"></div><div id="fxHurt" class="fx-hurt"></div></div>
 <div id="world" class="world-layer" aria-hidden="true">
   <div id="hp" class="hp anchor" hidden><div class="hp-ghost" id="hpGhost"></div><div class="hp-fill" id="hpFill"></div></div>
+  <div id="charge" class="charge anchor" hidden><i id="chargeFill"></i></div>
   <div id="chop" class="chop anchor" hidden>
     <svg viewBox="0 0 48 48"><circle class="chop-track" cx="24" cy="24" r="19"></circle><circle id="chopArc" class="chop-arc" cx="24" cy="24" r="19"></circle></svg>
     <div class="chop-n"><b id="chopN">0</b><span id="chopOf">von 50</span></div>
@@ -1412,7 +1417,8 @@ float bayer4(vec2 p) {
   return (float(m[i]) + 0.5) / 16.0;
 }
 void main() {
-  if (u_cut.w > 0.5) {
+  if (u_cut.w > 0.5 && v_wp.y > u_cam.y - 0.35) {
+    // fade what is right next to the camera (not the ground below it, e.g. when looking up)
     float nearA = smoothstep(3.4, 1.4, distance(v_wp, u_cam));
     if (nearA > bayer4(gl_FragCoord.xy)) discard;
   }
@@ -4128,12 +4134,12 @@ const QUALITY = {
   medium: { name: 'Mittel', tex: 8, mips: true, aniso: 4, shadow: 2048, lights: 12, q: 1, post: false, view: 9, res: 'native' },
   high: { name: 'High', tex: 16, mips: true, aniso: 8, shadow: 4096, lights: 16, q: 2, post: true, view: 12, res: 'max' },
 };
-/* phones start on Low (battery, heat), tablets and computers on Mittel */
-const PHONE = DEVICE.coarse && Math.min(screen.width || 0, screen.height || 0) < 600;
+/* every device starts on Mittel */
+const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: PHONE ? 'low' : 'medium', viewDist: PHONE ? 6 : 9, fov: 72,
+  quality: 'medium', viewDist: 9, fov: 72,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false,
-  touchMode: 'auto', skin: 'ranger', allowFriends: true,
+  touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
 function touchUI() {
@@ -4147,6 +4153,8 @@ function loadSettings() {
     if (!s) { const o = JSON.parse(localStorage.getItem(OLD_SETTINGS_KEY) || 'null'); if (o) s = { fov: o.fov, sens: o.sens, volume: o.volume, autoStep: o.autoStep, camShake: o.camShake, invertY: o.invertY, viewDist: o.viewDist }; }
     if (s) for (const k in s) if (k in SETTINGS && s[k] !== undefined && s[k] !== null) SETTINGS[k] = s[k];
     if (!QUALITY[SETTINGS.quality]) SETTINGS.quality = 'medium';
+    // after an update to the presets everybody starts on Mittel once
+    if (!s || s.sv !== SETTINGS_VERSION) { SETTINGS.quality = 'medium'; SETTINGS.viewDist = QUALITY.medium.view; SETTINGS.sv = SETTINGS_VERSION; saveSettings(); }
   } catch (e) { /* storage unavailable */ }
 }
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch (e) { /* ignore */ } }
@@ -4163,7 +4171,33 @@ const ITEMS = {
   torch: { name: 'Fackel', block: B.TORCH, place: 'torch' },
   campfire: { name: 'Lagerfeuer', block: B.CAMPFIRE, place: 'campfire' },
   bed: { name: 'Bett', block: B.BED, place: 'bed' },
+  // tools live in the hotbar and only work while they are held
+  axe: { name: 'Axt', tool: 'axe' },
+  pickaxe: { name: 'Spitzhacke', tool: 'pickaxe' },
+  sword: { name: 'Schwert', tool: 'sword' },
+  shears: { name: 'Schere', tool: 'shears' },
 };
+const TOOL_LEVEL_NAMES = {
+  axe: ['Axt', 'Steinaxt', 'Eisenaxt', 'Goldaxt'],
+  sword: ['Schwert', 'Steinschwert', 'Eisenschwert'],
+  pickaxe: ['Spitzhacke', 'Spitzhacke'],
+  shears: ['Schere', 'Schere'],
+};
+function itemName(k) {
+  const it = ITEMS[k]; if (!it) return '';
+  if (it.tool) { const n = TOOL_LEVEL_NAMES[it.tool]; return n[G.tools[it.tool]] || n[n.length - 1]; }
+  return it.name;
+}
+/* the tool in the hand right now (null: hand, block, torch …) */
+function heldToolKind() { const k = selectedItem(); return k && ITEMS[k] && ITEMS[k].tool && G.tools[ITEMS[k].tool] > 0 ? ITEMS[k].tool : null; }
+/* put owned tools into free hotbar slots (purchases, old saves) */
+function ensureTools() {
+  for (const k of ['axe', 'sword', 'pickaxe', 'shears']) {
+    if (!G.tools[k] || G.hotbar.includes(k)) continue;
+    const free = G.hotbar.indexOf(null);
+    if (free >= 0) G.hotbar[free] = k;
+  }
+}
 const SHOP = [
   { id: 'campfire', tab: 'survive', item: 'campfire', qty: 1, wood: 5, name: 'Lagerfeuer', desc: 'Hält Zombies in normalen Nächten fern. Schutzkreis: 11 Blöcke.' },
   { id: 'torch', tab: 'survive', item: 'torch', qty: 4, wood: 2, name: '4 Fackeln', desc: 'Licht für dein Lager. In der Hand leuchtet eine Fackel mit.' },
@@ -4175,13 +4209,22 @@ const SHOP = [
   { id: 'axe1', tab: 'tools', tool: 'axe', level: 1, wood: 6, name: 'Steinaxt', desc: '25 Schläge pro Baum statt 50.' },
   { id: 'axe2', tab: 'tools', tool: 'axe', level: 2, wood: 18, name: 'Eisenaxt', desc: '12 Schläge pro Baum.' },
   { id: 'axe3', tab: 'tools', tool: 'axe', level: 3, wood: 40, name: 'Goldaxt', desc: 'Nur 6 Schläge pro Baum.' },
-  { id: 'sword1', tab: 'tools', tool: 'sword', level: 1, wood: 8, name: 'Steinschwert', desc: '14 Schaden pro Treffer (Faust: 6).' },
-  { id: 'sword2', tab: 'tools', tool: 'sword', level: 2, wood: 22, name: 'Eisenschwert', desc: '24 Schaden pro Treffer.' },
-  { id: 'pickaxe', tab: 'tools', tool: 'pickaxe', level: 1, wood: 6, name: 'Spitzhacke', desc: 'Baut Stein, Bruchstein und Steinziegel ab.' },
-  { id: 'shears', tab: 'tools', tool: 'shears', level: 1, wood: 4, name: 'Schere', desc: 'Schert Schafe für Wolle. Schafe leben weit weg vom Spawn.' },
+  { id: 'sword1', tab: 'tools', tool: 'sword', level: 1, wood: 8, name: 'Steinschwert', desc: '14 Schaden pro voll aufgeladenem Schlag (Faust: fast nichts).' },
+  { id: 'sword2', tab: 'tools', tool: 'sword', level: 2, wood: 22, name: 'Eisenschwert', desc: '24 Schaden pro voll aufgeladenem Schlag.' },
+  { id: 'pickaxe', tab: 'tools', tool: 'pickaxe', level: 1, wood: 6, name: 'Spitzhacke', desc: 'Baut Stein, Bruchstein und Steinziegel ab, wenn du sie in der Hand hast.' },
+  { id: 'shears', tab: 'tools', tool: 'shears', level: 1, wood: 4, name: 'Schere', desc: 'In die Hand nehmen und Schafe scheren. Schafe leben weit weg vom Spawn.' },
 ];
 const CHOP_HITS = [50, 25, 12, 6];
-const SWORD_DMG = [6, 14, 24];
+const SWORD_DMG = [1, 14, 24];
+/* what the thing in the hand does in a fight: damage at full charge, knockback, seconds to recharge */
+function weaponStats() {
+  const k = heldToolKind();
+  if (k === 'sword') return { dmg: SWORD_DMG[G.tools.sword] || 14, kb: 3.4, charge: 0.6 };
+  if (k === 'axe') return { dmg: 6 + 2 * G.tools.axe, kb: 3.8, charge: 0.9 };
+  if (k === 'pickaxe') return { dmg: 4, kb: 2.2, charge: 0.75 };
+  if (k === 'shears') return { dmg: 2, kb: 0.8, charge: 0.5 };
+  return { dmg: 1, kb: 0, charge: 0.45 };   // bare hand (or a block, a torch …): almost nothing
+}
 const CAMPFIRE_R = 11;
 const REACH = 5.6;
 
@@ -4228,7 +4271,7 @@ function afterEdit(x0, z0, x1, z1, lightChanged) {
 }
 
 /* ---------- inventory ---------- */
-function itemCount(k) { return G.inv.items[k] || 0; }
+function itemCount(k) { const it = ITEMS[k]; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
 function addItem(k, n) {
   if (k === 'wood') { G.inv.wood += n; UI.res(); return; }
   if (k === 'wool') { G.inv.wool += n; UI.res(); return; }
@@ -4262,7 +4305,10 @@ function buy(id) {
   G.inv.wood -= e.wood || 0; G.inv.wool -= e.wool || 0;
   if (e.tool) {
     G.tools[e.tool] = Math.max(G.tools[e.tool], e.level);
-    UI.toast(e.tool === 'shears' ? 'Schere gekauft. Schafe grasen weit draußen, folge dem Pfeil beim Ziel.' : e.name + ' gekauft', 'good', e.tool === 'shears' ? 5200 : 3200);
+    ensureTools();
+    const slot = G.hotbar.indexOf(e.tool);
+    const where = slot >= 0 ? ' Liegt auf Platz ' + ((slot + 1) % 10) + ', nimm es zum Benutzen in die Hand.' : ' Liegt im Inventar (I).';
+    UI.toast((e.tool === 'shears' ? 'Schere gekauft. Schafe grasen weit draußen.' : e.name + ' gekauft.') + where, 'good', 5200);
     if (e.tool === 'shears' && G.goal === 4) setGoal(5);
   }
   else { addItem(e.item, e.qty); UI.toast(e.name + ' gekauft', 'good'); }
@@ -4400,7 +4446,9 @@ function applySave(s) {
   for (const [id, st, hits, ra] of s.trees) { const t = W.trees[id]; if (!t) continue; t.state = st; t.hits = hits; t.regrowAt = ra; if (st !== 0) for (const i of t.cells) if (W.treeAt.get(i) === t.id && !TREEBLOCK[W.blocks[i]] && W.blocks[i] !== B.SAPLING) W.treeAt.delete(i); }
   Object.assign(G.time, s.time);
   G.playTime = s.playTime || 0;
-  G.inv = s.inv; G.tools = s.tools; G.hotbar = s.hotbar; G.sel = s.sel; G.goal = s.goal; G.stats = s.stats || G.stats; G.bedSpawn = s.bed || null;
+  G.inv = s.inv; G.tools = Object.assign({ axe: 0, sword: 0, pickaxe: 0, shears: 0 }, s.tools || {}); G.hotbar = s.hotbar; G.sel = s.sel; G.goal = s.goal; G.stats = s.stats || G.stats; G.bedSpawn = s.bed || null;
+  for (let i = 0; i < 10; i++) if (G.hotbar[i] && !ITEMS[G.hotbar[i]]) G.hotbar[i] = null;
+  ensureTools();
   PL.x = s.pl[0]; PL.y = s.pl[1]; PL.z = s.pl[2]; PL.yaw = s.pl[3]; PL.hp = s.pl[4];
   if (s.cam) { CAMC.yaw = s.cam[0]; CAMC.pitch = s.cam[1]; CAMC.dist = s.cam[2]; CAMC.distT = s.cam[2]; CAMC.mode = s.cam[3] || 'drone'; }
   G._sheepSave = s.sheep;
@@ -4415,6 +4463,7 @@ const PL = {
   x: CX + 0.5, y: 30, z: CZ + 4.5, vx: 0, vy: 0, vz: 0, hw: 0.3, h: 1.8, onGround: false, inWater: false, stepOffset: 0,
   yaw: Math.PI, hp: 100, maxHp: 100, hurtT: 0, lastHurt: -99, invuln: 0, dead: false, walkPhase: 0, walkAmt: 0,
   swingT: 1, swingKind: null, chopping: 0, attackCd: 0, faceYaw: null, faceT: 0, airT: 0, stepT: 0, sprint: false,
+  charge: 1, chargeVis: 0,
 };
 const CAMC = {
   mode: 'drone', yaw: 0.65, pitch: 0.7, dist: 12, distT: 12, eff: 12, fpYaw: 0, fpPitch: -0.15,
@@ -4520,7 +4569,12 @@ function updatePlayer(dt) {
     if ((INPUT.down('Space') || INPUT.jump) && PL.onGround) { PL.vy = 8.6; PL.onGround = false; SFX.jump(); }
   }
   const wasGround = PL.onGround;
-  moveBody(PL, PL.vx * dt, PL.vy * dt, PL.vz * dt, SETTINGS.autoStep && !PL.inWater ? 1.02 : 0.55);
+  const mv = moveBody(PL, PL.vx * dt, PL.vy * dt, PL.vz * dt, SETTINGS.autoStep && !PL.inWater ? 1.02 : 0.55);
+  // swimming against the shore climbs out of the water
+  if (PL.inWater && amt > 0.1 && (mv.hx || mv.hz)) { PL.vy = Math.max(PL.vy, 2.6); waterClimb(dx, dz); }
+  // attacks charge up again
+  if (PL.charge < 1) { PL.charge = Math.min(1, PL.charge + dt / weaponStats().charge); PL.chargeVis = 1; }
+  else if (PL.chargeVis > 0) PL.chargeVis = Math.max(0, PL.chargeVis - dt * 2.5);
   if (!wasGround && PL.onGround && PL.airT > 0.35) { SFX.land(); for (let k = 0; k < 4; k++) spawnPart({ x: PL.x, y: PL.y + 0.05, z: PL.z, vx: (Math.random() - 0.5) * 2, vy: 0.6, vz: (Math.random() - 0.5) * 2, life: 0.6, size: 0.18, r: 0.75, g: 0.72, b: 0.66, kind: 1, grav: 0, drag: 2, alpha: 0.35, grow: 1.5 }); }
   PL.airT = PL.onGround ? 0 : PL.airT + dt;
   PL.stepOffset = damp(PL.stepOffset, 0, 14, dt);
@@ -4540,6 +4594,28 @@ function updatePlayer(dt) {
   if (PL.chopping > 0) PL.chopping -= dt;
 }
 function feetSurface() { const id = getB(Math.floor(PL.x), Math.floor(PL.y - 0.2), Math.floor(PL.z)); return id; }
+/* lift the player onto the edge in front when swimming against it (up to almost two blocks) */
+function waterClimb(dx, dz) {
+  const l = Math.hypot(dx, dz); if (l < 0.01) return;
+  const fx = dx / l, fz = dz / l;
+  const reach = PL.hw + 0.3;
+  const cx = Math.floor(PL.x + fx * reach), cz = Math.floor(PL.z + fz * reach);
+  const px = Math.floor(PL.x), pz = Math.floor(PL.z);
+  if (cx === px && cz === pz) return;
+  const fy = Math.floor(PL.y + 0.05);
+  for (let y = fy; y <= fy + 2; y++) {
+    if (SOLID[getB(cx, y, cz)]) continue;
+    if (!SOLID[getB(cx, y - 1, cz)]) return;            // nothing to stand on
+    const rise = y - PL.y;
+    if (rise <= 0.02 || rise > 1.75) return;
+    if (SOLID[getB(cx, y + 1, cz)]) return;             // no head room on the edge
+    for (let yy = Math.floor(PL.y + PL.h); yy <= y + 1; yy++) if (SOLID[getB(px, yy, pz)]) return;
+    PL.y = y + 0.001; PL.stepOffset -= rise; PL.vy = 0; PL.onGround = true;
+    moveBody(PL, fx * 0.35, 0, fz * 0.35, 0);
+    SFX.step(getB(cx, y - 1, cz));
+    return;
+  }
+}
 
 /* ---------- camera ---------- */
 function updateCamera(dt) {
@@ -4566,7 +4642,8 @@ function updateCamera(dt) {
     CAMC.eff = allowed < CAMC.eff ? damp(CAMC.eff, allowed, 20, dt) : damp(CAMC.eff, allowed, 3, dt);
     const flo = REDUCED_MOTION ? 0 : 1;
     eye = [f[0] + dx * CAMC.eff + Math.sin(t * 0.53) * 0.05 * flo, f[1] + dy * CAMC.eff + Math.sin(t * 0.81) * 0.07 * flo, f[2] + dz * CAMC.eff + Math.cos(t * 0.47) * 0.05 * flo];
-    target = [f[0], f[1] - 0.15, f[2]];
+    // looking up from below: aim above the head so the sky fills the view
+    target = [f[0], f[1] - 0.15 + Math.max(0, -CAMC.pitch) * 4, f[2]];
     CAM.fov = (60 + (SETTINGS.fov - 72) * 0.5) * Math.PI / 180;
     CAM.near = 0.15;
   } else {
@@ -4642,7 +4719,7 @@ function deactivateTree(t) {
   freeModel(t.model); t.model = null;
 }
 const ACTIVE_TREES = new Set();
-function chopHitsNeeded() { return CHOP_HITS[G.tools.axe] || 50; }
+function chopHitsNeeded() { return CHOP_HITS[heldToolKind() === 'axe' ? G.tools.axe : 0] || 50; }
 function updateChopping(dt) {
   const t = findChopTree();
   if (t !== G.chop.tree) { G.chop.tree = t; G.chop.timer = 0.32; }
@@ -4827,15 +4904,17 @@ function canBreak(id, x, y, z) {
   if (W.prot.has(i)) { hint('prot', 'Das gehört dem Händler.'); return false; }
   if (TREEBLOCK[id]) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
   if (id === B.BEDROCK || id === B.SAPLING) return false;
-  if (NEEDPICK[id] && !G.tools.pickaxe) { hint('pick', 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
+  if (NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', G.tools.pickaxe ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
   return true;
 }
 function updateBreaking(dt, holding, target) {
   if (!holding || !target || target.type !== 'block' || !target.inReach) { G.breaking = null; return; }
   const { x, y, z, id } = target;
+  // switching away from the pickaxe stops mining stone
+  if (G.breaking && NEEDPICK[G.breaking.id] && heldToolKind() !== 'pickaxe') G.breaking = null;
   if (!G.breaking || G.breaking.x !== x || G.breaking.y !== y || G.breaking.z !== z) {
     if (!canBreak(id, x, y, z)) { G.breaking = null; return; }
-    const speed = NEEDPICK[id] && G.tools.pickaxe ? 1.5 : 1;
+    const speed = NEEDPICK[id] && heldToolKind() === 'pickaxe' ? 1.5 : 1;
     G.breaking = { x, y, z, id, p: 0, need: Math.max(0.05, HARD[id] / speed), tick: 0 };
   }
   const b = G.breaking;
@@ -4868,12 +4947,24 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   if (byPlayer || (remote && Math.hypot(x - PL.x, z - PL.z) < 24)) SFX.breakB(id);
   G.breaking = null;
 }
-function entityBlocksCell(x, y, z) {
+function entityBlocksCell(x, y, z, ignorePlayer) {
   const hit = (e) => e.x + e.hw > x && e.x - e.hw < x + 1 && e.z + e.hw > z && e.z - e.hw < z + 1 && e.y + e.h > y && e.y < y + 1;
-  if (hit(PL)) return true;
+  if (!ignorePlayer && hit(PL)) return true;
   for (const zb of G.zombies) if (hit(zb)) return true;
   for (const s of G.sheep) if (hit(s)) return true;
+  for (const uid in REMOTE) { const r = REMOTE[uid]; if (r.seen && hit({ x: r.x, y: r.y, z: r.z, hw: 0.3, h: 1.8 })) return true; }
   return false;
+}
+/* jumping and placing a block under yourself: allowed while in the air with the feet
+   already a little above the cell, the player is then lifted on top of the new block */
+function pillarLift(x, y, z) {
+  const hit = PL.x + PL.hw > x && PL.x - PL.hw < x + 1 && PL.z + PL.hw > z && PL.z - PL.hw < z + 1 && PL.y + PL.h > y && PL.y < y + 1;
+  if (!hit) return 0;
+  if (PL.onGround || PL.inWater || PL.y < y + 0.12) return -1;
+  // head room on top of the new block
+  const x0 = Math.floor(PL.x - PL.hw), x1 = Math.floor(PL.x + PL.hw), z0 = Math.floor(PL.z - PL.hw), z1 = Math.floor(PL.z + PL.hw);
+  for (let cx = x0; cx <= x1; cx++) for (let cz = z0; cz <= z1; cz++) for (let cy = y + 1; cy <= Math.floor(y + 1 + PL.h); cy++) if (SOLID[getB(cx, cy, cz)]) return -1;
+  return y + 1;
 }
 function replaceable(id) { return id === B.AIR || id === B.WATER || KIND[id] === K_PLANT && id !== B.SAPLING; }
 function placementFor(target, item) {
@@ -4885,7 +4976,12 @@ function placementFor(target, item) {
   if (!replaceable(getB(x, y, z))) return null;
   const below = getB(x, y - 1, z);
   const yawDir = () => { const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : CAMC.yaw; const fx = -Math.sin(yaw), fz = -Math.cos(yaw); return Math.abs(fx) > Math.abs(fz) ? (fx > 0 ? 1 : 3) : (fz > 0 ? 0 : 2); };
-  if (def.place === 'block') { if (entityBlocksCell(x, y, z)) return null; return { x, y, z, id: def.block, meta: null }; }
+  if (def.place === 'block') {
+    const lift = pillarLift(x, y, z);
+    if (lift < 0) return { blockedByPlayer: true };
+    if (entityBlocksCell(x, y, z, true)) return null;
+    return { x, y, z, id: def.block, meta: null, lift: lift > 0 ? lift : 0 };
+  }
   if (def.place === 'torch') {
     if (target.ny === 1 && SOLID[below]) return { x, y, z, id: B.TORCH, meta: 0 };
     if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: B.TORCH, meta: m }; }
@@ -4904,12 +5000,22 @@ function placementFor(target, item) {
   }
   return null;
 }
-function placeSelected(target) {
+function placeSelected(target, retry) {
   const item = selectedItem();
   const p = placementFor(target, item);
+  if (p && p.blockedByPlayer) {
+    // standing in the way: keep trying for a moment, so jump + click places under you
+    if (!retry) G.placeBuf = { target, t: 0.45 };
+    return false;
+  }
   if (!p) { if (item && target && target.type === 'block' && !target.inReach) hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
   if (!takeItem(item, 1)) return false;
+  G.placeBuf = null;
   setBlock(p.x, p.y, p.z, p.id, p.meta);
+  if (p.lift) {
+    const rise = p.lift - PL.y;
+    PL.y = p.lift + 0.001; PL.stepOffset -= rise; PL.vy = 0; PL.onGround = true;
+  }
   if (p.two) setBlock(p.x + p.two[0], p.y + p.two[1], p.z + p.two[2], p.id, p.meta | 8);
   if (MP.active()) { const ev = { t: 'plc', x: p.x, y: p.y, z: p.z, id: p.id }; if (p.meta !== null && p.meta !== undefined) ev.m = p.meta; if (p.two) ev.two = p.two; MP.send(ev); }
   const c = BCOLOR[p.id] || DROP_COLOR[item] || [0.7, 0.7, 0.7];
@@ -4943,7 +5049,7 @@ function interactTargets() {
   const out = [];
   const m = G.merchant;
   if (m && m.visible > 0.5 && !isNight()) { const d = Math.hypot(m.x - PL.x, m.z - PL.z); if (d < 3.6) out.push({ kind: 'merchant', d: d - 1, label: 'Mit dem Händler handeln' }); }
-  for (const s of G.sheep) { const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < 2.6 && Math.abs(s.y - PL.y) < 1.5) out.push({ kind: 'sheep', s, d, label: s.wool ? (G.tools.shears ? 'Schaf scheren' : 'Schaf scheren (Schere nötig)') : 'Wolle wächst nach' }); }
+  for (const s of G.sheep) { const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < 2.6 && Math.abs(s.y - PL.y) < 1.5) out.push({ kind: 'sheep', s, d, label: s.wool ? (heldToolKind() === 'shears' ? 'Schaf scheren' : G.tools.shears ? 'Schaf scheren (Schere in die Hand)' : 'Schaf scheren (Schere nötig)') : 'Wolle wächst nach' }); }
   const px = Math.floor(PL.x), py = Math.floor(PL.y), pz = Math.floor(PL.z);
   for (let x = px - 2; x <= px + 2; x++) for (let z = pz - 2; z <= pz + 2; z++) for (let y = py - 1; y <= py + 2; y++) {
     const id = getB(x, y, z);
@@ -5000,7 +5106,7 @@ function updateSleep(dt) {
 }
 function shearSheep(s) {
   if (!s.wool) { hint('wool', 'Die Wolle wächst noch nach.'); return; }
-  if (!G.tools.shears) { hint('shears', 'Du brauchst eine Schere vom Händler.'); return; }
+  if (heldToolKind() !== 'shears') { hint('shears', G.tools.shears ? 'Nimm die Schere in die Hand (Hotbar).' : 'Du brauchst eine Schere vom Händler.'); return; }
   s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60;
   s.state = 'flee'; s.t = 0; s.fleeT = 1.6;
   if (MP.isClient()) MP.send({ t: 'shear', i: G.sheep.indexOf(s) });
@@ -5012,30 +5118,41 @@ function shearSheep(s) {
 }
 
 /* ---------- combat ---------- */
-function attackZombie(z) {
+/* every swing has to charge up again: spamming only gives weak taps without knockback.
+   auto = the button is held down, then only fully charged swings go out */
+function attackZombie(z, auto) {
   if (PL.attackCd > 0 || z.state === 'die' || z.state === 'rise') return;
-  PL.attackCd = 0.42;
+  if (auto && PL.charge < 1) return;
+  const w = weaponStats();
+  const c = PL.charge;
+  PL.charge = 0; PL.attackCd = 0.14; PL.chargeVis = 1;
   PL.swingT = 0; PL.swingKind = 'hit';
   PL.faceYaw = Math.atan2(z.x - PL.x, z.z - PL.z); PL.faceT = 0.3;
-  const dmg = SWORD_DMG[G.tools.sword] + (G.tools.axe ? 2 : 0);
+  const full = c > 0.92;
+  const dmg = Math.round(w.dmg * (0.2 + 0.8 * c * c) * 10) / 10;
+  const kb = full ? w.kb : w.kb * c * 0.25;
   const dx = z.x - PL.x, dz = z.z - PL.z, d = Math.hypot(dx, dz) || 1;
-  burst(z.x, z.y + 1.2, z.z, 7, [STYLE_ZOMBIE.skin, [0.35, 0.45, 0.3]], { speed: 2, up: 2.5, life: 0.7, size: 0.08 });
-  SFX.hit();
+  burst(z.x, z.y + 1.2, z.z, full ? 8 : 3, [STYLE_ZOMBIE.skin, [0.35, 0.45, 0.3]], { speed: full ? 2.2 : 1.2, up: 2.5, life: 0.7, size: 0.08 });
+  SFX.hit(full ? 1 : 0.45);
+  if (full && w.kb > 0 && SETTINGS.camShake) CAMC.shake = Math.min(0.5, CAMC.shake + 0.12);
   if (MP.isClient()) {
     // the host owns the zombies: show the hit right away, the host applies the damage
     z.hurtT = 0.22; z.barT = 3;
-    MP.send({ t: 'hitZ', id: z.id, dmg, kx: dx / d, kz: dz / d });
+    MP.send({ t: 'hitZ', id: z.id, dmg, kx: Math.round(dx / d * 100) / 100, kz: Math.round(dz / d * 100) / 100, kb: Math.round(kb * 10) / 10 });
     if (z.hp - dmg <= 0) G.stats.zombies++;
     return;
   }
-  damageZombie(z, dmg, dx / d, dz / d);
+  damageZombie(z, dmg, dx / d, dz / d, kb);
   if (z.state === 'die') G.stats.zombies++;
 }
-function damageZombie(z, dmg, kx, kz) {
+function damageZombie(z, dmg, kx, kz, kb) {
   if (z.state === 'die' || z.state === 'rise') return;
+  if (kb === undefined) kb = 3.4;
   z.hp -= dmg; z.hurtT = 0.22; z.barT = 3;
-  z.vx += kx * 7; z.vz += kz * 7; z.vy = Math.max(z.vy, 4);
-  z.stun = 0.35;
+  if (kb > 0.05) {
+    z.vx += kx * kb; z.vz += kz * kb; z.vy = Math.max(z.vy, Math.min(3, 1.4 + kb * 0.3));
+    z.stun = 0.12 + kb * 0.04;
+  }
   if (z.hp <= 0) { z.state = 'die'; z.t = 0; SFX.zombieDie(); }
 }
 
@@ -5370,15 +5487,14 @@ function collectLights(t) {
   }
 }
 
+/* what the hand shows: only the item that is selected in the hotbar */
 function heldTool() {
   const it = selectedItem();
-  if (PL.chopping > 0) return G.tools.axe ? ['axe', G.tools.axe, null] : [null, 0, null];
+  const tk = heldToolKind();
+  if (PL.chopping > 0) return tk === 'axe' ? ['axe', G.tools.axe, null] : [null, 0, null];
+  if (tk) return [tk, Math.max(1, G.tools[tk]), null];
   if (it === 'torch') return ['torch', 0, null];
-  if (it && ITEMS[it] && ITEMS[it].place === 'block') return ['block', 0, ITEMS[it].block];
-  if (it) return ['block', 0, ITEMS[it].block];
-  if (G.breaking && NEEDPICK[G.breaking.id] && G.tools.pickaxe) return ['pickaxe', 1, null];
-  if (G.tools.sword) return ['sword', G.tools.sword, null];
-  if (G.tools.axe) return ['axe', G.tools.axe, null];
+  if (it && ITEMS[it] && ITEMS[it].block) return ['block', 0, ITEMS[it].block];
   return [null, 0, null];
 }
 const POSE_W = { armR: -2.55, armRz: 0.55, armL: -1.25, armLz: 0.25, twist: 0.5, lean: 0.02 };
@@ -5573,7 +5689,7 @@ function drawGhost() {
   const it = selectedItem();
   if (!it || !G.hover || G.breaking) return;
   const p = placementFor(G.hover, it);
-  if (!p) return;
+  if (!p || p.blockedByPlayer) return;
   let x1 = p.x + 1, z1 = p.z + 1, y1 = p.y + 1, x0 = p.x, z0 = p.z;
   if (p.two) { x0 = Math.min(p.x, p.x + p.two[0]); z0 = Math.min(p.z, p.z + p.two[2]); x1 = Math.max(p.x, p.x + p.two[0]) + 1; z1 = Math.max(p.z, p.z + p.two[2]) + 1; y1 = p.y + 1 + p.two[1]; }
   if (p.id === B.TORCH) { x0 = p.x + 0.4; z0 = p.z + 0.4; x1 = p.x + 0.6; z1 = p.z + 0.6; y1 = p.y + 0.7; }
@@ -5706,7 +5822,8 @@ function lookDelta(dx, dy, scale) {
     CAMC.fpPitch = clamp(CAMC.fpPitch - dy * LOOK.fp * s * inv, -1.5, 1.5);
   } else {
     CAMC.yaw = wrapAngle(CAMC.yaw - dx * LOOK.droneYaw * s);
-    CAMC.pitch = clamp(CAMC.pitch + dy * LOOK.dronePitch * s * inv, 0.12, 1.42);
+    // below zero the camera dips under the player and looks up into the sky
+    CAMC.pitch = clamp(CAMC.pitch + dy * LOOK.dronePitch * s * inv, -0.55, 1.42);
   }
 }
 function playing() { return G.state === 'playing'; }
@@ -6134,14 +6251,16 @@ UI.hotbar = function () {
     const b = hb.children[i];
     const key = G.hotbar[i];
     const cnt = key ? itemCount(key) : 0;
-    const sig = (key || '') + ':' + cnt + ':' + TEX.res + ':' + (G.sel === i);
+    const tool = key && ITEMS[key] && ITEMS[key].tool;
+    const icon = tool ? tool + Math.max(1, G.tools[tool]) : key;
+    const sig = (icon || '') + ':' + cnt + ':' + TEX.res + ':' + (G.sel === i);
     if (b.dataset.sig === sig) continue;
     b.dataset.sig = sig;
-    if ((b.dataset.key || '') !== (key || '') || b.dataset.res !== String(TEX.res)) { drawItemIcon(b.querySelector('canvas'), key); b.dataset.key = key || ''; b.dataset.res = TEX.res; }
-    b.querySelector('.n').textContent = cnt > 1 ? cnt : '';
+    if ((b.dataset.key || '') !== (icon || '') || b.dataset.res !== String(TEX.res)) { drawItemIcon(b.querySelector('canvas'), icon); b.dataset.key = icon || ''; b.dataset.res = TEX.res; }
+    b.querySelector('.n').textContent = !tool && cnt > 1 ? cnt : '';
     b.classList.toggle('empty', !key);
     b.classList.toggle('sel', G.sel === i);
-    b.setAttribute('aria-label', key ? ITEMS[key].name + ' (' + cnt + ')' : 'Leerer Platz');
+    b.setAttribute('aria-label', key ? itemName(key) + (tool ? '' : ' (' + cnt + ')') : 'Leerer Platz');
     b.setAttribute('aria-pressed', G.sel === i ? 'true' : 'false');
   }
   // hide trailing empty slots on phones to save room
@@ -6157,32 +6276,16 @@ UI.select = function (i) {
   if (i >= 0 && !G.hotbar[i]) G.sel = i;
   UI.hotbar();
   const k = selectedItem();
-  if (k) UI.toast(ITEMS[k].name + (ITEMS[k].place === 'block' ? ': Rechtsklick zum Bauen' : ''), 'info', 1400, 'sel');
+  if (k) UI.toast(itemName(k) + (ITEMS[k].place === 'block' ? ': Rechtsklick zum Bauen' : ITEMS[k].tool ? ' in der Hand' : ''), 'info', 1400, 'sel');
+  else if (i >= 0) UI.toast('Leere Hand', 'info', 900, 'sel');
 };
 UI.cycle = function (dir) {
-  const filled = G.hotbar.map((k, i) => (k ? i : -1)).filter((i) => i >= 0);
-  if (!filled.length) { G.sel = -1; UI.hotbar(); return; }
-  let idx = filled.indexOf(G.sel);
-  idx = idx < 0 ? (dir > 0 ? 0 : filled.length - 1) : (idx + dir + filled.length) % filled.length;
-  UI.select(filled[idx]);
+  const n = 10;
+  const i = G.sel < 0 ? (dir > 0 ? 0 : n - 1) : (G.sel + dir + n) % n;
+  UI.select(i);
 };
-UI.tools = function () {
-  const el = $('tools');
-  const list = [['axe', G.tools.axe, ['', 'Steinaxt', 'Eisenaxt', 'Goldaxt'][G.tools.axe] || 'Keine Axt'], ['sword', G.tools.sword, ['', 'Steinschwert', 'Eisenschwert'][G.tools.sword] || 'Kein Schwert'], ['pickaxe', G.tools.pickaxe, 'Spitzhacke'], ['shears', G.tools.shears, 'Schere']];
-  const sig = list.map((l) => l[1]).join(',');
-  if (el.dataset.sig === sig) return;
-  el.dataset.sig = sig;
-  el.innerHTML = '';
-  el.hidden = !list.some((l) => l[1]);
-  for (const [k, lvl, name] of list) {
-    if (!lvl) continue;
-    const d = document.createElement('div');
-    d.className = 'tool'; d.title = name;
-    const c = document.createElement('canvas'); c.width = c.height = 48;
-    drawToolIcon(c.getContext('2d'), k, Math.max(1, lvl), 48);
-    d.appendChild(c); el.appendChild(d);
-  }
-};
+/* tools are hotbar items now; the old tool strip stays hidden */
+UI.tools = function () { const el = $('tools'); if (el) el.hidden = true; UI.hotbar(); };
 UI.goal = function () {
   let t = GOALS[G.goal];
   if (MP.isClient()) t = 'Zu Besuch bei ' + MP.hostName + '. Helft euch gegenseitig!';
@@ -6305,6 +6408,17 @@ UI.frame = function (dt) {
     const pct = Math.round(frac * 1000) / 10 + '%';
     if (UI._last.hp !== pct) { $('hpFill').style.width = pct; $('hpGhost').style.width = pct; UI._last.hp = pct; $('hpFill').style.backgroundColor = frac > 0.55 ? 'var(--leaf)' : frac > 0.28 ? 'var(--ember)' : 'var(--blood)'; hp.classList.toggle('low', frac <= 0.28); }
     if (CAMC.mode !== 'fp' && projectToScreen(CAM.vp, PL.x, PL.y + PL.stepOffset + 2.5, PL.z, vw, vh, _scr)) hp.style.transform = 'translate(' + _scr[0].toFixed(1) + 'px,' + _scr[1].toFixed(1) + 'px)';
+  }
+  // attack charge: a thin bar under the health bar (first person: under the crosshair)
+  const cg = $('charge');
+  const showC = showHp && PL.chargeVis > 0.01 && !PL.dead;
+  cg.hidden = !showC;
+  if (showC) {
+    $('chargeFill').style.width = (PL.charge * 100).toFixed(1) + '%';
+    cg.classList.toggle('full', PL.charge >= 1);
+    cg.style.opacity = PL.charge >= 1 ? PL.chargeVis.toFixed(2) : '1';
+    cg.classList.toggle('fp', CAMC.mode === 'fp');
+    if (CAMC.mode !== 'fp') cg.style.transform = hp.style.transform;
   }
   // chop ring
   const ch = $('chop');
@@ -6437,21 +6551,26 @@ UI.openInventory = function () {
     const b = document.createElement('button'); b.className = 'inv-it'; b.type = 'button';
     b.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
     drawItemIcon(b.firstChild, k); b.querySelector('b').textContent = G.inv.items[k]; b.querySelector('span').textContent = ITEMS[k].name;
-    b.addEventListener('click', () => {
-      const slot = G.sel >= 0 ? G.sel : Math.max(0, G.hotbar.indexOf(null));
-      const prev = G.hotbar.indexOf(k); if (prev >= 0) G.hotbar[prev] = null;
-      G.hotbar[slot] = k; G.sel = slot; UI.hotbar(); UI.toast(ITEMS[k].name + ' liegt auf Platz ' + ((slot + 1) % 10), 'good');
-    });
+    b.addEventListener('click', () => UI.putInHotbar(k));
     g.appendChild(b);
   }
   const tg = $('invTools'); tg.innerHTML = '';
-  const tools = [['axe', G.tools.axe, ['Keine Axt', 'Steinaxt', 'Eisenaxt', 'Goldaxt'][G.tools.axe]], ['sword', G.tools.sword, ['Faust', 'Steinschwert', 'Eisenschwert'][G.tools.sword]], ['pickaxe', G.tools.pickaxe, G.tools.pickaxe ? 'Spitzhacke' : 'Keine Spitzhacke'], ['shears', G.tools.shears, G.tools.shears ? 'Schere' : 'Keine Schere']];
-  for (const [k, lvl, name] of tools) {
-    const d = document.createElement('div'); d.className = 'inv-it'; d.style.opacity = lvl ? 1 : 0.4;
+  const tools = [['axe', 'Keine Axt'], ['sword', 'Kein Schwert'], ['pickaxe', 'Keine Spitzhacke'], ['shears', 'Keine Schere']];
+  for (const [k, none] of tools) {
+    const lvl = G.tools[k];
+    const d = document.createElement(lvl ? 'button' : 'div'); d.className = 'inv-it'; d.style.opacity = lvl ? 1 : 0.4;
+    if (lvl) d.type = 'button';
     d.innerHTML = '<canvas width="80" height="80"></canvas><span></span>';
-    drawToolIcon(d.firstChild.getContext('2d'), k, Math.max(1, lvl), 80); d.lastChild.textContent = name;
+    drawToolIcon(d.firstChild.getContext('2d'), k, Math.max(1, lvl), 80); d.lastChild.textContent = lvl ? itemName(k) : none;
+    if (lvl) d.addEventListener('click', () => UI.putInHotbar(k));
     tg.appendChild(d);
   }
+};
+/* inventory: put something on the selected hotbar slot (or the first free one) */
+UI.putInHotbar = function (k) {
+  const slot = G.sel >= 0 ? G.sel : Math.max(0, G.hotbar.indexOf(null));
+  const prev = G.hotbar.indexOf(k); if (prev >= 0) G.hotbar[prev] = null;
+  G.hotbar[slot] = k; G.sel = slot; UI.hotbar(); UI.toast(itemName(k) + ' liegt auf Platz ' + ((slot + 1) % 10), 'good');
 };
 
 
@@ -6981,7 +7100,7 @@ const SFX = (() => {
     place() { hiss('bandpass', 1400, 1.5, 0.05, 0.25); tone('triangle', 260, 180, 0.08, 0.2); },
     dig(id) { const soft = id === B.DIRT || id === B.GRASS || id === B.SAND || id === B.GRAVEL || id === B.SNOW || id === B.PATH; hiss(soft ? 'lowpass' : 'bandpass', soft ? 900 : 1800, soft ? 0.8 : 3, 0.07, 0.22); },
     breakB(id) { const soft = id === B.DIRT || id === B.GRASS || id === B.SAND || id === B.GRAVEL || id === B.SNOW; hiss(soft ? 'lowpass' : 'bandpass', soft ? 1100 : 2400, 1.2, 0.18, 0.32); if (id === B.GLASS) { for (let k = 0; k < 4; k++) tone('sine', r(2500, 4200), r(2000, 3000), 0.12, 0.05, k * 0.03); } },
-    hit() { hiss('bandpass', 700, 1.4, 0.12, 0.45); tone('square', 140, 70, 0.1, 0.12); },
+    hit(k = 1) { hiss('bandpass', 700 + (1 - k) * 500, 1.4, 0.12, 0.45 * k); tone('square', 140, 70, 0.1, 0.12 * k); if (k >= 1) tone('sine', 110, 55, 0.14, 0.22); },
     hurt() { tone('sawtooth', 420, 150, 0.22, 0.22); hiss('lowpass', 1200, 1, 0.18, 0.25); },
     death() { tone('sawtooth', 300, 60, 1.2, 0.2); tone('sine', 140, 40, 1.6, 0.3, 0.1); },
     groan(d, k = 1) {
@@ -7078,7 +7197,8 @@ function resetGameState() {
   G.tools = { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
   G.hotbar = new Array(10).fill(null); G.sel = -1;
   G.zombies = []; G.falling = []; G.goal = 0; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
-  G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 };
+  G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
+  PL.charge = 1; PL.chargeVis = 0;
   DROPS.length = 0; PARTS.length = 0; ACTIVE_TREES.clear();
   PL.hp = PL.maxHp; PL.dead = false; PL.vx = PL.vy = PL.vz = 0;
   PL.x = W.spawn[0]; PL.y = W.spawn[1]; PL.z = W.spawn[2]; PL.yaw = 0; PL.stepOffset = 0;
@@ -7111,6 +7231,7 @@ async function loadWorld(seed, save, opts = {}) {
     G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
     G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.sel = -1;
     G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
+    ensureTools();
     PL.hp = you ? clamp(you.hp, 20, 100) : 100; PL.dead = false;
     if (you && you.pos) { PL.x = you.pos[0]; PL.y = you.pos[1] + 0.05; PL.z = you.pos[2]; PL.yaw = you.pos[3] || 0; }
     else { PL.x = W.spawn[0] + (Math.random() - 0.5) * 3; PL.y = W.spawn[1] + 0.05; PL.z = W.spawn[2] + Math.random() * 2; }
@@ -7265,7 +7386,11 @@ function pickRay(o, d) {
   for (const s of G.sheep) chk(s, 'sheep', s.x - 0.6, s.y, s.z - 0.6, s.x + 0.6, s.y + 1.2, s.z + 0.6);
   const m = G.merchant;
   if (m && m.visible > 0.6) chk(m, 'merchant', m.x - 0.45, m.y, m.z - 0.45, m.x + 0.45, m.y + 2.2, m.z + 0.45);
-  const test = CAMC.mode === 'fp' ? (id) => id !== B.WATER : (id) => id !== B.WATER && !TREEBLOCK[id];
+  // from above, tree crowns are ignored so the ground below can be picked;
+  // with a block in the hand they count, so you can build against a tree
+  const sel = selectedItem();
+  const building = !!(sel && ITEMS[sel] && ITEMS[sel].place);
+  const test = CAMC.mode === 'fp' || building ? (id) => id !== B.WATER : (id) => id !== B.WATER && !TREEBLOCK[id];
   const hit = raycast(o[0], o[1], o[2], d[0], d[1], d[2], bt, test);
   if (hit && hit.t < bt) best = { type: 'block', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, id: hit.id, t: hit.t };
   if (!best) return null;
@@ -7316,12 +7441,19 @@ function handleActions(dt) {
   }
   if (INPUT.primaryPressed) { G.holdT = 0; if (target && (target.type !== 'block' || isInteractBlock(target))) primaryOn(target); }
   if (INPUT.primaryHeld) G.holdT = (G.holdT || 0) + dt; else G.holdT = 0;
-  if (INPUT.primaryHeld && target && target.type === 'zombie' && target.inReach) attackZombie(target.e);
+  if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
   updateBreaking(dt, INPUT.primaryHeld && breakable, target);
   if (INPUT.secondaryPressed) {
     if (item) placeSelected(target);
     else if (target && (isInteractBlock(target) || target.type !== 'block')) primaryOn(target);
+  }
+  // a placement that was blocked by the player itself is retried while jumping
+  if (G.placeBuf) {
+    const b = G.placeBuf;
+    b.t -= dt;
+    if (b.t <= 0 || !item) G.placeBuf = null;
+    else if (!PL.onGround) placeSelected(b.target, true);
   }
   let it = null;
   if (target && target.inReach) {
@@ -8256,7 +8388,7 @@ function applyNetEvent(v) {
       SFX.bang(Math.hypot(v.x - PL.x, v.z - PL.z));
       break;
     }
-    case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz); } break;
+    case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
     case 'hurt': if (v.to === NET.uid()) hurtPlayer(v.dmg, v.fx, v.fz); break;
     case 'shear': if (MP.isHost()) { const s = G.sheep[v.i]; if (s && s.wool) { s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
