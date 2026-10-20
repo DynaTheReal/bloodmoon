@@ -184,7 +184,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .res { display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; font-size: 16px; font-variant-numeric: tabular-nums; min-width: 64px; }
 .res b { font-family: var(--font-display); font-weight: 400; font-size: 18px; }
 .res-i { width: 24px; height: 24px; image-rendering: pixelated; }
-.res.bump { animation: bump 0.35s ease; }
+.res.bump, .ibtn.bump { animation: bump 0.35s ease; }
+.inv-it.mat { cursor: default; }
+.li.restore { border-color: rgba(255, 177, 92, 0.45); background: rgba(255, 177, 92, 0.08); }
+.li.restore .li-main span { white-space: normal; }
+.chest-acts { margin-bottom: 4px; }
+#chestOne[aria-pressed="true"] { border-color: var(--ember); color: var(--ember); }
+.sec-t small { font-weight: 600; opacity: 0.6; text-transform: none; letter-spacing: 0; }
+.inv-it.mat:hover { border-color: rgba(255, 255, 255, 0.07); }
 @keyframes bump { 40% { transform: scale(1.14); } }
 .ibtn { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; color: var(--text); }
 .ibtn svg { width: 20px; height: 20px; }
@@ -495,6 +502,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="res panel" id="resCryBox" title="Leuchtkristalle" hidden><canvas class="res-i" id="icoCry" width="64" height="64"></canvas><b id="resCry">0</b></div>
     </div>
     <div class="btns">
+    <button class="ibtn panel" id="btnBag" aria-label="Inventar" title="Inventar (I)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg></button>
     <button class="ibtn panel" id="btnCam" aria-label="Kamera wechseln" title="Kamera wechseln (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
     <button class="ibtn panel" id="btnPause" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"></rect><rect x="14" y="5" width="4" height="14" rx="1.2"></rect></svg></button>
     </div>
@@ -649,7 +657,18 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <div id="mdlInv" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle">
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="invTitle">Inventar</h2><p>Tippe auf etwas, um es in den gewählten Hotbar-Platz zu legen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="sheet-b"><p class="sec-t">Gegenstände</p><div class="inv-grid" id="invGrid"></div><p class="sec-t">Werkzeuge</p><div class="inv-grid" id="invTools"></div></div>
+    <div class="sheet-b"><p class="sec-t">Materialien</p><div class="inv-grid" id="invMats"></div><p class="sec-t">Gegenstände</p><div class="inv-grid" id="invGrid"></div><p class="sec-t">Werkzeuge</p><div class="inv-grid" id="invTools"></div></div>
+  </div>
+</div>
+
+<div id="mdlChest" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="chestTitle">
+  <div class="sheet panel">
+    <div class="sheet-h"><div class="grow"><h2 id="chestTitle">Truhe</h2><p id="chestFill">0 Sachen in der Truhe</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div class="btnrow chest-acts"><button class="btn" id="chestPutAll" type="button">Alles einlagern</button><button class="btn" id="chestTakeAll" type="button">Alles nehmen</button><button class="btn ghost" id="chestOne" type="button" aria-pressed="false">Nur 1 pro Klick</button></div>
+      <p class="sec-t">In der Truhe</p><div class="inv-grid" id="chestGrid"></div>
+      <p class="sec-t">Dein Inventar <small>(Klick legt es in die Truhe)</small></p><div class="inv-grid" id="chestInvGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -2188,6 +2207,7 @@ const W = {
   hidden: new Set(),       // cells hidden from chunk meshes (active trees)
   cleared: new Set(),      // towers whose guards are defeated
   sheepState: new Map(),   // sheep id -> [wool, regrowAt] (shorn sheep)
+  chests: new Map(),       // cell -> contents of a chest the player built
   explored: new Set(),     // chunk keys that have been loaded at some point
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
@@ -3051,7 +3071,7 @@ function resetWorld(seed, mode) {
   W.seed = seed; W.N = makeWorldNoise(seed);
   W.meta.clear(); W.changes.clear(); W.metaChanges.clear(); W.chEdits.clear();
   W.prot.clear(); W.treeAt.clear(); W.hidden.clear(); W.cleared.clear();
-  W.sheepState.clear(); W.explored.clear(); W.campLv = 1;
+  W.sheepState.clear(); W.explored.clear(); W.chests.clear(); W.campLv = 1;
   for (const t of W.trees.values()) if (t.model) freeModel(t.model);
   W.trees.clear(); W.treeStates.clear(); TREES_BY_CHUNK.clear();
   STRUCT_CACHE.clear(); TOWERS.clear();
@@ -4314,7 +4334,7 @@ function spawnDrop(kind, x, y, z, vx, vy, vz, delay, forceMagnet) {
   DROPS.push({ kind, x, y, z, vx, vy, vz, t: 0, delay: delay || 0.35, magnet: false, force: !!forceMagnet, spin: Math.random() * TAU, bob: Math.random() * TAU, rest: false });
 }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
-const DROP_COLOR = { torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0] };
+const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0] };
 const DROP_GLOW = { diamond: 0.35, crystal: 0.7 };
 
 /* ---------- placed objects (torch, campfire, bed, door) ---------- */
@@ -4949,6 +4969,9 @@ const ITEMS = {
   torch: { name: 'Fackel', block: B.TORCH, place: 'torch' },
   campfire: { name: 'Lagerfeuer', block: B.CAMPFIRE, place: 'campfire' },
   bed: { name: 'Bett', block: B.BED, place: 'bed' },
+  chest: { name: 'Truhe', block: B.CHEST, place: 'chest' },
+  bucket: { name: 'Eimer', place: 'bucket' },
+  water_bucket: { name: 'Wassereimer', place: 'water' },
   // tools live in the hotbar and only work while they are held
   axe: { name: 'Axt', tool: 'axe' },
   pickaxe: { name: 'Spitzhacke', tool: 'pickaxe' },
@@ -5001,6 +5024,8 @@ const SHOP = [
   { id: 'bricks', tab: 'build', item: 'bricks', qty: 10, cost: { wood: 6 }, name: '10 Steinziegel', desc: 'Robust: Zombies brauchen beim Blood Moon mehr als doppelt so lange.' },
   { id: 'glass', tab: 'build', item: 'glass', qty: 4, cost: { wood: 3 }, name: '4 Glas', desc: 'Fenster lassen Tageslicht ins Haus.' },
   { id: 'door', tab: 'build', item: 'door', qty: 1, cost: { wood: 3 }, name: 'Tür', desc: 'Öffnen und schließen mit E oder einem Klick.' },
+  { id: 'chest', tab: 'build', item: 'chest', qty: 1, cost: { wood: 4 }, name: 'Truhe', desc: 'Zum Einlagern von Holz, Wolle, Erzen und Blöcken. Mit E oder einem Klick öffnen.' },
+  { id: 'bucket', tab: 'build', item: 'bucket', qty: 1, cost: { wood: 5 }, name: 'Eimer', desc: 'In die Hand nehmen und auf Wasser klicken: Wassereimer. Damit baust du Brunnen, Teiche und Wassergräben.' },
   { id: 'axe1', tab: 'tools', tool: 'axe', level: 1, cost: { wood: 6 }, name: 'Steinaxt', desc: '25 Schläge pro Baum statt 50.' },
   { id: 'axe2', tab: 'tools', tool: 'axe', level: 2, cost: { wood: 10, iron: 4 }, name: 'Eisenaxt', desc: '12 Schläge pro Baum.' },
   { id: 'axe3', tab: 'tools', tool: 'axe', level: 3, cost: { wood: 16, diamond: 3 }, name: 'Diamantaxt', desc: 'Nur 6 Schläge pro Baum.' },
@@ -5261,6 +5286,7 @@ function makeSave() {
     pl: [PL.x, PL.y, PL.z, PL.yaw, PL.hp], cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, sel: G.sel, goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
+    chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
   };
 }
@@ -5290,9 +5316,12 @@ function normalizeInv(inv) {
 }
 /* load a save into the freshly reset world (before any chunk is generated).
    Saves from the island version (v1) keep the player's things, the world is new. */
-function applySave(s) {
+function applySave(s, convert) {
   const v2 = s.v === 2;
-  if (v2) {
+  // an old island (or an island the update made endless): the buildings move to the new island
+  const fix = !v2 || !!convert;
+  if (v2 && fix) W.campLv = clamp(s.camp | 0 || 1, 1, 5);
+  if (v2 && !fix) {
     for (let k = 0; k < s.ch.length; k += 2) { const i = s.ch[k]; W.changes.set(i, s.ch[k + 1]); noteEdit(i); }
     for (let k = 0; k < s.mc.length; k += 2) { const i = s.mc[k], m = s.mc[k + 1]; W.metaChanges.set(i, m); noteEdit(i); }
     for (const [id, st, hits, ra] of s.trees || []) W.treeStates.set(id, [st, hits, ra]);
@@ -5300,6 +5329,7 @@ function applySave(s) {
     W.campLv = clamp(s.camp | 0 || 1, 1, 5);
     for (const id of s.clr || []) W.cleared.add(id);
     for (const k of s.ex || []) W.explored.add(k);
+    for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
   }
   Object.assign(G.time, s.time);
   G.playTime = s.playTime || 0;
@@ -5308,17 +5338,127 @@ function applySave(s) {
   if (s.hotbar) for (let i = 0; i < 10; i++) { const v = s.hotbar[i]; if (v && ITEMS[v]) G.hotbar[i] = v; }
   G.sel = typeof s.sel === 'number' ? s.sel : -1; G.goal = s.goal | 0; G.stats = s.stats || G.stats;
   ensureTools();
-  if (v2) {
+  if (v2 && !fix) {
     G.bedSpawn = s.bed || null;
     PL.x = s.pl[0]; PL.y = s.pl[1]; PL.z = s.pl[2]; PL.yaw = s.pl[3]; PL.hp = s.pl[4];
     if (s.cam) { CAMC.yaw = s.cam[0]; CAMC.pitch = s.cam[1]; CAMC.dist = s.cam[2]; CAMC.distT = s.cam[2]; CAMC.mode = s.cam[3] || 'drone'; }
   } else {
-    // island save: start at the camp of the new world
-    G.bedSpawn = null; G._migrated = true;
+    // start at the camp of the island; the bed comes along with its house
+    const tr = transplantBuildings(s);
+    const oldBed = s.bed ? (v2 ? s.bed : [s.bed[0] - 160, s.bed[1] + (SEA - 22), s.bed[2] - 160]) : null;
+    G.bedSpawn = tr.map(oldBed);
+    G._migrated = { n: tr.count };
     PL.x = W.spawn[0]; PL.y = W.spawn[1]; PL.z = W.spawn[2]; PL.hp = PL.maxHp;
   }
   G.visitors = s.vis || {};
 }
+
+/* ---- 08m_migrate.js ---- */
+/* =========================================================================
+   Old worlds. The first versions had one fixed island; the second version
+   turned those islands into endless worlds and dropped what was built.
+   Worlds from that time are islands again, and their buildings move over to
+   the new landscape: every building is set down on the new ground as a whole.
+   ========================================================================= */
+const PART2_AT = Date.parse('2026-10-20T06:55:00Z');   // when the endless world came out
+const BACKUP_PREFIX = 'bloodmoon-backup-';
+/* a world made before the endless world existed was an island */
+function islandEra(e) { return !!e && (e.created || e.updated || 0) > 0 && (e.created || e.updated) < PART2_AT; }
+/* does this save of an island-era world still have to become an island again? */
+function needsIslandFix(e, save) {
+  if (!save) return false;
+  if (save.v !== 2) return true;                          // the very old island save
+  return islandEra(e) && save.mode !== 'island';         // turned into an endless world by the update
+}
+
+/* blocks a player can build with (everything else in the edits is digging or nature) */
+const BUILT = new Uint8Array(256);
+[B.PLANKS, B.BRICKS, B.GLASS, B.COBBLE, B.DIRT, B.SAND, B.GRAVEL, B.DOOR, B.TORCH, B.CAMPFIRE, B.BED, B.CHEST, B.WOOL_RED, B.WOOL_WHITE, B.ROOF, B.WATER].forEach((b) => (BUILT[b] = 1));
+
+/* old island cell index -> position in today's world (the old island was 320 x 320, sea level 22) */
+function oldIslandPos(i) {
+  const PY = 82, PZ = 322;
+  const y = (i % PY) - 1, r = Math.floor(i / PY);
+  const z = (r % PZ) - 1, x = Math.floor(r / PZ) - 1;
+  return [x - 160, y + (SEA - 22), z - 160];
+}
+function cellPos(i) { const y = i % WY; const r = (i - y) / WY; const zz = r % WSPAN; const xx = (r - zz) / WSPAN; return [xx - WOFF, y, zz - WOFF]; }
+
+/* move the buildings of a save onto the island that has just been set up (resetWorld ran).
+   Fills W.changes / W.metaChanges and returns a function that maps old positions to new ones. */
+function transplantBuildings(save) {
+  const v1 = save.v !== 2;
+  const pos = v1 ? oldIslandPos : cellPos;
+  const metaOf = new Map();
+  for (let k = 0; k + 1 < (save.mc || []).length; k += 2) metaOf.set(save.mc[k], save.mc[k + 1]);
+  // the built blocks
+  const cells = new Map();     // "x,y,z" -> [x, y, z, id, meta]
+  for (let k = 0; k + 1 < (save.ch || []).length; k += 2) {
+    const i = save.ch[k], id = save.ch[k + 1];
+    if (!BUILT[id]) continue;
+    const p = pos(i);
+    if (id === B.WATER && p[1] <= SEA) continue;
+    cells.set(p[0] + ',' + p[1] + ',' + p[2], [p[0], p[1], p[2], id, metaOf.has(i) ? metaOf.get(i) : null]);
+  }
+  // buildings = blocks that touch each other
+  const seen = new Set(), clusters = [];
+  for (const [key, c] of cells) {
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const list = [], q = [c];
+    while (q.length) {
+      const b = q.pop(); list.push(b);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+        const k2 = (b[0] + dx) + ',' + (b[1] + dy) + ',' + (b[2] + dz);
+        if (seen.has(k2) || !cells.has(k2)) continue;
+        seen.add(k2); q.push(cells.get(k2));
+      }
+    }
+    clusters.push(list);
+  }
+  const inCamp = (x, z) => x >= CX - 8 && x <= CX + 8 && z >= CZ - 16 && z <= CZ + 7;
+  const moved = new Map();     // old "x,y,z" -> new [x, y, z]
+  let n = 0;
+  for (const list of clusters) {
+    // set it down on the highest ground under it, fill the ground up below
+    let minY = 1e9, maxY = -1e9;
+    const cols = new Map();
+    for (const b of list) {
+      minY = Math.min(minY, b[1]); maxY = Math.max(maxY, b[1]);
+      const ck = b[0] + ',' + b[2];
+      if (!cols.has(ck)) cols.set(ck, [b[0], b[2], Math.max(colHeight(b[0], b[2]), SEA)]);
+    }
+    let ground = -1e9;
+    for (const c of cols.values()) ground = Math.max(ground, c[2]);
+    // single torches and the like on the ground stay small: no dirt hills for them
+    const base = ground + 1;
+    const shift = base - minY;
+    if (maxY + shift >= WY - 2) continue;
+    for (const c of cols.values()) {
+      if (inCamp(c[0], c[1])) continue;
+      for (let y = c[2] + 1; y < base; y++) { const i = I(c[0], y, c[1]); W.changes.set(i, B.DIRT); noteEdit(i); }
+      // room for the building: no hills, no tree crowns inside it
+      for (let y = base; y <= maxY + shift + 2; y++) { const i = I(c[0], y, c[1]); if (!W.changes.has(i)) { W.changes.set(i, B.AIR); noteEdit(i); } }
+    }
+    for (const b of list) {
+      const x = b[0], y = b[1] + shift, z = b[2];
+      if (inCamp(x, z)) continue;
+      const i = I(x, y, z);
+      W.changes.set(i, b[3]); noteEdit(i);
+      if (b[4] !== null && b[4] !== undefined) { W.metaChanges.set(i, b[4]); }
+      moved.set(b[0] + ',' + b[1] + ',' + b[2], [x, y, z]);
+      n++;
+    }
+  }
+  return { count: n, map: (p) => (p ? moved.get(p[0] + ',' + p[1] + ',' + p[2]) || null : null), oldPos: v1 ? oldIslandPos : null };
+}
+/* keep the original save before anything is changed (once per world) */
+function backupSave(e, raw) {
+  if (!e || !raw) return;
+  try { if (!localStorage.getItem(BACKUP_PREFIX + e.id)) localStorage.setItem(BACKUP_PREFIX + e.id, raw); } catch (err) { /* storage full: no backup */ }
+}
+function hasBackup(e) { try { return !!localStorage.getItem(BACKUP_PREFIX + e.id); } catch (err) { return false; } }
+function readBackup(e) { try { return JSON.parse(localStorage.getItem(BACKUP_PREFIX + e.id) || 'null'); } catch (err) { return null; } }
 
 /* ---- 09_play.js ---- */
 /* =========================================================================
@@ -5781,7 +5921,7 @@ function canBreak(id, x, y, z) {
   if (W.prot.has(i)) { hint('prot', 'Das gehört dem Händler.'); return false; }
   if (TREEBLOCK[id]) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
   if (id === B.BEDROCK || id === B.SAPLING) return false;
-  if (id === B.CHEST) { hint('chest', 'Truhen öffnest du mit E.'); return false; }
+  if (id === B.CHEST && !isStoreChest(x, y, z)) { hint('chest', 'Truhen öffnest du mit E.'); return false; }
   if (NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', G.tools.pickaxe ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
   if (PICKLV[id] > 1 && G.tools.pickaxe < PICKLV[id]) { hint('pick2', 'Diamanterz braucht eine Eisenspitzhacke vom Händler.'); return false; }
   return true;
@@ -5794,7 +5934,8 @@ function updateBreaking(dt, holding, target) {
   if (!G.breaking || G.breaking.x !== x || G.breaking.y !== y || G.breaking.z !== z) {
     if (!canBreak(id, x, y, z)) { G.breaking = null; return; }
     const speed = NEEDPICK[id] && heldToolKind() === 'pickaxe' ? (G.tools.pickaxe >= 2 ? 2.3 : 1.5) : 1;
-    G.breaking = { x, y, z, id, p: 0, need: Math.max(0.05, HARD[id] / speed), tick: 0 };
+    const hard = id === B.CHEST ? 1.1 : HARD[id];   // only chests you built can be broken
+    G.breaking = { x, y, z, id, p: 0, need: Math.max(0.05, hard / speed), tick: 0 };
   }
   const b = G.breaking;
   b.p += dt; b.tick -= dt;
@@ -5815,7 +5956,9 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   if (id === B.AIR) return;
   if (!remote && !nested && MP.active()) MP.send({ t: 'brk', x, y, z });
   const meta = W.meta.get(i) || 0;
-  const drop = BDROP[id];
+  const store = id === B.CHEST && isStoreMeta(meta);
+  const drop = store ? 'chest' : BDROP[id];
+  if (store) chestBroken(i, x, y, z, !!byPlayer && !remote);
   const c = BCOLOR[id] || DROP_COLOR[drop] || [0.6, 0.6, 0.6];
   burst(x + 0.5, y + 0.5, z + 0.5, 12, c, { speed: 2.4, up: 3, life: 0.8, size: 0.09, spread: 0.8 });
   if (id === B.DOOR) { const oy = (meta & 8) ? y - 1 : y + 1; if (getB(x, oy, z) === B.DOOR) setBlock(x, oy, z, B.AIR); }
@@ -5870,6 +6013,12 @@ function placementFor(target, item) {
     return null;
   }
   if (def.place === 'campfire') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CAMPFIRE, meta: 0 }; }
+  if (def.place === 'chest') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CHEST, meta: STORE_FLAG | (((yawDir() + 2) & 3) << 1) }; }
+  if (def.place === 'water') {
+    // the water runs down until it reaches the ground
+    while (y > 1 && getB(x, y - 1, z) !== B.WATER && replaceable(getB(x, y - 1, z)) && !SOLID[getB(x, y - 1, z)]) y--;
+    return { x, y, z, id: B.WATER, meta: null };
+  }
   if (def.place === 'door') {
     if (!SOLID[below] || !replaceable(getB(x, y + 1, z)) || entityBlocksCell(x, y, z) || entityBlocksCell(x, y + 1, z)) return null;
     return { x, y, z, id: B.DOOR, meta: yawDir(), two: [0, 1, 0] };
@@ -5882,8 +6031,35 @@ function placementFor(target, item) {
   }
   return null;
 }
+/* swap the used thing in the hand for another one (water bucket <-> empty bucket) */
+function giveInSlot(k, from) {
+  const slot = G.sel;
+  G.inv.items[k] = (G.inv.items[k] || 0) + 1;
+  if (!G.hotbar.includes(k)) {
+    if (slot >= 0 && !G.hotbar[slot]) G.hotbar[slot] = k;
+    else { const free = G.hotbar.indexOf(null); if (free >= 0) G.hotbar[free] = k; }
+  }
+  UI.hotbar();
+}
+/* an empty bucket fills up at water. The sea, lakes and rivers never run dry */
+function useBucket(target) {
+  if (!target || target.type !== 'block' || target.id !== B.WATER) { hint('bucket', 'Zeig mit dem Eimer auf Wasser und klick.'); return false; }
+  if (!target.inReach) { hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
+  const { x, y, z } = target;
+  if (!takeItem('bucket', 1)) return false;
+  giveInSlot('water_bucket', 'bucket');
+  if (y > SEA) {
+    setBlock(x, y, z, B.AIR);
+    if (MP.active()) MP.send({ t: 'plc', x, y, z, id: B.AIR });
+  }
+  burst(x + 0.5, y + 0.8, z + 0.5, 8, [0.35, 0.55, 0.85], { speed: 1.4, up: 2, life: 0.5, size: 0.07, spread: 0.8 });
+  SFX.place(B.WATER);
+  PL.swingT = 0; PL.swingKind = 'hit';
+  return true;
+}
 function placeSelected(target, retry) {
   const item = selectedItem();
+  if (item === 'bucket') return useBucket(target);
   const p = placementFor(target, item);
   if (p && p.blockedByPlayer) {
     // standing in the way: keep trying for a moment, so jump + click places under you
@@ -5892,6 +6068,7 @@ function placeSelected(target, retry) {
   }
   if (!p) { if (item && target && target.type === 'block' && !target.inReach) hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
   if (!takeItem(item, 1)) return false;
+  if (item === 'water_bucket') giveInSlot('bucket', item);
   G.placeBuf = null;
   setBlock(p.x, p.y, p.z, p.id, p.meta);
   if (p.lift) {
@@ -5938,6 +6115,7 @@ function interactTargets() {
     if (id !== B.BED && id !== B.DOOR && id !== B.CHEST && id !== B.CAMPFIRE) continue;
     const d = Math.hypot(x + 0.5 - PL.x, z + 0.5 - PL.z) + Math.abs(y + 0.5 - PL.y - 0.8) * 0.3;
     if (d > 2.6) continue;
+    if (id === B.CHEST && isStoreChest(x, y, z)) { out.push({ kind: 'store', x, y, z, d: d - 0.2, label: 'Truhe öffnen' }); continue; }
     if (id === B.CHEST) { const cm = W.meta.get(I(x, y, z)) || 0; out.push({ kind: 'chest', x, y, z, d: d - 0.2, label: cm & 1 ? 'Leere Truhe' : chestGuard(x, y, z) ? 'Truhe (noch bewacht)' : 'Truhe öffnen' }); continue; }
     if (id === B.CAMPFIRE) { const o = OBJS.get(I(x, y, z)); out.push({ kind: 'camp', x, y, z, d: d + 0.3, label: o && o.level >= 5 ? 'Lagerfeuer (höchste Stufe)' : 'Lagerfeuer verbessern' }); continue; }
     if (id === B.BED) out.push({ kind: 'bed', x, y, z, d, label: isNight() || G.time.t > DAY_LEN - 60 ? 'Schlafen' : 'Spawnpunkt setzen' });
@@ -5953,6 +6131,7 @@ function doInteract(t) {
   else if (t.kind === 'bed') trySleep(t.x, t.y, t.z);
   else if (t.kind === 'door') toggleDoor(t.x, t.y, t.z);
   else if (t.kind === 'chest') openChest(t.x, t.y, t.z);
+  else if (t.kind === 'store') UI.openStore(t.x, t.y, t.z);
   else if (t.kind === 'camp') UI.openCamp(t.x, t.y, t.z);
 }
 function trySleep(x, y, z) {
@@ -6818,31 +6997,46 @@ function fixPlayerPos() {
    Weather (clear, cloudy, rain, storm, fog) and tornadoes.
    The host decides, guests follow. Rain and snow are drawn around the camera.
    ========================================================================= */
-const WEATHER = { kind: 'clear', t: 0, dur: 240, rain: 0, storm: 0, fog: 0, cloud: 0, flash: 0, farFog: 0, torNear: 0, boltT: 8, snow: 0 };
+const WEATHER = { kind: 'clear', t: 0, dur: 240, rain: 0, storm: 0, fog: 0, cloud: 0, flash: 0, farFog: 0, torNear: 0, boltT: 8, snow: 0, stormPend: -1 };
+const STORM_CHANCE = 0.1;        // a thunderstorm on 10 % of the days
+const STORM_TORNADO = 0.2;       // and in 20 % of the thunderstorms a tornado forms
+const TOR_FORM = 30;             // seconds the funnel needs to come down
 const WEATHER_KINDS = ['clear', 'cloudy', 'rain', 'storm', 'fog'];
 function resetWeather() {
-  Object.assign(WEATHER, { kind: 'clear', t: 0, dur: 200 + Math.random() * 200, rain: 0, storm: 0, fog: 0, cloud: 0, flash: 0, farFog: 0, torNear: 0, boltT: 8, snow: 0 });
-  Object.assign(TORNADO, { on: false, vis: 0, pend: -1, edits: [], acc: 0, t: 0 });
-  TOR_DEBRIS.length = 0;
+  Object.assign(WEATHER, { kind: 'clear', t: 0, dur: 200 + Math.random() * 200, rain: 0, storm: 0, fog: 0, cloud: 0, flash: 0, farFog: 0, torNear: 0, boltT: 8, snow: 0, stormPend: -1 });
+  Object.assign(TORNADO, { on: false, vis: 0, pend: -1, stormIn: -1, edits: [], acc: 0, t: 0, wreck: [], wreckSeen: new Set() });
+  TOR_DEBRIS.length = 0; BOLTS.length = 0;
 }
 function pickWeather() {
   const r = Math.random();
-  const kind = r < 0.44 ? 'clear' : r < 0.64 ? 'cloudy' : r < 0.83 ? 'rain' : r < 0.92 ? 'storm' : 'fog';
+  // thunderstorms only come from the daily roll
+  const kind = r < 0.48 ? 'clear' : r < 0.7 ? 'cloudy' : r < 0.91 ? 'rain' : 'fog';
   setWeather(kind, 150 + Math.random() * 270);
+}
+/* a thunderstorm: lightning everywhere, and sometimes a tornado comes down from it */
+function startStorm(forceTornado) {
+  setWeather('storm', 200 + Math.random() * 160);
+  WEATHER.boltT = 6;
+  TORNADO.stormIn = forceTornado ? 4 : Math.random() < STORM_TORNADO ? 30 + Math.random() * 70 : -1;
 }
 function setWeather(kind, dur) { WEATHER.kind = kind; WEATHER.t = 0; WEATHER.dur = dur || 240; }
 function updateWeather(dt) {
   const Wt = WEATHER;
-  if (!MP.isClient()) { Wt.t += dt; if (Wt.t > Wt.dur) pickWeather(); }
+  if (!MP.isClient()) {
+    Wt.t += dt;
+    if (Wt.t > Wt.dur) pickWeather();
+    if (Wt.stormPend >= 0 && G.time.phase === 'day' && G.time.t >= Wt.stormPend) { Wt.stormPend = -1; startStorm(); }
+  }
   const k = Wt.kind;
   const tRain = k === 'rain' || k === 'storm' ? 1 : 0;
   Wt.rain = damp(Wt.rain, tRain, 0.14, dt);
   Wt.storm = damp(Wt.storm, k === 'storm' ? 1 : 0, 0.14, dt);
   Wt.fog = damp(Wt.fog, k === 'fog' ? 1 : 0, 0.1, dt);
   Wt.cloud = damp(Wt.cloud, k === 'clear' ? 0 : k === 'cloudy' ? 0.62 : 1, 0.1, dt);
-  // lightning and thunder (each player sees their own flashes)
-  if (Wt.storm > 0.6) { Wt.boltT -= dt; if (Wt.boltT <= 0) { Wt.boltT = 5 + Math.random() * 14; Wt.flash = 1; SFX.thunder(30 + Math.random() * 160); } }
+  // lightning: the host picks where it strikes, everybody sees the same bolts
+  if (Wt.storm > 0.6 && !MP.isClient()) { Wt.boltT -= dt; if (Wt.boltT <= 0) { Wt.boltT = 2.5 + Math.random() * 7; randomStrike(); } }
   Wt.flash = Math.max(0, Wt.flash - dt * 3.2);
+  updateBolts(dt);
   // snow instead of rain where it is cold
   const ex = Math.floor(CAM.eye[0]), ez = Math.floor(CAM.eye[2]);
   const b = colBiome(ex, ez);
@@ -6876,11 +7070,11 @@ function drawRain(t) {
 }
 
 /* ---------- tornado: 5 % per day, a hidden strength from 1 to 5 ---------- */
-const TORNADO = { on: false, x: 0, z: 0, r: 4, lv: 1, heading: 0, speed: 3, t: 0, dur: 100, spin: 0, vis: 0, pend: -1, edits: [], editT: 0, acc: 0 };
+const TORNADO = { on: false, x: 0, z: 0, r: 4, lv: 1, heading: 0, speed: 3, t: 0, dur: 100, spin: 0, vis: 0, pend: -1, stormIn: -1, edits: [], editT: 0, acc: 0, wreck: [], wreckSeen: new Set() };
 const TOR_R = [3, 4.5, 6.5, 8.5, 11];
 const TOR_DEBRIS = [];
 function dayRolls() {
-  if (Math.random() < 0.05) TORNADO.pend = 40 + Math.random() * 420;
+  if (Math.random() < STORM_CHANCE) WEATHER.stormPend = 30 + Math.random() * Math.max(60, DAY_LEN - 160);
 }
 function startTornado() {
   const players = allPlayers();
@@ -6898,27 +7092,36 @@ function startTornado() {
   else { const a = Math.random() * TAU, d = 90 + Math.random() * 60; p = [players[0].x + Math.cos(a) * d, players[0].z + Math.sin(a) * d]; }
   const r = Math.random();
   const lv = r < 0.3 ? 1 : r < 0.58 ? 2 : r < 0.8 ? 3 : r < 0.93 ? 4 : 5;
-  Object.assign(TORNADO, { on: true, x: p[0], z: p[1], lv, r: TOR_R[lv - 1], heading: Math.random() * TAU, speed: 2.6 + lv * 0.5, t: 0, dur: 80 + Math.random() * 90, acc: 0, edits: [], editT: 0.3 });
-  if (WEATHER.kind === 'clear' || WEATHER.kind === 'fog') setWeather('cloudy', TORNADO.dur + 30);
+  Object.assign(TORNADO, { on: true, x: p[0], z: p[1], lv, r: TOR_R[lv - 1], heading: Math.random() * TAU, speed: 2.6 + lv * 0.5, t: 0, dur: TOR_FORM + 70 + Math.random() * 90, acc: 0, edits: [], editT: 0.3 });
+  // the thunderstorm lasts as long as the tornado
+  if (WEATHER.kind !== 'storm') setWeather('storm', TORNADO.dur + 40);
+  else WEATHER.dur = Math.max(WEATHER.dur, WEATHER.t + TORNADO.dur + 40);
 }
 function updateTornado(dt) {
   const T = TORNADO;
   if (!MP.isClient()) {
-    if (!T.on && T.pend >= 0 && G.time.phase === 'day' && G.time.t >= T.pend) { T.pend = -1; startTornado(); }
+    // only a thunderstorm makes tornadoes
+    if (!T.on && T.stormIn >= 0) {
+      if (WEATHER.kind !== 'storm') T.stormIn = -1;
+      else if ((T.stormIn -= dt) <= 0) { T.stormIn = -1; startTornado(); if (T.on) UI.toast('Aus der Gewitterwolke kommt ein Tornado herunter!', 'warn', 5000, 'tor'); }
+    }
     if (T.on) {
       T.t += dt;
       T.heading += (vnoise1(T.t * 0.15, 77) - 0.5) * 1.6 * dt;
       // it stays in the explored land: turn away from unknown chunks ahead
       const ax = Math.floor(T.x + Math.sin(T.heading) * 26), az = Math.floor(T.z + Math.cos(T.heading) * 26);
       if (!W.explored.has(ckey(ax >> 4, az >> 4))) T.heading += 1.9 * dt;
-      T.x += Math.sin(T.heading) * T.speed * dt; T.z += Math.cos(T.heading) * T.speed * dt;
+      const form = Math.min(1, T.t / TOR_FORM);        // it hardly moves while it forms
+      T.x += Math.sin(T.heading) * T.speed * dt * (0.25 + 0.75 * form); T.z += Math.cos(T.heading) * T.speed * dt * (0.25 + 0.75 * form);
       if (T.t > T.dur) T.on = false;
     }
   }
   if (MP.isClient() && T.tx !== undefined) { T.x = damp(T.x, T.tx, 5, dt); T.z = damp(T.z, T.tz, 5, dt); }
   T.r = TOR_R[(T.lv || 1) - 1];
   T.spin += dt * (2.6 + T.lv * 0.6);
-  T.vis = damp(T.vis, T.on ? 1 : 0, 0.7, dt);
+  // the funnel comes down slowly out of the clouds
+  const formT = T.on ? Math.min(1, (T.t || 0) / TOR_FORM) : 0;
+  T.vis = T.on ? Math.max(T.vis > formT ? damp(T.vis, formT, 0.7, dt) : formT, 0) : damp(T.vis, 0, 0.7, dt);
   if (!T.on && T.vis < 0.01) T.vis = 0;
   const d = Math.hypot(T.x - CAM.eye[0], T.z - CAM.eye[2]);
   WEATHER.torNear = T.vis * (1 - smoothstep(T.r + 6, T.r + 95, d));
@@ -6927,6 +7130,48 @@ function updateTornado(dt) {
     while (TOR_DEBRIS.length < 46) TOR_DEBRIS.push({ a: Math.random() * TAU, h: Math.random(), r: 0.4 + Math.random() * 0.9, s: 0.12 + Math.random() * 0.22, c: Math.random() < 0.5 ? [0.42, 0.34, 0.24] : [0.33, 0.45, 0.27], spin: Math.random() * 3 });
   } else TOR_DEBRIS.length = 0;
   if (T.vis > 0.05 && !MP.isClient()) tornadoDestroy(dt);
+  if (!MP.isClient()) { wreckStep(dt); T.editT -= dt; if (T.edits.length && T.editT <= 0) flushTornadoEdits(); }
+}
+/* a building the tornado reached is torn down completely, from the roof down */
+function wreckBuilding(x, y, z) {
+  const T = TORNADO;
+  const start = I(x, y, z);
+  if (T.wreckSeen.has(start)) return;
+  const q = [[x, y, z]]; const found = [];
+  T.wreckSeen.add(start);
+  while (q.length && found.length < 2500) {
+    const [cx, cy, cz] = q.pop();
+    found.push([cx, cy, cz]);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+      if (!dx && !dy && !dz) continue;
+      const nx = cx + dx, ny = cy + dy, nz = cz + dz;
+      if (ny < 1 || ny >= WY - 1) continue;
+      const i = I(nx, ny, nz);
+      if (T.wreckSeen.has(i) || !W.changes.has(i) || W.prot.has(i)) continue;
+      const id = getB(nx, ny, nz);
+      if (id === B.AIR || id === B.WATER || id === B.BEDROCK) continue;
+      T.wreckSeen.add(i);
+      q.push([nx, ny, nz]);
+    }
+  }
+  found.sort((a, b) => a[1] - b[1]);     // popped from the end: the top comes off first
+  for (const c of found) T.wreck.push(c);
+}
+function wreckStep(dt) {
+  const T = TORNADO;
+  if (!T.wreck.length) { if (!T.on && T.wreckSeen.size) T.wreckSeen.clear(); return; }
+  T.wreckAcc = (T.wreckAcc || 0) + dt * 70;
+  while (T.wreckAcc >= 1 && T.wreck.length) {
+    T.wreckAcc -= 1;
+    const [x, y, z] = T.wreck.pop();
+    const id = getB(x, y, z);
+    if (id === B.AIR || id === B.WATER) continue;
+    const a = Math.atan2(z - T.z, x - T.x) + Math.PI / 2;
+    if (KIND[id] === K_OBJ) { breakBlockAt(x, y, z, false); continue; }
+    setBlock(x, y, z, B.AIR, null, { noUpdate: true });
+    T.edits.push(x, y, z, B.AIR);
+    debris(x, y, z, id, a);
+  }
 }
 /* how well a block holds against the wind (the tornado level has to beat it) */
 function stormResist(id) {
@@ -6955,9 +7200,12 @@ function tornadoDestroy(dt) {
     const y = top - Math.floor(Math.random() * Math.random() * (1 + T.lv));
     if (y < 1) continue;
     const id = c.blocks[base + y];
-    if (id === B.AIR || id === B.WATER || id === B.BEDROCK || id === B.CHEST) continue;
+    if (id === B.AIR || id === B.WATER || id === B.BEDROCK) continue;
     const i = I(x, y, z);
     if (W.prot.has(i)) continue;
+    // something somebody built: the whole building goes
+    if (W.changes.has(i) && T.vis > 0.55) { wreckBuilding(x, y, z); continue; }
+    if (id === B.CHEST) continue;
     if (TREEBLOCK[id]) {
       const tr = W.trees.get(W.treeAt.get(i));
       if (tr) { if (tr.state === 0 && T.lv >= 2 && Math.random() < 0.08 * T.lv) { const da = a + 1.5; fellTree(tr, Math.cos(da), Math.sin(da), false, true); } continue; }
@@ -6976,8 +7224,6 @@ function tornadoDestroy(dt) {
     T.edits.push(x, y, z, B.AIR);
     debris(x, y, z, id, a);
   }
-  T.editT -= dt;
-  if (T.edits.length && T.editT <= 0) flushTornadoEdits();
 }
 function flushTornadoEdits() {
   const T = TORNADO, e = T.edits;
@@ -7078,6 +7324,101 @@ function drawTornado(t) {
   }
 }
 
+/* ---------- lightning ---------- */
+const BOLTS = [];
+function randomStrike() {
+  const ps = allPlayers();
+  if (!ps.length) return;
+  const p = ps[Math.floor(Math.random() * ps.length)];
+  // most strikes are some way off, now and then one comes close
+  const near = Math.random() < 0.15;
+  const a = Math.random() * TAU, d = near ? 5 + Math.random() * 9 : 16 + Math.random() * 70;
+  const x = Math.floor(p.x + Math.cos(a) * d), z = Math.floor(p.z + Math.sin(a) * d);
+  const y = chunkForBlock(x, z) ? colTop(x, z) : colHeight(x, z);
+  const seed = Math.floor(Math.random() * 1e9);
+  strikeAt(x, y, z, seed, false);
+  if (MP.active()) MP.send({ t: 'bolt', x, y, z, s: seed });
+}
+function strikeAt(x, y, z, seed, remote) {
+  BOLTS.push({ x: x + 0.5, y: y + 1, z: z + 0.5, t: 0, seed, pts: boltPath(x + 0.5, y + 1, z + 0.5, seed) });
+  const d = Math.hypot(x + 0.5 - CAM.eye[0], z + 0.5 - CAM.eye[2]);
+  WEATHER.flash = Math.max(WEATHER.flash, clamp(1.35 - d / 160, 0.3, 1));
+  SFX.thunder(Math.max(4, d));
+  if (d < 90) burst(x + 0.5, y + 1.1, z + 0.5, 26, [[1, 0.96, 0.75], [0.75, 0.85, 1], [1, 0.7, 0.3], [1, 1, 1]], { speed: 5, up: 5, life: 0.9, size: 0.09, spread: 0.6 });
+  if (SETTINGS.camShake && d < 30) CAMC.shake = Math.min(0.9, CAMC.shake + (1 - d / 30) * 0.7);
+  // the ground gets scorched (the same on every computer, so no extra message is needed)
+  const id = getB(x, y, z), i = I(x, y, z);
+  if (SCAR[id] && !W.changes.has(i)) setBlock(x, y, z, B.DIRT);
+  // too close: it hurts
+  const pd = Math.hypot(PL.x - (x + 0.5), PL.z - (z + 0.5));
+  if (!PL.dead && pd < 3.4 && PL.y > y - 1.5 && PL.y < y + 6) hurtPlayer(pd < 1.5 ? 9 : 5, x + 0.5, z + 0.5);
+  if (remote) return;
+  // the host: trees can come down, monsters get hit
+  if (TREEBLOCK[id]) {
+    const tr = W.trees.get(W.treeAt.get(i));
+    if (tr && tr.state === 0 && Math.random() < 0.5) { const da = Math.random() * TAU; fellTree(tr, Math.cos(da), Math.sin(da), false, true); }
+  }
+  for (const zb of G.zombies) {
+    if (zb.state === 'die') continue;
+    if (Math.hypot(zb.x - x - 0.5, zb.z - z - 0.5) < 3.5) damageZombie(zb, 45, zb.x - x - 0.5, zb.z - z - 0.5, 3);
+  }
+}
+/* a jagged line from the clouds to the ground, with a couple of side branches */
+function boltPath(x, y, z, seed) {
+  const r = mulberry32(seed);
+  const top = Math.min(WY + 30, y + 64);
+  const n = 24;
+  const main = [];
+  let ox = (r() - 0.5) * 10, oz = (r() - 0.5) * 10;
+  for (let k = 0; k <= n; k++) {
+    const h = k / n;
+    if (k > 0 && k < n) { ox += (r() - 0.5) * 3.4; oz += (r() - 0.5) * 3.4; }
+    const f = 1 - h;                     // the offset shrinks to zero at the ground
+    main.push([x + ox * f, top + (y - top) * h, z + oz * f]);
+  }
+  const lines = [main];
+  for (let b = 0; b < 3; b++) {
+    const s = 3 + Math.floor(r() * (n - 9));
+    let [bx, by, bz] = main[s];
+    const br = [[bx, by, bz]];
+    const dx = (r() - 0.5) * 2.2, dz = (r() - 0.5) * 2.2;
+    for (let k = 0; k < 5; k++) { bx += dx + (r() - 0.5) * 1.6; by -= 1.6 + r() * 1.2; bz += dz + (r() - 0.5) * 1.6; br.push([bx, by, bz]); }
+    lines.push(br);
+  }
+  return lines;
+}
+function boltOn(b) { const a = b.t; return a < 0.09 || (a > 0.14 && a < 0.22) || (a > 0.3 && a < 0.36); }
+function updateBolts(dt) {
+  for (let k = BOLTS.length - 1; k >= 0; k--) {
+    const b = BOLTS[k];
+    b.t += dt;
+    // a little fire and smoke where it hit
+    if (b.t < 3 && Math.random() < dt * 14) spawnPart({ x: b.x + (Math.random() - 0.5) * 0.8, y: b.y + 0.1, z: b.z + (Math.random() - 0.5) * 0.8, vx: 0, vy: 1.2 + Math.random(), vz: 0, life: 0.7, size: 0.13, r: 1, g: 0.55 + Math.random() * 0.3, b: 0.15, em: 1, grav: -1, drag: 1 });
+    if (b.t > 5) BOLTS.splice(k, 1);
+  }
+}
+function drawBolts() {
+  for (const b of BOLTS) {
+    if (!boltOn(b)) continue;
+    for (let li = 0; li < b.pts.length; li++) {
+      const pts = b.pts[li], s = li === 0 ? 0.48 : 0.26;
+      for (let k = 0; k + 1 < pts.length; k++) {
+        const p = pts[k], q = pts[k + 1];
+        const L = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
+        const steps = Math.max(1, Math.ceil(L / 0.45));
+        for (let j = 0; j < steps; j++) {
+          const f = j / steps;
+          _ms.reset().t(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f, p[2] + (q[2] - p[2]) * f);
+          BATCH.solid.box(_ms.m, s, 0.5, s, 0, 0, 0, 0.92, 0.95, 1, 1, 1);
+        }
+      }
+    }
+  }
+}
+function boltLights() {
+  for (const b of BOLTS) if (boltOn(b)) addLight(b.x, b.y + 2, b.z, 34, 3.2, 3.3, 3.8);
+}
+
 /* ---- 10_draw.js ---- */
 /* =========================================================================
    Per-frame draw lists (entities, objects, effects) + object updates
@@ -7103,7 +7444,7 @@ function updateObjects(dt, t) {
   }
   for (const o of OBJS.values()) {
     if (o.id === B.DOOR) { const m = W.meta.get(o.i) || 0; o.openA = damp(o.openA, (m >> 2) & 1 ? Math.PI / 2 : 0, 12, dt); }
-    else if (o.id === B.CHEST) { const m = W.meta.get(o.i) || 0; o.lidA = damp(o.lidA, m & 1 ? 1.9 : 0, 7, dt); }
+    else if (o.id === B.CHEST) { const m = W.meta.get(o.i) || 0; const open = (m & 1) || (UI._chest && UI._chest.i === o.i && !$('mdlChest').hidden); o.lidA = damp(o.lidA, open ? 1.9 : 0, 7, dt); }
   }
 }
 
@@ -7123,6 +7464,7 @@ function collectLights(t) {
       addLight(o.x + 0.5, o.y + 0.8, o.z + 0.5, (13.5 + (lv - 1) * 2.5) * (0.5 + 0.5 * o.lit), 1.0 * k, 0.48 * k, 0.18 * k);
     }
   }
+  boltLights();
   if (G.state === 'menu' && UI.skinPreview) {
     const p = previewPos();
     addLight(p[0] + 1.6, p[1] + 2.2, p[2] + 2.4, 9, 1.4, 1.25, 1.1);
@@ -7142,7 +7484,7 @@ function heldTool() {
   if (PL.chopping > 0) return tk === 'axe' ? ['axe', G.tools.axe, null] : [null, 0, null];
   if (tk) return [tk, Math.max(1, G.tools[tk]), null];
   if (it === 'torch') return ['torch', 0, null];
-  if (it && ITEMS[it] && ITEMS[it].block) return ['block', 0, ITEMS[it].block];
+  if (it && ITEMS[it] && ITEMS[it].block && (KIND[ITEMS[it].block] === K_CUBE || KIND[ITEMS[it].block] === K_GLASS)) return ['block', 0, ITEMS[it].block];
   return [null, 0, null];
 }
 const POSE_W = { armR: -2.55, armRz: 0.55, armL: -1.25, armLz: 0.25, twist: 0.5, lean: 0.02 };
@@ -7392,6 +7734,7 @@ function buildDrawLists(t, inMenu) {
   drawTrees(t);
   if (inMenu && UI.skinPreview) drawPreview(t);
   drawTornado(t);
+  drawBolts();
   drawRain(t);
   if (!inMenu) {
     for (const z of G.zombies) drawMob(z, t);
@@ -7543,6 +7886,7 @@ function initInput() {
     if (e.repeat) { INPUT.keys.add(e.code); return; }
     INPUT.keys.add(e.code);
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
+    if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
     if (!playing()) return;
     if (G.sleep && G.sleep.mp && ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE'].includes(e.code)) { leaveBed(); return; }
     if (e.code.startsWith('Digit')) { const n = e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1; UI.select(G.sel === n ? -1 : n); }
@@ -7831,6 +8175,19 @@ function drawObjIcon(ctx, key, S) {
     ctx.beginPath(); ctx.moveTo(21, 34); ctx.lineTo(43, 34); ctx.stroke();
     ctx.fillStyle = '#bfe3f7'; rrect(ctx, 24, 13, 16, 13, 2); ctx.fill();
     ctx.fillStyle = '#2b2522'; ctx.beginPath(); ctx.arc(40, 36, 2.6, 0, TAU); ctx.fill();
+  } else if (key === 'chest') {
+    ctx.fillStyle = '#8e5c35'; rrect(ctx, 8, 26, 48, 30, 3); ctx.fill();
+    ctx.fillStyle = '#a56d40'; rrect(ctx, 6, 12, 52, 18, 5); ctx.fill();
+    ctx.fillStyle = '#5a3820'; ctx.fillRect(6, 27, 52, 4);
+    ctx.fillStyle = '#8f949a'; ctx.fillRect(14, 12, 6, 44); ctx.fillRect(44, 12, 6, 44);
+    ctx.fillStyle = '#e2b04a'; rrect(ctx, 28, 24, 8, 10, 2); ctx.fill();
+  } else if (key === 'bucket' || key === 'water_bucket') {
+    ctx.strokeStyle = '#6d7278'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(32, 22, 17, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
+    ctx.fillStyle = '#9aa0a7'; ctx.beginPath(); ctx.moveTo(13, 22); ctx.lineTo(51, 22); ctx.lineTo(46, 56); ctx.lineTo(18, 56); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c7ccd2'; ctx.fillRect(14, 22, 36, 5);
+    ctx.fillStyle = '#7c8289'; ctx.fillRect(16, 40, 32, 3);
+    if (key === 'water_bucket') { ctx.fillStyle = '#4a8fe0'; ctx.beginPath(); ctx.ellipse(32, 23, 17, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#9fd0ff'; ctx.beginPath(); ctx.ellipse(27, 22, 6, 1.4, 0, 0, TAU); ctx.fill(); }
+    else { ctx.fillStyle = '#3a3e43'; ctx.beginPath(); ctx.ellipse(32, 23, 17, 4, 0, 0, TAU); ctx.fill(); }
   }
   ctx.restore();
 }
@@ -7871,7 +8228,7 @@ function drawItemIcon(canvasEl, key) {
   if (key === 'iron' || key === 'diamond' || key === 'crystal') { drawResIcon(ctx, key, S); return; }
   const it = ITEMS[key];
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
-  if (['torch', 'campfire', 'bed', 'door'].includes(key)) { drawObjIcon(ctx, key, S); return; }
+  if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
   const m = /^(axe|sword|pickaxe|shears)(\d)?$/.exec(key);
   if (m) drawToolIcon(ctx, m[1], parseInt(m[2] || '1', 10), S);
 }
@@ -7913,14 +8270,18 @@ UI.res = function () {
   for (const k of RES_KEYS) {
     const v = G.inv[k] || 0, ids = RES_UI[k];
     const box = $(ids[0]);
-    if (UI._last['r' + k] !== undefined && v > UI._last['r' + k]) { box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump'); }
+    // wood and wool live in the inventory (the bag button bumps); ores show up top once you have some
+    const bag = k === 'wood' || k === 'wool';
+    const bumpEl = bag ? $('btnBag') : box;
+    if (UI._last['r' + k] !== undefined && v > UI._last['r' + k]) { bumpEl.classList.remove('bump'); void bumpEl.offsetWidth; bumpEl.classList.add('bump'); }
     UI._last['r' + k] = v;
     $(ids[1]).textContent = v; $(ids[2]).textContent = v;
-    // iron, diamonds and crystals only show up once you have some
-    if (k !== 'wood' && k !== 'wool') { box.hidden = v <= 0; $(ids[2]).parentNode.hidden = v <= 0; }
+    if (bag) box.hidden = true;
+    else { box.hidden = v <= 0; $(ids[2]).parentNode.hidden = v <= 0; }
   }
   if (!$('mdlShop').hidden) UI.shopRefresh();
   if (!$('mdlCamp').hidden) UI.campRefresh();
+  if (!$('mdlInv').hidden) UI.invRefresh();
 };
 UI.hotbar = function () {
   const hb = $('hotbar');
@@ -8274,6 +8635,19 @@ UI.openInventory = function () {
   INPUT.clear();
   G.state = 'inv';
   $('mdlInv').hidden = false;
+  UI.invRefresh();
+};
+UI.invRefresh = function () {
+  // materials: wood and wool always, ores once you have some
+  const mg = $('invMats'); mg.innerHTML = '';
+  for (const k of RES_KEYS) {
+    const n = G.inv[k] || 0;
+    if (n <= 0 && k !== 'wood' && k !== 'wool') continue;
+    const d = document.createElement('div'); d.className = 'inv-it mat'; d.title = RES_NAME[k] + ' bezahlst du beim Händler';
+    d.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
+    drawItemIcon(d.firstChild, k); d.querySelector('b').textContent = n; d.querySelector('span').textContent = RES_NAME[k];
+    mg.appendChild(d);
+  }
   const g = $('invGrid'); g.innerHTML = '';
   const keys = Object.keys(G.inv.items).filter((k) => G.inv.items[k] > 0);
   if (!keys.length) g.innerHTML = '<p class="hint">Noch leer. Kauf beim Händler ein oder bau Blöcke ab.</p>';
@@ -8304,11 +8678,151 @@ UI.putInHotbar = function (k) {
 };
 
 
+/* ---- 12c_chests.js ---- */
+/* =========================================================================
+   Chests the player builds: store materials and blocks in them.
+   A storage chest is a CHEST block with the STORE_FLAG meta bit; its contents
+   live in W.chests (cell -> { res: {wood: n, ...}, items: {planks: n, ...} }).
+   ========================================================================= */
+const STORE_FLAG = 8;
+function isStoreMeta(m) { return !!((m || 0) & STORE_FLAG); }
+function isStoreChest(x, y, z) { return getB(x, y, z) === B.CHEST && isStoreMeta(W.meta.get(I(x, y, z))); }
+function chestData(i, make) {
+  let c = W.chests.get(i);
+  if (!c && make) { c = { res: {}, items: {} }; W.chests.set(i, c); }
+  return c || null;
+}
+function chestCount(c) {
+  if (!c) return 0;
+  let n = 0;
+  for (const k in c.res) n += c.res[k] || 0;
+  for (const k in c.items) n += c.items[k] || 0;
+  return n;
+}
+/* things that can go into a chest: materials and blocks/objects (tools stay with you) */
+function storable(k) { return !!RES_NAME[k] || (!!ITEMS[k] && !ITEMS[k].tool); }
+function invHas(k) { return RES_NAME[k] ? (G.inv[k] || 0) : (G.inv.items[k] || 0); }
+
+/* move n of k between the player and the chest at cell i */
+function chestMove(i, k, toChest, n) {
+  if (!storable(k)) return 0;
+  const c = chestData(i, true);
+  const bag = RES_NAME[k] ? c.res : c.items;
+  if (toChest) {
+    n = Math.min(n, invHas(k));
+    if (n <= 0) return 0;
+    if (RES_NAME[k]) { G.inv[k] -= n; UI.res(); } else takeItem(k, n);
+    bag[k] = (bag[k] || 0) + n;
+  } else {
+    n = Math.min(n, bag[k] || 0);
+    if (n <= 0) return 0;
+    bag[k] -= n; if (bag[k] <= 0) delete bag[k];
+    addItem(k, n);
+  }
+  chestChanged(i);
+  return n;
+}
+function chestChanged(i) {
+  const c = W.chests.get(i);
+  if (c && !chestCount(c)) W.chests.delete(i);
+  if (MP.active()) MP.send({ t: 'chst', i, c: W.chests.get(i) || null });
+  if (UI._chest && UI._chest.i === i) UI.chestRefresh();
+  saveGame();
+}
+/* another player changed a chest */
+function applyChestEvent(v) {
+  if (v.c && chestCount(v.c)) W.chests.set(v.i, { res: Object.assign({}, v.c.res || {}), items: Object.assign({}, v.c.items || {}) });
+  else W.chests.delete(v.i);
+  if (UI._chest && UI._chest.i === v.i) UI.chestRefresh();
+}
+/* the chest was broken: by you, its things go into your bag; otherwise they spill out */
+function chestBroken(i, x, y, z, mine) {
+  const c = W.chests.get(i);
+  W.chests.delete(i);
+  if (UI._chest && UI._chest.i === i) UI.closeModal('mdlChest');
+  if (!c) return;
+  if (mine) {
+    for (const k in c.res) G.inv[k] = (G.inv[k] || 0) + c.res[k];
+    for (const k in c.items) addItem(k, c.items[k]);
+    UI.res();
+    UI.toast('Der Inhalt der Truhe ist jetzt in deinem Inventar.', 'good');
+  } else spillChest(c, x, y, z);
+}
+function spillChest(c, x, y, z) {
+  let n = 0;
+  const drop = (k, cnt) => {
+    for (let j = 0; j < cnt; j++) {
+      if (n++ > 60) { addItem(k, cnt - j); return; }    // a huge pile: the rest goes straight to the bag
+      spawnDrop(k, x + 0.5, y + 0.6, z + 0.5, (Math.random() - 0.5) * 3, 3 + Math.random() * 2, (Math.random() - 0.5) * 3, 0.4 + Math.random() * 0.4);
+    }
+  };
+  for (const k in c.res) drop(k, c.res[k]);
+  for (const k in c.items) drop(k, c.items[k]);
+}
+
+/* ---------- the chest window ---------- */
+UI.openStore = function (x, y, z) {
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  UI._chest = { i: I(x, y, z), x, y, z };
+  $('mdlChest').hidden = false;
+  G.state = 'chest';
+  SFX.chest();
+  UI.chestRefresh();
+};
+UI.chestRefresh = function () {
+  const ch = UI._chest; if (!ch) return;
+  if (getB(ch.x, ch.y, ch.z) !== B.CHEST) { UI.closeModal('mdlChest'); return; }
+  const c = chestData(ch.i, false) || { res: {}, items: {} };
+  const one = UI._chestOne;
+  $('chestOne').setAttribute('aria-pressed', String(!!one));
+  const fill = (el, entries, toChest) => {
+    el.innerHTML = '';
+    if (!entries.length) { el.innerHTML = '<p class="hint">' + (toChest ? 'Nichts zum Einlagern.' : 'Die Truhe ist leer.') + '</p>'; return; }
+    for (const [k, n] of entries) {
+      const b = document.createElement('button'); b.className = 'inv-it'; b.type = 'button';
+      b.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
+      drawItemIcon(b.firstChild, k); b.querySelector('b').textContent = n;
+      b.querySelector('span').textContent = RES_NAME[k] ? RES_NAME[k] : ITEMS[k].name;
+      b.title = toChest ? 'In die Truhe legen' : 'Herausnehmen';
+      b.addEventListener('click', () => { chestMove(ch.i, k, toChest, UI._chestOne ? 1 : n); SFX.ui(); });
+      el.appendChild(b);
+    }
+  };
+  const inChest = [...Object.entries(c.res), ...Object.entries(c.items)].filter(([, n]) => n > 0);
+  const mine = [];
+  for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) mine.push([k, G.inv[k]]);
+  for (const k in G.inv.items) if (G.inv.items[k] > 0 && storable(k)) mine.push([k, G.inv.items[k]]);
+  fill($('chestGrid'), inChest, false);
+  fill($('chestInvGrid'), mine, true);
+  $('chestFill').textContent = chestCount(c) + ' Sachen in der Truhe';
+};
+function chestAll(toChest) {
+  const ch = UI._chest; if (!ch) return;
+  const c = chestData(ch.i, true);
+  if (toChest) {
+    for (const k of RES_KEYS) { const n = G.inv[k] || 0; if (n > 0) { G.inv[k] = 0; c.res[k] = (c.res[k] || 0) + n; } }
+    for (const k of Object.keys(G.inv.items)) { const n = G.inv.items[k]; if (n > 0 && storable(k)) { takeItem(k, n); c.items[k] = (c.items[k] || 0) + n; } }
+    UI.res();
+  } else {
+    for (const k of Object.keys(c.res)) { G.inv[k] = (G.inv[k] || 0) + c.res[k]; delete c.res[k]; }
+    for (const k of Object.keys(c.items)) { addItem(k, c.items[k]); delete c.items[k]; }
+    UI.res();
+  }
+  SFX.ui();
+  chestChanged(ch.i);
+}
+function bindChestUI() {
+  $('chestPutAll').addEventListener('click', () => chestAll(true));
+  $('chestTakeAll').addEventListener('click', () => chestAll(false));
+  $('chestOne').addEventListener('click', () => { UI._chestOne = !UI._chestOne; UI.chestRefresh(); });
+}
+
 /* ---- 12m_menus.js ---- */
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorlds', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorlds', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -8325,7 +8839,8 @@ UI.closeModal = function (id) {
   if ((id === 'mdlSettings' || id === 'mdlControls') && UI._from === 'pause') { $('mdlPause').hidden = false; return; }
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
-  if (['mdlShop', 'mdlCamp', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') { G.state = 'playing'; INPUT.clear(); updateCursorStyle(); }
+  if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
+  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') { G.state = 'playing'; INPUT.clear(); updateCursorStyle(); }
 };
 /* confirmation built into the page (browser dialogs are not used) */
 UI.confirm = function (o) {
@@ -8387,7 +8902,7 @@ function bindSettingsUI() {
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
     for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
-    $('testBox').hidden = MP.isClient();
+    $('testBox').hidden = MP.isClient() || !isOwner();
   };
   UI.settingsRefresh = refresh;
   $('setQuality').addEventListener('click', (e) => {
@@ -8412,6 +8927,8 @@ function bindSettingsUI() {
   for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
+  // nobody but the owner can use them, even if the box were shown
+  $('testBox').addEventListener('click', (e) => { if (!isOwner()) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
   $('dbgNight').addEventListener('click', () => { if (MP.isClient()) return; if (G.time.phase === 'day') { G.time.t = DAY_LEN - 3; UI.toast('Die Nacht beginnt gleich.', 'info'); } });
   $('dbgDay').addEventListener('click', () => { if (MP.isClient()) return; if (G.time.phase === 'night') { G.time.t = (G.time.blood ? BLOOD_LEN : NIGHT_LEN) - 3; } else G.time.t = 5; UI.toast('Der Morgen kommt.', 'info'); });
   $('dbgBlood').addEventListener('click', () => {
@@ -8431,7 +8948,7 @@ function bindSettingsUI() {
   });
   $('dbgWood').addEventListener('click', () => { G.inv.wood += 20; G.inv.wool += 5; G.inv.iron += 10; G.inv.diamond += 3; G.inv.crystal += 3; UI.res(); UI.toast('+20 Holz, +5 Wolle, +10 Eisen, +3 Diamanten, +3 Kristalle', 'good'); });
   $('dbgWeather').addEventListener('click', () => { if (MP.isClient()) return; const i = (WEATHER_KINDS.indexOf(WEATHER.kind) + 1) % WEATHER_KINDS.length; setWeather(WEATHER_KINDS[i], 300); UI.toast('Wetter: ' + ['Klar', 'Bewölkt', 'Regen', 'Gewitter', 'Nebel'][i], 'info', 1800, 'wx'); });
-  $('dbgTornado').addEventListener('click', () => { if (MP.isClient() || TORNADO.on) return; startTornado(); UI.toast('Irgendwo zieht ein Tornado auf …', 'warn'); });
+  $('dbgTornado').addEventListener('click', () => { if (MP.isClient() || TORNADO.on) return; startStorm(true); UI.toast('Ein Gewitter zieht auf. Gleich kommt ein Tornado herunter …', 'warn'); });
   refresh();
 }
 UI.openSettings = function (from) {
@@ -8463,7 +8980,15 @@ UI.worldsRefresh = function () {
   const list = WORLDS.visible();
   $('wSub').textContent = NET.uid() ? 'Mit deinem Konto synchronisiert' : 'Gespeichert auf diesem Gerät. Melde dich an, um sie online zu sichern.';
   el.innerHTML = '';
-  if (!list.length) { el.innerHTML = '<div class="list-empty">Noch keine Welt. Gib oben einen Namen ein und leg los.</div>'; return; }
+  // an island from the very first version is still on this device: offer to bring it back
+  if (WORLDS.firstSave()) {
+    const li = document.createElement('div'); li.className = 'li restore';
+    li.innerHTML = '<div class="li-ico"><canvas width="84" height="84"></canvas></div><div class="li-main"><b>Alte Insel gefunden</b><span>Ein Spielstand aus der allerersten Version ist noch da. Hol ihn als eigene Insel-Welt zurück, deine Gebäude ziehen mit um.</span></div><div class="li-act"><button class="btn primary" type="button">Zurückholen</button></div>';
+    try { drawWorldIcon(li.querySelector('canvas'), JSON.parse(WORLDS.ls(SAVE_KEY)).seed, 'island'); } catch (err) { /* no icon */ }
+    li.querySelector('button').addEventListener('click', () => { const e = WORLDS.importFirst(); if (e) { UI.closeAll(); playWorld(e); } });
+    el.appendChild(li);
+  }
+  if (!list.length) { if (!el.children.length) el.innerHTML = '<div class="list-empty">Noch keine Welt. Gib oben einen Namen ein und leg los.</div>'; return; }
   for (const e of list) {
     const li = document.createElement('div');
     li.className = 'li' + (G.loadedWorld === e.id ? ' current' : '');
@@ -8491,7 +9016,23 @@ UI.worldsRefresh = function () {
       WORLDS.remove(e);
       UI.worldsRefresh(); UI.menuRefresh();
     });
-    act.append(play, del);
+    act.append(play);
+    // the save as it was before the island came back (only kept for converted worlds)
+    if (hasBackup(e)) {
+      const old = document.createElement('button'); old.className = 'btn ghost'; old.type = 'button'; old.textContent = 'Stand vor Update';
+      old.title = 'Lädt die Welt so, wie sie vor dem Update gespeichert war, und baut die Insel neu auf';
+      old.addEventListener('click', async () => {
+        const ok = await UI.confirm({ title: 'Stand vor dem Update laden?', text: '„' + e.name + '“ wird so geladen, wie sie vor der Umstellung gespeichert war. Die Gebäude ziehen dabei neu auf die Insel um. Was du seitdem gebaut hast, geht verloren.', yes: 'Laden', danger: false });
+        $('mdlWorlds').hidden = false;
+        if (!ok) return;
+        const b = readBackup(e); if (!b) return;
+        WORLDS.ls(WORLD_PREFIX + e.id, JSON.stringify(b)); e.cloudNewer = false; e.cloudOnly = false;
+        if (G.loadedWorld === e.id) G.loadedWorld = null;
+        UI.closeAll(); playWorld(e);
+      });
+      act.append(old);
+    }
+    act.append(del);
     li.append(ico, main, act);
     el.appendChild(li);
   }
@@ -8683,12 +9224,14 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
+  bindChestUI();
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
   $('btnPause').addEventListener('click', () => UI.pause(true));
   $('btnCam').addEventListener('click', () => toggleCamMode());
   $('btnResume').addEventListener('click', () => UI.pause(false));
+  $('btnBag').addEventListener('click', () => { if (G.state === 'playing') UI.openInventory(); });
   $('btnInv').addEventListener('click', () => { $('mdlPause').hidden = true; UI._invFrom = 'pause'; UI.openInventory(); G.state = 'paused'; });
   $('btnPauseFriends').addEventListener('click', () => { $('mdlPause').hidden = true; UI._friendsFrom = 'pause'; UI.openFriends(); });
   $('btnPauseSettings').addEventListener('click', () => UI.openSettings('pause'));
@@ -8998,7 +9541,7 @@ function worldMode(save, fallback) {
 async function loadWorld(seed, save, opts = {}) {
   G.state = 'loading';
   $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; $('scrSkins').hidden = true;
-  const mode = worldMode(save, opts.mode);
+  const mode = opts.force ? opts.mode : worldMode(save, opts.mode);
   setLoad(0.02, opts.client ? 'Lade die Welt von ' + opts.host : mode === 'island' ? 'Insel wird erschaffen' : 'Welt wird erschaffen');
   await nextFrame();
   for (const f of G.falling) freeModel(f.model);
@@ -9009,7 +9552,7 @@ async function loadWorld(seed, save, opts = {}) {
   buildTextureArray(QP().tex, seed);
   TILE_CANVAS.clear();
   resetGameState();
-  if (save) applySave(save);
+  if (save) applySave(save, opts.convert);
   if (opts.client) {
     // a guest keeps its own inventory in the host's world
     const you = opts.you ? normalizePlayerData(opts.you) : null;
@@ -9048,7 +9591,15 @@ async function loadWorld(seed, save, opts = {}) {
   setLoad(1, 'Fertig');
   UI.res(); UI.hotbar(); UI.tools(); UI.goal();
   UI.refreshIcons();
-  if (G._migrated) { G._migrated = false; setTimeout(() => UI.toast('Deine Insel wurde neu erschaffen, jetzt mit Höhlen, Erzen und dem Schattenwald. Deine Sachen hast du noch!', 'good', 8000), 2600); }
+  if (G._migrated) {
+    const n = G._migrated.n || 0; G._migrated = null;
+    G._migratedMsg = n > 0 ? 'Deine Welt ist wieder eine Insel. ' + n + ' Blöcke deiner Gebäude sind mit umgezogen, deine Sachen hast du auch noch.' : 'Deine Welt ist wieder eine Insel, jetzt mit Höhlen, Erzen und dem Schattenwald. Deine Sachen hast du noch.';
+  }
+}
+/* how to load a world entry: worlds from the island time stay islands, their buildings move along */
+function entryLoadOpts(e, save) {
+  if (needsIslandFix(e, save)) { backupSave(e, WORLDS.ls(WORLD_PREFIX + e.id)); return { mode: 'island', force: true, convert: true }; }
+  return { mode: entryMode(e) };
 }
 /* keep the land around the player (and the guests, when hosting) generated, meshed and small */
 function streamWorld(dt, inMenu) {
@@ -9102,6 +9653,7 @@ function startPlaying() {
   CAMC.trans = 0; CAMC.transDur = 2.4; // slow swoop from the menu camera down to the player
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
   UI.camMode(); UI.hotbar(); UI.tools(); UI.res(); UI.goal(); UI.mpChip();
+  if (G._migratedMsg && WORLDS.current) { const m = G._migratedMsg; G._migratedMsg = null; saveGame(true); setTimeout(() => UI.toast(m, 'good', 9000), 2400); }
   if (DEVICE.opera && !touchUI() && !UI._operaHint) { UI._operaHint = true; setTimeout(() => UI.toast(OPERA_HINT, 'warn', 11000, 'opera'), 800); }
   if (G.playTime < 2 && !MP.isClient()) {
     setTimeout(() => UI.toast(touchUI() ? 'Links ziehen zum Laufen, rechts ziehen für die Kamera.' : 'WASD zum Laufen, rechte Maustaste ziehen zum Drehen.', 'info', 5200), 1400);
@@ -9124,7 +9676,7 @@ async function playWorld(e) {
   if (!save && e.cloudOnly) { showMenu(); UI.toast('Diese Welt ist gerade nicht erreichbar. Bist du online?', 'warn', 5200); return; }
   if (MP.isHost()) await MP.closeRoom();
   WORLDS.current = e;
-  await loadWorld(e.seed, save, { mode: entryMode(e) });
+  await loadWorld(e.seed, save, entryLoadOpts(e, save));
   if (e.mode !== W.mode) { e.mode = W.mode; WORLDS.saveIndex(); }
   G.loadedWorld = e.id;
   WORLDS.ls(LAST_WORLD_KEY, e.id);
@@ -9214,7 +9766,8 @@ function pickRay(o, d) {
   // with a block in the hand they count, so you can build against a tree
   const sel = selectedItem();
   const building = !!(sel && ITEMS[sel] && ITEMS[sel].place);
-  const test = CAMC.mode === 'fp' || building ? (id) => id !== B.WATER : (id) => id !== B.WATER && !TREEBLOCK[id];
+  // an empty bucket aims at the water itself
+  const test = sel === 'bucket' ? (id) => !TREEBLOCK[id] || CAMC.mode === 'fp' : CAMC.mode === 'fp' || building ? (id) => id !== B.WATER : (id) => id !== B.WATER && !TREEBLOCK[id];
   const hit = raycast(o[0], o[1], o[2], d[0], d[1], d[2], bt, test);
   if (hit && hit.t < bt) best = { type: 'block', x: hit.x, y: hit.y, z: hit.z, nx: hit.nx, ny: hit.ny, nz: hit.nz, id: hit.id, t: hit.t };
   if (!best) return null;
@@ -9234,7 +9787,7 @@ function hoverFromPointer() {
   return pickRay(r.o, r.d);
 }
 function normDir(a, b) { const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]; const l = Math.hypot(dx, dy, dz) || 1; return [dx / l, dy / l, dz / l]; }
-function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED); }
+function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST); }
 function primaryOn(h) {
   if (!h) return;
   if (!h.inReach) { if (h.type === 'merchant') hint('mreach', 'Geh näher zum Händler.'); return; }
@@ -9244,6 +9797,7 @@ function primaryOn(h) {
   else if (h.type === 'block') {
     if (h.id === B.DOOR) toggleDoor(h.x, h.y, h.z);
     else if (h.id === B.BED) trySleep(h.x, h.y, h.z);
+    else if (h.id === B.CHEST) { if (isStoreChest(h.x, h.y, h.z)) UI.openStore(h.x, h.y, h.z); else openChest(h.x, h.y, h.z); }
   }
 }
 function handleActions(dt) {
@@ -9416,7 +9970,7 @@ async function boot(data) {
     NET.init();
     let e = (data && data.worldId && WORLDS.get(data.worldId)) || WORLDS.last();
     const save = data && data.save ? data.save : (e ? WORLDS.readLocal(e.id) : null);
-    if (e) { WORLDS.current = e; await loadWorld(e.seed, save, { mode: entryMode(e) }); G.loadedWorld = e.id; if (e.mode !== W.mode) { e.mode = W.mode; WORLDS.saveIndex(); } }
+    if (e) { WORLDS.current = e; await loadWorld(e.seed, save, entryLoadOpts(e, save)); G.loadedWorld = e.id; if (e.mode !== W.mode) { e.mode = W.mode; WORLDS.saveIndex(); } }
     else { await loadWorld(randomSeed(), null); WORLDS.current = null; G.loadedWorld = null; }
     showMenu();
     lastT = performance.now();
@@ -9433,7 +9987,7 @@ async function boot(data) {
 /* =========================================================================
    Worlds: several worlds per device, synced to the cloud when logged in
    ========================================================================= */
-const WORLDS_KEY = 'bloodmoon-worlds-v1', WORLD_PREFIX = 'bloodmoon-world-', LAST_WORLD_KEY = 'bloodmoon-last-world';
+const WORLDS_KEY = 'bloodmoon-worlds-v1', WORLD_PREFIX = 'bloodmoon-world-', LAST_WORLD_KEY = 'bloodmoon-last-world', FIRST_DONE_KEY = 'bloodmoon-first-imported';
 /* the kind of a world: 'island' or 'endless' ("Normal") */
 function entryMode(e) { return e && e.mode === 'island' ? 'island' : 'endless'; }
 /* worlds from before there were two kinds: saves of the first version were islands,
@@ -9455,13 +10009,18 @@ const WORLDS = {
     let list = null;
     try { list = JSON.parse(this.ls(WORLDS_KEY) || 'null'); } catch (e) { list = null; }
     this.list = Array.isArray(list) ? list.filter((w) => w && w.id) : [];
-    for (const w of this.list) if (w.mode !== 'island' && w.mode !== 'endless') { const s = this.ls(WORLD_PREFIX + w.id); if (s) w.mode = saveMode(s); }
+    for (const w of this.list) {
+      // worlds from the island time stay islands
+      if (islandEra(w)) w.mode = 'island';
+      else if (w.mode !== 'island' && w.mode !== 'endless') { const s = this.ls(WORLD_PREFIX + w.id); if (s) w.mode = saveMode(s); }
+    }
     // migrate the single save of the first version
     const old = this.ls(SAVE_KEY);
     if (old && !this.list.length) {
       try {
         const s = JSON.parse(old);
         if (s && s.v === 1) {
+          this.ls(FIRST_DONE_KEY, '1');
           const e = this.newEntry('Meine Insel', s.seed, 'island');
           this.ls(WORLD_PREFIX + e.id, old);
           this.touch(e, s);
@@ -9472,6 +10031,22 @@ const WORLDS = {
     this.saveIndex();
   },
   saveIndex() { this.ls(WORLDS_KEY, JSON.stringify(this.list)); },
+  /* the save of the very first version, if it is still on this device and was never brought back */
+  firstSave() {
+    if (this.ls(FIRST_DONE_KEY)) return null;
+    const raw = this.ls(SAVE_KEY); if (!raw) return null;
+    try { const s = JSON.parse(raw); return s && s.v === 1 ? raw : null; } catch (e) { return null; }
+  },
+  importFirst() {
+    const raw = this.firstSave(); if (!raw) return null;
+    const s = JSON.parse(raw);
+    const e = this.newEntry('Erste Insel', s.seed, 'island');
+    e.created = PART2_AT - 1;            // an island-time world
+    this.ls(WORLD_PREFIX + e.id, raw);
+    this.ls(FIRST_DONE_KEY, '1');
+    this.saveIndex();
+    return e;
+  },
   visible() {
     const uid = NET.uid();
     return this.list.filter((w) => !w.owner || w.owner === uid).sort((a, b) => (b.updated || 0) - (a.updated || 0));
@@ -9544,11 +10119,11 @@ const WORLDS = {
         const m = metas[id]; if (!m || !m.name) continue;
         let e = this.get(id);
         if (!e) {
-          e = { id, name: m.name, seed: m.seed, mode: m.mode || null, day: m.day || 1, night: m.night || 0, updated: m.updated || 0, created: m.created || m.updated || 0, owner: uid, cloudOnly: true, cloudAt: m.updated || 0 };
+          e = { id, name: m.name, seed: m.seed, mode: islandEra({ created: m.created || m.updated }) ? 'island' : m.mode || null, day: m.day || 1, night: m.night || 0, updated: m.updated || 0, created: m.created || m.updated || 0, owner: uid, cloudOnly: true, cloudAt: m.updated || 0 };
           this.list.push(e);
         } else {
           e.owner = uid;
-          if ((m.updated || 0) > (e.updated || 0) + 2000) { e.cloudNewer = true; e.name = m.name; e.day = m.day; e.night = m.night; if (m.mode) e.mode = m.mode; }
+          if ((m.updated || 0) > (e.updated || 0) + 2000) { e.cloudNewer = true; e.name = m.name; e.day = m.day; e.night = m.night; if (m.mode && !islandEra(e)) e.mode = m.mode; }
           e.cloudAt = m.updated || 0;
         }
       }
@@ -9590,6 +10165,9 @@ const WORLDS = {
    Accounts use "username@bloodmoon.game" as e-mail behind the scenes.
    ========================================================================= */
 const FB_VERSION = '10.12.2';
+/* the test buttons (time, weather, resources) are only for the owner of the game */
+const OWNER_NAME = 'dynathereal';
+function isOwner() { return !!(NET.uid && NET.uid()) && (NET.name || '').toLowerCase() === OWNER_NAME; }
 const FB_CFG_KEY = 'bloodmoon-fbcfg';
 function withTimeout(p, ms, msg) {
   return new Promise((res, rej) => {
@@ -10229,7 +10807,7 @@ const MP = {
       r2(zb.type === 'archer' ? zb.drawT : zb.rise), ty[zb.type] | 0]);
     const TT = TORNADO;
     const msg = { tm: [T.phase === 'night' ? 1 : 0, Math.round(T.t * 10) / 10, T.day, T.night, T.blood ? 1 : 0, T.afterBlood ? 1 : 0], z,
-      w: [WEATHER_KINDS.indexOf(WEATHER.kind), TT.on ? 1 : 0, r2(TT.x), r2(TT.z), TT.lv] };
+      w: [WEATHER_KINDS.indexOf(WEATHER.kind), TT.on ? 1 : 0, r2(TT.x), r2(TT.z), TT.lv, Math.round(TT.t || 0)] };
     const m = G.merchant;
     if (m) msg.m = [r2(m.x), r2(m.y), r2(m.z), r2(m.yaw), m.state === 'inside' ? 0 : 1, m.wave > 0 ? 1 : 0];
     if (++this.mobN % 3 === 0) {
@@ -10298,6 +10876,7 @@ const MP = {
       const TT = TORNADO;
       if (v.w[1] && !TT.on) { TT.x = v.w[2]; TT.z = v.w[3]; }
       TT.on = !!v.w[1]; TT.tx = v.w[2]; TT.tz = v.w[3]; TT.lv = v.w[4] || 1;
+      if (v.w[5] !== undefined) TT.t = v.w[5];   // how far the funnel has come down
     }
   },
 };
@@ -10426,10 +11005,12 @@ function applyNetEvent(v) {
       break;
     }
     case 'chest': openChest(v.x, v.y, v.z, true); break;
+    case 'chst': applyChestEvent(v); break;
     case 'camp': upgradeCampfire(v.x, v.y, v.z, v.lv); break;
     case 'clr': clearTower(v.id, true); break;
     case 'arw': if (!MP.isHost() && v.p) fireArrow(v.p[0], v.p[1], v.p[2], v.p[3], v.p[4], v.p[5], false); break;
     case 'tor': if (v.c) applyTornadoEdits(v.c); break;
+    case 'bolt': strikeAt(v.x, v.y, v.z, v.s, true); break;
     case 'bang': {
       const id = getB(v.x, v.y, v.z);
       if (id !== B.AIR) burst(v.x + 0.5, v.y + 0.5, v.z + 0.5, 4, BCOLOR[id] || DROP_COLOR[BDROP[id]] || [0.6, 0.5, 0.4], { speed: 1.5, up: 1.5, life: 0.6, size: 0.07, spread: 0.9 });
