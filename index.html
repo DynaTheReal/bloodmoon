@@ -267,7 +267,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .joy { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; background: rgba(255, 255, 255, 0.07); border: 1.5px solid rgba(255, 255, 255, 0.18); pointer-events: none; }
 .joy-k { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.32); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
 .tbtn { position: absolute; pointer-events: auto; border-radius: 99px; border: 1.5px solid var(--line); background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--text); font-weight: 800; font-size: 13px; touch-action: none; }
-.t-jump { right: calc(var(--safe-r) + 6px); bottom: calc(var(--safe-b) + 92px); width: 76px; height: 76px; }
+.t-jump { right: calc(var(--safe-r) + 6px); bottom: calc(var(--safe-b) + 92px); width: 84px; height: 84px; }
+.t-sprint { right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 190px); width: 64px; height: 64px; font-size: 11.5px; }
+.t-sprint[aria-pressed="true"] { background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .t-act { right: calc(var(--safe-r) + 92px); bottom: calc(var(--safe-b) + 112px); height: 52px; padding: 0 18px; background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .tbtn:active { transform: scale(0.94); }
 
@@ -547,6 +549,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div id="touchUi" class="touch" hidden>
     <div id="joyBase" class="joy" hidden><div id="joyKnob" class="joy-k"></div></div>
     <button id="tJump" class="tbtn t-jump">Springen</button>
+    <button id="tSprint" class="tbtn t-sprint" aria-pressed="false">Sprinten</button>
     <button id="tAct" class="tbtn t-act" hidden>Aktion</button>
   </div>
 </div>
@@ -722,6 +725,22 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button type="button" data-v="island" role="radio" aria-checked="false"><b>Insel</b><span>Eine große Insel im Meer. Alles liegt näher beieinander, kein Nebel.</span></button>
       </div>
       <div class="list" id="worldList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlWorldEdit" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="weTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="weTitle">Welt bearbeiten</h2><p id="weInfo"></p></div><button class="x" id="weClose" aria-label="Zurück" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <p class="sec-t">Name</p>
+      <form class="newworld" id="weForm" autocomplete="off"><input class="field" id="weName" maxlength="24" aria-label="Name der Welt"><button class="btn primary" type="submit">Speichern</button></form>
+      <p class="sec-t">Server</p>
+      <p class="hint" id="weSrvHint"></p>
+      <button class="btn primary" id="weServer" type="button">Zum Server machen</button>
+      <p class="form-msg" id="weMsg" hidden></p>
+      <p class="sec-t">Mehr</p>
+      <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
     </div>
   </div>
 </div>
@@ -3666,15 +3685,18 @@ const FOG_D = hexLin('#b4bcc4'), FOG_N = hexLin('#121722'), FOG_B = hexLin('#2c0
 function applyWeatherEnv() {
   const Wt = WEATHER;
   const rain = Wt.rain, storm = Wt.storm, wfog = Wt.fog, tor = Wt.torNear;
-  const cloud = clamp(Math.max(Wt.cloud, rain, tor * 0.9), 0, 1);
+  // while a tornado is out, the whole sky goes dark
+  const torAll = TORNADO.vis || 0;
+  const cloud = clamp(Math.max(Wt.cloud, rain, tor * 0.9, torAll), 0, 1);
   const k = cloud * 0.82 * (1 - ENV.blood * 0.7);
   const ovc = (key) => mix3(OVC_N[key], OVC_D[key], ENV.dayF);
   ENV.zen = mix3(ENV.zen, ovc('zen'), k); ENV.hor = mix3(ENV.hor, ovc('hor'), k);
   ENV.cloudLit = mix3(ENV.cloudLit, ovc('cl'), k); ENV.cloudShade = mix3(ENV.cloudShade, ovc('cs'), k);
   ENV.glowCol = scale3(ENV.glowCol, 1 - cloud * 0.75);
-  const dark = clamp(rain * 0.5 + storm * 0.25 + tor * 0.45 + Wt.cloud * 0.15, 0, 0.85);
+  const dark = clamp(rain * 0.5 + storm * 0.25 + tor * 0.45 + torAll * 0.4 + Wt.cloud * 0.15, 0, 0.92);
   ENV.lightCol = scale3(ENV.lightCol, 1 - dark);
-  ENV.amb = scale3(ENV.amb, 1 - dark * 0.35);
+  ENV.amb = scale3(ENV.amb, 1 - dark * 0.35 - torAll * 0.3);
+  if (torAll > 0) { const g = 1 - torAll * 0.45; ENV.zen = scale3(ENV.zen, g); ENV.hor = scale3(ENV.hor, g); }
   ENV.sunVis *= 1 - cloud * 0.92;
   if (Wt.flash > 0) {
     const f = Wt.flash;
@@ -3705,9 +3727,11 @@ function applyWeatherEnv() {
     ENV.fogEnd = Math.min(ENV.fogEnd, lerp(ENV.fogEnd, 54, fo));
   }
   fc = mix3(fc, FOG_B, ENV.blood * 0.8);
+  // a tornado out there: dark, heavy air everywhere
+  if (torAll > 0) { fc = scale3(fc, 1 - torAll * 0.6); ENV.exposure *= 1 - torAll * 0.38; }
   if (Wt.flash > 0) fc = [fc[0] + Wt.flash * 0.4, fc[1] + Wt.flash * 0.45, fc[2] + Wt.flash * 0.55];
   ENV.fogCol[0] = fc[0]; ENV.fogCol[1] = fc[1]; ENV.fogCol[2] = fc[2];
-  ENV.fogCol[3] = clamp(Math.max(ff * 0.92, wfog * 0.88, rain * 0.5, tor * 0.55, fo * 0.8), 0, 0.95);
+  ENV.fogCol[3] = clamp(Math.max(ff * 0.92, wfog * 0.88, rain * 0.5, tor * 0.55, fo * 0.8, torAll * 0.6), 0, 0.95);
 }
 
 /* ---------- point lights ---------- */
@@ -5622,7 +5646,7 @@ function updatePlayer(dt) {
   const head = getB(Math.floor(PL.x), Math.floor(PL.y + 1.3), Math.floor(PL.z));
   const feet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.3), Math.floor(PL.z));
   PL.inWater = feet === B.WATER || head === B.WATER;
-  PL.sprint = (INPUT.down('ShiftLeft') || INPUT.down('ShiftRight') || INPUT.sprintToggle) && amt > 0.1;
+  PL.sprint = (INPUT.down('ShiftLeft') || INPUT.down('ShiftRight') || INPUT.sprintToggle || INPUT.sprintBtn) && amt > 0.1;
   let speed = PL.sprint ? 6.4 : 4.3;
   if (PL.inWater) speed = 2.7;
   if (PL.chopping > 0 && amt < 0.1) speed = 0;
@@ -7133,7 +7157,7 @@ function drawRain(t) {
 
 /* ---------- tornado: 5 % per day, a hidden strength from 1 to 5 ---------- */
 const TORNADO = { on: false, x: 0, z: 0, r: 4, lv: 1, heading: 0, speed: 3, t: 0, dur: 100, spin: 0, vis: 0, pend: -1, stormIn: -1, edits: [], editT: 0, acc: 0, wreck: [], wreckSeen: new Set() };
-const TOR_R = [3, 4.5, 6.5, 8.5, 11];
+const TOR_R = [3, 5, 8, 12, 19];          // from a small whirl to a giant
 const TOR_DEBRIS = [];
 function dayRolls() {
   if (Math.random() < STORM_CHANCE) WEATHER.stormPend = 30 + Math.random() * Math.max(60, DAY_LEN - 160);
@@ -7141,20 +7165,22 @@ function dayRolls() {
 function startTornado() {
   const players = allPlayers();
   if (!players.length) return;
-  // somewhere in the land that has been explored, not on top of anybody
-  const spots = [];
+  // one straight run across the whole known land, passing close to one of the players
+  const p = players[Math.floor(Math.random() * players.length)];
+  let far = 0;
   for (const k of W.explored) {
     const cx = Math.floor(k / 131072) - 65536, cz = (k % 131072) - 65536;
-    const x = cx * CS + 8, z = cz * CS + 8;
-    let d = 1e9; for (const p of players) d = Math.min(d, Math.hypot(p.x - x, p.z - z));
-    if (d > 45 && d < 240) spots.push([x, z]);
+    far = Math.max(far, Math.hypot(cx * CS + 8 - p.x, cz * CS + 8 - p.z));
   }
-  let p;
-  if (spots.length) p = spots[Math.floor(Math.random() * spots.length)];
-  else { const a = Math.random() * TAU, d = 90 + Math.random() * 60; p = [players[0].x + Math.cos(a) * d, players[0].z + Math.sin(a) * d]; }
+  const R = clamp(far + 24, 140, 340);
+  const head = Math.random() * TAU, dx = Math.sin(head), dz = Math.cos(head);
+  const side = (Math.random() - 0.5) * 60;
+  const x = p.x - dx * R + dz * side, z = p.z - dz * R - dx * side;
+  // small ones and giant ones, by chance
   const r = Math.random();
-  const lv = r < 0.3 ? 1 : r < 0.58 ? 2 : r < 0.8 ? 3 : r < 0.93 ? 4 : 5;
-  Object.assign(TORNADO, { on: true, x: p[0], z: p[1], lv, r: TOR_R[lv - 1], heading: Math.random() * TAU, speed: 2.6 + lv * 0.5, t: 0, dur: TOR_FORM + 70 + Math.random() * 90, acc: 0, edits: [], editT: 0.3 });
+  const lv = r < 0.3 ? 1 : r < 0.55 ? 2 : r < 0.75 ? 3 : r < 0.9 ? 4 : 5;
+  const speed = 4 + lv * 0.6;
+  Object.assign(TORNADO, { on: true, x, z, lv, r: TOR_R[lv - 1], heading: head, head, speed, t: 0, dur: TOR_FORM + (2 * R + 40) / speed, acc: 0, edits: [], editT: 0.3 });
   // the thunderstorm lasts as long as the tornado
   if (WEATHER.kind !== 'storm') setWeather('storm', TORNADO.dur + 40);
   else WEATHER.dur = Math.max(WEATHER.dur, WEATHER.t + TORNADO.dur + 40);
@@ -7165,14 +7191,13 @@ function updateTornado(dt) {
     // only a thunderstorm makes tornadoes
     if (!T.on && T.stormIn >= 0) {
       if (WEATHER.kind !== 'storm') T.stormIn = -1;
-      else if ((T.stormIn -= dt) <= 0) { T.stormIn = -1; startTornado(); if (T.on) UI.toast('Aus der Gewitterwolke kommt ein Tornado herunter!', 'warn', 5000, 'tor'); }
+      else if ((T.stormIn -= dt) <= 0) { T.stormIn = -1; startTornado(); }
     }
     if (T.on) {
       T.t += dt;
-      T.heading += (vnoise1(T.t * 0.15, 77) - 0.5) * 1.6 * dt;
+      // it keeps its course, only swaying a little
+      T.heading = (T.head === undefined ? T.heading : T.head) + (vnoise1(T.t * 0.08, 77) - 0.5) * 0.5;
       // it stays in the explored land: turn away from unknown chunks ahead
-      const ax = Math.floor(T.x + Math.sin(T.heading) * 26), az = Math.floor(T.z + Math.cos(T.heading) * 26);
-      if (!W.explored.has(ckey(ax >> 4, az >> 4))) T.heading += 1.9 * dt;
       const form = Math.min(1, T.t / TOR_FORM);        // it hardly moves while it forms
       T.x += Math.sin(T.heading) * T.speed * dt * (0.25 + 0.75 * form); T.z += Math.cos(T.heading) * T.speed * dt * (0.25 + 0.75 * form);
       if (T.t > T.dur) T.on = false;
@@ -7249,10 +7274,10 @@ const SCAR = new Uint8Array(256);
 function tornadoDestroy(dt) {
   const T = TORNADO;
   if (!chunkForBlock(Math.floor(T.x), Math.floor(T.z))) return;   // far from everybody: it passes unseen
-  T.acc += dt * T.lv * 26 * T.vis;
+  T.acc += dt * (30 * (T.r / 4) * (T.r / 4) + 25 * T.lv) * T.vis;
   const R = T.r * 0.95;
   let guard = 0;
-  while (T.acc >= 1 && guard++ < 80) {
+  while (T.acc >= 1 && guard++ < 220) {
     T.acc -= 1;
     const a = Math.random() * TAU, rr = Math.sqrt(Math.random()) * R;
     const x = Math.floor(T.x + Math.cos(a) * rr), z = Math.floor(T.z + Math.sin(a) * rr);
@@ -7279,8 +7304,8 @@ function tornadoDestroy(dt) {
       continue;
     }
     // untouched ground only gives way to the strongest storms
-    if (NATURAL[id] && !placed && (T.lv < 5 || Math.random() > 0.3)) continue;
-    if (Math.random() > (T.lv - stormResist(id)) / 3) continue;
+    if (NATURAL[id] && !placed && (T.lv < 3 || Math.random() > 0.12 * (T.lv - 2))) continue;
+    if (Math.random() > (T.lv + 1.5 - stormResist(id)) / 2.5) continue;
     if (KIND[id] === K_OBJ) { breakBlockAt(x, y, z, false); T.edits.push(x, y, z, -1); continue; }
     setBlock(x, y, z, B.AIR, null, { noUpdate: true });
     T.edits.push(x, y, z, B.AIR);
@@ -7324,14 +7349,14 @@ function stormPush(e, dt, isPlayer) {
   if (d > R) return;
   const k = (1 - d / R) * T.vis;
   const nx = dx / (d || 1), nz = dz / (d || 1);
-  const tang = 8 + T.lv * 2.2;
+  const tang = 10 + T.lv * 3;
   e.vx += (-nz * tang - nx * 5) * k * dt * 3.2;
   e.vz += (nx * tang - nz * 5) * k * dt * 3.2;
   if (d < T.r) { e.vy = Math.max(e.vy, (3 + T.lv * 1.7) * k + 1.2); e.onGround = false; }
   if (isPlayer) {
     if (SETTINGS.camShake) CAMC.shake = Math.min(0.8, CAMC.shake + k * dt * 2);
     G._torHurt = (G._torHurt || 0) - dt;
-    if (d < T.r && G._torHurt <= 0) { G._torHurt = 0.9; hurtPlayer(1 + T.lv, T.x, T.z); }
+    if (d < T.r && G._torHurt <= 0) { G._torHurt = 0.9; hurtPlayer(2 + T.lv * 1.5, T.x, T.z); }
   }
 }
 function drawTornado(t) {
@@ -7343,7 +7368,7 @@ function drawTornado(t) {
   if (g < 0) g = SEA + 4;
   T.gy = damp(T.gy === undefined ? g : T.gy, g, 2, 1 / 60);
   const gy = T.gy;
-  const H = 42 + T.lv * 6;
+  const H = 38 + T.lv * 12;
   const rings = 22;
   const lt = 0.22 + 0.42 * ENV.dayF;
   for (let k = 0; k < rings; k++) {
@@ -7859,7 +7884,7 @@ const INPUT = {
   keys: new Set(),
   pointer: [0, 0], hasPointer: false, lastSource: 'mouse',
   primaryHeld: false, primaryPressed: false, secondaryPressed: false, interactPressed: false,
-  jump: false, sprintToggle: false,
+  jump: false, sprintToggle: false, sprintBtn: false,
   joy: { active: false, x: 0, y: 0, id: null, ox: 0, oy: 0 },
   touches: new Map(), pinch: null,
   drag: null,            // { btn, moved, started, pdx, pdy } while a mouse button rotates the drone camera
@@ -8049,7 +8074,10 @@ function initInput() {
     INPUT.lastSource = 'touch';
     if (G.sleep && G.sleep.mp) { leaveBed(); return; }
     const joyAllowed = touchUI();
+    // a finger that just misses the jump or sprint button does not dig or place
+    const near = (t) => ['tJump', 'tSprint', 'tAct'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
     for (const t of e.changedTouches) {
+      if (near(t)) continue;
       const left = t.clientX < window.innerWidth * 0.42;
       if (joyAllowed && left && !INPUT.joy.active) {
         INPUT.joy.active = true; INPUT.joy.id = t.identifier; INPUT.joy.ox = t.clientX; INPUT.joy.oy = t.clientY; INPUT.joy.x = 0; INPUT.joy.y = 0;
@@ -8884,7 +8912,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -8902,6 +8930,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
+  if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
   if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') { G.state = 'playing'; INPUT.clear(); updateCursorStyle(); }
 };
 /* confirmation built into the page (browser dialogs are not used) */
@@ -9010,7 +9039,7 @@ function bindSettingsUI() {
   });
   $('dbgWood').addEventListener('click', () => { G.inv.wood += 20; G.inv.wool += 5; G.inv.iron += 10; G.inv.diamond += 3; G.inv.crystal += 3; UI.res(); UI.toast('+20 Holz, +5 Wolle, +10 Eisen, +3 Diamanten, +3 Kristalle', 'good'); });
   $('dbgWeather').addEventListener('click', () => { if (MP.isClient()) return; const i = (WEATHER_KINDS.indexOf(WEATHER.kind) + 1) % WEATHER_KINDS.length; setWeather(WEATHER_KINDS[i], 300); UI.toast('Wetter: ' + ['Klar', 'Bewölkt', 'Regen', 'Gewitter', 'Nebel'][i], 'info', 1800, 'wx'); });
-  $('dbgTornado').addEventListener('click', () => { if (MP.isClient() || TORNADO.on) return; startStorm(true); UI.toast('Ein Gewitter zieht auf. Gleich kommt ein Tornado herunter …', 'warn'); });
+  $('dbgTornado').addEventListener('click', () => { if (MP.isClient() || TORNADO.on) return; startStorm(true); UI.toast('Test: Gewitter mit Tornado gestartet.', 'info'); });
   refresh();
 }
 UI.openSettings = function (from) {
@@ -9069,36 +9098,66 @@ UI.worldsRefresh = function () {
     const act = document.createElement('div'); act.className = 'li-act';
     const play = document.createElement('button'); play.className = 'btn primary'; play.type = 'button'; play.textContent = 'Spielen';
     play.addEventListener('click', () => { UI.closeAll(); playWorld(e); });
-    const del = document.createElement('button'); del.className = 'btn ghost'; del.type = 'button'; del.textContent = 'Löschen';
-    del.addEventListener('click', async () => {
-      const ok = await UI.confirm({ title: '„' + e.name + '“ löschen?', text: 'Die Welt wird ' + (NET.uid() ? 'auf diesem Gerät und online ' : '') + 'endgültig gelöscht.', yes: 'Löschen' });
-      $('mdlWorlds').hidden = false;
-      if (!ok) return;
-      if (G.loadedWorld === e.id) { G.loadedWorld = null; WORLDS.current = null; }
-      WORLDS.remove(e);
-      UI.worldsRefresh(); UI.menuRefresh();
-    });
-    act.append(play);
-    // the save as it was before the island came back (only kept for converted worlds)
-    if (hasBackup(e)) {
-      const old = document.createElement('button'); old.className = 'btn ghost'; old.type = 'button'; old.textContent = 'Stand vor Update';
-      old.title = 'Lädt die Welt so, wie sie vor dem Update gespeichert war, und baut die Insel neu auf';
-      old.addEventListener('click', async () => {
-        const ok = await UI.confirm({ title: 'Stand vor dem Update laden?', text: '„' + e.name + '“ wird so geladen, wie sie vor der Umstellung gespeichert war. Die Gebäude ziehen dabei neu auf die Insel um. Was du seitdem gebaut hast, geht verloren.', yes: 'Laden', danger: false });
-        $('mdlWorlds').hidden = false;
-        if (!ok) return;
-        const b = readBackup(e); if (!b) return;
-        WORLDS.ls(WORLD_PREFIX + e.id, JSON.stringify(b)); e.cloudNewer = false; e.cloudOnly = false;
-        if (G.loadedWorld === e.id) G.loadedWorld = null;
-        UI.closeAll(); playWorld(e);
-      });
-      act.append(old);
-    }
-    act.append(del);
+    const edit = document.createElement('button'); edit.className = 'btn'; edit.type = 'button'; edit.textContent = 'Bearbeiten';
+    edit.addEventListener('click', () => UI.openWorldEdit(e));
+    act.append(play, edit);
     li.append(ico, main, act);
     el.appendChild(li);
   }
 };
+/* ---------- editing a world: name, server, old state, delete ---------- */
+UI.openWorldEdit = function (e) {
+  UI._edit = e;
+  $('mdlWorlds').hidden = true;
+  $('mdlWorldEdit').hidden = false;
+  $('weName').value = e.name;
+  $('weInfo').textContent = (entryMode(e) === 'island' ? 'Insel' : 'Normale Welt') + ' · Tag ' + (e.day || 1) + ' · zuletzt ' + ago(e.updated);
+  $('weOld').hidden = !hasBackup(e);
+  $('weSrvHint').textContent = NET.uid() ? 'Lädt eine Kopie hoch. Deine Freunde können dann jederzeit rein, auch wenn du nicht da bist.' : 'Melde dich an, um Welten zu Servern zu machen.';
+  $('weServer').disabled = !NET.uid();
+  $('weMsg').hidden = true;
+};
+function closeWorldEdit() { $('mdlWorldEdit').hidden = true; UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); }
+function bindWorldEditUI() {
+  $('weClose').addEventListener('click', closeWorldEdit);
+  $('weForm').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const e = UI._edit; if (!e) return;
+    const n = $('weName').value.trim().slice(0, 24);
+    if (!n) return;
+    e.name = n; e.updated = Date.now(); WORLDS.saveIndex();
+    if (NET.uid() && (!e.owner || e.owner === NET.uid())) { const str = WORLDS.ls(WORLD_PREFIX + e.id); if (str) { WORLDS.pendingCloud.set(e.id, str); WORLDS.flushCloud(); } }
+    const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Umbenannt in „' + n + '“.';
+    UI.menuRefresh();
+  });
+  $('weServer').addEventListener('click', async () => {
+    const e = UI._edit; if (!e) return;
+    const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Wird hochgeladen …';
+    $('weServer').disabled = true;
+    try { await SERVER.upload(e); m.textContent = '„' + e.name + '“ ist jetzt ein Server. Du findest ihn unter „Server“.'; }
+    catch (err) { m.className = 'form-msg'; m.textContent = err && err.message ? err.message : String(err); }
+    $('weServer').disabled = !NET.uid();
+  });
+  $('weOld').addEventListener('click', async () => {
+    const e = UI._edit; if (!e) return;
+    $('mdlWorldEdit').hidden = true;
+    const ok = await UI.confirm({ title: 'Stand vor dem Update laden?', text: '„' + e.name + '“ wird so geladen, wie sie vor der Umstellung gespeichert war. Die Gebäude ziehen dabei neu auf die Insel um. Was du seitdem gebaut hast, geht verloren.', yes: 'Laden', danger: false });
+    if (!ok) { $('mdlWorldEdit').hidden = false; return; }
+    const b = readBackup(e); if (!b) return;
+    WORLDS.ls(WORLD_PREFIX + e.id, JSON.stringify(b)); e.cloudNewer = false; e.cloudOnly = false;
+    if (G.loadedWorld === e.id) G.loadedWorld = null;
+    UI.closeAll(); playWorld(e);
+  });
+  $('weDel').addEventListener('click', async () => {
+    const e = UI._edit; if (!e) return;
+    $('mdlWorldEdit').hidden = true;
+    const ok = await UI.confirm({ title: '„' + e.name + '“ löschen?', text: 'Die Welt wird ' + (NET.uid() ? 'auf diesem Gerät und online ' : '') + 'endgültig gelöscht. Server, die du daraus gemacht hast, bleiben.', yes: 'Löschen' });
+    if (!ok) { $('mdlWorldEdit').hidden = false; return; }
+    if (G.loadedWorld === e.id) { G.loadedWorld = null; WORLDS.current = null; }
+    WORLDS.remove(e);
+    UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); UI.menuRefresh();
+  });
+}
 function drawWorldIcon(cv, seed, mode) {
   const ctx = cv.getContext('2d'); const S = cv.width; const r = mulberry32(seed || 1);
   const k = S / 12;
@@ -9286,7 +9345,7 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
-  bindChestUI(); bindServerUI(); bindSupportUI();
+  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI();
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
@@ -9373,7 +9432,13 @@ function bindUI() {
     if (!SETTINGS.allowFriends && MP.isHost() && !MP.srv) MP.closeRoom();
   });
   const tj = $('tJump');
-  tj.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.jump = true; }, { passive: false });
+  // jumping never starts digging: a finger resting on the screen at the same time stops counting as a hold
+  const calmTouches = () => { for (const s of INPUT.touches.values()) { if (s.hold) { s.hold = false; INPUT.primaryHeld = false; } s.moved = Math.max(s.moved, 99); } };
+  tj.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.jump = true; calmTouches(); }, { passive: false });
+  tj.addEventListener('touchcancel', (e) => { e.preventDefault(); INPUT.jump = false; }, { passive: false });
+  const ts = $('tSprint');
+  ts.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); }, { passive: false });
+  ts.addEventListener('click', () => { INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); });
   tj.addEventListener('touchend', (e) => { e.preventDefault(); INPUT.jump = false; }, { passive: false });
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
