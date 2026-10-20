@@ -240,6 +240,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .inv-slots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
 .inv-slots.hot { grid-template-columns: repeat(10, 1fr); }
 .islot { position: relative; aspect-ratio: 1; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); display: grid; place-items: center; padding: 0; color: var(--text); cursor: pointer; }
+.dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dl-card { display: grid; gap: 4px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); text-decoration: none; }
+.dl-card:hover { background: rgba(255, 255, 255, 0.1); }
+.dl-card b { font-size: 17px; }
+.dl-card span { font-size: 13px; color: var(--muted); font-weight: 700; }
 .inv-armor { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; font-weight: 700; }
 .inv-arm { display: grid; grid-template-columns: repeat(4, 44px); gap: 6px; }
 .inv-arm .islot { cursor: default; }
@@ -625,6 +630,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button id="btnWorlds" class="btn" type="button">Welten</button>
       <button id="btnFriends" class="btn" type="button">Freunde<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
+      <button id="btnDownload" class="btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>App herunterladen</button>
     </div>
     <p class="save-note" id="saveNote" hidden></p>
     <dl class="facts">
@@ -802,6 +808,19 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
       <p class="sec-t">Mehr</p>
       <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlDownload" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="dlTitle">App herunterladen</h2><p>Blood Moon als eigenes Programm auf deinem Computer.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div class="dl-grid">
+        <a class="dl-card" id="dlWin" href="https://download1478.mediafire.com/oqb2p6k07gsgxG-hg5Qbf7rmeDAEg5xmfmCBapsJ-YRlFkNI0OHg1mBiuYn6lnCc0ijIBzXM5SZKc2CKs8UI2MlPP0XN7kEg8WnBRqgGIGtelBcXw7g3F6LcZ_5lI2FgilOSaYSynzOwNiVcb1KdvotZdvqKd0yBs4HYg4gx3QXU1w/a2gte0kr0afwdd9/BloodMoon-Setup.exe" target="_blank" rel="noopener"><b>Windows</b><span>Installer (.exe)</span></a>
+        <a class="dl-card" id="dlLinux" href="https://download1472.mediafire.com/xfgcw1v0b7jgriGBVHOGJgZagI5pfqgRTBmGllH3tUngPBTXHraWH-ftmqbvSONhTl4Yjg4aKLC6nK_QpRoNwr_e6fJjoM0cyw0seotLxdiGDS2xPRrR65w_MF_orY5TN8EUqccvMWreKFD2alGkC7lvOwHejJku0SXP6beSBZ0LUQ/lfpgokksb10a80d/BloodMoon+Linux.AppImage" target="_blank" rel="noopener"><b>Linux</b><span>AppImage</span></a>
+      </div>
+      <p class="hint" style="margin-top:12px">Linux: Nach dem Download die Datei ausführbar machen (Rechtsklick → Eigenschaften → „Als Programm ausführen“) und starten.</p>
     </div>
   </div>
 </div>
@@ -9543,7 +9562,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -9987,6 +10006,10 @@ UI.refreshIcons = function () {
 
 function bindUI() {
   bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI();
+  // download the app (not shown inside the app itself)
+  if (/Electron/i.test(navigator.userAgent)) $('btnDownload').hidden = true;
+  $('btnDownload').addEventListener('click', () => { UI.closeAll(); $('mdlDownload').hidden = false; SFX.ui(); });
+  for (const id of ['dlWin', 'dlLinux']) $(id).addEventListener('click', () => setTimeout(() => UI.closeModal('mdlDownload'), 200));
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
