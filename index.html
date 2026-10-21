@@ -788,7 +788,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="sec-t">Sonstiges</p>
       <div class="rows">
         <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
-        <div class="row"><div class="lbl">Motion Blur<small>Bewegungsunschärfe beim Umschauen und schnellen Laufen</small></div><button class="tgl" id="setMB" role="switch" aria-label="Motion Blur" type="button"></button></div>
+        <div class="row"><div class="lbl">Motion Blur<small>Bewegungsunschärfe beim Umschauen, Laufen, Springen und Bauen</small></div><button class="tgl" id="setMB" role="switch" aria-label="Motion Blur" type="button"></button></div>
+        <div class="row" id="mbRow"><label for="setMBS">Motion-Blur-Stärke</label><div class="rng"><input id="setMBS" type="range" min="0.1" max="1" step="0.05"><output id="setMBSO"></output></div></div>
         <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
         <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
       </div>
@@ -1069,8 +1070,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.2.1';
+const GAME_VERSION = '2.4.0';
 const GAME_NOTES = [
+  ['2.4.0', 'Blood Moons härter: 1. bricht Wände, 2. rennt und stapelt Blöcke, ab dem 3. ULTRA. Admin kann selbst in den Support schreiben'],
+  ['2.3.0', 'Weicheres Motion Blur mit einstellbarer Stärke, baut sich langsam auf, auch beim Springen und Hochbauen'],
   ['2.2.1', 'Fadenkreuz wieder da, in der Ego-Perspektive bei jeder Steuerungsart'],
   ['2.2.0', 'Motion Blur (in den Einstellungen anschaltbar)'],
   ['2.1.0', 'Zombie-Vergiftung beim Blood Moon, Äpfel und Kristalläpfel, Kristalle nur noch in Höhlen'],
@@ -4480,6 +4483,8 @@ uniform float u_vig;
 uniform float u_mbOn;
 uniform float u_mbK;
 uniform float u_mbZoom;
+uniform vec2 u_mbShift;
+uniform vec2 u_res;
 uniform mat4 u_mbM;
 out vec4 o;
 /* motion blur: where this pixel was last frame (camera turning) plus a zoom streak when moving fast */
@@ -4487,17 +4492,20 @@ vec3 sceneMB(vec2 uv) {
   if (u_mbOn < 0.5) return texture(u_scene, uv).rgb;
   vec2 ndc = uv * 2.0 - 1.0;
   vec4 p = u_mbM * vec4(ndc, 1.0, 1.0);
-  vec2 v = (uv - 0.5) * u_mbZoom;
+  // turning, moving forward (zoom streaks) and moving sideways / up / down (shift)
+  vec2 v = (uv - 0.5) * u_mbZoom + u_mbShift;
   if (p.w > 0.0001) v += (uv - ((p.xy / p.w) * 0.5 + 0.5)) * u_mbK;
   float l = length(v);
-  if (l > 0.075) v *= 0.075 / l;
-  if (l < 0.0006) return texture(u_scene, uv).rgb;
+  if (l > 0.09) { v *= 0.09 / l; l = 0.09; }
+  if (l < 0.0005) return texture(u_scene, uv).rgb;
+  // more samples for longer streaks, shifted by a little noise so no steps show
+  float jit = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
   vec3 c = vec3(0.0);
   float wsum = 0.0;
-  for (int i = 0; i < 12; i++) {
-    float t = float(i) / 11.0;
-    float wt = 1.0 - t * 0.55;
-    c += texture(u_scene, uv - v * (t - 0.15)).rgb * wt;
+  for (int i = 0; i < 20; i++) {
+    float t = (float(i) + jit) / 20.0;
+    float wt = 1.0 - abs(t - 0.5) * 1.1;
+    c += texture(u_scene, uv - v * (t - 0.5)).rgb * wt;
     wsum += wt;
   }
   return c / wsum;
@@ -4579,25 +4587,37 @@ function postEnsure(w, h) {
 }
 function drawFull(P) { gl.bindVertexArray(GEO.triVao); gl.drawArrays(gl.TRIANGLES, 0, 3); }
 /* motion blur: the camera rotation since the last frame, as a matrix for the final pass */
-const MBLUR = { prev: new Float32Array(16), cur: new Float32Array(16), rot: new Float32Array(16), inv: new Float32Array(16), m: new Float32Array(16), has: false, lastT: 0, yaw: 0, pitch: 0 };
+const MBLUR = { lag: new Float32Array(16), cur: new Float32Array(16), rot: new Float32Array(16), inv: new Float32Array(16), m: new Float32Array(16), has: false, lastT: 0, eye: [0, 0, 0], vel: [0, 0, 0], ramp: 0 };
+/* Smooth motion blur: the "previous" camera trails behind the real one (so the blur builds up
+   and fades out softly instead of jumping), and the camera's own movement adds streaks too. */
 function motionBlurParams() {
-  MBLUR.rot.set(CAM.view); MBLUR.rot[12] = MBLUR.rot[13] = MBLUR.rot[14] = 0;
-  M4.mul(MBLUR.cur, CAM.proj, MBLUR.rot);
-  M4.invert(MBLUR.inv, MBLUR.cur);
+  const B = MBLUR;
+  B.rot.set(CAM.view); B.rot[12] = B.rot[13] = B.rot[14] = 0;
+  M4.mul(B.cur, CAM.proj, B.rot);
+  M4.invert(B.inv, B.cur);
   const now = performance.now();
-  const dt = clamp((now - (MBLUR.lastT || now - 16)) / 1000, 0.004, 0.2);
-  MBLUR.lastT = now;
-  if (!MBLUR.has || CAMC.trans < 1) { MBLUR.prev.set(MBLUR.cur); MBLUR.has = true; }
-  M4.mul(MBLUR.m, MBLUR.prev, MBLUR.inv);
-  MBLUR.prev.set(MBLUR.cur);
-  // the same amount of blur at any frame rate (like a camera shutter at 60 fps)
-  const k = clamp((1 / 60) / dt, 0.35, 2.2) * 0.85;
-  let zoom = 0;
-  if (CAMC.mode === 'fp' && G.state === 'playing') {
-    const sp = Math.hypot(PL.vx, PL.vz, Math.min(0, PL.vy) * 0.8);
-    zoom = clamp((sp - 3.2) / 42, 0, 0.03) * k;
-  }
-  return { k, zoom };
+  const dt = clamp((now - (B.lastT || now - 16)) / 1000, 0.004, 0.1);
+  B.lastT = now;
+  const S = clamp(SETTINGS.mbStrength === undefined ? 0.6 : SETTINGS.mbStrength, 0, 1);
+  const e = CAM.eye;
+  if (!B.has || CAMC.trans < 1) { B.lag.set(B.cur); B.eye[0] = e[0]; B.eye[1] = e[1]; B.eye[2] = e[2]; B.vel[0] = B.vel[1] = B.vel[2] = 0; B.has = true; }
+  // turning: the trailing camera follows within about a tenth of a second
+  const a = 1 - Math.exp(-dt * 16);
+  for (let i = 0; i < 16; i++) B.lag[i] += (B.cur[i] - B.lag[i]) * a;
+  M4.mul(B.m, B.lag, B.inv);
+  // moving: camera speed, eased in (starting to run builds the blur up slowly)
+  let vx = (e[0] - B.eye[0]) / dt, vy = (e[1] - B.eye[1]) / dt, vz = (e[2] - B.eye[2]) / dt;
+  B.eye[0] = e[0]; B.eye[1] = e[1]; B.eye[2] = e[2];
+  if (Math.hypot(vx, vy, vz) > 70) vx = vy = vz = 0;      // a teleport, not a movement
+  const ease = 1 - Math.exp(-dt * 2.6);
+  B.vel[0] += (vx - B.vel[0]) * ease; B.vel[1] += (vy - B.vel[1]) * ease; B.vel[2] += (vz - B.vel[2]) * ease;
+  const V = CAM.view;
+  const right = B.vel[0] * V[0] + B.vel[1] * V[4] + B.vel[2] * V[8];
+  const up = B.vel[0] * V[1] + B.vel[1] * V[5] + B.vel[2] * V[9];
+  const fwd = -(B.vel[0] * V[2] + B.vel[1] * V[6] + B.vel[2] * V[10]);
+  const zoom = clamp(fwd * 0.0026, -0.025, 0.04) * S;
+  const shift = [clamp(-right * 0.0016, -0.025, 0.025) * S, clamp(-up * 0.0022, -0.03, 0.03) * S];
+  return { k: 1.35 * S, zoom, shift };
 }
 /* run after the scene was drawn into POST.msFbo */
 function postProcess(w, h, opts) {
@@ -4678,7 +4698,9 @@ function postProcess(w, h, opts) {
   gl.uniform1f(P.u('u_mbOn'), mb ? 1 : 0);
   gl.uniform1f(P.u('u_mbK'), mp ? mp.k : 0);
   gl.uniform1f(P.u('u_mbZoom'), mp ? mp.zoom : 0);
-  gl.uniformMatrix4fv(P.u('u_mbM'), false, mp ? MBLUR.m : MBLUR.prev);
+  gl.uniform2f(P.u('u_mbShift'), mp ? mp.shift[0] : 0, mp ? mp.shift[1] : 0);
+  gl.uniform2f(P.u('u_res'), w, h);
+  gl.uniformMatrix4fv(P.u('u_mbM'), false, mp ? MBLUR.m : MBLUR.cur);
   drawFull(P);
   gl.activeTexture(gl.TEXTURE0);
   gl.depthMask(true);
@@ -5551,7 +5573,7 @@ const QUALITY = {
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
-  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false,
+  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6,
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
@@ -5863,15 +5885,17 @@ function isNight() { return G.time.phase === 'night'; }
 /* the n-th blood moon (night 10 is the first) gets harder every time */
 function bloodNo(night) { return Math.max(1, Math.round((night === undefined ? G.time.night : night) / 10)); }
 function bloodStats(n) {
+  // 1st: they break through your walls. 2nd: they run, climb and stack blocks. 3rd and later: ultra
+  const u = Math.max(0, n - 3);
   return {
-    breakMul: n <= 1 ? 1.7 : n === 2 ? 1 : Math.max(0.45, 0.85 - 0.1 * (n - 3)),
-    climb: n >= 2, run: n >= 3,
-    speedMul: n >= 3 ? Math.min(1.75, 1.45 + 0.06 * (n - 3)) : n === 2 ? 1.18 : 1.12,
-    place: n <= 1 ? 3 : n === 2 ? 4 : 6,   // blocks each zombie may put down to get up to you
-    hpMul: 1 + 0.15 * Math.max(0, n - 3), countMul: 1 + 0.2 * Math.max(0, n - 3), dmgAdd: 2 * Math.max(0, n - 3),
+    breakMul: n <= 1 ? 1 : n === 2 ? 0.75 : Math.max(0.3, 0.5 - 0.05 * u),
+    climb: n >= 2, run: n >= 2,
+    speedMul: n <= 1 ? 1.05 : n === 2 ? 1.32 : Math.min(1.9, 1.6 + 0.06 * u),
+    place: n <= 1 ? 0 : n === 2 ? 4 : Math.min(16, 8 + 2 * u),   // blocks each zombie may put down to get up to you
+    hpMul: n >= 3 ? 1.3 + 0.15 * u : 1, countMul: n >= 3 ? 1.4 + 0.2 * u : 1, dmgAdd: n >= 3 ? 4 + 2 * u : 0,
   };
 }
-const BLOOD_SUB = ['', 'Sie stapeln Blöcke und Fledermäuse jagen am Himmel.', 'Sie brechen durch Wände und klettern an allem hoch.', 'Sie rennen, klettern und brechen durch alles.'];
+const BLOOD_SUB = ['', 'Sie brechen durch deine Wände, um zu dir zu kommen.', 'Sie rennen, klettern und stapeln Blöcke.', 'ULTRA: schneller, stärker, mehr. Sie kommen durch alles.'];
 function startNight() {
   const T = G.time;
   T.phase = 'night'; T.t = 0; T.night++;
@@ -10278,6 +10302,7 @@ function bindSettingsUI() {
     $('setFov').value = SETTINGS.fov; $('setFovO').textContent = SETTINGS.fov + '°';
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
+    $('setMBS').value = SETTINGS.mbStrength; $('setMBSO').textContent = Math.round(SETTINGS.mbStrength * 100) + '%'; $('mbRow').hidden = !SETTINGS.motionBlur;
     for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
     $('testBox').hidden = MP.isClient() || !isOwner();
   };
@@ -10301,6 +10326,7 @@ function bindSettingsUI() {
   rng('setFov', 'fov', (v) => Math.round(v));
   rng('setSens', 'sens', (v) => v);
   rng('setVol', 'volume', (v) => v);
+  rng('setMBS', 'mbStrength', (v) => v);
   for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
@@ -13523,9 +13549,9 @@ UI.supportRefresh = function () {
   const inn = !!NET.uid(), owner = isOwner();
   $('supOut').hidden = inn; $('supIn').hidden = !inn;
   if (!inn) return;
-  $('supForm').hidden = owner;
+  $('supForm').hidden = false;
   $('supListT').hidden = !owner; $('supList').hidden = !owner;
-  $('supSub').textContent = owner ? 'Nachrichten an dich. Wegklicken, wenn du sie gelesen hast.' : 'Schreib DynaTheReal, wenn etwas nicht geht oder du eine Idee hast. Du kannst so viel schicken, wie du willst.';
+  $('supSub').textContent = owner ? 'Nachrichten an dich, und du kannst selbst etwas reinschreiben (z. B. Notizen). Wegklicken, wenn erledigt.' : 'Schreib DynaTheReal, wenn etwas nicht geht oder du eine Idee hast. Du kannst so viel schicken, wie du willst.';
   if (!owner) return;
   const list = $('supList'); list.innerHTML = '';
   const msgs = [];
