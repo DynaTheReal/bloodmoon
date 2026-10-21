@@ -286,6 +286,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .adm-ban .field { flex: 1 1 140px; }
 .admin-link { color: #ff8a80; }
 .tgl-btn[aria-pressed="false"] { opacity: 0.55; }
+.ver { display: grid; gap: 6px; font-size: 13px; }
+.ver b { font-size: 15px; }
+.ver ul { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 4px; }
+.ver li span { color: var(--text); font-weight: 800; margin-right: 6px; }
 .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dl-card { display: grid; gap: 4px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); text-decoration: none; }
 .dl-card:hover { background: rgba(255, 255, 255, 0.1); }
@@ -781,6 +785,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
         <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
       </div>
+      <p class="sec-t">Version</p>
+      <div class="ver"><b id="verNow"></b><ul id="verNotes"></ul></div>
       <div id="testBox">
         <p class="sec-t">Testen</p>
         <p class="hint">Zum Ausprobieren, ohne zehn Nächte zu warten.</p>
@@ -1054,6 +1060,14 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <div id="fade" class="fade" aria-hidden="true"><span id="fadeTxt"></span></div>
 <script>
 /* ---- 01_util.js ---- */
+/* version of the game: raised with every update (shown in the settings) */
+const GAME_VERSION = '2.0.0';
+const GAME_NOTES = [
+  ['2.0.0', 'Versionen in den Einstellungen, Einladungen, Admin-Werkzeuge, Server-Knopf im Startbildschirm'],
+  ['1.9.0', 'Server-IPs und Favoriten, Fadenkreuz-Steuerung, Lagerfeuer behält Sachen beim Tod'],
+  ['1.8.0', 'Fledermäuse und Zombie-Fledermäuse, Tipps in der ersten Welt, neuer Support'],
+  ['1.7.0', 'Rüstung, Rubin und Mythril, größere Höhlen mit Lava, Backups, neue Animationen'],
+];
 'use strict';
 /* =========================================================================
    Math & helpers
@@ -10410,6 +10424,8 @@ UI.refreshIcons = function () {
 
 function bindUI() {
   bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI(); bindAdminUI();
+  $('verNow').textContent = 'Blood Moon ' + GAME_VERSION;
+  $('verNotes').innerHTML = GAME_NOTES.map(([v, t]) => '<li><span>' + v + '</span>' + t + '</li>').join('');
   // start screen: the server list can be switched off and on
   const srvT = () => { const on = SETTINGS.showServers !== false; $('menuSrv').hidden = !on; $('btnSrvToggle').setAttribute('aria-pressed', String(on)); };
   $('btnSrvToggle').addEventListener('click', () => { SETTINGS.showServers = SETTINGS.showServers === false; saveSettings(); srvT(); if (SETTINGS.showServers) UI.menuServers(true); });
