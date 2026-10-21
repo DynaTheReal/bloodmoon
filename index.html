@@ -206,6 +206,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .moon.near { color: #ffd6d6; background: rgba(90, 10, 14, 0.62); border-color: rgba(232, 72, 77, 0.45); }
 .moon.near .moon-dot { background: var(--blood); box-shadow: 0 0 10px var(--blood); animation: hpPulse 0.9s infinite alternate; }
 .goal { display: flex; gap: 8px; align-items: baseline; padding: 7px 12px; font-size: 13px; line-height: 1.35; max-width: 100%; }
+.tip { max-width: min(460px, 100%); border-color: rgba(255, 177, 92, 0.45); }
+.tip-x { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 0 0 0 6px; font-size: 13px; flex: none; align-self: center; pointer-events: auto; }
 .goal-k { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ember); flex: none; }
 .goal-t { min-width: 0; }
 .goal.done { animation: goalPop 0.6s ease; }
@@ -256,7 +258,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .inv-acts { margin-top: 12px; }
 .sup-msg { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 10px; }
 .sup-h { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
-.sup-h span { color: var(--muted); font-weight: 700; }
+.sup-h span { color: var(--muted); font-weight: 700; margin-left: auto; }
+.sup-x { border: 0; background: rgba(255, 255, 255, 0.08); color: var(--text); width: 26px; height: 26px; border-radius: 8px; cursor: pointer; flex: none; }
+.sup-x:hover { background: rgba(232, 72, 77, 0.35); }
 .sup-t { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
 .sup-r { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--ember); background: rgba(255, 177, 92, 0.08); border-radius: 8px; font-size: 14px; }
 .sup-r p { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
@@ -572,6 +576,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="moon panel" id="moonChip"><i class="moon-dot"></i><span id="moonTxt">Blood Moon in 10 Nächten</span></div>
     <div class="mp panel" id="mpChip" hidden><i class="mp-dot"></i><span id="mpTxt"></span></div>
     <div class="goal panel" id="goalBox"><span class="goal-k">Ziel</span><span class="goal-t" id="goalTxt"></span><span class="goal-dir" id="goalDir" hidden><svg viewBox="0 0 16 16" id="goalArrow" aria-hidden="true"><path d="M8 1.5 13.5 12 8 9.6 2.5 12Z" fill="currentColor"></path></svg><b id="goalDist"></b></span></div>
+    <div class="goal tip panel" id="tipBox" hidden><span class="goal-k">Tipp</span><span class="goal-t" id="tipTxt"></span><button class="tip-x" id="tipX" type="button" aria-label="Tipp schließen">✕</button></div>
   </div>
   <div class="hud-tr">
     <div class="resg">
@@ -879,11 +884,11 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="supTitle">Support</h2><p id="supSub">Schreib DynaTheReal</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <div id="supOut" hidden><p class="hint">Melde dich an, damit DynaTheReal dir antworten kann.</p><button class="btn primary" id="supLogin" type="button">Anmelden</button></div>
+      <div id="supOut" hidden><p class="hint">Melde dich an, dann kannst du DynaTheReal schreiben.</p><button class="btn primary" id="supLogin" type="button">Anmelden</button></div>
       <div id="supIn" hidden>
-        <form id="supForm" autocomplete="off"><textarea class="field area" id="supText" rows="4" maxlength="600" placeholder="Was ist los? Was wünschst du dir?" aria-label="Nachricht an DynaTheReal"></textarea><button class="btn primary" type="submit" style="margin-top:8px">Abschicken</button></form>
+        <form id="supForm" autocomplete="off"><textarea class="field area" id="supText" rows="5" maxlength="2000" placeholder="Was ist los? Was wünschst du dir?" aria-label="Nachricht an DynaTheReal"></textarea><button class="btn primary" type="submit" style="margin-top:8px">Abschicken</button></form>
         <p class="form-msg" id="supMsg" hidden></p>
-        <p class="sec-t">Nachrichten</p><div id="supList"></div>
+        <p class="sec-t" id="supListT">Nachrichten</p><div id="supList"></div>
       </div>
     </div>
   </div>
@@ -5654,11 +5659,12 @@ function bloodStats(n) {
   return {
     breakMul: n <= 1 ? 1.7 : n === 2 ? 1 : Math.max(0.45, 0.85 - 0.1 * (n - 3)),
     climb: n >= 2, run: n >= 3,
-    speedMul: n >= 3 ? Math.min(1.75, 1.45 + 0.06 * (n - 3)) : 1,
+    speedMul: n >= 3 ? Math.min(1.75, 1.45 + 0.06 * (n - 3)) : n === 2 ? 1.18 : 1.12,
+    place: n <= 1 ? 3 : n === 2 ? 4 : 6,   // blocks each zombie may put down to get up to you
     hpMul: 1 + 0.15 * Math.max(0, n - 3), countMul: 1 + 0.2 * Math.max(0, n - 3), dmgAdd: 2 * Math.max(0, n - 3),
   };
 }
-const BLOOD_SUB = ['', 'Die Toten kratzen an deinen Wänden.', 'Sie brechen durch Wände und klettern an allem hoch.', 'Sie rennen, klettern und brechen durch alles.'];
+const BLOOD_SUB = ['', 'Sie stapeln Blöcke und Fledermäuse jagen am Himmel.', 'Sie brechen durch Wände und klettern an allem hoch.', 'Sie rennen, klettern und brechen durch alles.'];
 function startNight() {
   const T = G.time;
   T.phase = 'night'; T.t = 0; T.night++;
@@ -5765,7 +5771,7 @@ function makeSave() {
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
-    gv: 2, old: [...W.genOld],
+    gv: 2, old: [...W.genOld], tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
   };
@@ -5848,6 +5854,7 @@ function applySave(s, convert) {
     PL.x = W.spawn[0]; PL.y = W.spawn[1]; PL.z = W.spawn[2]; PL.hp = PL.maxHp;
   }
   G.visitors = s.vis || {};
+  if (Array.isArray(s.tips)) { G.tips = true; G.tipsSeen = {}; for (const k of s.tips) G.tipsSeen[k] = 1; }
 }
 
 /* ---- 08m_migrate.js ---- */
@@ -6792,6 +6799,7 @@ function updateSpawns(dt) {
   if (G.time.phase !== 'night' || (G.sleep && !G.sleep.mp)) return;
   const players = allPlayers();
   if (!players.length) return;
+  updateBatSpawns(dt, players);
   G.spawnT -= dt;
   if (G.spawnT > 0) return;
   const blood = G.time.blood;
@@ -6864,8 +6872,9 @@ function updateZombies(dt) {
     for (const p of players) { const d = Math.hypot(p.x - z.x, p.z - z.z); if (d < dist) { dist = d; tgt = p; } }
     if (!tgt) { tgt = { x: PL.x, y: PL.y, z: PL.z, uid: null, none: true }; dist = Math.hypot(PL.x - z.x, PL.z - z.z); }
     const dxp = tgt.x - z.x, dzp = tgt.z - z.z;
-    if (dist > (z.type === 'archer' ? 150 : 90)) { G.zombies.splice(k, 1); continue; }
+    if (dist > (z.type === 'archer' || z.type === 'bat' ? 150 : 90)) { G.zombies.splice(k, 1); continue; }
     if (z.state === 'die') {
+      if (z.type === 'bat') fallBat(z, dt);
       if (z.t > 1.1) {
         burst(z.x, z.y + 0.8, z.z, 16, z.type === 'archer' ? [[0.85, 0.82, 0.72], [0.4, 0.38, 0.34]] : [[0.25, 0.28, 0.22], [0.1, 0.1, 0.1]], { speed: 1.5, up: 2, life: 1.2, size: 0.12 });
         G.zombies.splice(k, 1);
@@ -6873,6 +6882,7 @@ function updateZombies(dt) {
       }
       continue;
     }
+    if (z.type === 'bat') { if (updateBat(z, dt, tgt, Math.hypot(dxp, dzp))) G.zombies.splice(k, 1); continue; }
     // the ground is not generated here (far from this world's loaded area): wait
     if (!chunkForBlock(Math.floor(z.x), Math.floor(z.z))) continue;
     stormPush(z, dt, false);
@@ -6961,6 +6971,21 @@ function updateZombies(dt) {
       }
     } else z.stuckT = Math.max(0, z.stuckT - dt);
     if (z.climb > 0) { z.climb -= dt; if (z.vy < 3.6) z.vy = 3.6; z.stuckT = 0; }
+    // blood moon: a zombie right below you builds itself up with a few blocks
+    if (bl && z.state === 'walk' && !tgt.none && (z.placed || 0) < bl.place && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && dist < 2.6) {
+      const px = Math.floor(z.x), py = Math.floor(z.y + 0.05), pz = Math.floor(z.z);
+      if (getB(px, py, pz) === B.AIR && !SOLID[getB(px, py + 2, pz)] && !SOLID[getB(px, py + 3, pz)] && SOLID[getB(px, py - 1, pz)]) { z.pillar = [px, py, pz]; z.vy = 8.4; z.pillarT = 0; }
+    }
+    if (z.pillar) {
+      const [px, py, pz] = z.pillar;
+      z.pillarT += dt;
+      if (z.y >= py + 1.02 && getB(px, py, pz) === B.AIR && Math.floor(z.x) === px && Math.floor(z.z) === pz) {
+        setBlock(px, py, pz, B.COBBLE);
+        if (MP.active()) MP.send({ t: 'plc', x: px, y: py, z: pz, id: B.COBBLE });
+        SFX.place(B.COBBLE);
+        z.placed = (z.placed || 0) + 1; z.pillar = undefined;
+      } else if (z.pillarT > 0.8) z.pillar = undefined;
+    }
     if (z.state !== 'break') {
       const face = z.lurk || (z.atkT > 0) ? Math.atan2(dxp, dzp) : (hs > 0.2 ? Math.atan2(z.vx, z.vz) : z.yaw);
       z.yaw = dampAngle(z.yaw, face, 6, dt);
@@ -7063,6 +7088,255 @@ function updateMerchant(dt) {
   if (m.state === 'stall' && dp < 6.5 && !m.greeted) { m.greeted = true; m.wave = 1.6; m.bubble = G.inv.wood >= 5 && G.goal <= 2 ? 'Oh, Holz! Zeig her, was du hast.' : MERCHANT_LINES[Math.floor(Math.random() * MERCHANT_LINES.length)]; m.bubbleT = 4; SFX.greet(); }
   if (dp > 14) m.greeted = false;
   if (m.bubbleT > 0) m.bubbleT -= dt;
+}
+
+/* ---- 09b_bats.js ---- */
+/* =========================================================================
+   Bats. The evening before a blood moon huge swarms leave the caves and fly
+   off into the sky (only for the eye, every player sees their own swarm).
+   During the blood moon zombie bats circle high up in the sky, always above
+   the players (a sky base does not help), and dive at anybody standing under
+   the open sky. A roof over your head keeps them off. The host simulates
+   them like the other mobs (type 'bat').
+   ========================================================================= */
+const BATS = [];
+const BAT_COL = hexToRgb('#1f1a22'), BAT_WING = hexToRgb('#2c2430'), BAT_EAR = hexToRgb('#3a2f3c');
+const ZBAT = { skin: hexToRgb('#6d7a5e'), wing: hexToRgb('#3b3a33'), wingD: hexToRgb('#2a2924'), bone: hexToRgb('#d9d2bd'), blood: hexToRgb('#6a1616'), eye: [1.0, 0.12, 0.08] };
+/* the evening before a blood moon */
+function batEvening() { const T = G.time; return T.phase === 'day' && T.bloodTonight && T.t > DAY_LEN - 170; }
+/* openings in the ground around a point: open air straight down, well below the land around */
+function caveMouths(px, pz) {
+  const out = [];
+  for (let k = 0; k < 600 && out.length < 28; k++) {
+    const a = Math.random() * TAU, d = 10 + Math.random() * 95;
+    const x = Math.floor(px + Math.cos(a) * d), z = Math.floor(pz + Math.sin(a) * d);
+    if (!chunkForBlock(x, z)) continue;
+    const h = colHeight(x, z);
+    if (h <= SEA + 2 || getB(x, h, z) !== B.AIR || getB(x, h + 1, z) !== B.AIR) continue;
+    let y = h; while (y > 2 && getB(x, y, z) === B.AIR) y--;
+    if (h - y >= 4 && getB(x, y, z) !== B.WATER && getB(x, y, z) !== B.LAVA) out.push([x + 0.5, y + 1.2, z + 0.5]);
+  }
+  return out;
+}
+function updateAmbientBats(dt) {
+  const T = G.time;
+  if (batEvening() && G.state === 'playing') {
+    const S = BATS;
+    if (!S.src || Math.hypot(PL.x - S.srcAt[0], PL.z - S.srcAt[1]) > 35 || (S.srcT = (S.srcT || 0) - dt) <= 0) {
+      S.src = caveMouths(PL.x, PL.z); S.srcAt = [PL.x, PL.z]; S.srcT = 12;
+    }
+    if (S.evening !== T.day) {
+      S.evening = T.day; S.dir = Math.random() * TAU;
+      UI.banner('Die Fledermäuse fliehen', 'Aus allen Höhlen. Heute Nacht kommt der Blood Moon.', 'blood');
+      SFX.bats(1);
+      tipShow('batsflee', 'Siehst du die Fledermäuse? Heute Nacht kommen Zombie-Fledermäuse. Geh in einen Bunker mit festem Dach!');
+    }
+    // most of them at the start of the evening, a steady stream after
+    const k = clamp((T.t - (DAY_LEN - 170)) / 170, 0, 1);
+    const cap = QP().q === 0 ? 220 : 420;
+    let n = dt * (k < 0.35 ? 46 : 20);
+    while (n > 0 && S.length < cap) {
+      if (n < 1 && Math.random() > n) break;
+      n--;
+      let p = null;
+      if (S.src.length) { const m = S.src[Math.floor(Math.random() * S.src.length)]; p = [m[0] + (Math.random() - 0.5) * 2, m[1] + Math.random(), m[2] + (Math.random() - 0.5) * 2]; }
+      else {
+        // no cave in sight: they come up out of the woods further away
+        const a = Math.random() * TAU, d = 40 + Math.random() * 60;
+        const x = Math.floor(PL.x + Math.cos(a) * d), z = Math.floor(PL.z + Math.sin(a) * d);
+        if (!chunkForBlock(x, z)) continue;
+        p = [x + 0.5, Math.max(groundInfo(x, z).y + 2, SEA + 2), z + 0.5];
+      }
+      const a = S.dir + (Math.random() - 0.5) * 1.4;
+      S.push({ x: p[0], y: p[1], z: p[2], vx: Math.cos(a) * 2, vy: 5 + Math.random() * 4, vz: Math.sin(a) * 2, a, t: 0, life: 16 + Math.random() * 10, ph: Math.random() * TAU, sz: 0.6 + Math.random() * 0.5, top: SEA + 30 + Math.random() * 30, sw: 0.5 + Math.random() * 1.5 });
+    }
+    S.chirpT = (S.chirpT || 0) - dt;
+    if (S.length > 20 && S.chirpT <= 0) { S.chirpT = 0.35 + Math.random() * 0.6; SFX.bats(Math.min(1, S.length / 200) * 0.5); }
+  }
+  for (let i = BATS.length - 1; i >= 0; i--) {
+    const b = BATS[i];
+    b.t += dt;
+    // up out of the hole, then off in a long fluttering stream
+    const up = b.y < b.top ? 7 : 0.4 * Math.sin(b.t * 2 + b.ph);
+    const sp = 8 + b.sw * 2;
+    const a = b.a + Math.sin(b.t * b.sw + b.ph) * 0.5;
+    b.vx = damp(b.vx, Math.cos(a) * sp, 1.6, dt);
+    b.vz = damp(b.vz, Math.sin(a) * sp, 1.6, dt);
+    b.vy = damp(b.vy, up + Math.sin(b.t * 9 + b.ph) * 1.5, 3, dt);
+    b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
+    if (b.t > b.life || Math.hypot(b.x - PL.x, b.z - PL.z) > 190) BATS.splice(i, 1);
+  }
+}
+function drawAmbientBats(t) {
+  if (!BATS.length) return;
+  const vd = SETTINGS.viewDist * CS + 40;
+  for (const b of BATS) {
+    if (Math.abs(b.x - CAM.eye[0]) > vd || Math.abs(b.z - CAM.eye[2]) > vd) continue;
+    const f = Math.sin(t * 22 + b.ph);
+    _ms.reset().t(b.x, b.y, b.z).ry(Math.atan2(b.vx, b.vz)).sc(b.sz, b.sz, b.sz);
+    const box = (w, h, d, x, y, z, c, em = 0) => BATCH.solid.box(_ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, 0.6);
+    box(0.16, 0.14, 0.32, 0, 0, 0, BAT_COL);
+    box(0.13, 0.12, 0.12, 0, 0.03, 0.2, BAT_COL);
+    for (const s of [-1, 1]) {
+      _ms.push().t(s * 0.08, 0.02, 0).rz(s * f * 0.9);
+      box(0.42, 0.03, 0.26, s * 0.21, 0, 0, BAT_WING);
+      _ms.push().t(s * 0.42, 0, 0).rz(s * f * 0.5);
+      box(0.32, 0.025, 0.2, s * 0.16, 0, -0.03, BAT_WING);
+      _ms.pop(); _ms.pop();
+    }
+  }
+}
+
+/* ---------- zombie bats (host) ---------- */
+/* how high they fly: high up, and always above the highest player near them */
+function batCruise(near) { let y = SEA + 46; if (near) y = Math.max(y, near.y + 9); return Math.min(WY - 3, y); }
+function batsWanted(n) { return Math.min(3 + (n - 1) * 4, 26); }
+function spawnZombieBat(p) {
+  const id = ZID++;
+  const r = mulberry32(id * 53 + 11);
+  const a = r() * TAU, d = 55 + r() * 25;
+  const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
+  const n = bloodNo();
+  G.zombies.push({
+    id, type: 'bat', x, y: batCruise(p), z, vx: 0, vy: 0, vz: 0, hw: 0.45, h: 0.55, onGround: false, stepOffset: 0, yaw: a + Math.PI,
+    hp: 14 + 2 * Math.max(0, n - 2), maxHp: 14 + 2 * Math.max(0, n - 2), state: 'walk', t: 0, rise: 1, atkT: 0, atkCd: 3 + r() * 5, phase: r() * 10,
+    hurtT: 0, barT: 0, stun: 0, mode: 'circle', orbit: 7 + r() * 9, side: r() < 0.5 ? -1 : 1, diveT: 0, walkPhase: 0, walkAmt: 1, twitch: 0, burning: 0, lurk: false,
+  });
+}
+function updateBatSpawns(dt, players) {
+  if (G.time.phase !== 'night' || !G.time.blood) return;
+  G._batT = (G._batT || 0) - dt;
+  if (G._batT > 0) return;
+  G._batT = 2.2;
+  const alive = G.zombies.filter((z) => z.type === 'bat' && z.state !== 'die').length;
+  const want = Math.round(batsWanted(bloodNo()) * (1 + (players.length - 1) * 0.5));
+  if (alive >= want) return;
+  spawnZombieBat(players[Math.floor(Math.random() * players.length)]);
+  if (!G._batSeen) { G._batSeen = true; setTimeout(() => { UI.toast('Zombie-Fledermäuse am Himmel! Unter einem festen Dach bist du sicher.', 'warn', 6000); tipShow('batroof', 'Die Fledermäuse fliegen ganz oben. Wer unter freiem Himmel steht, wird angegriffen. Ein Dach über dir schützt dich.'); }, 2500); }
+}
+/* nothing solid between this player's head and the bats up there */
+function underOpenSky(p, top) {
+  const x = Math.floor(p.x), z = Math.floor(p.z);
+  for (let y = Math.floor(p.y + 1.9); y <= Math.min(WY - 1, top); y++) { const id = getB(x, y, z); if (SOLID[id] || OPAQUE[id]) return false; }
+  return true;
+}
+function updateBat(z, dt, tgt, dist) {
+  const n = bloodNo();
+  const bl = bloodStats(n);
+  z.walkPhase += dt * (z.mode === 'dive' ? 6 : 14);
+  // morning (or the night was slept away): off into the sky
+  if (G.time.phase !== 'night' || !G.time.blood) z.mode = 'leave';
+  const cruise = batCruise(tgt.none ? null : tgt);
+  let wx = 0, wy = 0, wz = 0, sp = 9;
+  if (z.mode === 'leave') {
+    wy = 1; wx = Math.cos(z.phase); wz = Math.sin(z.phase); sp = 12;
+    if (z.t > 8 || z.y > WY + 20) { z.dead = true; return true; }
+  } else if (z.mode === 'circle') {
+    // circle high above the player
+    const a = z.t * 0.55 * z.side + z.phase;
+    const cx = tgt.x + Math.cos(a) * z.orbit, cz = tgt.z + Math.sin(a) * z.orbit;
+    wx = cx - z.x; wz = cz - z.z; wy = (cruise + Math.sin(z.t * 1.3 + z.phase) * 1.5 - z.y) * 0.6;
+    const l = Math.hypot(wx, wz); sp = clamp(l * 1.3, 5, 13);
+    z.atkCd -= dt;
+    if (z.atkCd <= 0 && !tgt.none && dist < 40) {
+      if (underOpenSky(tgt, Math.floor(z.y))) { z.mode = 'dive'; z.diveT = 0; SFX.screech(Math.hypot(z.x - PL.x, z.z - PL.z)); }
+      else z.atkCd = 1.2;
+    }
+  } else if (z.mode === 'dive') {
+    // down at the head of the player
+    z.diveT += dt;
+    wx = tgt.x - z.x; wy = tgt.y + 1.45 - z.y; wz = tgt.z - z.z; sp = 15 + n;
+    const d3 = Math.hypot(wx, wy, wz);
+    const ahead = getB(Math.floor(z.x + z.vx * 0.12), Math.floor(z.y + z.vy * 0.12), Math.floor(z.z + z.vz * 0.12));
+    if (tgt.none || z.diveT > 3.5 || SOLID[ahead] || (z.diveT > 0.6 && Math.floor(z.diveT * 5) !== Math.floor((z.diveT - dt) * 5) && !underOpenSky(tgt, Math.floor(z.y)))) { z.mode = 'climb'; z.atkCd = 2; }
+    else if (d3 < 1.15) {
+      const dmg = 6 + Math.round(bl.dmgAdd / 2);
+      if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z }); else hurtPlayer(dmg, z.x, z.z);
+      z.atkT = 0.42; z.mode = 'climb';
+      z.atkCd = Math.max(2.2, 6 - n * 0.6) + Math.random() * 2.5;
+      SFX.batBite();
+    }
+  } else {
+    // climb back up after an attack
+    wx = Math.cos(z.phase + z.t) * 0.6; wz = Math.sin(z.phase + z.t) * 0.6; wy = 1.4; sp = 10;
+    if (z.y >= cruise - 1.5) z.mode = 'circle';
+  }
+  if (z.atkT > 0) z.atkT -= dt;
+  const l = Math.hypot(wx, wy, wz) || 1;
+  const k = z.stun > 0 ? 0.5 : z.mode === 'dive' ? 5 : 2.4;
+  z.vx = damp(z.vx, wx / l * sp, k, dt); z.vy = damp(z.vy, wy / l * sp, k, dt); z.vz = damp(z.vz, wz / l * sp, k, dt);
+  // hit by a weapon: knocked back up
+  if (z.hurtT > 0.18 && z.mode === 'dive') { z.mode = 'climb'; z.atkCd = 2.5; }
+  z.x += z.vx * dt; z.y += z.vy * dt; z.z += z.vz * dt;
+  // never inside blocks
+  if (SOLID[getB(Math.floor(z.x), Math.floor(z.y), Math.floor(z.z))]) { z.y += Math.max(1.5, -z.vy) * dt + 0.05; z.vy = Math.abs(z.vy); if (z.mode === 'dive') { z.mode = 'climb'; z.atkCd = 2; } }
+  z.yaw = dampAngle(z.yaw, Math.atan2(z.vx, z.vz), 8, dt);
+  return false;
+}
+/* a dead bat falls out of the sky */
+function fallBat(z, dt) { z.vy -= 22 * dt; z.x += z.vx * dt * 0.3; z.y += z.vy * dt; z.z += z.vz * dt * 0.3; const g = groundInfo(Math.floor(z.x), Math.floor(z.z)); if (g && z.y < g.y + 1) { z.y = g.y + 1; z.vy = 0; } }
+function drawZombieBat(z, t) {
+  const sky = Math.max(0.35, skyAt(z.x, z.y, z.z));
+  const dive = z.mode === 'dive' || (z.ghost && z.vyN < -4);
+  const f = z.state === 'die' ? Math.sin(t * 6) * 0.3 : Math.sin(z.walkPhase + z.phase);
+  const tint = z.hurtT > 0 ? [1.8, 0.6, 0.55] : [1, 1, 1];
+  _ms.reset().t(z.x, z.y + 0.25, z.z).ry(z.yaw);
+  if (dive) _ms.rx(0.7);
+  if (z.state === 'die') _ms.rz(z.t * 6);
+  _ms.sc(1.25, 1.25, 1.25);
+  const box = (w, h, d, x, y, z2, c, em = 0) => BATCH.solid.box(_ms.m, w, h, d, x, y, z2, c[0] * tint[0], c[1] * tint[1], c[2] * tint[2], em, sky);
+  const bite = z.atkT > 0 ? Math.sin((0.42 - z.atkT) / 0.42 * Math.PI) : 0;
+  // body, head with glowing eyes and fangs
+  box(0.22, 0.2, 0.42, 0, 0, 0, ZBAT.skin);
+  box(0.18, 0.1, 0.16, 0, -0.1, -0.06, ZBAT.blood);
+  box(0.02, 0.18, 0.3, 0, 0.1, 0, ZBAT.bone);
+  _ms.push().t(0, 0.04, 0.24).rx(-bite * 0.5);
+  box(0.2, 0.18, 0.18, 0, 0, 0.04, ZBAT.skin);
+  box(0.05, 0.04, 0.02, -0.05, 0.03, 0.135, ZBAT.eye, 1);
+  box(0.05, 0.04, 0.02, 0.05, 0.03, 0.135, ZBAT.eye, 1);
+  box(0.06, 0.12, 0.05, -0.07, 0.13, 0.0, ZBAT.wingD); box(0.06, 0.12, 0.05, 0.07, 0.13, 0.0, ZBAT.wingD);
+  box(0.12, 0.04 + bite * 0.06, 0.03, 0, -0.06 - bite * 0.03, 0.13, [0.15, 0.03, 0.03]);
+  box(0.02, 0.05, 0.02, -0.03, -0.08, 0.14, ZBAT.bone); box(0.02, 0.05, 0.02, 0.03, -0.08, 0.14, ZBAT.bone);
+  _ms.pop();
+  // torn wings: folded back in a dive, beating hard otherwise
+  const fold = dive ? 0.9 : 0;
+  for (const s of [-1, 1]) {
+    _ms.push().t(s * 0.1, 0.05, 0).ry(s * fold * 0.6).rz(s * (f * 0.95 * (1 - fold * 0.7) - fold * 0.2));
+    box(0.5, 0.03, 0.36, s * 0.25, 0, -0.02, ZBAT.wing);
+    box(0.5, 0.035, 0.03, s * 0.25, 0.01, 0.16, ZBAT.bone);
+    _ms.push().t(s * 0.5, 0, 0).rz(s * f * 0.55);
+    box(0.42, 0.025, 0.28, s * 0.2, 0, -0.05, ZBAT.wingD);
+    box(0.08, 0.026, 0.1, s * 0.3, 0, 0.12, [0.06, 0.05, 0.05]);
+    _ms.pop(); _ms.pop();
+  }
+  box(0.06, 0.06, 0.16, -0.06, -0.08, -0.24, ZBAT.wingD); box(0.06, 0.06, 0.16, 0.06, -0.08, -0.24, ZBAT.wingD);
+}
+
+/* ---------- tips in the first world: shown at the top, one at a time ---------- */
+const TIPS_Q = [];
+function tipShow(key, text) {
+  if (!G.tips || !G.tipsSeen || G.tipsSeen[key]) return;
+  G.tipsSeen[key] = 1;
+  TIPS_Q.push(text);
+}
+function updateTips(dt) {
+  const box = $('tipBox'); if (!box) return;
+  if (G.tips && G.state === 'playing' && !MP.isClient()) {
+    const T = G.time;
+    if (G.playTime > 4 && G.goal <= 2) tipShow('merchant', 'Geh zum Händler am Spawn. Er tauscht dein Holz gegen Lagerfeuer, Werkzeuge und Rüstung.');
+    if (T.day === 1 && T.phase === 'day' && T.t > DAY_LEN - 100) tipShow('night1', 'Bald wird es dunkel. Stell dein Lagerfeuer auf und bleib nachts in seinem Licht.');
+    if (T.day >= 4 && T.phase === 'day' && T.t > 30) tipShow('bunker', 'Bau dir bis zum Blood Moon (Nacht 10) einen Bunker mit festem Dach. Zombie-Fledermäuse greifen aus der Luft an!');
+    if (T.day >= 7 && T.phase === 'day' && T.t > 30) tipShow('skybase', 'Eine Basis hoch oben in der Luft hilft nicht: die Fledermäuse fliegen immer noch höher als du. Grab dich lieber ein.');
+    if (T.bloodTonight && T.t > 20) tipShow('bloodday', 'Heute Nacht ist Blood Moon. Sei vor Sonnenuntergang in deinem Bunker!');
+  }
+  UI._tipT = (UI._tipT || 0) - dt;
+  if (!box.hidden && UI._tipT <= 0) box.hidden = true;
+  if (box.hidden && TIPS_Q.length && G.state === 'playing') {
+    $('tipTxt').textContent = TIPS_Q.shift();
+    box.hidden = false; box.classList.remove('done'); void box.offsetWidth; box.classList.add('done');
+    UI._tipT = 16;
+    SFX.ui();
+  }
 }
 
 /* ---- 09m_mobs.js ---- */
@@ -7390,8 +7664,9 @@ function drawArcher(z, t) {
   drawHumanoid(BATCH.solid, _ms, STYLE_SKELETON, P, sky, 'archer');
 }
 function drawMob(z, t) {
-  if (Math.hypot(z.x - CAM.eye[0], z.z - CAM.eye[2]) > SETTINGS.viewDist * CS + 8) return;
-  if (z.type === 'wolf') drawWolf(z, t);
+  if (Math.hypot(z.x - CAM.eye[0], z.z - CAM.eye[2]) > SETTINGS.viewDist * CS + (z.type === 'bat' ? 60 : 8)) return;
+  if (z.type === 'bat') drawZombieBat(z, t);
+  else if (z.type === 'wolf') drawWolf(z, t);
   else if (z.type === 'archer') drawArcher(z, t);
   else drawZombie(z, t);
 }
@@ -8368,6 +8643,7 @@ function buildDrawLists(t, inMenu) {
   drawRain(t);
   if (!inMenu) {
     for (const z of G.zombies) drawMob(z, t);
+    drawAmbientBats(t);
     drawArrows();
     for (const uid in REMOTE) if (REMOTE[uid].seen) drawRemote(REMOTE[uid], t);
     if (!(CAMC.mode === 'fp' && CAMC.trans >= 0.6) || PL.dead) drawPlayer(t);
@@ -9834,7 +10110,7 @@ function drawWorldIcon(cv, seed, mode) {
 
 /* ---------- account ---------- */
 UI.authMode = 'login';
-UI.openAccount = function () { UI.account(); $('mdlAccount').hidden = false; if (NET.state === 'off' || NET.state === 'error') NET.init(); };
+UI.openAccount = function () { UI.account(); $('mdlAccount').hidden = false; try { if (!$('aUser').value) $('aUser').value = localStorage.getItem(LAST_USER_KEY) || ''; } catch (e) { /* ignore */ } if (NET.state === 'off' || NET.state === 'error') NET.init(); };
 UI.account = function () {
   const st = NET.state, user = NET.uid();
   // menu chip
@@ -10006,6 +10282,7 @@ UI.refreshIcons = function () {
 
 function bindUI() {
   bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI();
+  $('tipX').addEventListener('click', () => { $('tipBox').hidden = true; UI._tipT = 0; });
   // download the app
   $('btnDownload').addEventListener('click', () => { UI.closeAll(); $('mdlDownload').hidden = false; SFX.ui(); });
   for (const id of ['dlWin', 'dlLinux']) $(id).addEventListener('click', () => setTimeout(() => UI.closeModal('mdlDownload'), 200));
@@ -10252,6 +10529,10 @@ const SFX = (() => {
       tone('sine', 60, 35, 1.8, 0.4 * k, delay);
       if (d < 70) hiss('highpass', 2500, 1, 0.15, 0.35 * k, delay);
     },
+    // squeaks and flutter of many bats
+    bats(k = 1) { for (let i = 0; i < 2 + Math.floor(k * 4); i++) { const f = r(3200, 5600); tone('sine', f, f * r(0.75, 1.1), r(0.04, 0.09), 0.05 * k, r(0, 0.4)); } hiss('bandpass', 700, 0.9, 0.5, 0.06 * k, 0, 300); },
+    screech(d) { const g = near(d, 70); if (g < 0.02) return; tone('sawtooth', 2400, 900, 0.5, 0.16 * g); tone('square', 1800, 600, 0.45, 0.06 * g, 0.03); hiss('bandpass', 2500, 2, 0.4, 0.12 * g); },
+    batBite() { hiss('bandpass', 1600, 2, 0.12, 0.35); tone('square', 900, 300, 0.12, 0.12); },
     omen() { tone('sine', 196, 185, 3, 0.12, 0, bus, 0.6); tone('sine', 233, 220, 3, 0.08, 0.3, bus, 0.6); },
     ambience(dt, s) {
       if (!ok()) return;
@@ -10322,7 +10603,7 @@ function resetGameState() {
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
   PL.charge = 1; PL.chargeVis = 0;
   DROPS.length = 0; PARTS.length = 0; ACTIVE_TREES.clear(); ARROWS.length = 0;
-  G._fogHint = false; G.hintT = {};
+  G._fogHint = false; G.hintT = {}; G.tips = false; G.tipsSeen = {}; G._batSeen = false; BATS.length = 0; TIPS_Q.length = 0;
   PL.hp = PL.maxHp; PL.dead = false; PL.vx = PL.vy = PL.vz = 0;
   PL.x = W.spawn[0]; PL.y = W.spawn[1]; PL.z = W.spawn[2]; PL.yaw = 0; PL.stepOffset = 0;
   CAMC.mode = 'drone'; CAMC.yaw = 0.55; CAMC.pitch = 0.68; CAMC.dist = CAMC.distT = CAMC.eff = 12;
@@ -10487,9 +10768,11 @@ async function createAndPlay(name, mode) {
   if (MP.isClient()) await MP.leave(true);
   if (MP.isHost()) await MP.closeRoom();
   G.server = null;
+  const first = WORLDS.visible().length === 0;
   const e = WORLDS.newEntry(name, null, mode);
   WORLDS.current = e;
   await loadWorld(e.seed, null, { mode: e.mode });
+  if (first) G.tips = true;   // the very first world: tips at the top
   G.loadedWorld = e.id;
   WORLDS.ls(LAST_WORLD_KEY, e.id);
   startPlaying();
@@ -10502,6 +10785,7 @@ async function playLast() {
   if (!G.loadedWorld && !MP.active()) {
     const n = WORLDS.newEntry(WORLDS.defaultName(), W.seed, W.mode);
     WORLDS.current = n; G.loadedWorld = n.id;
+    G.tips = WORLDS.visible().length === 1;
     WORLDS.ls(LAST_WORLD_KEY, n.id);
     startPlaying();
     saveGame(true);
@@ -10668,6 +10952,8 @@ function gameUpdate(dt) {
   updateFalling(dt);
   updateSpawns(dt);
   updateArrows(dt);
+  updateAmbientBats(dt);
+  updateTips(dt);
   updateWeather(dt);
   updateTornado(dt);
   updateFarFog(dt, PL.x, PL.z);
@@ -11005,6 +11291,7 @@ function netMsg(e) {
   return 'Das hat nicht geklappt (' + code + ').';
 }
 const NAME_RE = /^[A-Za-z0-9_]{3,16}$/;
+const LAST_USER_KEY = 'bloodmoon-last-user', LOGGED_OUT_KEY = 'bloodmoon-logged-out';
 const NET = {
   cfg: null, state: 'off', err: '', fb: null, auth: null, db: null, user: null, name: '',
   pendingName: null, friends: {}, requests: {}, statuses: {}, statusRefs: {}, activity: { w: null, h: false },
@@ -11072,6 +11359,8 @@ const NET = {
       const cfg = Object.assign({}, this.cfg); delete cfg.authDomain;
       this.fb = fb.apps && fb.apps.length ? fb.app() : fb.initializeApp(cfg);
       this.auth = fb.auth(); this.db = fb.database();
+      // stay logged in after closing the tab (also where the browser would only keep it per tab)
+      try { if (fb.auth.Auth && fb.auth.Auth.Persistence && this.auth.setPersistence) await this.auth.setPersistence(fb.auth.Auth.Persistence.LOCAL); } catch (e) { console.warn('persistence', e); }
       this.state = 'ready'; this.err = '';
       this.auth.onAuthStateChanged((u) => { this.onUser(u).catch((e) => console.warn(e)); });
     } catch (e) {
@@ -11080,7 +11369,25 @@ const NET = {
     UI.account();
   },
   email(name) { return name.trim().toLowerCase() + '@bloodmoon.game'; },
+  /* the browser's password manager: remember the login, sign in again by itself in a new tab */
+  async rememberLogin(name, pw) {
+    try { localStorage.setItem(LAST_USER_KEY, name); localStorage.removeItem(LOGGED_OUT_KEY); } catch (e) { /* ignore */ }
+    try { if (window.PasswordCredential && navigator.credentials) await navigator.credentials.store(new window.PasswordCredential({ id: name.toLowerCase(), password: pw, name })); } catch (e) { /* not allowed here */ }
+  },
+  async autoLogin() {
+    if (this._autoTried) return false;
+    this._autoTried = true;
+    try { if (localStorage.getItem(LOGGED_OUT_KEY)) return false; } catch (e) { /* ignore */ }
+    if (!window.PasswordCredential || !navigator.credentials) return false;
+    try {
+      const c = await withTimeout(navigator.credentials.get({ password: true, mediation: 'silent' }), 8000);
+      if (!c || !c.password || !NAME_RE.test(c.id)) return false;
+      await withTimeout(this.auth.signInWithEmailAndPassword(this.email(c.id), c.password), 20000);
+      return true;
+    } catch (e) { return false; }
+  },
   async onUser(u) {
+    if (!u && await this.autoLogin()) return;   // signed in again: onUser comes once more with the user
     if (!u) {
       this.stopWatching();
       this.user = null; this.name = '';
@@ -11112,17 +11419,22 @@ const NET = {
     this.pendingName = name.trim();
     try { await withTimeout(this.auth.createUserWithEmailAndPassword(this.email(name), pw), 20000); }
     catch (e) { this.pendingName = null; throw new Error(netMsg(e)); }
+    this.rememberLogin(name.trim(), pw);
   },
   async login(name, pw) {
     if (!NAME_RE.test(name)) throw new Error('Benutzername oder Passwort stimmt nicht.');
     try { await withTimeout(this.auth.signInWithEmailAndPassword(this.email(name), pw), 20000); }
     catch (e) { throw new Error(netMsg(e)); }
+    this.rememberLogin(name.trim(), pw);
   },
   async logout() {
     if (MP.active()) await MP.leave(true);
     const uid = this.uid();
     this.stopWatching();
     if (uid) { try { await this.db.ref('status/' + uid).update({ on: false, h: false, at: this.TS() }); } catch (e) { /* ignore */ } }
+    // logged out on purpose: no signing in by itself
+    try { localStorage.setItem(LOGGED_OUT_KEY, '1'); } catch (e) { /* ignore */ }
+    try { if (navigator.credentials && navigator.credentials.preventSilentAccess) await navigator.credentials.preventSilentAccess(); } catch (e) { /* ignore */ }
     await this.auth.signOut();
   },
   /* ---------- presence ---------- */
@@ -11678,7 +11990,7 @@ const MP = {
     const r2 = (v) => Math.round(v * 100) / 100;
     const T = G.time;
     const st = { rise: 0, walk: 1, break: 2, die: 3 };
-    const ty = { zombie: 0, wolf: 1, archer: 2 };
+    const ty = { zombie: 0, wolf: 1, archer: 2, bat: 3 };
     const z = G.zombies.map((zb) => [zb.id, r2(zb.x), r2(zb.y + zb.stepOffset), r2(zb.z), r2(zb.yaw), st[zb.state] | 0, Math.round(zb.hp), zb.maxHp,
       (zb.atkT > 0 ? 1 : 0) | (zb.burning > 0 ? 2 : 0) | (zb.hurtT > 0 ? 4 : 0) | (zb.lurk ? 8 : 0) | (zb.climb > 0 ? 16 : 0) | (zb.run ? 32 : 0),
       r2(zb.type === 'archer' ? zb.drawT : zb.rise), ty[zb.type] | 0]);
@@ -11719,7 +12031,7 @@ const MP = {
     adoptTime(v.tm);
     const codes = ['rise', 'walk', 'break', 'die'];
     const seen = new Set();
-    const types = ['zombie', 'wolf', 'archer'];
+    const types = ['zombie', 'wolf', 'archer', 'bat'];
     for (const a of v.z || []) {
       const id = a[0]; seen.add(id);
       let z = G.zombies.find((q) => q.id === id);
@@ -11761,8 +12073,8 @@ const MP = {
 /* ---------- helpers used by the game code ---------- */
 function makeZombieGhost(id, x, y, z, type) {
   const r = mulberry32(id * 7919 + 13);
-  const wolf = type === 'wolf';
-  return { id, type: type || 'zombie', x, y, z, tx: x, ty: y, tz: z, yaw: 0, tyaw: 0, vx: 0, vy: 0, vz: 0, hw: wolf ? 0.36 : 0.32, h: wolf ? 0.95 : 1.95, stepOffset: 0, state: 'walk', t: 0, rise: 1, hp: 50, maxHp: 50, atkT: 0, hurtT: 0, barT: 0, burning: 0, twitch: 0, phase: r() * 10, walkPhase: 0, walkAmt: 0, lurk: false, climb: 0, drawT: 0, rag: [0.08 + r() * 0.14, 0.16 + r() * 0.1, 0.04 + r() * 0.1, 0.12 + r() * 0.12, 0.06 + r() * 0.16], ghost: true };
+  const wolf = type === 'wolf', bat = type === 'bat';
+  return { id, type: type || 'zombie', x, y, z, tx: x, ty: y, tz: z, yaw: 0, tyaw: 0, vx: 0, vy: 0, vz: 0, hw: wolf ? 0.36 : bat ? 0.45 : 0.32, h: wolf ? 0.95 : bat ? 0.55 : 1.95, stepOffset: 0, state: 'walk', t: 0, rise: 1, hp: 50, maxHp: 50, atkT: 0, hurtT: 0, barT: 0, burning: 0, twitch: 0, phase: r() * 10, walkPhase: 0, walkAmt: 0, lurk: false, climb: 0, drawT: 0, rag: [0.08 + r() * 0.14, 0.16 + r() * 0.1, 0.04 + r() * 0.1, 0.12 + r() * 0.12, 0.06 + r() * 0.16], ghost: true };
 }
 function adoptTime(tm) {
   if (!tm) return;
@@ -11812,8 +12124,9 @@ function updateMobsClient(dt) {
     if (z.atkT > 0) z.atkT -= dt;
     if (z.state === 'die') { if (z.t > 1.1) { if (!z.gone) burst(z.x, z.y + 0.8, z.z, 16, z.type === 'archer' ? [[0.85, 0.82, 0.72], [0.4, 0.38, 0.34]] : [[0.25, 0.28, 0.22], [0.1, 0.1, 0.1]], { speed: 1.5, up: 2, life: 1.2, size: 0.12 }); G.zombies.splice(k, 1); } continue; }
     if (z.climb > 0) z.climb -= dt;
-    const ox = z.x, oz = z.z;
+    const ox = z.x, oz = z.z, oy = z.y;
     z.x = damp(z.x, z.tx, 10, dt); z.y = damp(z.y, z.ty, 10, dt); z.z = damp(z.z, z.tz, 10, dt);
+    if (z.type === 'bat') { z.vyN = damp(z.vyN || 0, (z.y - oy) / Math.max(dt, 1e-4), 6, dt); z.walkPhase += dt * (z.vyN < -4 ? 6 : 14); z.yaw = dampAngle(z.yaw, Math.atan2(z.x - ox, z.z - oz), 8, dt); continue; }
     z.yaw = dampAngle(z.yaw, z.tyaw, 10, dt);
     const hs = Math.hypot(z.x - ox, z.z - oz) / Math.max(dt, 1e-4);
     z.walkAmt = damp(z.walkAmt, clamp(hs / 2.3, 0, 1.2), 8, dt);
@@ -12401,7 +12714,7 @@ function bindBackupUI() {
 /* ---- 19s_support.js ---- */
 /* =========================================================================
    Support: players write to the owner of the game (DynaTheReal), the owner
-   answers in the game.  support/{uid}/{id} = { name, text, at, reply, replyAt }
+   reads them in the game and clicks them away.  support/{uid}/{id} = { name, text, at }
    ========================================================================= */
 const SUPPORT = {
   ref: null, cb: null, data: {}, seenKey: 'bloodmoon-support-seen',
@@ -12412,6 +12725,13 @@ const SUPPORT = {
     this.ref = NET.db.ref(this.path());
     this.cb = (s) => {
       const v = s.val() || {};
+      // the owner hears about new messages right away
+      if (isOwner()) {
+        const before = this.n === undefined ? null : this.n;
+        let n = 0; for (const u in v) n += Object.keys(v[u] || {}).length;
+        if (before !== null && n > before) { UI.toast('Neue Support-Nachricht.', 'info', 4000, 'sup'); SFX.ui(); }
+        this.n = n;
+      }
       this.data = isOwner() ? v : { [NET.uid()]: v };
       UI.supportBadge();
       if (!$('mdlSupport').hidden) UI.supportRefresh();
@@ -12420,23 +12740,18 @@ const SUPPORT = {
   },
   stop() { if (this.ref) { this.ref.off('value', this.cb); this.ref = null; } this.data = {}; },
   async send(text) {
-    text = (text || '').trim().slice(0, 600);
+    text = (text || '').trim().slice(0, 2000);
     if (!text) throw new Error('Schreib zuerst etwas.');
     if (!NET.uid()) throw new Error('Melde dich zuerst an.');
     await withTimeout(NET.db.ref('support/' + NET.uid()).push({ name: NET.name, text, at: NET.TS() }), 15000);
   },
-  async reply(uid, id, text) {
-    text = (text || '').trim().slice(0, 600); if (!text) return;
-    await withTimeout(NET.db.ref('support/' + uid + '/' + id).update({ reply: text, replyAt: NET.TS() }), 15000);
-  },
-  /* owner: questions without an answer; player: answers not read yet */
+  /* owner: a message is done, it goes away */
+  async dismiss(uid, id) { await withTimeout(NET.db.ref('support/' + uid + '/' + id).remove(), 15000); },
+  /* owner: every message still in the inbox */
   unread() {
+    if (!isOwner()) return 0;
     let n = 0;
-    const seen = Number(localStorage.getItem(this.seenKey) || 0);
-    for (const uid in this.data) for (const id in this.data[uid] || {}) {
-      const m = this.data[uid][id]; if (!m) continue;
-      if (isOwner() ? !m.reply : m.reply && (m.replyAt || 0) > seen) n++;
-    }
+    for (const uid in this.data) for (const id in this.data[uid] || {}) if (this.data[uid][id] && this.data[uid][id].text) n++;
     return n;
   },
 };
@@ -12454,38 +12769,27 @@ UI.supportRefresh = function () {
   $('supOut').hidden = inn; $('supIn').hidden = !inn;
   if (!inn) return;
   $('supForm').hidden = owner;
-  $('supSub').textContent = owner ? 'Nachrichten an dich. Antworte direkt hier.' : 'Schreib DynaTheReal, wenn etwas nicht geht oder du eine Idee hast.';
+  $('supListT').hidden = !owner; $('supList').hidden = !owner;
+  $('supSub').textContent = owner ? 'Nachrichten an dich. Wegklicken, wenn du sie gelesen hast.' : 'Schreib DynaTheReal, wenn etwas nicht geht oder du eine Idee hast. Du kannst so viel schicken, wie du willst.';
+  if (!owner) return;
   const list = $('supList'); list.innerHTML = '';
   const msgs = [];
   for (const uid in SUPPORT.data) for (const id in SUPPORT.data[uid] || {}) { const m = SUPPORT.data[uid][id]; if (m && m.text) msgs.push({ uid, id, m }); }
   msgs.sort((a, b) => (b.m.at || 0) - (a.m.at || 0));
-  if (!msgs.length) list.innerHTML = '<div class="list-empty">' + (owner ? 'Noch keine Nachrichten.' : 'Du hast noch nichts geschrieben.') + '</div>';
+  if (!msgs.length) list.innerHTML = '<div class="list-empty">Keine Nachrichten.</div>';
   for (const { uid, id, m } of msgs) {
     const d = document.createElement('div'); d.className = 'sup-msg';
     const when = m.at ? new Date(m.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-    d.innerHTML = '<div class="sup-h"><b></b><span></span></div><p class="sup-t"></p>';
-    d.querySelector('b').textContent = owner ? (m.name || 'Spieler') : 'Du';
+    d.innerHTML = '<div class="sup-h"><b></b><span></span><button class="sup-x" type="button" aria-label="Wegklicken" title="Wegklicken">✕</button></div><p class="sup-t"></p>';
+    d.querySelector('b').textContent = m.name || 'Spieler';
     d.querySelector('span').textContent = when;
     d.querySelector('.sup-t').textContent = m.text;
-    if (m.reply) {
-      const r = document.createElement('div'); r.className = 'sup-r';
-      r.innerHTML = '<b>DynaTheReal</b><p></p>'; r.querySelector('p').textContent = m.reply;
-      d.appendChild(r);
-    }
-    if (owner) {
-      const f = document.createElement('form'); f.className = 'newworld sup-reply'; f.autocomplete = 'off';
-      f.innerHTML = '<input class="field" maxlength="600" placeholder="' + (m.reply ? 'Antwort ändern' : 'Antworten') + '"><button class="btn primary" type="submit">Senden</button>';
-      f.addEventListener('submit', async (ev) => {
-        ev.preventDefault();
-        const t = f.querySelector('input').value;
-        try { await SUPPORT.reply(uid, id, t); UI.toast('Antwort an ' + (m.name || 'Spieler') + ' geschickt.', 'good'); } catch (e) { UI.toast('Ging nicht: ' + netMsg(e), 'warn'); }
-      });
-      d.appendChild(f);
-    }
+    d.querySelector('.sup-x').addEventListener('click', async () => {
+      d.style.opacity = '0.4';
+      try { await SUPPORT.dismiss(uid, id); } catch (e) { d.style.opacity = ''; UI.toast('Ging nicht: ' + netMsg(e), 'warn'); }
+    });
     list.appendChild(d);
   }
-  // the player has seen the answers now
-  if (!owner) { try { localStorage.setItem(SUPPORT.seenKey, String(Date.now() + 1000)); } catch (e) { /* ignore */ } UI.supportBadge(); }
 };
 function bindSupportUI() {
   $('btnSupport').addEventListener('click', () => UI.openSupport());
@@ -12496,7 +12800,7 @@ function bindSupportUI() {
     try {
       await SUPPORT.send($('supText').value);
       $('supText').value = '';
-      msg.className = 'form-msg ok'; msg.textContent = 'Abgeschickt. Die Antwort von DynaTheReal erscheint hier.';
+      msg.className = 'form-msg ok'; msg.textContent = 'Abgeschickt. Danke! Du kannst gleich noch mehr schicken.';
     } catch (e) { msg.className = 'form-msg'; msg.textContent = e && e.message && !/PERMISSION/.test(e.message) ? e.message : 'Das ging nicht. ' + netMsg(e); }
   });
 }
