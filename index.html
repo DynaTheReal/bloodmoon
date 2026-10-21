@@ -942,6 +942,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="hint" id="saIpHint">Mit einer IP kann jeder, der sie eingibt, auf deinen Server.</p>
       <form class="newworld" id="saIpForm" autocomplete="off"><input class="field" id="saIp" maxlength="20" placeholder="z. B. Brickstein" aria-label="Server-IP" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Veröffentlichen</button></form>
       <button class="btn ghost" id="saIpOff" type="button" hidden style="margin-top:8px">IP entfernen</button>
+      <p class="sec-t">Regeln</p>
+      <div class="rows"><div class="row"><div class="lbl">Fallschaden<small>Wer tief fällt, nimmt Schaden (ins Wasser fallen tut nie weh)</small></div><button class="tgl" id="saFall" role="switch" aria-label="Fallschaden" type="button" aria-checked="true"></button></div></div>
       <p class="sec-t">Mitglieder</p>
       <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
       <p class="sec-t">Server-Welt</p>
@@ -1070,8 +1072,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.4.0';
+const GAME_VERSION = '2.5.0';
 const GAME_NOTES = [
+  ['2.5.0', 'Fließendes Wasser, Fallschaden (Server: abschaltbar, Wasser rettet), seltene Dörfer mit Händler, Händlerhaus abbaubar und Tornados zerstören es'],
   ['2.4.0', 'Blood Moons härter: 1. bricht Wände, 2. rennt und stapelt Blöcke, ab dem 3. ULTRA. Admin kann selbst in den Support schreiben'],
   ['2.3.0', 'Weicheres Motion Blur mit einstellbarer Stärke, baut sich langsam auf, auch beim Springen und Hochbauen'],
   ['2.2.1', 'Fadenkreuz wieder da, in der Ego-Perspektive bei jeder Steuerungsart'],
@@ -2561,6 +2564,7 @@ const W = {
   chests: new Map(),       // cell -> contents of a chest the player built
   explored: new Set(),     // chunk keys that have been loaded at some point
   genOld: new Set(),       // chunks that existed before the big caves: they keep the old caves
+  rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
@@ -2888,7 +2892,8 @@ function opsByChunk(ops) {
 function campOps() {
   const ops = [];
   const g = SEA + 5, y1 = g + 1;
-  const set = (dx, y, dz, id, meta) => ops.push([CX + dx, y, CZ + dz, id, meta === undefined ? null : meta, 1]);
+  // the camp is not protected any more: the hut can be taken apart (and blown away by tornados)
+  const set = (dx, y, dz, id, meta) => ops.push([CX + dx, y, CZ + dz, id, meta === undefined ? null : meta, 0]);
   const clear = (dx, y, dz) => ops.push([CX + dx, y, CZ + dz, B.AIR, null, 0]);
   for (let dx = -7; dx <= 7; dx++) for (let dz = -15; dz <= 6; dz++) {
     for (let y = y1; y < y1 + 9; y++) clear(dx, y, dz);
@@ -2921,6 +2926,9 @@ function campOps() {
   }
   set(0, y1, hz1, B.DOOR, 0);
   set(0, y1 + 1, hz1, B.DOOR, 8);
+  // the merchant's bed
+  set(-2, y1, -12, B.BED, 0);
+  set(-2, y1, -11, B.BED, 8);
   for (let layer = 0; layer < 4; layer++) {
     const y = y1 + 3 + layer;
     for (let dx = hx0 - 1; dx <= hx1 + 1; dx++) for (let dz = hz0 - 1 + layer; dz <= hz1 + 1 - layer; dz++) {
@@ -2933,6 +2941,7 @@ function campOps() {
   W.spawn = [CX + 0.5, y1, CZ + 3.5];
   W.merchantPos = [CX + 0.5, y1, CZ - 1.6];
   W.hutDoor = [CX + 0.5, y1, CZ - 7.2];
+  W.hutBed = [CX - 2, y1, CZ - 12];
   return ops;
 }
 /* watch towers in the dark forest: one candidate per grid cell
@@ -3049,6 +3058,143 @@ function shroomOps(t) {
   }
   return ops;
 }
+
+/* =========================================================================
+   Villages: very rare. Three on the ring 2000 blocks from the spawn, three at
+   4000, at 6000 and so on (endless worlds only, and only in land nobody has
+   seen yet). Houses with beds, a well, paths, and a trader with a stall.
+   ========================================================================= */
+const VILLAGE_RING = 2000, VILLAGE_R = 26;
+const VILLAGES = new Map();     // id -> village (once its blocks are known)
+const _vi = {};
+function villageAt(k, i) {
+  if (W.mode === 'island' || k < 1) return null;
+  const key = 'village:' + k + ':' + i;
+  if (STRUCT_CACHE.has(key)) return STRUCT_CACHE.get(key);
+  const seed = W.seed;
+  const base = hashi(k, 91, 0, seed) * TAU;
+  let a = base + i * TAU / 3 + (hashi(k, 92, i, seed) - 0.5) * 0.7;
+  const r = VILLAGE_RING * k + (hashi(k, 93, i, seed) - 0.5) * 240;
+  let v = null;
+  // somewhere dry and not too steep near the planned spot
+  for (let t = 0; t < 8 && !v; t++) {
+    const aa = a + (t % 2 ? 1 : -1) * Math.ceil(t / 2) * 0.012;
+    const x = Math.round(CX + Math.cos(aa) * r), z = Math.round(CZ + Math.sin(aa) * r);
+    colInfo(x, z, _vi);
+    if (_vi.h <= SEA + 2 || _vi.wet > 0.05 || _vi.b === BIO.MOUNTAIN || _vi.b === BIO.DARK) continue;
+    let lo = 1e9, hi = -1e9;
+    for (const [dx, dz] of [[-14, 0], [14, 0], [0, -14], [0, 14], [10, 10], [-10, -10], [10, -10], [-10, 10]]) { const h = colHeight(x + dx, z + dz); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+    if (hi - lo > 7 || lo <= SEA) continue;
+    v = { id: 'v' + k + '_' + i, x, z, ground: Math.round(clamp(_vi.h, SEA + 2, WY - 24)), kind: 'village', seed: Math.floor(hashi(k, 94, i, seed) * 1e9), houses: [] };
+  }
+  // land that was already explored stays as it is
+  if (v) {
+    const c0x = (v.x - VILLAGE_R) >> 4, c1x = (v.x + VILLAGE_R) >> 4, c0z = (v.z - VILLAGE_R) >> 4, c1z = (v.z + VILLAGE_R) >> 4;
+    for (let cx = c0x; cx <= c1x && v; cx++) for (let cz = c0z; cz <= c1z; cz++) if (W.genOld.has(ckey(cx, cz))) { v = null; break; }
+  }
+  STRUCT_CACHE.set(key, v);
+  return v;
+}
+function villagesNear(x, z, r) {
+  if (W.mode === 'island') return [];
+  const d = Math.hypot(x - CX, z - CZ);
+  const k = Math.round(d / VILLAGE_RING);
+  if (k < 1 || Math.abs(d - k * VILLAGE_RING) > 200 + r) return [];
+  const out = [];
+  for (let i = 0; i < 3; i++) { const v = villageAt(k, i); if (v && Math.abs(v.x - x) <= r + VILLAGE_R && Math.abs(v.z - z) <= r + VILLAGE_R) out.push(v); }
+  return out;
+}
+function villageOps(v) {
+  const ops = [];
+  const rnd = mulberry32(v.seed);
+  const g = v.ground;
+  const put = (x, y, z, id, meta) => ops.push([x, y, z, id, meta === undefined ? null : meta, 0]);
+  // the square: flat ground with a well
+  for (let dx = -6; dx <= 6; dx++) for (let dz = -6; dz <= 6; dz++) {
+    if (dx * dx + dz * dz > 40) continue;
+    const x = v.x + dx, z = v.z + dz, gh = colHeight(x, z);
+    for (let y = Math.min(gh, g) - 2; y < g; y++) put(x, y, z, B.DIRT);
+    put(x, g, z, B.PATH);
+    for (let y = g + 1; y <= Math.max(gh, g) + 3; y++) put(x, y, z, B.AIR);
+  }
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const x = v.x + dx, z = v.z + dz;
+    if (dx || dz) { put(x, g, z, B.COBBLE); put(x, g + 1, z, B.COBBLE); }
+    else { put(x, g - 2, z, B.COBBLE); put(x, g - 1, z, B.WATER); put(x, g, z, B.WATER); }
+  }
+  for (const [dx, dz] of [[-1, -1], [1, 1]]) { put(v.x + dx, g + 2, v.z + dz, B.OAK_LOG); put(v.x + dx, g + 3, v.z + dz, B.OAK_LOG); }
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) put(v.x + dx, g + 4, v.z + dz, B.PLANKS);
+  // the trader's stall on the square
+  const sx = v.x + 4, sz = v.z;
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) for (let y = g + 1; y <= g + 2; y++) put(sx + dx, y, sz + dz, B.OAK_LOG);
+  for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) put(sx + dx, g + 3, sz + dz, (dz & 1) ? B.WOOL_WHITE : B.WOOL_RED);
+  put(sx - 1, g + 1, sz, B.PLANKS); put(sx - 1, g + 1, sz - 1, B.PLANKS); put(sx - 1, g + 1, sz + 1, B.PLANKS);
+  put(sx + 1, g + 1, sz + 1, B.TORCH, 0);
+  v.stall = [sx + 0.5, g + 1, sz + 0.5];
+  // houses around the square, doors facing it
+  const n = 5 + Math.floor(rnd() * 2);
+  const a0 = rnd() * TAU;
+  v.houses = [];
+  for (let h = 0; h < n; h++) {
+    const a = a0 + h * TAU / n;
+    const hx = Math.round(v.x + Math.cos(a) * 15), hz = Math.round(v.z + Math.sin(a) * 15);
+    const hg = clamp(colHeight(hx, hz), g - 3, g + 3);
+    // door on the side that faces the square: 0 +z, 1 +x, 2 -z, 3 -x
+    const fx = v.x - hx, fz = v.z - hz;
+    const side = Math.abs(fx) > Math.abs(fz) ? (fx > 0 ? 1 : 3) : (fz > 0 ? 0 : 2);
+    const R = 3;
+    for (let dx = -R; dx <= R; dx++) for (let dz = -R; dz <= R; dz++) {
+      const x = hx + dx, z = hz + dz, gh = colHeight(x, z);
+      for (let y = Math.min(gh, hg) - 2; y < hg; y++) put(x, y, z, B.COBBLE);
+      put(x, hg, z, B.PLANKS);
+      const edge = Math.abs(dx) === R || Math.abs(dz) === R;
+      const corner = Math.abs(dx) === R && Math.abs(dz) === R;
+      for (let y = hg + 1; y <= hg + 3; y++) {
+        if (!edge) { put(x, y, z, B.AIR); continue; }
+        let id = corner ? B.OAK_LOG : B.PLANKS;
+        if (!corner && y === hg + 2 && (Math.abs(dx) === R ? Math.abs(dz) === 1 : Math.abs(dx) === 1)) id = B.GLASS;
+        put(x, y, z, id);
+      }
+      for (let y = hg + 4; y <= Math.max(gh, hg) + 6; y++) put(x, y, z, B.AIR);
+    }
+    // roof: steps up to a ridge
+    for (let layer = 0; layer <= R + 1; layer++) {
+      const y = hg + 4 + layer, rr = R + 1 - layer;
+      for (let dx = -rr; dx <= rr; dx++) for (let dz = -(R + 1); dz <= R + 1; dz++) {
+        const ridge = rr <= 1;
+        if (Math.abs(dx) === rr || ridge) put(hx + dx, y, hz + dz, B.ROOF);
+        else if (Math.abs(dz) === R + 1) put(hx + dx, y, hz + dz, B.PLANKS);
+      }
+      if (rr <= 1) break;
+    }
+    const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    const [ddx, ddz] = dirs[side];
+    const doorX = hx + ddx * R, doorZ = hz + ddz * R;
+    // door: closed slab orientation like the camp hut (meta 0..3 = facing)
+    const dm = side;
+    put(doorX, hg + 1, doorZ, B.DOOR, dm); put(doorX, hg + 2, doorZ, B.DOOR, dm | 8);
+    // a step down to the path
+    put(doorX + ddx, hg, doorZ + ddz, B.PATH);
+    for (let y = hg + 1; y <= hg + 3; y++) put(doorX + ddx, y, doorZ + ddz, B.AIR);
+    // bed on the back wall, torch in a corner
+    const bdir = (side + 2) & 3;            // the bed's head points away from the door
+    const [bx2, bz2] = dirs[bdir];
+    const bfx = hx - ddx * 1 + (ddz ? -1 : 0), bfz = hz - ddz * 1 + (ddx ? -1 : 0);
+    put(bfx, hg + 1, bfz, B.BED, bdir); put(bfx + bx2, hg + 1, bfz + bz2, B.BED, bdir | 8);
+    put(hx + (ddz ? 2 : 0) + (ddx ? -2 * ddx : 0) * 0, hg + 1, hz + (ddx ? 2 : 0), B.TORCH, 0);
+    // path from the door to the square
+    const steps = 15;
+    for (let s = 2; s <= steps - 6; s++) {
+      const px = Math.round(doorX + (v.x - doorX) * s / steps), pz = Math.round(doorZ + (v.z - doorZ) * s / steps);
+      const ph = colHeight(px, pz);
+      if (Math.abs(px - v.x) <= 6 && Math.abs(pz - v.z) <= 6) continue;
+      put(px, ph, pz, B.PATH);
+      for (let y = ph + 1; y <= ph + 3; y++) put(px, y, pz, B.AIR);
+    }
+    v.houses.push({ x: hx, z: hz, g: hg, door: [doorX + ddx + 0.5, hg + 1, doorZ + ddz + 0.5], bed: [bfx, hg + 1, bfz], bedDir: bdir });
+  }
+  return ops;
+}
 /* is (x, z) on or right next to a tower or ruin? (no trees there) */
 function nearStructure(x, z) {
   const chk = (G, fn, r) => {
@@ -3061,7 +3207,7 @@ function nearStructure(x, z) {
     }
     return false;
   };
-  return chk(towerGrid(), towerAt, 7) || chk(ruinGrid(), ruinAt, 6);
+  return chk(towerGrid(), towerAt, 7) || chk(ruinGrid(), ruinAt, 6) || villagesNear(x, z, 4).length > 0;
 }
 /* all structures touching chunk (cx, cz) */
 function structuresFor(cx, cz) {
@@ -3091,6 +3237,13 @@ function structuresFor(cx, cz) {
   };
   if (d > RING_IN - 80 && d < RING_OUT + 80) scan(towerGrid(), towerAt, towerOps, 4);
   if (d > RING_OUT - 20) { scan(ruinGrid(), ruinAt, ruinOps, 4); scan(SHROOM_G, shroomAt, shroomOps, 4); }
+  // villages far out
+  for (const v of villagesNear(x0 + 8, z0 + 8, 12)) {
+    if (!near(v.x, v.z, VILLAGE_R)) continue;
+    if (!v.ops) v.ops = opsByChunk(villageOps(v));
+    VILLAGES.set(v.id, v);
+    out.push(v);
+  }
   return out;
 }
 
@@ -3523,10 +3676,10 @@ function resetWorld(seed, mode) {
   W.seed = seed; W.N = makeWorldNoise(seed);
   W.meta.clear(); W.changes.clear(); W.metaChanges.clear(); W.chEdits.clear();
   W.prot.clear(); W.treeAt.clear(); W.hidden.clear(); W.cleared.clear();
-  W.sheepState.clear(); W.explored.clear(); W.genOld.clear(); W.chests.clear(); W.campLv = 1;
+  W.sheepState.clear(); W.explored.clear(); W.genOld.clear(); W.rules = { fall: true }; W.chests.clear(); W.campLv = 1;
   for (const t of W.trees.values()) if (t.model) freeModel(t.model);
   W.trees.clear(); W.treeStates.clear(); TREES_BY_CHUNK.clear();
-  STRUCT_CACHE.clear(); TOWERS.clear();
+  STRUCT_CACHE.clear(); TOWERS.clear(); VILLAGES.clear();
   OBJS.clear();
   campOps(); // sets the spawn points
 }
@@ -3761,7 +3914,9 @@ function emitWater(m, x, y, z, i, lx, ly, lz) {
   const bl = MBL, sk = MSK;
   const above = bl[i + 1];
   const lowered = above !== B.WATER && !OPAQUE[above];
-  const topH = lowered ? 14 : 16;
+  // flowing water gets shallower the further it runs
+  const lv = lowered ? (W.meta.get(I(x, y, z)) || 0) : 0;
+  const topH = !lowered ? 16 : lv > 0 && lv < 8 ? Math.max(3, 14 - lv * 1.5) : 14;
   const layer = TI.water;
   for (let f = 0; f < 6; f++) {
     const n = i + FACE_DELTA[f];
@@ -5775,6 +5930,7 @@ function setBlock(x, y, z, id, meta, opt = {}) {
   const ci = ((x & 15) << 4) | (z & 15);
   if (OPAQUE[id] && y > c.top[ci]) c.top[ci] = y;
   else if (!OPAQUE[id] && y === c.top[ci]) recomputeTop(c, x & 15, z & 15);
+  if (!opt.flow && G.state !== 'loading') flowNotify(x, y, z);
   if (opt.noUpdate) return;
   afterEdit(x, z, x, z, OPAQUE[old] !== OPAQUE[id] || old === B.WATER || id === B.WATER || EMIT[old] !== EMIT[id]);
 }
@@ -6002,7 +6158,7 @@ function makeSave() {
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
-    gv: 2, old: [...W.genOld], tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
+    gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
   };
@@ -6060,6 +6216,7 @@ function applySave(s, convert) {
     for (const id of s.clr || []) W.cleared.add(id);
     for (const k of s.ex || []) W.explored.add(k);
     markOldChunks(s);
+    if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
     for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
   }
   Object.assign(G.time, s.time);
@@ -6255,13 +6412,13 @@ function respawnPlayer() {
   PL.hp = PL.maxHp; PL.dead = false; PL.invuln = 5; PL.stepOffset = 0;
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
 }
-function hurtPlayer(dmg, fromX, fromZ) {
+function hurtPlayer(dmg, fromX, fromZ, noPush) {
   if (PL.dead || PL.invuln > 0 || G.sleep) return;
   dmg *= 1 - armorReduce();
   PL.hp = Math.max(0, PL.hp - dmg);
   PL.lastHurt = G.playTime; PL.hurtT = 0.35;
   const dx = PL.x - fromX, dz = PL.z - fromZ, d = Math.hypot(dx, dz) || 1;
-  PL.vx += dx / d * 6; PL.vz += dz / d * 6; PL.vy = Math.max(PL.vy, 4.5);
+  if (!noPush) { PL.vx += dx / d * 6; PL.vz += dz / d * 6; PL.vy = Math.max(PL.vy, 4.5); }
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.55);
   UI.hurt(); SFX.hurt();
   if (PL.hp <= 0) {
@@ -6371,6 +6528,15 @@ function updatePlayer(dt) {
   // attacks charge up again
   if (PL.charge < 1) { PL.charge = Math.min(1, PL.charge + dt / weaponStats().charge); PL.chargeVis = 1; }
   else if (PL.chargeVis > 0) PL.chargeVis = Math.max(0, PL.chargeVis - dt * 2.5);
+  // falling: from more than 3.5 blocks it hurts (not into water: a water bucket at the last moment saves you)
+  if (PL.onGround || PL.inWater || PL.climbing) PL.fallTop = PL.y;
+  else PL.fallTop = Math.max(PL.fallTop === undefined ? PL.y : PL.fallTop, PL.y);
+  if (!wasGround && PL.onGround && !PL.inWater) {
+    const fall = (PL.fallTopPrev === undefined ? PL.y : PL.fallTopPrev) - PL.y;
+    const wet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.1), Math.floor(PL.z)) === B.WATER;
+    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead) { hurtPlayer(Math.round((fall - 3) * 6), PL.x, PL.z, true); SFX.land(); }
+  }
+  PL.fallTopPrev = PL.fallTop;
   if (!wasGround && PL.onGround && PL.airT > 0.35) { SFX.land(); for (let k = 0; k < 4; k++) spawnPart({ x: PL.x, y: PL.y + 0.05, z: PL.z, vx: (Math.random() - 0.5) * 2, vy: 0.6, vz: (Math.random() - 0.5) * 2, life: 0.6, size: 0.18, r: 0.75, g: 0.72, b: 0.66, kind: 1, grav: 0, drag: 2, alpha: 0.35, grow: 1.5 }); }
   PL.airT = PL.onGround ? 0 : PL.airT + dt;
   PL.stepOffset = damp(PL.stepOffset, 0, 14, dt);
@@ -6841,6 +7007,8 @@ function useBucket(target) {
   if (!target || target.type !== 'block' || target.id !== B.WATER) { hint('bucket', 'Zeig mit dem Eimer auf Wasser und klick.'); return false; }
   if (!target.inReach) { hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
   const { x, y, z } = target;
+  // only a full water block (a source) fills the bucket; running water does not
+  if (waterLevel(x, y, z) !== 0) { hint('flow', 'Fließendes Wasser kann man nicht aufheben. Zeig auf die Quelle.'); return false; }
   if (!takeItem('bucket', 1)) return false;
   giveInSlot('water_bucket', 'bucket');
   if (y > SEA) {
@@ -6906,6 +7074,7 @@ function interactTargets() {
   const out = [];
   const m = G.merchant;
   if (m && m.visible > 0.5 && !isNight()) { const d = Math.hypot(m.x - PL.x, m.z - PL.z); if (d < 3.6) out.push({ kind: 'merchant', d: d - 1, label: 'Mit dem Händler handeln' }); }
+  for (const tr of TRADERS.values()) { if (tr.sleep || isNight()) continue; const d = Math.hypot(tr.x - PL.x, tr.z - PL.z); if (d < 3.6) out.push({ kind: 'merchant', d: d - 1, label: 'Mit dem Dorfhändler handeln' }); }
   for (const s of G.sheep) { const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < 2.6 && Math.abs(s.y - PL.y) < 1.5) out.push({ kind: 'sheep', s, d, label: s.wool ? (heldToolKind() === 'shears' ? 'Schaf scheren' : G.tools.shears ? 'Schaf scheren (Schere in die Hand)' : 'Schaf scheren (Schere nötig)') : 'Wolle wächst nach' }); }
   const px = Math.floor(PL.x), py = Math.floor(PL.y), pz = Math.floor(PL.z);
   for (let x = px - 2; x <= px + 2; x++) for (let z = pz - 2; z <= pz + 2; z++) for (let y = py - 1; y <= py + 2; y++) {
@@ -7299,8 +7468,16 @@ function initMerchant() {
   G.merchant = { x: q[0], y: q[1], z: q[2], vx: 0, vy: 0, vz: 0, hw: 0.3, h: 1.85, onGround: true, stepOffset: 0, yaw: 0, visible: out ? 1 : 0, state: out ? 'stall' : 'inside', dir: 0, wp: 0, t: 0, phase: 0, walkAmt: 0, wave: 0, greeted: false, bubbleT: 0, bubble: '' };
 }
 const MERCHANT_LINES = ['Hallo, Fremder! Holz gegen Waren, faire Preise.', 'Ein Lagerfeuer zuerst, glaub mir.', 'Schafe? Die grasen weit draußen.', 'Die Nächte werden länger, wenn der Mond rot wird …', 'Ziegel halten mehr aus als Bretter.'];
+/* does the merchant still have a house? (his bed, and a roof over it) */
+function hutIntact() {
+  const b = W.hutBed; if (!b) return false;
+  if (getB(b[0], b[1], b[2]) !== B.BED) return false;
+  for (let y = b[1] + 1; y <= b[1] + 6; y++) if (SOLID[getB(b[0], y, b[2])]) return true;
+  return false;
+}
 function updateMerchant(dt) {
   const m = G.merchant; if (!m) return;
+  m.sleep = 0;
   const T = G.time;
   const shouldBeOut = T.phase === 'day' && T.t > 4 && T.t < DAY_LEN - 22;
   const path = merchantPath();
@@ -7322,7 +7499,13 @@ function updateMerchant(dt) {
   }
   if (speed === 0) { m.vx = damp(m.vx, 0, 12, dt); m.vz = damp(m.vz, 0, 12, dt); }
   m.x += m.vx * dt; m.z += m.vz * dt;
-  m.visible = damp(m.visible, m.state === 'inside' ? 0 : 1, 7, dt);
+  // night: asleep in his bed, or (house gone) on the ground next to his stall
+  if (!shouldBeOut && (m.state === 'inside' || m.state === 'stall' || m.state === 'walk')) {
+    if (hutIntact()) { if (m.state === 'inside') { const b = W.hutBed; m.x = b[0] + 0.5; m.z = b[2] + 0.15; m.y = b[1]; m.yaw = Math.PI; m.vx = m.vz = 0; m.sleep = 1; } }
+    else { const p = W.merchantPos; m.state = 'inside'; m.x = p[0]; m.z = p[2] + 0.6; m.y = groundInfo(Math.floor(p[0]), Math.floor(p[2])).y + 1; m.yaw = Math.PI / 2; m.vx = m.vz = 0; m.sleep = 2; }
+  }
+  if (shouldBeOut && m.state === 'inside') { const d = W.hutDoor; m.x = d[0]; m.y = d[1]; m.z = d[2]; }
+  m.visible = damp(m.visible, m.state === 'inside' && !m.sleep ? 0 : 1, 7, dt);
   const hs = Math.hypot(m.vx, m.vz);
   m.walkAmt = damp(m.walkAmt, clamp(hs / 1.4, 0, 1), 8, dt);
   m.phase += dt * hs * 2.3;
@@ -7584,6 +7767,90 @@ function updateTips(dt) {
     UI._tipT = 16;
     SFX.ui();
   }
+}
+
+/* ---- 09f_flow.js ---- */
+/* =========================================================================
+   Flowing water. A water block without a level (meta) is a source: the sea,
+   lakes and what a bucket puts down. Water runs down first; on the ground it
+   spreads up to 7 blocks to the sides, getting shallower (level 1..7 in the
+   meta, 8 = falling). Take the source away and the flow dries up again.
+   Every player simulates the flow from the same block changes.
+   ========================================================================= */
+const FLOW = { q: new Set(), t: 0, box: null };
+const FLOW_MAX = 7, FLOW_FALL = 8;
+/* null: no water; 0: source; 1..7: flowing; 8: falling */
+function waterLevel(x, y, z) {
+  if (getB(x, y, z) !== B.WATER) return null;
+  const m = W.meta.get(I(x, y, z));
+  return m === undefined || m < 0 ? 0 : m;
+}
+function flowWake(x, y, z) {
+  if (y < 1 || y >= WY - 1) return;
+  FLOW.q.add(I(x, y, z));
+}
+/* a block changed: the water around it may move */
+function flowNotify(x, y, z) {
+  const near = [[0, 0, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+  let any = false;
+  for (const [dx, dy, dz] of near) if (getB(x + dx, y + dy, z + dz) === B.WATER) { any = true; break; }
+  if (!any) return;
+  for (const [dx, dy, dz] of near) flowWake(x + dx, y + dy, z + dz);
+}
+function flowSet(x, y, z, id, level) {
+  setBlock(x, y, z, id, level, { noUpdate: true, flow: true });
+  const b = FLOW.box || (FLOW.box = [x, z, x, z]);
+  b[0] = Math.min(b[0], x); b[1] = Math.min(b[1], z); b[2] = Math.max(b[2], x); b[3] = Math.max(b[3], z);
+  for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) flowWake(x + dx, y + dy, z + dz);
+  flowWake(x, y, z);
+}
+const FLOW_OPEN = (id) => id === B.AIR || (KIND[id] === K_PLANT && id !== B.SAPLING && id !== B.CRYSTAL);
+function flowCell(i) {
+  const [x, y, z] = cellXYZ(i);
+  if (!chunkForBlock(x, z)) return;
+  const L = waterLevel(x, y, z);
+  if (L === null) return;
+  // flowing water needs something that feeds it: water above, or shallower water next to it
+  if (L > 0) {
+    let fed = waterLevel(x, y + 1, z) !== null;
+    if (!fed && L !== FLOW_FALL) {
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const n = waterLevel(x + dx, y, z + dz);
+        if (n !== null && (n === FLOW_FALL ? 0 : n) < L) { fed = true; break; }
+      }
+    }
+    if (!fed) { flowSet(x, y, z, B.AIR, null); return; }
+  }
+  // down first
+  const below = getB(x, y - 1, z);
+  if (below === B.LAVA) { flowSet(x, y - 1, z, B.COBBLE, null); return; }
+  if (FLOW_OPEN(below)) { if (y - 1 >= 1) flowSet(x, y - 1, z, B.WATER, FLOW_FALL); return; }
+  if (below === B.WATER) {
+    const bl = waterLevel(x, y - 1, z);
+    if (bl > 0 && bl !== FLOW_FALL) flowSet(x, y - 1, z, B.WATER, FLOW_FALL);
+    return;
+  }
+  // on the ground: to the sides, one level shallower
+  const E = L === FLOW_FALL ? 0 : L;
+  if (E >= FLOW_MAX) return;
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const nx = x + dx, nz = z + dz;
+    const id = getB(nx, y, nz);
+    if (id === B.LAVA) { flowSet(nx, y, nz, B.COBBLE, null); continue; }
+    if (FLOW_OPEN(id)) { if (KIND[id] === K_PLANT) breakBlockAt(nx, y, nz, false, false, true); flowSet(nx, y, nz, B.WATER, E + 1); continue; }
+    if (id === B.WATER) { const n = waterLevel(nx, y, nz); if (n > E + 1 && n !== FLOW_FALL) flowSet(nx, y, nz, B.WATER, E + 1); }
+  }
+}
+function updateFlow(dt) {
+  FLOW.t -= dt;
+  if (FLOW.t > 0 || !FLOW.q.size) return;
+  FLOW.t = 0.22;
+  const batch = [...FLOW.q].slice(0, 600);
+  for (const i of batch) FLOW.q.delete(i);
+  for (const i of batch) flowCell(i);
+  if (FLOW.q.size > 20000) FLOW.q.clear();   // never let a flood eat the game
+  const b = FLOW.box;
+  if (b) { FLOW.box = null; afterEdit(b[0], b[1], b[2], b[3], true); }
 }
 
 /* ---- 09i_infect.js ---- */
@@ -8016,6 +8283,78 @@ function drawMob(z, t) {
   else drawZombie(z, t);
 }
 
+/* ---- 09v_village.js ---- */
+/* =========================================================================
+   Village traders: each village has one. By day at the stall on the square
+   (he sells the same things as the merchant at the spawn), at night asleep
+   in his house, or on the ground if his house is gone. Every player sees
+   their own traders (they only stand and walk, nothing to sync).
+   ========================================================================= */
+const TRADERS = new Map();      // village id -> trader
+function traderHouseIntact(t) {
+  const h = t.v.houses && t.v.houses[0]; if (!h) return false;
+  const b = h.bed;
+  if (getB(b[0], b[1], b[2]) !== B.BED) return false;
+  for (let y = b[1] + 1; y <= b[1] + 7; y++) if (SOLID[getB(b[0], y, b[2])]) return true;
+  return false;
+}
+/* stand on whatever is below (the floor of a house is not the roof) */
+function footY(x, y, z) {
+  const fx = Math.floor(x), fz = Math.floor(z);
+  for (let yy = Math.floor(y + 1.5); yy >= Math.floor(y) - 4; yy--) if (SOLID[getB(fx, yy, fz)] && !SOLID[getB(fx, yy + 1, fz)]) return yy + 1;
+  return y;
+}
+function updateTraders(dt) {
+  G._trT = (G._trT || 0) - dt;
+  if (G._trT <= 0) {
+    G._trT = 1;
+    for (const v of VILLAGES.values()) {
+      const d = Math.hypot(v.x - PL.x, v.z - PL.z);
+      if (d < 110 && v.stall && !TRADERS.has(v.id) && chunkForBlock(v.x, v.z) && chunkForBlock(Math.floor(v.stall[0]), Math.floor(v.stall[2]))) {
+        const s = v.stall;
+        TRADERS.set(v.id, { v, x: s[0], y: s[1], z: s[2] + 1.6, yaw: 0, vx: 0, vz: 0, visible: 1, walkAmt: 0, phase: 0, wave: 0, sleep: 0, mode: 'stall', t: 0, greeted: false });
+        if (!G.hintT['village' + v.id]) { G.hintT['village' + v.id] = 1e12; UI.banner('Ein Dorf!', 'Häuser, ein Brunnen und ein Händler, bei dem du alles bekommst.', 'day'); SFX.dawn(); }
+      }
+    }
+    for (const [id, t] of TRADERS) if (Math.hypot(t.x - PL.x, t.z - PL.z) > 170 || !VILLAGES.has(id)) TRADERS.delete(id);
+  }
+  const T = G.time;
+  const out = T.phase === 'day' && T.t > 4 && T.t < DAY_LEN - 22;
+  for (const t of TRADERS.values()) {
+    const v = t.v, h = v.houses[0];
+    t.sleep = 0;
+    let tx, tz;
+    if (out) {
+      if (t.mode === 'bed' && h) { t.x = h.door[0]; t.z = h.door[2]; t.y = h.door[1]; }
+      t.mode = 'stall'; tx = v.stall[0]; tz = v.stall[2] + 1.6;
+    } else if (h && traderHouseIntact(t)) {
+      if (t.mode !== 'bed') { t.mode = 'home'; tx = h.door[0]; tz = h.door[2]; if (Math.hypot(tx - t.x, tz - t.z) < 0.35) t.mode = 'bed'; }
+    } else { t.mode = 'ground'; }
+    if (t.mode === 'bed' && h) {
+      const d = [[0, 1], [1, 0], [0, -1], [-1, 0]][h.bedDir];
+      t.x = h.bed[0] + 0.5 - d[0] * 0.35; t.z = h.bed[2] + 0.5 - d[1] * 0.35; t.y = h.bed[1]; t.yaw = Math.atan2(-d[0], -d[1]); t.sleep = 1; t.vx = t.vz = 0;
+    } else if (t.mode === 'ground') {
+      t.x = v.stall[0]; t.z = v.stall[2] + 1.6; t.y = footY(t.x, v.stall[1], t.z); t.yaw = Math.PI / 2; t.sleep = 2; t.vx = t.vz = 0;
+    } else {
+      const dx = tx - t.x, dz = tz - t.z, d = Math.hypot(dx, dz);
+      const sp = d > 0.2 ? 1.6 : 0;
+      t.vx = damp(t.vx, sp ? dx / d * sp : 0, 9, dt); t.vz = damp(t.vz, sp ? dz / d * sp : 0, 9, dt);
+      t.x += t.vx * dt; t.z += t.vz * dt;
+      t.y = damp(t.y, footY(t.x, t.y, t.z), 12, dt);
+      const hs = Math.hypot(t.vx, t.vz);
+      const dp = Math.hypot(PL.x - t.x, PL.z - t.z);
+      t.yaw = dampAngle(t.yaw, hs > 0.2 ? Math.atan2(t.vx, t.vz) : dp < 9 ? Math.atan2(PL.x - t.x, PL.z - t.z) : 0, 5, dt);
+      t.walkAmt = damp(t.walkAmt, clamp(hs / 1.4, 0, 1), 8, dt);
+      t.phase += dt * hs * 2.3;
+      if (t.mode === 'stall' && dp < 6.5 && !t.greeted) { t.greeted = true; t.wave = 1.6; SFX.greet(); }
+      if (dp > 14) t.greeted = false;
+    }
+    t.wave = Math.max(0, t.wave - dt);
+    t.t += dt;
+  }
+}
+function drawTraders(t) { for (const tr of TRADERS.values()) drawMerchant(tr, t); }
+
 /* ---- 09w_world.js ---- */
 /* =========================================================================
    World life: what happens when chunks come and go (sheep herds, the
@@ -8313,6 +8652,10 @@ function updateTornado(dt) {
   if (!MP.isClient()) { wreckStep(dt); T.editT -= dt; if (T.edits.length && T.editT <= 0) flushTornadoEdits(); }
 }
 /* a building the tornado reached is torn down completely, from the roof down */
+/* something somebody built: by a player, or a house of the camp or a village (not trees, not towers) */
+const HOUSE_MAT = new Uint8Array(256);
+[B.PLANKS, B.BRICKS, B.GLASS, B.DOOR, B.TORCH, B.BED, B.WOOL_RED, B.WOOL_WHITE, B.ROOF, B.OAK_LOG].forEach((b) => (HOUSE_MAT[b] = 1));
+function builtLike(i, id) { return W.changes.has(i) || (HOUSE_MAT[id] === 1 && !W.treeAt.has(i)); }
 function wreckBuilding(x, y, z) {
   const T = TORNADO;
   const start = I(x, y, z);
@@ -8327,8 +8670,9 @@ function wreckBuilding(x, y, z) {
       const nx = cx + dx, ny = cy + dy, nz = cz + dz;
       if (ny < 1 || ny >= WY - 1) continue;
       const i = I(nx, ny, nz);
-      if (T.wreckSeen.has(i) || !W.changes.has(i) || W.prot.has(i)) continue;
+      if (T.wreckSeen.has(i) || W.prot.has(i)) continue;
       const id = getB(nx, ny, nz);
+      if (!builtLike(i, id)) continue;
       if (id === B.AIR || id === B.WATER || id === B.BEDROCK) continue;
       T.wreckSeen.add(i);
       q.push([nx, ny, nz]);
@@ -8384,7 +8728,7 @@ function tornadoDestroy(dt) {
     const i = I(x, y, z);
     if (W.prot.has(i)) continue;
     // something somebody built: the whole building goes
-    if (W.changes.has(i) && T.vis > 0.55) { wreckBuilding(x, y, z); continue; }
+    if (builtLike(i, id) && T.vis > 0.55) { wreckBuilding(x, y, z); continue; }
     if (id === B.CHEST) continue;
     if (TREEBLOCK[id]) {
       const tr = W.trees.get(W.treeAt.get(i));
@@ -8777,6 +9121,8 @@ function drawMerchant(m, t) {
   P.headYaw = Math.sin(t * 0.5) * 0.2; P.bob = Math.sin(t * 2) * 0.008;
   if (m.wave > 0) { P.armR = -2.75; P.armRz = 0.3 + Math.sin(t * 11) * 0.35; }
   _ms.reset().t(m.x, m.y, m.z).ry(m.yaw);
+  // asleep: lying in the bed (or on the bare ground)
+  if (m.sleep) { P.legL = P.legR = P.armL = P.armR = 0; P.headYaw = 0; P.blink = true; P.bob = 0; _ms.t(0, m.sleep === 1 ? 0.62 : 0.2, 0).rx(-Math.PI / 2); if (Math.random() < 0.01) spawnPart({ x: m.x, y: m.y + 0.9, z: m.z, vx: 0.1, vy: 0.5, vz: 0, life: 2, size: 0.12, r: 0.9, g: 0.9, b: 1, kind: 1, grav: -0.2, drag: 0.5, alpha: 0.6 }); }
   drawHumanoid(BATCH.solid, _ms, STYLE_MERCHANT, P, sky, 'merchant');
 }
 function drawSheepAll(t) {
@@ -8980,6 +9326,7 @@ function buildDrawLists(t, inMenu) {
   }
   collectLights(t);
   if (G.merchant) drawMerchant(G.merchant, t);
+  drawTraders(t);
   drawSheepAll(t);
   drawTrees(t);
   if (inMenu && UI.skinPreview) drawPreview(t);
@@ -11010,6 +11357,7 @@ function resetGameState() {
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
   PL.charge = 1; PL.chargeVis = 0;
   DROPS.length = 0; PARTS.length = 0; ACTIVE_TREES.clear(); ARROWS.length = 0;
+  TRADERS.clear(); FLOW.q.clear(); FLOW.box = null;
   G._fogHint = false; G.hintT = {}; G.tips = false; G.tipsSeen = {}; G._batSeen = false; BATS.length = 0; TIPS_Q.length = 0;
   PL.hp = PL.maxHp; PL.dead = false; PL.vx = PL.vy = PL.vz = 0;
   PL.x = W.spawn[0]; PL.y = W.spawn[1]; PL.z = W.spawn[2]; PL.yaw = 0; PL.stepOffset = 0;
@@ -11254,7 +11602,8 @@ function pickRay(o, d) {
   }
   for (const s of G.sheep) chk(s, 'sheep', s.x - 0.6, s.y, s.z - 0.6, s.x + 0.6, s.y + 1.2, s.z + 0.6);
   const m = G.merchant;
-  if (m && m.visible > 0.6) chk(m, 'merchant', m.x - 0.45, m.y, m.z - 0.45, m.x + 0.45, m.y + 2.2, m.z + 0.45);
+  if (m && m.visible > 0.6 && !m.sleep) chk(m, 'merchant', m.x - 0.45, m.y, m.z - 0.45, m.x + 0.45, m.y + 2.2, m.z + 0.45);
+  for (const tr of TRADERS.values()) if (!tr.sleep) chk(tr, 'merchant', tr.x - 0.45, tr.y, tr.z - 0.45, tr.x + 0.45, tr.y + 2.2, tr.z + 0.45);
   // from above, tree crowns are ignored so the ground below can be picked;
   // with a block in the hand they count, so you can build against a tree
   const sel = selectedItem();
@@ -11364,6 +11713,8 @@ function gameUpdate(dt) {
   updateTips(dt);
   updateInfection(dt);
   syncCrosshair();
+  updateFlow(dt);
+  updateTraders(dt);
   updateWeather(dt);
   updateTornado(dt);
   updateFarFog(dt, PL.x, PL.z);
@@ -12412,7 +12763,7 @@ const MP = {
     const msg = { tm: [T.phase === 'night' ? 1 : 0, Math.round(T.t * 10) / 10, T.day, T.night, T.blood ? 1 : 0, T.afterBlood ? 1 : 0], z,
       w: [WEATHER_KINDS.indexOf(WEATHER.kind), TT.on ? 1 : 0, r2(TT.x), r2(TT.z), TT.lv, Math.round(TT.t || 0)] };
     const m = G.merchant;
-    if (m) msg.m = [r2(m.x), r2(m.y), r2(m.z), r2(m.yaw), m.state === 'inside' ? 0 : 1, m.wave > 0 ? 1 : 0];
+    if (m) msg.m = [r2(m.x), r2(m.y), r2(m.z), r2(m.yaw), m.state === 'inside' ? 0 : 1, m.wave > 0 ? 1 : 0, m.sleep || 0];
     if (++this.mobN % 3 === 0) {
       const sc = { idle: 0, walk: 1, graze: 2, flee: 3 };
       // only the sheep somebody else can see
@@ -12468,7 +12819,7 @@ const MP = {
       if (z.type === 'archer') z.drawT = a[9]; else z.rise = a[9];
     }
     for (const z of G.zombies) if (!seen.has(z.id) && z.state !== 'die') { z.state = 'die'; z.t = 0.4; z.gone = true; }
-    if (v.m && G.merchant) { const m = G.merchant; m.tx = v.m[0]; m.ty = v.m[1]; m.tz = v.m[2]; m.tyaw = v.m[3]; m.state = v.m[4] ? 'stall' : 'inside'; if (v.m[5] && !(m.wave > 0)) m.wave = 1.2; }
+    if (v.m && G.merchant) { const m = G.merchant; m.tx = v.m[0]; m.ty = v.m[1]; m.tz = v.m[2]; m.tyaw = v.m[3]; m.state = v.m[4] ? 'stall' : 'inside'; m.sleep = v.m[6] || 0; if (v.m[5] && !(m.wave > 0)) m.wave = 1.2; }
     if (v.s) {
       const sc = ['idle', 'walk', 'graze', 'flee'];
       for (const a of v.s) { const s = G.sheep.find((q) => q.id === a[0]); if (!s) continue; s.tx = a[1]; s.ty = a[2]; s.tz = a[3]; s.tyaw = a[4]; s.wool = !!a[5]; s.state = sc[a[6]] || 'idle'; s.netSeen = true; }
@@ -12572,7 +12923,8 @@ function updateMobsClient(dt) {
     m.phase += dt * hs * 2.3;
     const dp = Math.hypot(PL.x - m.x, PL.z - m.z);
     m.yaw = dampAngle(m.yaw, hs > 0.3 ? m.tyaw : (dp < 9 ? Math.atan2(PL.x - m.x, PL.z - m.z) : m.tyaw), 6, dt);
-    m.visible = damp(m.visible, m.state === 'inside' ? 0 : 1, 7, dt);
+    m.visible = damp(m.visible, m.state === 'inside' && !m.sleep ? 0 : 1, 7, dt);
+    if (m.sleep) { m.x = m.tx; m.y = m.ty; m.z = m.tz; m.yaw = m.tyaw; }
     m.wave = Math.max(0, m.wave - dt);
     m.t += dt;
     if (m.state === 'stall' && dp < 6.5 && !m.greeted) { m.greeted = true; m.wave = 1.6; m.bubble = MERCHANT_LINES[Math.floor(Math.random() * MERCHANT_LINES.length)]; m.bubbleT = 4; SFX.greet(); }
@@ -12624,6 +12976,7 @@ function applyNetEvent(v) {
       break;
     }
     case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
+    case 'rules': if (typeof v.fall === 'boolean') { W.rules.fall = v.fall; UI.toast('Fallschaden ist jetzt ' + (v.fall ? 'an' : 'aus') + '.', 'info', 3000, 'rules'); } break;
     case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
@@ -12861,6 +13214,8 @@ async function playServer(srv, keep) {
   SERVER.lastUp = performance.now();
   const you = mine || (save.vis && save.vis[NET.uid()]) || null;
   await loadWorld(save.seed, save, { mode: save.mode, force: true, server: true, you });
+  // the owner's rules for this server
+  try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 8000)).val(); W.rules.fall = f !== false; } catch (e) { /* keep */ }
   startPlaying();
   UI.toast('Du bist auf dem Server „' + srv.name + '“. Deine Freunde können jetzt jederzeit dazukommen.', 'good', 5200);
 }
@@ -13388,6 +13743,7 @@ UI.srvIpRefresh = async function () {
   let ip = null;
   try { ip = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/ip').once('value'), 15000)).val(); } catch (e) { /* ignore */ }
   if (UI._admin !== srv) return;
+  try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 15000)).val(); $('saFall').setAttribute('aria-checked', String(f !== false)); } catch (e) { /* ignore */ }
   srv.ip = ip || null;
   $('saIp').value = ip || '';
   $('saIpOff').hidden = !ip;
@@ -13475,6 +13831,17 @@ function bindBackupUI() {
     const srv = UI._admin; if (!srv) return;
     try { const n = await SERVER.setIp(srv, $('saIp').value); saMsg('Dein Server ist jetzt unter der IP „' + n + '“ erreichbar.', true); UI.srvIpRefresh(); UI.menuServers(true); }
     catch (e) { saMsg(e && e.message ? e.message : 'Das ging nicht. ' + netMsg(e)); }
+  });
+  $('saFall').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    const on = $('saFall').getAttribute('aria-checked') !== 'true';
+    try {
+      await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').set(on), 15000);
+      $('saFall').setAttribute('aria-checked', String(on));
+      // playing on it right now: everybody inside gets it at once
+      if ((G.server && G.server.wid === srv.wid) || (MP.srv && MP.srv.wid === srv.wid)) { W.rules.fall = on; if (MP.active()) MP.send({ t: 'rules', fall: on }); }
+      saMsg('Fallschaden ist jetzt ' + (on ? 'an' : 'aus') + '.', true);
+    } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
   });
   $('saIpOff').addEventListener('click', async () => {
     const srv = UI._admin; if (!srv) return;
