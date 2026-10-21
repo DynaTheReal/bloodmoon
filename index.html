@@ -39,7 +39,8 @@
           "$from": { ".write": "auth != null && (auth.uid === $uid || auth.uid === $from)" }
         },
         "worlds": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
-        "worldMeta": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
+        "worldMeta": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
+        "favs": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
       }
     },
     "status": {
@@ -61,10 +62,10 @@
       "$owner": {
         ".read": "auth != null && auth.uid === $owner",
         "$wid": {
-          ".read": "auth != null && data.child('members/' + auth.uid).exists()",
+          ".read": "auth != null && (data.child('members/' + auth.uid).exists() || data.child('public').val() === true)",
           ".write": "auth != null && auth.uid === $owner",
-          "updated": { ".write": "auth != null && data.parent().child('members/' + auth.uid).exists()" },
-          "day": { ".write": "auth != null && data.parent().child('members/' + auth.uid).exists()" },
+          "updated": { ".write": "auth != null && (data.parent().child('members/' + auth.uid).exists() || data.parent().child('public').val() === true)" },
+          "day": { ".write": "auth != null && (data.parent().child('members/' + auth.uid).exists() || data.parent().child('public').val() === true)" },
           "members": { "$m": { "ok": { ".write": "auth != null && auth.uid === $m && data.parent().exists()" } } }
         }
       }
@@ -72,9 +73,16 @@
     "srv": {
       "$owner": {
         "$wid": {
-          ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists())",
-          ".write": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists())"
+          ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)",
+          ".write": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)"
         }
+      }
+    },
+    "srvnames": {
+      "$n": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('owner').val() === auth.uid) || data.child('owner').val() === auth.uid)",
+        ".validate": "!newData.exists() || $n.matches(/^[a-z0-9_-]{3,20}$/)"
       }
     },
     "srvin": {
@@ -226,6 +234,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 #msList { min-width: 0; }
 .ms-row .btn { flex: none; }
 .ms-h { display: flex; justify-content: space-between; align-items: center; }
+.ms-ip { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.ms-ip .field { flex: 1 1 150px; min-width: 0; padding: 8px 10px; font-size: 13px; }
+.ms-ip .btn { padding: 8px 10px; font-size: 13px; flex: none; }
+.ms-star { color: #ffd36b; }
 .ms-h b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
 .ms-row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 6px; }
 .ms-row .ms-m { flex: 1; min-width: 0; }
@@ -323,6 +335,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .t-jump { right: calc(var(--safe-r) + 6px); bottom: calc(var(--safe-b) + 92px); width: 84px; height: 84px; }
 .t-sprint { right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 190px); width: 64px; height: 64px; font-size: 11.5px; }
 .t-drop { right: calc(var(--safe-r) + 10px); bottom: calc(var(--safe-b) + 18px); width: 58px; height: 58px; font-size: 10.5px; line-height: 1.1; padding: 0 4px; }
+.t-atk { right: calc(var(--safe-r) + 104px); bottom: calc(var(--safe-b) + 100px); width: 80px; height: 80px; font-size: 11.5px; line-height: 1.15; background: rgba(200, 60, 60, 0.55); }
+.t-use { right: calc(var(--safe-r) + 104px); bottom: calc(var(--safe-b) + 192px); width: 66px; height: 66px; font-size: 11px; line-height: 1.15; background: rgba(60, 130, 200, 0.5); }
+.t-atk.on { background: rgba(232, 72, 77, 0.9); }
 .t-sprint[aria-pressed="true"] { background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .t-act { right: calc(var(--safe-r) + 92px); bottom: calc(var(--safe-b) + 112px); height: 52px; padding: 0 18px; background: rgba(229, 122, 46, 0.86); border-color: rgba(255, 210, 160, 0.6); }
 .tbtn:active { transform: scale(0.94); }
@@ -403,6 +418,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .row label, .row .lbl { font-size: 14px; }
 .row small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; margin-top: 2px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.row.ctl-row { grid-template-columns: 1fr; gap: 8px; }
+.ctl-row .seg { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ctl-row .seg button { padding: 8px 4px; }
 .seg button { border: 0; background: transparent; padding: 7px 11px; font-size: 13px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
 .seg button[aria-pressed="true"] { background: var(--text); color: var(--ink); }
 .rng { display: flex; align-items: center; gap: 10px; }
@@ -606,6 +624,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <button id="tJump" class="tbtn t-jump">Springen</button>
     <button id="tSprint" class="tbtn t-sprint" aria-pressed="false">Sprinten</button>
     <button id="tDrop" class="tbtn t-drop" aria-label="Wegwerfen">Weg&shy;werfen</button>
+    <button id="tAtk" class="tbtn t-atk" hidden aria-label="Abbauen und angreifen">Abbauen<br>Angriff</button>
+    <button id="tUse" class="tbtn t-use" hidden aria-label="Bauen und benutzen">Bauen<br>Nutzen</button>
     <button id="tAct" class="tbtn t-act" hidden>Aktion</button>
   </div>
 </div>
@@ -624,6 +644,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   </div>
   <aside class="menu-srv panel" id="menuSrv" aria-label="Server">
     <div class="ms-h"><b>Server</b><button class="link" id="msReload" type="button">Neu laden</button></div>
+    <form class="ms-ip" id="msIpForm" autocomplete="off"><input class="field" id="msIp" maxlength="20" placeholder="Server-IP, z. B. Brickstein" aria-label="Server-IP" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Verbinden</button><button class="btn" id="msIpFav" type="button" title="In die Favoriten" aria-label="In die Favoriten">☆</button></form>
     <div id="msList"></div>
   </aside>
   <div class="menu-inner">
@@ -714,7 +735,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
       <p class="sec-t">Steuerung</p>
       <div class="rows">
-        <div class="row"><div class="lbl">Touch-Steuerung<small id="touchHint">Automatisch: an, wenn keine Tastatur da ist</small></div><div class="seg" id="setTouch"><button data-v="auto" type="button">Auto</button><button data-v="on" type="button">An</button><button data-v="off" type="button">Aus</button></div></div>
+        <div class="row ctl-row"><div class="lbl">Steuerungsart<small id="touchHint">Automatisch: Touch, wenn keine Tastatur da ist</small></div><div class="seg" id="setTouch"><button data-v="auto" type="button">Auto</button><button data-v="off" type="button">Tastatur</button><button data-v="on" type="button">Touch</button><button data-v="cross" type="button">Fadenkreuz</button></div></div>
         <div class="row"><label for="setSens">Kamera-Empfindlichkeit</label><div class="rng"><input id="setSens" type="range" min="0.3" max="2.5" step="0.05"><output id="setSensO"></output></div></div>
         <div class="row"><label for="setFov">Sichtfeld<small>Ego-Perspektive</small></label><div class="rng"><input id="setFov" type="range" min="60" max="100" step="1"><output id="setFovO"></output></div></div>
         <div class="row"><div class="lbl">Auto-Springen<small>Automatisch auf Blöcke steigen</small></div><button class="tgl" id="setStep" role="switch" aria-label="Auto-Springen" type="button"></button></div>
@@ -834,6 +855,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="saTitle">Server</h2><p id="saSub"></p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
+      <p class="sec-t">Server-IP</p>
+      <p class="hint" id="saIpHint">Mit einer IP kann jeder, der sie eingibt, auf deinen Server.</p>
+      <form class="newworld" id="saIpForm" autocomplete="off"><input class="field" id="saIp" maxlength="20" placeholder="z. B. Brickstein" aria-label="Server-IP" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Veröffentlichen</button></form>
+      <button class="btn ghost" id="saIpOff" type="button" hidden style="margin-top:8px">IP entfernen</button>
       <p class="sec-t">Mitglieder</p>
       <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
       <p class="sec-t">Server-Welt</p>
@@ -841,6 +866,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="form-msg" id="saMsg" hidden></p>
       <p class="sec-t">Backups auf dem Server</p>
       <div class="list" id="saList"></div>
+      <p class="sec-t">Server löschen</p>
+      <button class="btn danger" id="saDelete" type="button">Server löschen</button>
     </div>
   </div>
 </div>
@@ -5362,8 +5389,10 @@ const SETTINGS = {
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
+/* touch with a crosshair: aim with the middle of the screen, buttons dig and build, the finger only looks around */
+function crossUI() { return SETTINGS.touchMode === 'cross'; }
 function touchUI() {
-  if (SETTINGS.touchMode === 'on') return true;
+  if (SETTINGS.touchMode === 'on' || SETTINGS.touchMode === 'cross') return true;
   if (SETTINGS.touchMode === 'off') return false;
   return DEVICE.hasTouch && !DEVICE.fine && !DEVICE.keyboardSeen;
 }
@@ -5502,13 +5531,19 @@ function weaponStats() {
 }
 /* campfire levels: protection radius, clear sight from the spawn, seconds it keeps burning into a blood moon */
 const CAMP_LV = [null,
-  { r: 11, clear: 150, burn: 0 },
-  { r: 15, clear: 230, burn: 90, cost: { wood: 12, iron: 3 } },
-  { r: 20, clear: 330, burn: 200, cost: { wood: 20, iron: 8 } },
-  { r: 26, clear: 480, burn: 330, cost: { wood: 30, iron: 12, diamond: 2 } },
-  { r: 32, clear: 800, burn: 480, cost: { wood: 40, diamond: 4, crystal: 6 } },
+  // keep: who dies this close to the fire keeps everything they carry
+  { r: 11, clear: 150, burn: 0, keep: 6 },
+  { r: 15, clear: 230, burn: 10, keep: 14, cost: { wood: 12, iron: 3 } },
+  { r: 20, clear: 330, burn: 25, keep: 22, cost: { wood: 20, iron: 8 } },
+  { r: 26, clear: 480, burn: 45, keep: 32, cost: { wood: 30, iron: 12, diamond: 2 } },
+  { r: 32, clear: 800, burn: 75, keep: 45, cost: { wood: 40, diamond: 4, crystal: 6 } },
 ];
 function campR(o) { return (CAMP_LV[o.level || 1] || CAMP_LV[1]).r; }
+/* the campfire whose keep circle you stand in (burning or not), or null */
+function keepFire(x, z) {
+  for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && Math.hypot(o.x + 0.5 - x, o.z + 0.5 - z) <= (CAMP_LV[o.level || 1] || CAMP_LV[1]).keep) return o;
+  return null;
+}
 const REACH = 5.6;
 
 const G = {
@@ -6059,6 +6094,8 @@ function dropSelected(all) {
 }
 /* dying: everything you carry falls on the ground, and stays there until somebody picks it up */
 function dropEverything() {
+  // close to your campfire your things stay with you
+  if (keepFire(PL.x, PL.z)) { setTimeout(() => UI.toast('Dein Lagerfeuer war nah genug: du behältst alle deine Sachen.', 'good', 5200), 900); saveGame(true); return; }
   const all = [];
   for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
   for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
@@ -8778,6 +8815,11 @@ function applyTouchMode(announce) {
   const el = $('touchUi');
   if (el) el.hidden = !on || G.state === 'menu' || G.state === 'loading';
   if (on) INPUT.lastSource = 'touch';
+  // crosshair: always first person, the action buttons on the right
+  const cross = on && crossUI();
+  if ($('tAtk')) { $('tAtk').hidden = !cross; $('tUse').hidden = !cross; }
+  if (el) el.classList.toggle('cross-mode', cross);
+  if (cross && G.state !== 'menu' && G.state !== 'loading' && CAMC.mode !== 'fp') setCamMode('fp');
   UI.hotbar(); UI.camMode(); updateCursorStyle();
   if (announce && !on && SETTINGS.touchMode === 'auto' && DEVICE.hasTouch && G.state === 'playing') UI.toast('Tastatur erkannt. Die Touch-Steuerung ist jetzt ausgeblendet.', 'info', 3600, 'touch');
 }
@@ -8909,7 +8951,7 @@ function initInput() {
     if (G.sleep && G.sleep.mp) { leaveBed(); return; }
     const joyAllowed = touchUI();
     // a finger that just misses the jump or sprint button does not dig or place
-    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
+    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop', 'tAtk', 'tUse'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
     for (const t of e.changedTouches) {
       if (near(t)) continue;
       const left = t.clientX < window.innerWidth * 0.42;
@@ -8917,7 +8959,8 @@ function initInput() {
         INPUT.joy.active = true; INPUT.joy.id = t.identifier; INPUT.joy.ox = t.clientX; INPUT.joy.oy = t.clientY; INPUT.joy.x = 0; INPUT.joy.y = 0;
         UI.joy(true, t.clientX, t.clientY, 0, 0);
       } else {
-        INPUT.touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, t0: performance.now(), moved: 0, hold: false });
+        // crosshair mode: a finger only looks around, tapping never digs or builds
+        INPUT.touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, t0: performance.now(), moved: 0, hold: false, look: crossUI() });
       }
     }
     if (INPUT.touches.size === 2) { const [a, b] = [...INPUT.touches.values()]; INPUT.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: CAMC.distT }; }
@@ -8942,7 +8985,8 @@ function initInput() {
         const [a, b] = [...INPUT.touches.values()];
         const d = Math.hypot(a.x - b.x, a.y - b.y);
         if (CAMC.mode === 'drone') CAMC.distT = clamp(INPUT.pinch.dist * INPUT.pinch.d / Math.max(20, d), 4.5, 30);
-      } else if (s.moved > 8 && !s.hold) lookDelta(dx, dy, CAMC.mode === 'fp' ? 1.6 : 1.25);
+      } else if (s.look) lookDelta(dx, dy, 1.6);
+      else if (s.moved > 8 && !s.hold) lookDelta(dx, dy, CAMC.mode === 'fp' ? 1.6 : 1.25);
       if (s.hold) INPUT.pointer = [t.clientX, t.clientY];
     }
   }, opts);
@@ -8953,6 +8997,7 @@ function initInput() {
       const s = INPUT.touches.get(t.identifier); if (!s) continue;
       INPUT.touches.delete(t.identifier);
       if (s.hold) { INPUT.primaryHeld = false; continue; }
+      if (s.look) continue;
       if (s.moved < 12 && performance.now() - s.t0 < 320 && playing()) {
         INPUT.pointer = [t.clientX, t.clientY]; INPUT.hasPointer = true;
         INPUT.tapMode = 'tap';
@@ -8967,13 +9012,14 @@ function initInput() {
 function updateTouchHold() {
   if (INPUT.lastSource !== 'touch') return;
   for (const s of INPUT.touches.values()) {
+    if (s.look) continue;
     if (!s.hold && s.moved < 12 && performance.now() - s.t0 > 330 && INPUT.touches.size === 1) {
       s.hold = true; INPUT.primaryHeld = true; INPUT.pointer = [s.x, s.y]; INPUT.hasPointer = true;
     }
   }
 }
 function toggleCamMode() {
-  if (CAMC.mode === 'fp') { setCamMode('drone'); releaseLock(); }
+  if (CAMC.mode === 'fp') { if (touchUI() && crossUI()) { UI.toast('Mit Fadenkreuz-Steuerung bleibt die Kamera in der Ego-Perspektive.', 'info', 2600, 'cam'); return; } setCamMode('drone'); releaseLock(); }
   else { setCamMode('fp'); if (!touchUI() && INPUT.lastSource !== 'touch') requestLock('fp'); }
   updateCursorStyle();
 }
@@ -9575,10 +9621,11 @@ UI.campRefresh = function () {
   const lv = o.level, L = CAMP_LV[lv], N = CAMP_LV[lv + 1];
   $('campLv').textContent = 'Stufe ' + lv + ' von 5';
   const row = (lbl, a, b) => '<div class="cmp"><span>' + lbl + '</span><b>' + a + '</b>' + (b !== undefined ? '<i>→</i><b class="up">' + b + '</b>' : '') + '</div>';
-  const burn = (s) => (s ? Math.round(s / 60 * 10) / 10 + ' Min' : 'gar nicht');
+  const burn = (s) => (s ? s + ' Sek' : 'gar nicht');
   let html = row('Schutzkreis', L.r + ' Blöcke', N && N.r + ' Blöcke');
   if (W.mode !== 'island') html += row('Klare Sicht', 'bis ' + L.clear + ' m', N && 'bis ' + N.clear + ' m');
   html += row('Brennt beim Blood Moon', burn(L.burn), N && burn(N.burn));
+  html += row('Sachen behalten beim Tod', 'bis ' + L.keep + ' Blöcke', N && 'bis ' + N.keep + ' Blöcke');
   $('campStats').innerHTML = html;
   const btn = $('campBuy');
   if (!N) { $('campNext').hidden = true; btn.textContent = 'Höchste Stufe'; btn.disabled = true; btn.className = 'btn'; $('campNote').textContent = W.mode === 'island' ? 'Dein Feuer brennt so stark wie es nur geht.' : 'Dein Feuer brennt so stark wie es nur geht. Der Nebel weicht bis weit hinter den Schattenwald.'; return; }
@@ -9588,7 +9635,7 @@ UI.campRefresh = function () {
   const ok = canAfford(N.cost);
   btn.disabled = false; btn.className = 'btn primary' + (ok ? '' : ' poor');
   btn.textContent = 'Auf Stufe ' + (lv + 1) + ' verbessern';
-  $('campNote').textContent = ok ? (W.mode === 'island' ? 'Größerer Schutzkreis, und beim Blood Moon brennt es länger.' : 'Größerer Schutzkreis, der Nebel weicht weiter zurück, und beim Blood Moon brennt es länger.') : 'Dir fehlt noch: ' + missingText(N.cost) + '.' + resHint(N.cost);
+  $('campNote').textContent = ok ? (W.mode === 'island' ? 'Größerer Schutzkreis, größerer Kreis, in dem du beim Tod deine Sachen behältst, und beim Blood Moon brennt es ein bisschen länger.' : 'Größerer Schutzkreis, größerer Kreis, in dem du beim Tod deine Sachen behältst, der Nebel weicht weiter zurück, und beim Blood Moon brennt es ein bisschen länger.') : 'Dir fehlt noch: ' + missingText(N.cost) + '.' + resHint(N.cost);
 };
 
 /* ---------- inventory ---------- */
@@ -9917,7 +9964,10 @@ function bindSettingsUI() {
   const refresh = () => {
     $('setQuality').querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.v === SETTINGS.quality)));
     $('setTouch').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === SETTINGS.touchMode)));
-    $('touchHint').textContent = SETTINGS.touchMode === 'auto' ? 'Automatisch: ' + (touchUI() ? 'gerade an' : 'gerade aus') + ', weil ' + (touchUI() ? 'keine Tastatur erkannt wurde' : (DEVICE.hasTouch ? 'eine Tastatur oder Maus da ist' : 'kein Touchscreen da ist')) : (SETTINGS.touchMode === 'on' ? 'Joystick und Knöpfe werden immer gezeigt' : 'Nur Tastatur und Maus');
+    $('touchHint').textContent = SETTINGS.touchMode === 'auto' ? 'Automatisch: gerade ' + (touchUI() ? 'Touch, weil keine Tastatur erkannt wurde' : 'Tastatur, weil ' + (DEVICE.hasTouch ? 'eine Tastatur oder Maus da ist' : 'kein Touchscreen da ist'))
+      : SETTINGS.touchMode === 'on' ? 'Joystick links, tippen zum Abbauen und Bauen'
+        : SETTINGS.touchMode === 'cross' ? 'Wisch zum Umschauen, ziel mit dem Fadenkreuz, Knöpfe rechts zum Abbauen und Bauen'
+          : 'Tastatur und Maus wie gewohnt';
     $('setView').value = SETTINGS.viewDist; $('setViewO').textContent = SETTINGS.viewDist * CS + ' m';
     $('setFov').value = SETTINGS.fov; $('setFovO').textContent = SETTINGS.fov + '°';
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
@@ -10385,6 +10435,13 @@ function bindUI() {
   ts.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); }, { passive: false });
   ts.addEventListener('click', () => { INPUT.sprintBtn = !INPUT.sprintBtn; ts.setAttribute('aria-pressed', String(INPUT.sprintBtn)); });
   tj.addEventListener('touchend', (e) => { e.preventDefault(); INPUT.jump = false; }, { passive: false });
+  // crosshair mode: hold to dig or attack, tap to build or use
+  const tk = $('tAtk');
+  tk.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.lastSource = 'touch'; INPUT.primaryHeld = true; INPUT.primaryPressed = true; tk.classList.add('on'); }, { passive: false });
+  const tkEnd = (e) => { e.preventDefault(); INPUT.primaryHeld = false; tk.classList.remove('on'); };
+  tk.addEventListener('touchend', tkEnd, { passive: false }); tk.addEventListener('touchcancel', tkEnd, { passive: false });
+  const tu = $('tUse');
+  tu.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.lastSource = 'touch'; INPUT.secondaryPressed = true; }, { passive: false });
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
@@ -10865,7 +10922,7 @@ function pickRay(o, d) {
 function hoverFromPointer() {
   const touch = INPUT.lastSource === 'touch';
   if (CAMC.mode === 'fp') {
-    if (touch && INPUT.primaryHeld && INPUT.hasPointer) { const r = screenRay(INPUT.pointer[0], INPUT.pointer[1]); return pickRay(r.o, r.d); }
+    if (touch && !crossUI() && INPUT.primaryHeld && INPUT.hasPointer) { const r = screenRay(INPUT.pointer[0], INPUT.pointer[1]); return pickRay(r.o, r.d); }
     return pickRay(CAM.eye, normDir(CAM.target, CAM.eye));
   }
   if (touch && !INPUT.primaryHeld) return null;
@@ -11409,6 +11466,7 @@ const NET = {
     this.name = p.name;
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
     this.startPresence(); this.watchFriends(); SUPPORT.watch();
+    FAVS.pull().then(() => { if (UI.menuServers) UI.menuServers(true); });
     UI.account(); UI.friendsRefresh();
     WORLDS.syncOnLogin();
     if (G.state === 'playing' && WORLDS.current && !MP.active()) MP.openRoom();
@@ -12227,6 +12285,33 @@ function applyNetEvent(v) {
      srv/{owner}/{wid}/room the same room the normal multiplayer uses
    ========================================================================= */
 function srvPath(s) { return 'srv/' + s.owner + '/' + s.wid; }
+/* server IPs: a name anybody can type in to join (srvnames/{name} -> owner, wid) */
+const SRV_IP_RE = /^[A-Za-z0-9_-]{3,20}$/;
+const FAV_KEY = 'bloodmoon-fav-servers';
+function ipKey(n) { return String(n || '').trim().toLowerCase(); }
+const FAVS = {
+  list() { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]').filter((n) => SRV_IP_RE.test(n)); } catch (e) { return []; } },
+  save(l) { try { localStorage.setItem(FAV_KEY, JSON.stringify(l)); } catch (e) { /* ignore */ } },
+  has(n) { return this.list().some((x) => ipKey(x) === ipKey(n)); },
+  toggle(n) {
+    let l = this.list();
+    const on = !this.has(n);
+    l = l.filter((x) => ipKey(x) !== ipKey(n)); if (on) l.unshift(n);
+    this.save(l);
+    if (NET.uid()) NET.db.ref('users/' + NET.uid() + '/favs/' + ipKey(n)).set(on ? n : null).catch(() => { });
+    return on;
+  },
+  /* the favourites of this account come along to every device */
+  async pull() {
+    if (!NET.uid()) return;
+    try {
+      const v = (await withTimeout(NET.db.ref('users/' + NET.uid() + '/favs').once('value'), 10000)).val() || {};
+      const l = this.list();
+      for (const k in v) if (v[k] && !l.some((x) => ipKey(x) === k)) l.push(v[k]);
+      this.save(l);
+    } catch (e) { /* ignore */ }
+  },
+};
 function srvRoomPath(s) { return srvPath(s) + '/room'; }
 /* what a player carries: inventory, tools, hotbar, position, health, bed */
 function myPlayerData() {
@@ -12255,6 +12340,11 @@ const SERVER = {
   /* upload one of your own worlds as a new server world (a copy: your own world stays as it is) */
   async upload(e) {
     const uid = NET.uid(); if (!uid) throw new Error('Melde dich zuerst an.');
+    // one server per player (the owner of the game may have more)
+    if (!isOwner()) {
+      const mine = (await withTimeout(NET.db.ref('srvmeta/' + uid).once('value'), 15000)).val() || {};
+      if (Object.keys(mine).length >= 1) throw new Error('Du kannst nur einen Server haben. Lösch zuerst deinen alten Server.');
+    }
     if (G.state !== 'menu' && WORLDS.current === e) saveGame(true);
     const save = await WORLDS.fetchData(e);
     if (!save) throw new Error('Diese Welt ist gerade nicht erreichbar.');
@@ -12284,9 +12374,46 @@ const SERVER = {
     upd['srvin/' + uid + '/' + srv.owner + '_' + srv.wid] = null;
     await withTimeout(NET.db.ref().update(upd), 15000);
   },
+  /* give the server an IP: anybody who types it in can join */
+  async setIp(srv, name) {
+    name = String(name || '').trim();
+    if (!SRV_IP_RE.test(name)) throw new Error('Die Server-IP braucht 3 bis 20 Zeichen: Buchstaben, Zahlen, - oder _.');
+    const k = ipKey(name);
+    const cur = (await withTimeout(NET.db.ref('srvnames/' + k).once('value'), 15000)).val();
+    if (cur && (cur.owner !== srv.owner || cur.wid !== srv.wid)) throw new Error('„' + name + '“ ist schon vergeben. Nimm einen anderen Namen.');
+    const meta = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid).once('value'), 15000)).val() || {};
+    const upd = {};
+    if (meta.ip && ipKey(meta.ip) !== k) upd['srvnames/' + ipKey(meta.ip)] = null;
+    upd['srvnames/' + k] = { owner: srv.owner, wid: srv.wid, ip: name, ownerName: NET.name || '' };
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/ip'] = name;
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/public'] = true;
+    await withTimeout(NET.db.ref().update(upd), 15000);
+    return name;
+  },
+  async clearIp(srv) {
+    const meta = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid).once('value'), 15000)).val() || {};
+    const upd = {};
+    if (meta.ip) upd['srvnames/' + ipKey(meta.ip)] = null;
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/ip'] = null;
+    upd['srvmeta/' + srv.owner + '/' + srv.wid + '/public'] = null;
+    await withTimeout(NET.db.ref().update(upd), 15000);
+  },
+  /* the server behind an IP (or an error that says what is wrong) */
+  async resolve(name) {
+    const k = ipKey(name);
+    if (!SRV_IP_RE.test(k)) throw new Error('Gib eine Server-IP ein, z. B. Brickstein.');
+    const r = (await withTimeout(NET.db.ref('srvnames/' + k).once('value'), 15000)).val();
+    if (!r || !r.owner || !r.wid) throw new Error('Einen Server „' + String(name).trim() + '“ gibt es nicht.');
+    let m = null;
+    try { m = (await withTimeout(NET.db.ref('srvmeta/' + r.owner + '/' + r.wid).once('value'), 15000)).val(); } catch (e) { m = null; }
+    if (!m) throw new Error('Der Server „' + String(name).trim() + '“ ist gerade nicht offen.');
+    return { owner: r.owner, wid: r.wid, name: m.name || r.ip, ip: m.ip || r.ip, ownerName: m.ownerName || r.ownerName || '', mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: r.owner === NET.uid(), players: [] };
+  },
   async remove(srv) {
     let mem = {}; try { mem = await this.members(srv); } catch (e) { /* ignore */ }
+    let meta = {}; try { meta = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid).once('value'), 15000)).val() || {}; } catch (e) { /* ignore */ }
     const upd = {}; upd[srvPath(srv)] = null; upd['srvmeta/' + srv.owner + '/' + srv.wid] = null;
+    if (meta.ip) upd['srvnames/' + ipKey(meta.ip)] = null;
     for (const uid in mem) upd['srvin/' + uid + '/' + srv.owner + '_' + srv.wid] = null;
     await withTimeout(NET.db.ref().update(upd), 20000);
   },
@@ -12296,7 +12423,8 @@ const SERVER = {
     const out = [];
     const add = async (o, wid, m) => {
       if (!m) return;
-      const s = { owner: o, wid, name: m.name || 'Server', ownerName: m.ownerName || '', mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: o === uid, players: [], members: m.members || {} };
+      if (out.some((q) => q.owner === o && q.wid === wid)) return;
+      const s = { owner: o, wid, name: m.name || 'Server', ip: m.ip || null, ownerName: m.ownerName || '', mode: m.mode, day: m.day || 1, updated: m.updated || 0, mine: o === uid, players: [], members: m.members || {} };
       try {
         const room = (await withTimeout(NET.db.ref(srvRoomPath(s) + '/info').once('value'), 10000)).val();
         if (room && room.open) {
@@ -12324,6 +12452,11 @@ const SERVER = {
       })());
     }
     await Promise.all(jobs);
+    // favourites: servers saved by their IP
+    await Promise.all(FAVS.list().map(async (n) => {
+      try { const s = await SERVER.resolve(n); if (!out.some((q) => q.owner === s.owner && q.wid === s.wid)) await add(s.owner, s.wid, { name: s.name, ip: s.ip, ownerName: s.ownerName, mode: s.mode, day: s.day, updated: s.updated }); } catch (e) { /* gone */ }
+    }));
+    for (const s of out) s.fav = !!(s.ip && FAVS.has(s.ip));
     out.sort((a, b) => (b.mine - a.mine) || (b.players.length - a.players.length) || (b.updated - a.updated));
     return out;
   },
@@ -12431,8 +12564,22 @@ UI.serversRefresh = async function () {
   for (const s of fr) frEl.appendChild(row(s));
 };
 function esc(t) { return String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+/* connect by IP (start screen) */
+async function connectIp(name, save) {
+  if (!NET.uid()) { UI.toast('Melde dich zuerst an.', 'warn'); UI.openAccount(); return; }
+  let s;
+  try { s = await SERVER.resolve(name); } catch (e) { UI.toast(e && e.message ? e.message : String(e), 'warn', 4600); return; }
+  if (save && !FAVS.has(s.ip)) FAVS.toggle(s.ip);
+  playServer(s);
+}
 function bindServerUI() {
   $('msReload').addEventListener('click', () => UI.menuServers(true));
+  $('msIpForm').addEventListener('submit', (ev) => { ev.preventDefault(); connectIp($('msIp').value, false); });
+  $('msIpFav').addEventListener('click', async () => {
+    const n = $('msIp').value.trim();
+    try { const s = await SERVER.resolve(n); if (!FAVS.has(s.ip)) FAVS.toggle(s.ip); UI.toast(s.ip + ' ist jetzt in deinen Favoriten.', 'good'); $('msIp').value = ''; UI.menuServers(true); }
+    catch (e) { UI.toast(e && e.message ? e.message : String(e), 'warn', 4600); }
+  });
   $('invtDone').addEventListener('click', () => UI.closeModal('mdlInvite'));
   $('invtForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -12473,15 +12620,20 @@ UI.menuServers = function (force) {
   SERVER.list().then((list) => {
     if (ask !== UI._msN) return;
     el.innerHTML = '';
-    if (!list.length) { el.innerHTML = '<p class="ms-empty">Noch keine Server. Mach eine Welt zum Server: Welten, dann Bearbeiten, dann „Zum Server machen“. Server, zu denen dich jemand hinzufügt, erscheinen hier von selbst.</p>'; return; }
+    if (!list.length) { el.innerHTML = '<p class="ms-empty">Noch keine Server. Gib oben eine Server-IP ein, oder mach eine Welt zum Server: Welten, dann Bearbeiten, dann „Zum Server machen“.</p>'; return; }
     for (const s of list) {
       const row = document.createElement('div'); row.className = 'ms-row';
       row.innerHTML = '<i class="' + (s.players.length ? 'ms-on' : 'ms-off') + '"></i><div class="ms-m"><b></b><span></span></div>';
-      row.querySelector('b').textContent = s.name;
-      row.querySelector('span').textContent = (s.mine ? 'Dein Server' : 'von ' + s.ownerName) + ' · ' + (s.players.length ? s.players.join(', ') : 'gerade leer');
+      row.querySelector('b').textContent = (s.fav ? '★ ' : '') + s.name;
+      row.querySelector('span').textContent = (s.ip ? 'IP: ' + s.ip + ' · ' : '') + (s.mine ? 'Dein Server' : 'von ' + s.ownerName) + ' · ' + (s.players.length ? s.players.join(', ') : 'gerade leer');
       const go = document.createElement('button'); go.className = 'btn primary'; go.type = 'button'; go.textContent = 'Beitreten';
       go.addEventListener('click', () => playServer(s));
       row.appendChild(go);
+      if (!s.mine && s.ip) {
+        const st = document.createElement('button'); st.className = 'btn ms-star'; st.type = 'button'; st.textContent = s.fav ? '★' : '☆'; st.title = s.fav ? 'Aus den Favoriten nehmen' : 'In die Favoriten';
+        st.addEventListener('click', () => { const on = FAVS.toggle(s.ip); UI.toast(on ? s.ip + ' ist jetzt in deinen Favoriten.' : s.ip + ' ist nicht mehr in deinen Favoriten.', 'info', 2400); UI.menuServers(true); });
+        row.appendChild(st);
+      }
       if (s.mine) {
         const inv = document.createElement('button'); inv.className = 'btn'; inv.type = 'button'; inv.textContent = 'Verwalten'; inv.title = 'Mitglieder, Backups, Export';
         inv.addEventListener('click', () => UI.openSrvAdmin(s));
@@ -12629,7 +12781,18 @@ UI.openSrvAdmin = function (srv) {
   $('saTitle').textContent = srv.name;
   $('saSub').textContent = 'Tag ' + srv.day + ' · ' + (srv.players.length ? 'drin: ' + srv.players.join(', ') : 'gerade leer');
   $('saMsg').hidden = true;
+  UI.srvIpRefresh();
   UI.srvAdminRefresh();
+};
+UI.srvIpRefresh = async function () {
+  const srv = UI._admin; if (!srv) return;
+  let ip = null;
+  try { ip = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/ip').once('value'), 15000)).val(); } catch (e) { /* ignore */ }
+  if (UI._admin !== srv) return;
+  srv.ip = ip || null;
+  $('saIp').value = ip || '';
+  $('saIpOff').hidden = !ip;
+  $('saIpHint').textContent = ip ? 'Öffentlich unter „' + ip + '“: jeder, der die IP eingibt, kann rein und sie in den Favoriten speichern.' : 'Mit einer IP kann jeder, der sie eingibt, auf deinen Server (ohne dass du ihn hinzufügen musst).';
 };
 function saMsg(t, ok) { const m = $('saMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; }
 UI.srvAdminRefresh = async function () {
@@ -12707,6 +12870,25 @@ function bindBackupUI() {
     const srv = UI._admin; if (!srv) return;
     try { const s = await SRVB.save(srv); delete s.vis; downloadWorldFile(srv.name, s, srv.mode); saMsg('Die Datei wird heruntergeladen.', true); }
     catch (e) { saMsg(e && e.message ? e.message : String(e)); }
+  });
+  $('saIpForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const srv = UI._admin; if (!srv) return;
+    try { const n = await SERVER.setIp(srv, $('saIp').value); saMsg('Dein Server ist jetzt unter der IP „' + n + '“ erreichbar.', true); UI.srvIpRefresh(); UI.menuServers(true); }
+    catch (e) { saMsg(e && e.message ? e.message : 'Das ging nicht. ' + netMsg(e)); }
+  });
+  $('saIpOff').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    try { await SERVER.clearIp(srv); saMsg('Die IP ist entfernt. Nur noch deine Mitglieder kommen rein.', true); UI.srvIpRefresh(); UI.menuServers(true); }
+    catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
+  });
+  $('saDelete').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    $('mdlSrvAdmin').hidden = true;
+    const ok = await UI.confirm({ title: 'Server „' + srv.name + '“ löschen?', text: 'Die Server-Welt, ihre Backups und die IP werden für alle gelöscht. Deine eigenen Welten bleiben.', yes: 'Löschen' });
+    if (!ok) { $('mdlSrvAdmin').hidden = false; return; }
+    try { await SERVER.remove(srv); UI.toast('Server gelöscht.', 'info'); } catch (e) { UI.toast('Löschen ging nicht. ' + netMsg(e), 'warn'); }
+    UI._admin = null; UI.closeAll(); UI.menuServers(true);
   });
   $('saInvite').addEventListener('click', () => { const srv = UI._admin; if (srv) UI.openInvite(srv); });
 }
