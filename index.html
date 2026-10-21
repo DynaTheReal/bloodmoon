@@ -40,25 +40,32 @@
         },
         "worlds": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
         "worldMeta": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
-        "favs": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
+        "favs": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
+        "invites": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$from": { ".write": "auth != null && (auth.uid === $uid || auth.uid === $from)" }
+        }
       }
     },
     "status": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$uid": { ".read": "auth != null", ".write": "auth != null && auth.uid === $uid" }
     },
     "rooms": {
       "$host": {
         ".read": "auth != null && (auth.uid === $host || root.child('users/' + $host + '/friends/' + auth.uid).exists())",
         ".write": "auth != null && auth.uid === $host",
-        "players": { "$p": { ".write": "auth != null && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "p": { "$p": { ".write": "auth != null && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "pdata": { "$p": { ".write": "auth != null && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "ev": { "$e": { ".write": "auth != null && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "edits": { "$c": { ".write": "auth != null && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "snaps": { "$p": { ".write": "auth != null && auth.uid === $p" } }
+        "players": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "p": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "pdata": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "ev": { "$e": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "edits": { "$c": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "snaps": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p" } }
       }
     },
     "srvmeta": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$owner": {
         ".read": "auth != null && auth.uid === $owner",
         "$wid": {
@@ -71,14 +78,16 @@
       }
     },
     "srv": {
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$owner": {
         "$wid": {
           ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)",
-          ".write": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)"
+          ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)"
         }
       }
     },
     "srvnames": {
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$n": {
         ".read": "auth != null",
         ".write": "auth != null && ((!data.exists() && newData.child('owner').val() === auth.uid) || data.child('owner').val() === auth.uid)",
@@ -91,11 +100,22 @@
         "$k": { ".write": "auth != null && (auth.uid === $uid || auth.uid === newData.child('owner').val() || auth.uid === data.child('owner').val())" }
       }
     },
+    "bans": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      "$uid": { ".read": "auth != null && auth.uid === $uid" }
+    },
+    "admin": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+      "cmd": { ".read": true },
+      "kick": { "$uid": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid && !newData.exists()" } }
+    },
     "support": {
       ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && (auth.uid === $uid || root.child('usernames/dynathereal').val() === auth.uid)"
+        ".write": "auth != null && ((auth.uid === $uid && !root.child('bans/' + auth.uid).exists()) || root.child('usernames/dynathereal').val() === auth.uid)"
       }
     }
   }
@@ -254,6 +274,18 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .inv-slots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
 .inv-slots.hot { grid-template-columns: repeat(10, 1fr); }
 .islot { position: relative; aspect-ratio: 1; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); display: grid; place-items: center; padding: 0; color: var(--text); cursor: pointer; }
+.invite-card { position: fixed; left: 50%; top: calc(var(--safe-t) + 14px); transform: translateX(-50%); z-index: 60; width: min(440px, calc(100% - 32px)); padding: 14px 16px; border-radius: 16px; display: grid; gap: 10px; border-color: rgba(255, 177, 92, 0.5); }
+.invite-card.pop { animation: goalPop 0.5s ease; }
+.ic-t { display: flex; gap: 8px; align-items: baseline; }
+.ic-t b { font-size: 15px; }
+.ic-a { display: flex; gap: 8px; justify-content: flex-end; }
+.ban { z-index: 80; display: grid; place-items: center; background: rgba(8, 6, 10, 0.92); }
+.ban-box { max-width: min(420px, calc(100% - 32px)); padding: 26px; border-radius: 20px; display: grid; gap: 12px; text-align: center; }
+.ban-box h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 30px; color: #ff8a80; }
+.adm-ban { flex-wrap: wrap; }
+.adm-ban .field { flex: 1 1 140px; }
+.admin-link { color: #ff8a80; }
+.tgl-btn[aria-pressed="false"] { opacity: 0.55; }
 .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dl-card { display: grid; gap: 4px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); text-decoration: none; }
 .dl-card:hover { background: rgba(255, 255, 255, 0.1); }
@@ -656,6 +688,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button id="btnWorlds" class="btn" type="button">Welten</button>
       <button id="btnFriends" class="btn" type="button">Freunde<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
+      <button id="btnSrvToggle" class="btn tgl-btn" type="button" aria-pressed="true" title="Serverliste ein- oder ausblenden">Server</button>
       <button id="btnDownload" class="btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>App herunterladen</button>
     </div>
     <p class="save-note" id="saveNote" hidden></p>
@@ -668,6 +701,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button id="btnMenuSettings" class="link" type="button">Einstellungen</button>
       <button id="btnControls" class="link" type="button">Steuerung</button>
       <button id="btnSupport" class="link" type="button">Support<span class="badge" id="supportBadge" hidden>1</span></button>
+      <button id="btnAdmin" class="link admin-link" type="button" hidden>Admin</button>
     </div>
   </div>
 </section>
@@ -834,6 +868,40 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
       <p class="sec-t">Mehr</p>
       <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="inviteCard" class="invite-card panel" hidden role="alertdialog" aria-labelledby="invCardTxt">
+  <div class="ic-t"><span class="goal-k">Einladung</span><b id="invCardTxt"></b></div>
+  <div class="ic-a"><button class="btn primary" id="invCardYes" type="button">Beitreten</button><button class="btn ghost" id="invCardNo" type="button">Ablehnen</button></div>
+</div>
+
+<section id="scrBan" class="screen ban" hidden>
+  <div class="ban-box panel">
+    <h2>Du bist gesperrt</h2>
+    <p id="banWhy">DynaTheReal hat dein Konto gesperrt.</p>
+    <p class="hint">Wenn du denkst, dass das ein Fehler ist, sprich DynaTheReal direkt an.</p>
+    <button class="btn" id="banLogout" type="button">Abmelden</button>
+  </div>
+</section>
+
+<div id="mdlAdmin" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="admTitle">
+  <div class="sheet panel">
+    <div class="sheet-h"><div class="grow"><h2 id="admTitle">Admin</h2><p>Nur für DynaTheReal</p></div><button class="link" id="admReload" type="button">Neu laden</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <p class="form-msg" id="admMsg" hidden></p>
+      <p class="sec-t">An alle</p>
+      <form class="newworld" id="admSayForm" autocomplete="off"><input class="field" id="admSay" maxlength="300" placeholder="Nachricht an alle Spieler" aria-label="Nachricht an alle"><button class="btn primary" type="submit">Senden</button></form>
+      <button class="btn danger" id="admRestart" type="button" style="margin-top:8px">Spiel bei allen neu starten</button>
+      <p class="sec-t">Online (<span id="admOnlineN">0</span>)</p>
+      <div class="list" id="admOnline"></div>
+      <p class="sec-t">Spieler sperren</p>
+      <form class="newworld adm-ban" id="admBanForm" autocomplete="off"><input class="field" id="admBanName" maxlength="16" placeholder="Benutzername" aria-label="Benutzername" autocapitalize="off" spellcheck="false"><input class="field" id="admBanWhy" maxlength="200" placeholder="Grund (freiwillig)" aria-label="Grund"><button class="btn danger" type="submit">Sperren</button></form>
+      <p class="sec-t">Gesperrt</p>
+      <div class="list" id="admBans"></div>
+      <p class="sec-t">Alle Server</p>
+      <div class="list" id="admServers"></div>
     </div>
   </div>
 </div>
@@ -5385,7 +5453,7 @@ const QUALITY = {
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
-  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false,
+  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true,
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
@@ -9885,7 +9953,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -10232,6 +10300,16 @@ UI.friendsRefresh = function () {
     if (st.on) line = st.h && st.w ? 'Spielt in „' + st.w + '“' : st.w ? 'Ist in einer Welt' : 'Online im Menü';
     const li = friendRow(f.name || st.name || 'Freund', st.skin, line, st.on ? (st.h ? 'host' : 'on') : '');
     const act = li.querySelector('.li-act');
+    // invite a friend who is online into the world you are in
+    if (st.on && G.state !== 'menu' && G.state !== 'loading' && !(MP.isClient() && !MP.srv)) {
+      const inv = document.createElement('button'); inv.className = 'btn'; inv.type = 'button'; inv.textContent = 'Einladen';
+      inv.addEventListener('click', async () => {
+        inv.disabled = true;
+        try { await INVITES.send(fid); UI.toast('Einladung an ' + (f.name || st.name) + ' geschickt.', 'good'); inv.textContent = 'Eingeladen ✓'; }
+        catch (e) { inv.disabled = false; UI.toast(e && e.message ? e.message : netMsg(e), 'warn'); }
+      });
+      act.appendChild(inv);
+    }
     if (st.on && st.h) {
       const join = document.createElement('button'); join.className = 'btn primary'; join.type = 'button'; join.textContent = 'Beitreten';
       join.addEventListener('click', () => joinFriend(fid, f.name || st.name));
@@ -10331,7 +10409,11 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
-  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI();
+  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI(); bindAdminUI();
+  // start screen: the server list can be switched off and on
+  const srvT = () => { const on = SETTINGS.showServers !== false; $('menuSrv').hidden = !on; $('btnSrvToggle').setAttribute('aria-pressed', String(on)); };
+  $('btnSrvToggle').addEventListener('click', () => { SETTINGS.showServers = SETTINGS.showServers === false; saveSettings(); srvT(); if (SETTINGS.showServers) UI.menuServers(true); });
+  srvT();
   $('tipX').addEventListener('click', () => { $('tipBox').hidden = true; UI._tipT = 0; });
   // download the app
   $('btnDownload').addEventListener('click', () => { UI.closeAll(); $('mdlDownload').hidden = false; SFX.ui(); });
@@ -11419,6 +11501,7 @@ const NET = {
       // stay logged in after closing the tab (also where the browser would only keep it per tab)
       try { if (fb.auth.Auth && fb.auth.Auth.Persistence && this.auth.setPersistence) await this.auth.setPersistence(fb.auth.Auth.Persistence.LOCAL); } catch (e) { console.warn('persistence', e); }
       this.state = 'ready'; this.err = '';
+      ADMIN.watchCmd();
       this.auth.onAuthStateChanged((u) => { this.onUser(u).catch((e) => console.warn(e)); });
     } catch (e) {
       this.state = 'error'; this.err = netMsg(e);
@@ -11446,7 +11529,7 @@ const NET = {
   async onUser(u) {
     if (!u && await this.autoLogin()) return;   // signed in again: onUser comes once more with the user
     if (!u) {
-      this.stopWatching();
+      this.stopWatching(); INVITES.stop(); ADMIN.stopMe(); this.user = null; UI.adminButton();
       this.user = null; this.name = '';
       UI.account(); UI.worldsRefresh(); UI.friendsRefresh(); if (UI.menuServers) UI.menuServers(true);
       return;
@@ -11466,6 +11549,7 @@ const NET = {
     this.name = p.name;
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
     this.startPresence(); this.watchFriends(); SUPPORT.watch();
+    INVITES.watch(); ADMIN.watchMe(); UI.adminButton();
     FAVS.pull().then(() => { if (UI.menuServers) UI.menuServers(true); });
     UI.account(); UI.friendsRefresh();
     WORLDS.syncOnLogin();
@@ -12698,6 +12782,249 @@ async function inviteByName(srv, name) {
   await SERVER.addMember(srv, NET.lastFid, n, false);
   return [n, false];
 }
+
+/* ---- 19a_admin.js ---- */
+/* =========================================================================
+   Invitations and the admin tools.
+   Invites: users/{to}/invites/{from} = { name, at, world, srvOwner, srvWid, srvName }
+     a friend gets a card on screen (also while playing) and joins with one tap.
+   Admin (DynaTheReal only):
+     bans/{uid}            = { name, reason, at }   banned players can not play
+     admin/cmd             = { msg: {text, at}, restart: at }   seen by everybody
+     admin/kick/{uid}      = at                    back to the start screen
+   ========================================================================= */
+const INVITES = {
+  ref: null, cb: null, seen: new Set(), shown: null,
+  watch() {
+    this.stop();
+    const uid = NET.uid(); if (!uid) return;
+    this.ref = NET.db.ref('users/' + uid + '/invites');
+    this.cb = (s) => {
+      const v = s.val() || {};
+      for (const from in v) {
+        const r = v[from]; if (!r) continue;
+        const key = from + ':' + r.at;
+        if (this.seen.has(key)) continue;
+        this.seen.add(key);
+        // old invitations are cleared away
+        if (typeof r.at === 'number' && Date.now() - r.at > 3 * 60 * 1000) { this.drop(from); continue; }
+        UI.showInvite(from, r);
+      }
+    };
+    this.ref.on('value', this.cb, () => { /* rules not updated yet */ });
+  },
+  stop() { if (this.ref) { this.ref.off('value', this.cb); this.ref = null; } },
+  drop(from) { const uid = NET.uid(); if (uid) NET.db.ref('users/' + uid + '/invites/' + from).remove().catch(() => { }); },
+  /* invite a friend into the world you are in right now */
+  async send(fid) {
+    if (!NET.uid()) throw new Error('Melde dich zuerst an.');
+    if (G.state === 'menu' || G.state === 'loading') throw new Error('Geh zuerst in eine Welt, dann kannst du einladen.');
+    const srv = G.server || MP.srv || null;
+    if (!srv && MP.isClient()) throw new Error('Nur ' + MP.hostName + ' kann in diese Welt einladen.');
+    if (!srv && !MP.isHost()) {
+      // your own world: open it for friends first
+      if (!SETTINGS.allowFriends) { SETTINGS.allowFriends = true; saveSettings(); }
+      await MP.openRoom();
+    }
+    if (srv && srv.owner === NET.uid() && !srv.ip) {
+      // your own server: the friend becomes a member
+      try { const f = NET.friends[fid]; await SERVER.addMember(srv, fid, (f && f.name) || '', true); } catch (e) { /* already in */ }
+    }
+    const inv = { name: NET.name, at: NET.TS(), world: srv ? srv.name : (WORLDS.current ? WORLDS.current.name : 'meine Welt') };
+    if (srv) { inv.srvOwner = srv.owner; inv.srvWid = srv.wid; inv.srvName = srv.name; }
+    await withTimeout(NET.db.ref('users/' + fid + '/invites/' + NET.uid()).set(inv), 15000);
+  },
+};
+UI.showInvite = function (from, r) {
+  const box = $('inviteCard');
+  INVITES.shown = { from, r };
+  $('invCardTxt').textContent = (r.name || 'Ein Freund') + ' lädt dich ' + (r.srvWid ? 'auf den Server „' + (r.srvName || r.world) + '“' : 'in „' + (r.world || 'seine Welt') + '“') + ' ein.';
+  box.hidden = false; box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+  SFX.ui();
+  clearTimeout(UI._invT);
+  UI._invT = setTimeout(() => { if (INVITES.shown && INVITES.shown.from === from) { box.hidden = true; INVITES.shown = null; } }, 60000);
+};
+function answerInvite(yes) {
+  const s = INVITES.shown; $('inviteCard').hidden = true; INVITES.shown = null;
+  if (!s) return;
+  INVITES.drop(s.from);
+  if (!yes) return;
+  if (s.r.srvWid) playServer({ owner: s.r.srvOwner, wid: s.r.srvWid, name: s.r.srvName || s.r.world || 'Server', ownerName: s.r.name, players: [] });
+  else joinFriend(s.from, s.r.name || 'Freund');
+}
+
+/* ---------- admin ---------- */
+const ADMIN = {
+  cmdRef: null, first: true, last: null,
+  /* everybody: commands from the admin (also without an account) */
+  watchCmd() {
+    if (this.cmdRef || !NET.db) return;
+    this.cmdRef = NET.db.ref('admin/cmd');
+    this.cmdRef.on('value', (s) => {
+      const v = s.val() || {};
+      const prev = this.last; this.last = v;
+      if (this.first) { this.first = false; return; }   // what was there before this page was opened
+      if (v.msg && v.msg.text && (!prev || !prev.msg || prev.msg.at !== v.msg.at)) {
+        UI.banner('Nachricht von DynaTheReal', v.msg.text, 'day');
+        UI.toast('DynaTheReal: ' + v.msg.text, 'info', 9000, 'admin');
+        SFX.ui();
+      }
+      if (v.restart && (!prev || prev.restart !== v.restart) && !isOwner()) {
+        UI.toast('DynaTheReal startet das Spiel neu …', 'warn', 4000, 'admin');
+        try { saveGame(true); } catch (e) { /* ignore */ }
+        setTimeout(() => location.reload(), 2500);
+      }
+    }, () => { /* rules not updated yet */ });
+  },
+  /* the logged in player: banned? kicked? */
+  watchMe() {
+    this.stopMe();
+    const uid = NET.uid(); if (!uid) return;
+    this.banRef = NET.db.ref('bans/' + uid);
+    this.banCb = (s) => { const b = s.val(); if (b) banned(b); else { try { localStorage.removeItem(BAN_KEY); } catch (e) { /* ignore */ } $('scrBan').hidden = true; } };
+    this.banRef.on('value', this.banCb, () => { });
+    this.kickRef = NET.db.ref('admin/kick/' + uid);
+    let firstK = true;
+    this.kickCb = (s) => {
+      const v = s.val();
+      if (firstK) { firstK = false; if (!v) return; }
+      if (!v) return;
+      NET.db.ref('admin/kick/' + uid).remove().catch(() => { });
+      if (G.state !== 'menu' && G.state !== 'loading') { toMenu().then(() => UI.toast('DynaTheReal hat dich aus der Welt geworfen.', 'warn', 6000)); }
+    };
+    this.kickRef.on('value', this.kickCb, () => { });
+  },
+  stopMe() {
+    if (this.banRef) { this.banRef.off('value', this.banCb); this.banRef = null; }
+    if (this.kickRef) { this.kickRef.off('value', this.kickCb); this.kickRef = null; }
+  },
+  async uidOf(name) {
+    const lower = String(name || '').trim().toLowerCase();
+    if (!NAME_RE.test(lower)) throw new Error('Gib einen Benutzernamen ein.');
+    const uid = (await withTimeout(NET.db.ref('usernames/' + lower).once('value'), 15000)).val();
+    if (!uid) throw new Error('Niemand heißt „' + String(name).trim() + '“.');
+    return uid;
+  },
+  async ban(name, reason) {
+    const uid = await this.uidOf(name);
+    if (uid === NET.uid()) throw new Error('Dich selbst kannst du nicht sperren.');
+    const pn = (await withTimeout(NET.db.ref('users/' + uid + '/profile/name').once('value'), 15000)).val() || name;
+    await withTimeout(NET.db.ref('bans/' + uid).set({ name: pn, reason: String(reason || '').slice(0, 200) || null, at: NET.TS() }), 15000);
+    NET.db.ref('admin/kick/' + uid).set(NET.TS()).catch(() => { });
+    return pn;
+  },
+  async unban(uid) { await withTimeout(NET.db.ref('bans/' + uid).remove(), 15000); },
+  async kick(uid) { await withTimeout(NET.db.ref('admin/kick/' + uid).set(NET.TS()), 15000); },
+  async say(text) { text = String(text || '').trim().slice(0, 300); if (!text) throw new Error('Schreib zuerst etwas.'); await withTimeout(NET.db.ref('admin/cmd/msg').set({ text, at: NET.TS() }), 15000); },
+  async restartAll() { await withTimeout(NET.db.ref('admin/cmd/restart').set(NET.TS()), 15000); },
+  async allServers() {
+    const v = (await withTimeout(NET.db.ref('srvmeta').once('value'), 20000)).val() || {};
+    const out = [];
+    for (const o in v) for (const w in v[o] || {}) { const m = v[o][w]; if (m) out.push({ owner: o, wid: w, name: m.name || 'Server', ownerName: m.ownerName || '?', ip: m.ip || null, day: m.day || 1, updated: m.updated || 0, players: [] }); }
+    return out.sort((a, b) => b.updated - a.updated);
+  },
+};
+const BAN_KEY = 'bloodmoon-banned';
+function banned(b) {
+  try { localStorage.setItem(BAN_KEY, JSON.stringify({ reason: b.reason || '', at: Date.now() })); } catch (e) { /* ignore */ }
+  $('banWhy').textContent = b.reason ? 'Grund: ' + b.reason : 'DynaTheReal hat dein Konto gesperrt.';
+  $('scrBan').hidden = false;
+  if (G.state !== 'menu' && G.state !== 'loading') toMenu();
+}
+/* a player who was banned on this device stays out, also logged out */
+function checkLocalBan() { try { const b = JSON.parse(localStorage.getItem(BAN_KEY) || 'null'); if (b) { $('banWhy').textContent = b.reason ? 'Grund: ' + b.reason : 'DynaTheReal hat dein Konto gesperrt.'; $('scrBan').hidden = false; } } catch (e) { /* ignore */ } }
+
+UI.openAdmin = function () {
+  if (!isOwner()) return;
+  UI.closeAll();
+  $('mdlAdmin').hidden = false;
+  $('admMsg').hidden = true;
+  UI.adminRefresh();
+};
+function admMsg(t, ok) { const m = $('admMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; }
+UI.adminRefresh = async function () {
+  if (!isOwner()) return;
+  const row = (name, sub, btns) => {
+    const li = document.createElement('div'); li.className = 'li';
+    li.innerHTML = '<div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
+    li.querySelector('b').textContent = name; li.querySelector('span').textContent = sub;
+    for (const [t, cls, fn] of btns) {
+      const b = document.createElement('button'); b.className = 'btn ' + cls; b.type = 'button'; b.textContent = t;
+      b.addEventListener('click', async () => { b.disabled = true; try { await fn(); } catch (e) { admMsg(e && e.message ? e.message : netMsg(e)); } UI.adminRefresh(); });
+      li.querySelector('.li-act').appendChild(b);
+    }
+    return li;
+  };
+  // online now
+  const on = $('admOnline');
+  try {
+    const st = (await withTimeout(NET.db.ref('status').once('value'), 20000)).val() || {};
+    on.innerHTML = '';
+    const ids = Object.keys(st).filter((u) => st[u] && st[u].on && u !== NET.uid());
+    $('admOnlineN').textContent = ids.length + 1;
+    if (!ids.length) on.innerHTML = '<div class="list-empty">Gerade ist niemand außer dir online.</div>';
+    for (const u of ids) {
+      const s = st[u];
+      on.appendChild(row(s.name || 'Spieler', s.w ? (s.h ? 'spielt in „' + s.w + '“' : 'in einer Welt') : 'im Menü', [
+        ['Rauswerfen', '', () => ADMIN.kick(u).then(() => admMsg((s.name || 'Spieler') + ' ist rausgeworfen.', true))],
+        ['Sperren', 'danger', () => ADMIN.ban(s.name || '', '').then((n) => admMsg(n + ' ist gesperrt.', true))],
+      ]));
+    }
+  } catch (e) { on.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; }
+  // banned
+  const bl = $('admBans');
+  try {
+    const bans = (await withTimeout(NET.db.ref('bans').once('value'), 20000)).val() || {};
+    bl.innerHTML = '';
+    const ids = Object.keys(bans);
+    if (!ids.length) bl.innerHTML = '<div class="list-empty">Niemand ist gesperrt.</div>';
+    for (const u of ids) { const b = bans[u] || {}; bl.appendChild(row(b.name || 'Spieler', (b.reason ? b.reason + ' · ' : '') + (b.at ? ago(b.at) : ''), [['Entsperren', '', () => ADMIN.unban(u).then(() => admMsg((b.name || 'Spieler') + ' ist entsperrt.', true))]])); }
+  } catch (e) { bl.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; }
+  // every server
+  const sl = $('admServers');
+  try {
+    const list = await ADMIN.allServers();
+    sl.innerHTML = '';
+    if (!list.length) sl.innerHTML = '<div class="list-empty">Keine Server.</div>';
+    for (const s of list) {
+      sl.appendChild(row(s.name, 'von ' + s.ownerName + (s.ip ? ' · IP ' + s.ip : '') + ' · Tag ' + s.day, [
+        ['Beitreten', '', () => { UI.closeAll(); return playServer(s); }],
+        ['Löschen', 'danger', async () => {
+          $('mdlAdmin').hidden = true;
+          const ok = await UI.confirm({ title: 'Server „' + s.name + '“ von ' + s.ownerName + ' löschen?', text: 'Die Server-Welt ist dann für alle weg.', yes: 'Löschen' });
+          $('mdlAdmin').hidden = false;
+          if (ok) { await SERVER.remove(s); admMsg('Server gelöscht.', true); }
+        }],
+      ]));
+    }
+  } catch (e) { sl.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; }
+};
+function bindAdminUI() {
+  $('invCardYes').addEventListener('click', () => answerInvite(true));
+  $('invCardNo').addEventListener('click', () => answerInvite(false));
+  $('btnAdmin').addEventListener('click', () => UI.openAdmin());
+  $('admBanForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    try { const n = await ADMIN.ban($('admBanName').value, $('admBanWhy').value); $('admBanName').value = ''; $('admBanWhy').value = ''; admMsg(n + ' ist gesperrt.', true); UI.adminRefresh(); }
+    catch (e) { admMsg(e && e.message ? e.message : netMsg(e)); }
+  });
+  $('admSayForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    try { await ADMIN.say($('admSay').value); $('admSay').value = ''; admMsg('Nachricht an alle geschickt.', true); }
+    catch (e) { admMsg(e && e.message ? e.message : netMsg(e)); }
+  });
+  $('admRestart').addEventListener('click', async () => {
+    $('mdlAdmin').hidden = true;
+    const ok = await UI.confirm({ title: 'Bei allen neu starten?', text: 'Bei jedem, der das Spiel gerade offen hat, wird die Seite neu geladen. Ihre Welten werden vorher gespeichert.', yes: 'Neu starten' });
+    $('mdlAdmin').hidden = false;
+    if (!ok) return;
+    try { await ADMIN.restartAll(); admMsg('Alle Spieler laden das Spiel jetzt neu.', true); } catch (e) { admMsg(netMsg(e)); }
+  });
+  $('admReload').addEventListener('click', () => UI.adminRefresh());
+  $('banLogout').addEventListener('click', async () => { try { await NET.logout(); } catch (e) { /* ignore */ } });
+  checkLocalBan();
+}
+UI.adminButton = function () { const b = $('btnAdmin'); if (b) b.hidden = !isOwner(); };
 
 /* ---- 19b_backup.js ---- */
 /* =========================================================================
