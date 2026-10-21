@@ -1072,8 +1072,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.6.0';
+const GAME_VERSION = '2.6.2';
 const GAME_NOTES = [
+  ['2.6.2', 'Zombies drehen sich nicht mehr im Kreis: jeder sucht sich eigene Wege und Grabstellen'],
+  ['2.6.1', 'Fallschaden: 30 Blöcke tödlich, mit Stiefeln 50. Zombies spawnen unter Sky-Bases, bauen sich hoch und brechen ein'],
   ['2.6.0', 'Klügere Zombies (finden den Weg in Höhlen, graben sich nach unten), doppelter Fallschaden, Wiederbeleben mit Leertaste/Enter, Ego-Perspektive bleibt gespeichert'],
   ['2.5.0', 'Fließendes Wasser, Fallschaden (Server: abschaltbar, Wasser rettet), seltene Dörfer mit Händler, Händlerhaus abbaubar und Tornados zerstören es'],
   ['2.4.0', 'Blood Moons härter: 1. bricht Wände, 2. rennt und stapelt Blöcke, ab dem 3. ULTRA. Admin kann selbst in den Support schreiben'],
@@ -6542,8 +6544,8 @@ function updatePlayer(dt) {
   if (!wasGround && PL.onGround && !PL.inWater) {
     const fall = (PL.fallTopPrev === undefined ? PL.y : PL.fallTopPrev) - PL.y;
     const wet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.1), Math.floor(PL.z)) === B.WATER;
-    // twice as hard as before; armor only takes half of it off
-    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead) { hurtPlayer(Math.round((fall - 3) * 12), PL.x, PL.z, true, 0.5); SFX.land(); }
+    // 30 blocks kill you; with boots on you survive up to about 50 (other armor does not help)
+    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead) { const boots = (G.tools.boots | 0) > 0 ? 0.56 : 1; hurtPlayer((fall - 3) * 3.75 * boots, PL.x, PL.z, true, 0); SFX.land(); }
   }
   PL.fallTopPrev = PL.fallTop;
   if (!wasGround && PL.onGround && PL.airT > 0.35) { SFX.land(); for (let k = 0; k < 4; k++) spawnPart({ x: PL.x, y: PL.y + 0.05, z: PL.z, vx: (Math.random() - 0.5) * 2, vy: 0.6, vz: (Math.random() - 0.5) * 2, life: 0.6, size: 0.18, r: 0.75, g: 0.72, b: 0.66, kind: 1, grav: 0, drag: 2, alpha: 0.35, grow: 1.5 }); }
@@ -7251,7 +7253,8 @@ function updateSpawns(dt) {
     if (getB(x, si.y + 1, z) !== B.AIR && KIND[getB(x, si.y + 1, z)] !== K_PLANT) continue;
     if (getB(x, si.y + 2, z) !== B.AIR) continue;
     if (fireMargin(x + 0.5, z + 0.5) < 4) continue;
-    if (Math.abs(si.y - P0.y) > 12) continue;
+    // also when you are up in the air (sky base) or down in a cave: they come from the ground around you
+    if (si.y - P0.y > 30 || P0.y - si.y > 70) continue;
     if (players.some((p) => Math.hypot(p.x - x, p.z - z) < 12)) continue;
     let nearTorch = false;
     if (!blood) for (const o of OBJS.values()) if (o.id === B.TORCH && o.lit > 0.3 && Math.hypot(o.x - x, o.z - z) < 6) { nearTorch = true; break; }
@@ -7287,6 +7290,9 @@ function updateZombies(dt) {
   const fires = [];
   for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && o.lit > 0.2) fires.push(o);
   const players = allPlayers();
+  // where the zombies stand right now (so they spread out on the way and do not all queue in one spot)
+  ZOCC.clear();
+  for (const q of G.zombies) if (q.type === 'zombie' && q.state !== 'die') { const k2 = I(Math.floor(q.x), Math.floor(q.y + 0.05), Math.floor(q.z)); ZOCC.set(k2, (ZOCC.get(k2) || 0) + 1); }
   for (let k = G.zombies.length - 1; k >= 0; k--) {
     const z = G.zombies[k];
     z.t += dt;
@@ -7332,6 +7338,24 @@ function updateZombies(dt) {
     let wx = dist > 0.01 ? dxp / dist : 0, wz = dist > 0.01 ? dzp / dist : 0;
     // find the way (into caves, around walls) when the player is not simply ahead on the same level
     if (!tgt.none && dist < 46 && (Math.abs(tgt.y - z.y) > 1.2 || z.stuckT > 0.2 || z.pathKnown)) { const pd = zombiePathDir(z, tgt); if (pd) { wx = pd[0]; wz = pd[1]; } }
+    // no way to you: every zombie picks its own spot around you (to dig down or build up there), not all the same one
+    if (!tgt.none && !z.pathKnown && Math.abs(tgt.y - z.y) > 1.6 && dist < 12) {
+      if (z.slotA === undefined) { z.slotA = (z.id * 2.399) % TAU; z.slotR = 0.6 + (z.id % 4) * 0.8; }
+      const sx = tgt.x + Math.cos(z.slotA) * z.slotR - z.x, sz = tgt.z + Math.sin(z.slotA) * z.slotR - z.z, sd = Math.hypot(sx, sz);
+      z.slotD = sd;
+      if (sd > 0.15) { wx = sx / sd; wz = sz / sd; } else { wx = wz = 0; }
+      // no progress for a while: another spot
+      z.slotT = (z.slotT || 0) + dt;
+      if (sd < (z.slotBest === undefined ? 1e9 : z.slotBest) - 0.5) { z.slotBest = sd; z.slotT = 0; }
+      if (z.slotT > 5) { z.slotA += 2.1 + Math.random(); z.slotR = 0.6 + Math.random() * 2.6; z.slotT = 0; z.slotBest = undefined; }
+    } else z.slotD = undefined;
+    // keep a little distance from each other (no clumps going round in circles)
+    for (const o of G.zombies) {
+      if (o === z || o.type !== 'zombie' || o.state === 'die') continue;
+      const ox = z.x - o.x, oz = z.z - o.z, od = Math.hypot(ox, oz);
+      if (od > 0.001 && od < 0.85 && Math.abs(o.y - z.y) < 1.5) { wx += ox / od * (0.85 - od) * 1.6; wz += oz / od * (0.85 - od) * 1.6; }
+    }
+    { const wl = Math.hypot(wx, wz); if (wl > 1) { wx /= wl; wz /= wl; } }
     let speed = z.speed * (0.78 + 0.22 * Math.sin(z.t * 4.2 + z.phase));
     z.lurk = false;
     if (tgt.none) { speed *= 0.3; wx = Math.sin(z.phase + z.t * 0.3); wz = Math.cos(z.phase + z.t * 0.3); }
@@ -7365,7 +7389,7 @@ function updateZombies(dt) {
       else if (z.atkCd <= 0) { z.atkT = 0.42; SFX.zombieAttack(); }
     } else if (z.atkT > 0) z.atkT -= dt;
     // the player is right below and there is no way down: dig straight down
-    if (z.state === 'walk' && !tgt.none && z.onGround && !z.pathKnown && tgt.y < z.y - 1.6 && dist < 2.4) {
+    if (z.state === 'walk' && !tgt.none && z.onGround && !z.pathKnown && tgt.y < z.y - 1.6 && (dist < 2.4 || (z.slotD !== undefined && z.slotD < 0.7 && dist < 4.5))) {
       const bx = Math.floor(z.x), by = Math.floor(z.y - 0.5), bz = Math.floor(z.z);
       const id = getB(bx, by, bz);
       const need = W.prot.has(I(bx, by, bz)) ? 0 : digDownTime(id, blood, bl);
@@ -7402,15 +7426,28 @@ function updateZombies(dt) {
       else if (z.stuckT > 0.35) {
         const wall = zombieWallAhead(z, wx, wz);
         const need = wall ? zombieBreakTime(wall.id) * (bl ? bl.breakMul : 1) : 0;
-        if (wall && blood && need > 0 && !W.prot.has(I(wall.x, wall.y, wall.z))) { z.state = 'break'; z.breakCell = { ...wall, need }; z.breakT = 0; z.stuckT = 0; }
+        if (wall && (blood || z.sky) && need > 0 && !W.prot.has(I(wall.x, wall.y, wall.z))) { z.state = 'break'; z.breakCell = { ...wall, need }; z.breakT = 0; z.stuckT = 0; }
         else if (z.stuckT > 0.9) { z.sideT = 1.2 + Math.random(); z.side = Math.random() < 0.5 ? -1 : 1; z.stuckT = 0; if (z.onGround && Math.random() < 0.4) z.vy = 7.5; }
       }
     } else z.stuckT = Math.max(0, z.stuckT - dt);
     if (z.climb > 0) { z.climb -= dt; if (z.vy < 3.6) z.vy = 3.6; z.stuckT = 0; }
-    // blood moon: a zombie right below you builds itself up with a few blocks
-    if (bl && z.state === 'walk' && !tgt.none && (z.placed || 0) < bl.place && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && dist < 2.6) {
+    // you are high up and there is no way to you (a sky base): every zombie builds itself up, as high as it takes
+    if (!tgt.none && !z.sky && !z.pathKnown && tgt.y > z.y + 4.5 && dist < 3) z.sky = true;
+    const placeCap = z.sky ? 64 : bl ? bl.place : 0;
+    // a zombie right below you builds itself up
+    if (z.state === 'walk' && !tgt.none && (z.placed || 0) < placeCap && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && dist < 2.6) {
       const px = Math.floor(z.x), py = Math.floor(z.y + 0.05), pz = Math.floor(z.z);
       if (getB(px, py, pz) === B.AIR && !SOLID[getB(px, py + 2, pz)] && !SOLID[getB(px, py + 3, pz)] && SOLID[getB(px, py - 1, pz)]) { z.pillar = [px, py, pz]; z.vy = 8.4; z.pillarT = 0; }
+      else if (z.sky) {
+        // the floor of the sky base is above its head: it breaks in from below
+        for (const by of [py + 2, py + 3]) {
+          const id = getB(px, by, pz);
+          if (!SOLID[id] && !(KIND[id] === K_OBJ && id !== B.TORCH)) continue;
+          const need = W.prot.has(I(px, by, pz)) || id === B.BEDROCK ? 0 : (zombieBreakTime(id) || 6) * (bl ? bl.breakMul : 1.4);
+          if (need > 0) { z.state = 'break'; z.breakCell = { x: px, y: by, z: pz, id, need }; z.breakT = 0; }
+          break;
+        }
+      }
     }
     if (z.pillar) {
       const [px, py, pz] = z.pillar;
@@ -8311,7 +8348,8 @@ function drawMob(z, t) {
    player, so it finds the way into a cave through its entrance instead of
    waiting on the surface above you. If there is no way, it digs straight down.
    ========================================================================= */
-const PATHS = new Map();   // player key -> { t, d: Map(cell -> steps), at: [x, y, z] }
+const PATHS = new Map();
+const ZOCC = new Map();    // cell -> zombies standing in it (this frame)   // player key -> { t, d: Map(cell -> steps), at: [x, y, z] }
 const PATH_NODES = 6000, PATH_R = 44, PATH_DROP = 4;
 function walkOpen(id) { return !SOLID[id] && id !== B.LAVA && !(KIND[id] === K_OBJ && id !== B.TORCH && id !== B.CAMPFIRE); }
 function standable(x, y, z) {
@@ -8393,10 +8431,15 @@ function zombiePathDir(z, tgt) {
     return z.pathDir;
   }
   if (here <= 1) return null;                       // right there: go straight at it
+  // the next cell: closer to the player; cells with other zombies in them count as farther,
+  // and every zombie breaks ties its own way, so they take different routes
   let best = null, bd = here;
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let h = -PATH_DROP; h <= 1; h++) {
-    const v = f.d.get(I(x + dx, y + h, z0 + dz));
-    if (v !== undefined && v < bd) { bd = v; best = [dx, dz]; }
+    const k = I(x + dx, y + h, z0 + dz);
+    const v = f.d.get(k);
+    if (v === undefined || v >= here) continue;
+    const c = v + (ZOCC.get(k) || 0) * 1.5 + hashi(z.id, x + dx, z0 + dz, 7) * 0.9;
+    if (c < bd + (best ? 0 : 99)) { bd = c; best = [dx, dz]; }
   }
   if (!best) return null;
   // aim at the middle of the next cell (keeps them off the corners)
