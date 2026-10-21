@@ -728,7 +728,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div>
     <h2>Erwischt</h2>
     <p id="deathTxt">Die Zombies haben dich in Nacht 1 erwischt.</p>
-    <button id="btnRespawn" class="btn primary" type="button">Wiederbeleben</button>
+    <button id="btnRespawn" class="btn primary" type="button">Wiederbeleben <small style="opacity:.7;font-weight:700">(Leertaste)</small></button>
   </div>
 </section>
 
@@ -1072,8 +1072,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.5.0';
+const GAME_VERSION = '2.6.0';
 const GAME_NOTES = [
+  ['2.6.0', 'Klügere Zombies (finden den Weg in Höhlen, graben sich nach unten), doppelter Fallschaden, Wiederbeleben mit Leertaste/Enter, Ego-Perspektive bleibt gespeichert'],
   ['2.5.0', 'Fließendes Wasser, Fallschaden (Server: abschaltbar, Wasser rettet), seltene Dörfer mit Händler, Händlerhaus abbaubar und Tornados zerstören es'],
   ['2.4.0', 'Blood Moons härter: 1. bricht Wände, 2. rennt und stapelt Blöcke, ab dem 3. ULTRA. Admin kann selbst in den Support schreiben'],
   ['2.3.0', 'Weicheres Motion Blur mit einstellbarer Stärke, baut sich langsam auf, auch beim Springen und Hochbauen'],
@@ -5728,7 +5729,7 @@ const QUALITY = {
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
-  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6,
+  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
@@ -6405,6 +6406,13 @@ function rayAabb(ox, oy, oz, dx, dy, dz, x0, y0, z0, x1, y1, z1) {
 
 /* ---------- player ---------- */
 function eyePos() { return [PL.x, PL.y + PL.stepOffset + 1.62, PL.z]; }
+/* back to life from the death screen (button, Space or Enter); first person grabs the mouse again */
+function doRespawn() {
+  if (!PL.dead) return;
+  $('scrDeath').hidden = true;
+  respawnPlayer();
+  if (CAMC.mode === 'fp' && !touchUI()) { INPUT.lockSoft = true; requestLock('fp', true); }
+}
 function respawnPlayer() {
   const s = G.bedSpawn && getB(G.bedSpawn[0], G.bedSpawn[1], G.bedSpawn[2]) === B.BED ? [G.bedSpawn[0] + 0.5, G.bedSpawn[1] + 0.6, G.bedSpawn[2] + 0.5] : W.spawn;
   if (G.bedSpawn && s === W.spawn) { G.bedSpawn = null; }
@@ -6412,9 +6420,9 @@ function respawnPlayer() {
   PL.hp = PL.maxHp; PL.dead = false; PL.invuln = 5; PL.stepOffset = 0;
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
 }
-function hurtPlayer(dmg, fromX, fromZ, noPush) {
+function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   if (PL.dead || PL.invuln > 0 || G.sleep) return;
-  dmg *= 1 - armorReduce();
+  dmg *= 1 - armorReduce() * (armorK === undefined ? 1 : armorK);
   PL.hp = Math.max(0, PL.hp - dmg);
   PL.lastHurt = G.playTime; PL.hurtT = 0.35;
   const dx = PL.x - fromX, dz = PL.z - fromZ, d = Math.hypot(dx, dz) || 1;
@@ -6534,7 +6542,8 @@ function updatePlayer(dt) {
   if (!wasGround && PL.onGround && !PL.inWater) {
     const fall = (PL.fallTopPrev === undefined ? PL.y : PL.fallTopPrev) - PL.y;
     const wet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.1), Math.floor(PL.z)) === B.WATER;
-    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead) { hurtPlayer(Math.round((fall - 3) * 6), PL.x, PL.z, true); SFX.land(); }
+    // twice as hard as before; armor only takes half of it off
+    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead) { hurtPlayer(Math.round((fall - 3) * 12), PL.x, PL.z, true, 0.5); SFX.land(); }
   }
   PL.fallTopPrev = PL.fallTop;
   if (!wasGround && PL.onGround && PL.airT > 0.35) { SFX.land(); for (let k = 0; k < 4; k++) spawnPart({ x: PL.x, y: PL.y + 0.05, z: PL.z, vx: (Math.random() - 0.5) * 2, vy: 0.6, vz: (Math.random() - 0.5) * 2, life: 0.6, size: 0.18, r: 0.75, g: 0.72, b: 0.66, kind: 1, grav: 0, drag: 2, alpha: 0.35, grow: 1.5 }); }
@@ -6650,6 +6659,8 @@ function setCamMode(mode) {
   if (mode === 'fp') { CAMC.fpYaw = CAMC.yaw; CAMC.fpPitch = -0.12; }
   else { CAMC.yaw = CAMC.fpYaw; CAMC.eff = 2; }
   CAMC.mode = mode;
+  // the camera you used last is the one you get in every world
+  if (SETTINGS.camPref !== mode) { SETTINGS.camPref = mode; saveSettings(); }
   UI.camMode();
 }
 
@@ -7319,6 +7330,8 @@ function updateZombies(dt) {
     if (z.groanT <= 0) { z.groanT = 4 + Math.random() * 7; const dl = Math.hypot(PL.x - z.x, PL.z - z.z); if (dl < 40) SFX.groan(dl, blood ? 1.15 : 1); }
     // steering
     let wx = dist > 0.01 ? dxp / dist : 0, wz = dist > 0.01 ? dzp / dist : 0;
+    // find the way (into caves, around walls) when the player is not simply ahead on the same level
+    if (!tgt.none && dist < 46 && (Math.abs(tgt.y - z.y) > 1.2 || z.stuckT > 0.2 || z.pathKnown)) { const pd = zombiePathDir(z, tgt); if (pd) { wx = pd[0]; wz = pd[1]; } }
     let speed = z.speed * (0.78 + 0.22 * Math.sin(z.t * 4.2 + z.phase));
     z.lurk = false;
     if (tgt.none) { speed *= 0.3; wx = Math.sin(z.phase + z.t * 0.3); wz = Math.cos(z.phase + z.t * 0.3); }
@@ -7351,11 +7364,18 @@ function updateZombies(dt) {
       }
       else if (z.atkCd <= 0) { z.atkT = 0.42; SFX.zombieAttack(); }
     } else if (z.atkT > 0) z.atkT -= dt;
+    // the player is right below and there is no way down: dig straight down
+    if (z.state === 'walk' && !tgt.none && z.onGround && !z.pathKnown && tgt.y < z.y - 1.6 && dist < 2.4) {
+      const bx = Math.floor(z.x), by = Math.floor(z.y - 0.5), bz = Math.floor(z.z);
+      const id = getB(bx, by, bz);
+      const need = W.prot.has(I(bx, by, bz)) ? 0 : digDownTime(id, blood, bl);
+      if (need > 0) { z.state = 'break'; z.breakCell = { x: bx, y: by, z: bz, id, need }; z.breakT = 0; z.x = damp(z.x, bx + 0.5, 10, dt); z.z = damp(z.z, bz + 0.5, 10, dt); }
+    }
     // block breaking during the blood moon
     if (z.state === 'break') {
       const bc = z.breakCell;
       const id = getB(bc.x, bc.y, bc.z);
-      if (id !== bc.id || dist < 1.3) { z.state = 'walk'; z.breakT = 0; }
+      if (id !== bc.id || (dist < 1.3 && Math.abs(tgt.y - z.y) < 1.7)) { z.state = 'walk'; z.breakT = 0; }
       else {
         z.breakT += dt; speed = 0;
         z.yaw = dampAngle(z.yaw, Math.atan2(bc.x + 0.5 - z.x, bc.z + 0.5 - z.z), 8, dt);
@@ -8281,6 +8301,117 @@ function drawMob(z, t) {
   else if (z.type === 'wolf') drawWolf(z, t);
   else if (z.type === 'archer') drawArcher(z, t);
   else drawZombie(z, t);
+}
+
+/* ---- 09p_path.js ---- */
+/* =========================================================================
+   Zombie paths. For every player a distance field is built over the cells a
+   zombie can stand in (walk, step up one block, drop down a few), starting at
+   the player. A zombie walks to the neighbouring cell that is closest to the
+   player, so it finds the way into a cave through its entrance instead of
+   waiting on the surface above you. If there is no way, it digs straight down.
+   ========================================================================= */
+const PATHS = new Map();   // player key -> { t, d: Map(cell -> steps), at: [x, y, z] }
+const PATH_NODES = 6000, PATH_R = 44, PATH_DROP = 4;
+function walkOpen(id) { return !SOLID[id] && id !== B.LAVA && !(KIND[id] === K_OBJ && id !== B.TORCH && id !== B.CAMPFIRE); }
+function standable(x, y, z) {
+  if (y < 1 || y >= WY - 2) return false;
+  if (!walkOpen(getB(x, y, z)) || !walkOpen(getB(x, y + 1, z))) return false;
+  const b = getB(x, y - 1, z);
+  return SOLID[b] || b === B.WATER || getB(x, y, z) === B.WATER;
+}
+function pathStart(p) {
+  const x = Math.floor(p.x), z = Math.floor(p.z), y = Math.floor(p.y + 0.05);
+  for (const dy of [0, 1, -1, 2, -2]) if (standable(x, y + dy, z)) return [x, y + dy, z];
+  return null;
+}
+function buildPathField(p) {
+  const s = pathStart(p); if (!s) return null;
+  const d = new Map();
+  const q = [s]; d.set(I(s[0], s[1], s[2]), 0);
+  let head = 0;
+  while (head < q.length && d.size < PATH_NODES) {
+    const [x, y, z] = q[head++];
+    const dc = d.get(I(x, y, z)) + 1;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, nz = z + dz;
+      if (Math.abs(nx - s[0]) > PATH_R || Math.abs(nz - s[2]) > PATH_R) continue;
+      // cells a zombie could come from to get to (x, y, z):
+      // the same level, one lower (it steps up), or up to PATH_DROP higher (it drops down)
+      for (let h = -1; h <= PATH_DROP; h++) {
+        const ny = y + h;
+        if (!standable(nx, ny, nz)) continue;
+        if (h === -1 && !walkOpen(getB(nx, ny + 2, nz))) continue;           // head room for the step up
+        if (h > 0) { let clear = true; for (let yy = y + 1; yy <= ny + 1; yy++) if (!walkOpen(getB(x, yy, z))) { clear = false; break; } if (!clear) continue; }
+        const k = I(nx, ny, nz);
+        if (d.has(k)) continue;
+        d.set(k, dc); q.push([nx, ny, nz]);
+      }
+    }
+  }
+  return { d, at: s };
+}
+function pathField(p) {
+  const key = p.uid || 'me';
+  let f = PATHS.get(key);
+  const now = G.playTime;
+  const moved = f && f.at && (Math.abs(Math.floor(p.x) - f.at[0]) + Math.abs(Math.floor(p.z) - f.at[2]) + Math.abs(Math.floor(p.y) - f.at[1]) > 1);
+  if (!f || now - f.t > 1.2 || (moved && now - f.t > 0.35)) {
+    const b = buildPathField(p);
+    f = { t: now, d: b ? b.d : new Map(), at: b ? b.at : null };
+    PATHS.set(key, f);
+  }
+  return f;
+}
+/* where to walk: the next cell on the way to the player, or null (no way known) */
+function zombiePathDir(z, tgt) {
+  if (tgt.none) return null;
+  const f = pathField(tgt);
+  const x = Math.floor(z.x), z0 = Math.floor(z.z);
+  let y = Math.floor(z.y + 0.05);
+  let here = f.d.get(I(x, y, z0));
+  // standing on an edge or falling: the cell it will land in counts
+  if (here === undefined) { const v = f.d.get(I(x, y + 1, z0)); if (v !== undefined) { here = v; y += 1; } }
+  if (here === undefined) {
+    // only straight down through open air (not through the floor it would have to dig)
+    for (let dy = -1; dy >= -6; dy--) {
+      if (!walkOpen(getB(x, y + dy, z0))) break;
+      const v = f.d.get(I(x, y + dy, z0)); if (v !== undefined) { here = v; y += dy; break; }
+    }
+  }
+  if (here === undefined) {
+    // just stepped off the known way (over a drop): keep going the way it went for a moment
+    if (z.pathDir && G.playTime - (z.pathT || 0) < 1.2) { z.pathKnown = true; return z.pathDir; }
+    z.pathKnown = false; return null;
+  }
+  z.pathKnown = true;
+  // the way goes down right here: step into the middle of this cell and drop
+  if (y < Math.floor(z.y + 0.05)) {
+    const cx = x + 0.5 - z.x, cz = z0 + 0.5 - z.z, cl = Math.hypot(cx, cz);
+    if (cl < 0.08) return null;
+    z.pathDir = [cx / cl, cz / cl]; z.pathT = G.playTime;
+    return z.pathDir;
+  }
+  if (here <= 1) return null;                       // right there: go straight at it
+  let best = null, bd = here;
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let h = -PATH_DROP; h <= 1; h++) {
+    const v = f.d.get(I(x + dx, y + h, z0 + dz));
+    if (v !== undefined && v < bd) { bd = v; best = [dx, dz]; }
+  }
+  if (!best) return null;
+  // aim at the middle of the next cell (keeps them off the corners)
+  const tx = x + best[0] + 0.5 - z.x, tz = z0 + best[1] + 0.5 - z.z;
+  const l = Math.hypot(tx, tz) || 1;
+  z.pathDir = [tx / l, tz / l]; z.pathT = G.playTime;
+  return z.pathDir;
+}
+/* how long a zombie needs to dig through the block under it (0: it can't) */
+function digDownTime(id, blood, bl) {
+  if (id === B.BEDROCK || id === B.AIR || id === B.WATER || id === B.LAVA) return 0;
+  const soft = id === B.DIRT || id === B.GRASS || id === B.SAND || id === B.GRAVEL || id === B.SNOW || id === B.PATH || id === B.DARK_GRASS || id === B.MYCEL;
+  if (!blood) return soft ? 4 : 0;                   // normal nights: only through soft ground
+  const t = id === B.STONE || id === B.COBBLE || NEEDPICK[id] ? 7 : zombieBreakTime(id) || (soft ? 2.5 : 4);
+  return t * (bl ? bl.breakMul : 1);
 }
 
 /* ---- 09v_village.js ---- */
@@ -9500,6 +9631,7 @@ function initInput() {
     if (G.state === 'playing' && ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'F5'].includes(e.code)) e.preventDefault();
     if (e.repeat) { INPUT.keys.add(e.code); return; }
     INPUT.keys.add(e.code);
+    if ((e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') && PL.dead && !$('scrDeath').hidden) { e.preventDefault(); doRespawn(); return; }
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
     if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
     if ((e.code === 'Tab' || e.code === 'KeyI') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
@@ -11063,7 +11195,7 @@ function bindUI() {
   $('skinsDone').addEventListener('click', () => UI.closeSkins());
   $('cfNo').addEventListener('click', () => answerConfirm(false));
   $('cfYes').addEventListener('click', () => answerConfirm(true));
-  $('btnRespawn').addEventListener('click', () => { $('scrDeath').hidden = true; respawnPlayer(); });
+  $('btnRespawn').addEventListener('click', () => doRespawn());
   $('btnReload').addEventListener('click', () => location.reload());
   UI.newMode = 'endless';
   $('newWorldMode').addEventListener('click', (e) => {
@@ -11398,6 +11530,12 @@ async function loadWorld(seed, save, opts = {}) {
     else { PL.x = W.spawn[0] + (Math.random() - 0.5) * 3; PL.y = W.spawn[1] + 0.05; PL.z = W.spawn[2] + Math.random() * 2; }
     CAMC.mode = 'drone'; CAMC.yaw = 0.55; CAMC.pitch = 0.68; CAMC.dist = CAMC.distT = CAMC.eff = 12;
   }
+  // the camera you used last (first person stays first person)
+  if (SETTINGS.camPref === 'fp' || SETTINGS.camPref === 'drone') {
+    if (SETTINGS.camPref === 'fp' && CAMC.mode !== 'fp') { CAMC.fpYaw = CAMC.yaw; CAMC.fpPitch = -0.12; }
+    CAMC.mode = SETTINGS.camPref;
+  }
+  if (touchUI() && crossUI()) CAMC.mode = 'fp';
   // the land around the player; the rest streams in while playing
   const R = Math.min(SETTINGS.viewDist + 1, 6);
   const offs = chunkOffsets(R);
@@ -11488,6 +11626,8 @@ function startPlaying() {
   CAMC.trans = 0; CAMC.transDur = 2.4; // slow swoop from the menu camera down to the player
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
   UI.camMode(); UI.hotbar(); UI.tools(); UI.res(); UI.goal(); UI.mpChip();
+  // first person: the mouse looks around right away, the first click locks it
+  if (CAMC.mode === 'fp' && !touchUI()) INPUT.lockSoft = true;
   if (G._migratedMsg && WORLDS.current) { const m = G._migratedMsg; G._migratedMsg = null; saveGame(true); setTimeout(() => UI.toast(m, 'good', 9000), 2400); }
   if (DEVICE.opera && !touchUI() && !UI._operaHint) { UI._operaHint = true; setTimeout(() => UI.toast(OPERA_HINT, 'warn', 11000, 'opera'), 800); }
   if (G.playTime < 2 && !MP.isClient()) {
