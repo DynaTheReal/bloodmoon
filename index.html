@@ -363,7 +363,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .tool { width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); }
 .tool canvas { width: 28px; height: 28px; }
 .tool.off { opacity: 0.28; filter: grayscale(1); }
-.cross { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; pointer-events: none; }
+.cross { position: fixed; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; pointer-events: none; z-index: 6; }
 .cross::before, .cross::after { content: ""; position: absolute; background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); border-radius: 2px; }
 .cross::before { left: 8px; top: 2px; width: 2px; height: 14px; }
 .cross::after { left: 2px; top: 8px; width: 14px; height: 2px; }
@@ -1069,8 +1069,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.2.0';
+const GAME_VERSION = '2.2.1';
 const GAME_NOTES = [
+  ['2.2.1', 'Fadenkreuz wieder da, in der Ego-Perspektive bei jeder Steuerungsart'],
   ['2.2.0', 'Motion Blur (in den Einstellungen anschaltbar)'],
   ['2.1.0', 'Zombie-Vergiftung beim Blood Moon, Äpfel und Kristalläpfel, Kristalle nur noch in Höhlen'],
   ['2.0.0', 'Versionen in den Einstellungen, Einladungen, Admin-Werkzeuge, Server-Knopf im Startbildschirm'],
@@ -9689,9 +9690,15 @@ UI.floatText = function (kind) {
   UI._float = { kind, n: 1, t: now, el };
   setTimeout(() => el.remove(), 1300);
 };
+/* the crosshair: always in first person while playing, with every kind of controls */
+function syncCrosshair() {
+  const el = $('cross'); if (!el) return;
+  const want = CAMC.mode === 'fp' && G.state === 'playing' && !PL.dead && !G.sleep;
+  if (el.hidden === want) el.hidden = !want;
+}
 UI.camMode = function () {
   const fp = CAMC.mode === 'fp';
-  $('cross').hidden = !fp || G.state !== 'playing';
+  syncCrosshair();
   $('hp').classList.toggle('fp', fp);
 };
 UI.joy = function (on, x, y, dx, dy) {
@@ -11330,6 +11337,7 @@ function gameUpdate(dt) {
   updateAmbientBats(dt);
   updateTips(dt);
   updateInfection(dt);
+  syncCrosshair();
   updateWeather(dt);
   updateTornado(dt);
   updateFarFog(dt, PL.x, PL.z);
