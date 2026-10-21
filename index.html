@@ -290,6 +290,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .ver b { font-size: 15px; }
 .ver ul { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 4px; }
 .ver li span { color: var(--text); font-weight: 800; margin-right: 6px; }
+.poison-fx { position: fixed; inset: 0; pointer-events: none; z-index: 4; --pz: 0.2; background: radial-gradient(ellipse at center, rgba(70, 200, 40, calc(var(--pz) * 0.55)) 0%, rgba(40, 140, 20, calc(var(--pz) * 0.9)) 70%, rgba(20, 80, 10, var(--pz)) 100%); mix-blend-mode: normal; animation: poisonPulse 3.2s ease-in-out infinite; }
+.poison-fx.strong { animation-duration: 1.6s; backdrop-filter: blur(1.2px) saturate(1.4) hue-rotate(35deg); -webkit-backdrop-filter: blur(1.2px) saturate(1.4) hue-rotate(35deg); }
+@keyframes poisonPulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+.poison-chip { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; color: #b8ff8a; border-color: rgba(120, 220, 80, 0.5); }
+.poison-chip i { width: 9px; height: 9px; border-radius: 50%; background: #6fe03a; box-shadow: 0 0 10px #6fe03a; }
 .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dl-card { display: grid; gap: 4px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); text-decoration: none; }
 .dl-card:hover { background: rgba(255, 255, 255, 0.1); }
@@ -630,6 +635,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="moon panel" id="moonChip"><i class="moon-dot"></i><span id="moonTxt">Blood Moon in 10 Nächten</span></div>
     <div class="mp panel" id="mpChip" hidden><i class="mp-dot"></i><span id="mpTxt"></span></div>
     <div class="goal panel" id="goalBox"><span class="goal-k">Ziel</span><span class="goal-t" id="goalTxt"></span><span class="goal-dir" id="goalDir" hidden><svg viewBox="0 0 16 16" id="goalArrow" aria-hidden="true"><path d="M8 1.5 13.5 12 8 9.6 2.5 12Z" fill="currentColor"></path></svg><b id="goalDist"></b></span></div>
+    <div class="poison-chip panel" id="poisonChip" hidden><i></i><span id="poisonTxt"></span></div>
     <div class="goal tip panel" id="tipBox" hidden><span class="goal-k">Tipp</span><span class="goal-t" id="tipTxt"></span><button class="tip-x" id="tipX" type="button" aria-label="Tipp schließen">✕</button></div>
   </div>
   <div class="hud-tr">
@@ -782,6 +788,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="sec-t">Sonstiges</p>
       <div class="rows">
         <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
+        <div class="row"><div class="lbl">Motion Blur<small>Bewegungsunschärfe beim Umschauen und schnellen Laufen</small></div><button class="tgl" id="setMB" role="switch" aria-label="Motion Blur" type="button"></button></div>
         <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
         <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
       </div>
@@ -878,6 +885,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   </div>
 </div>
 
+<div id="poisonFx" class="poison-fx" hidden></div>
 <div id="inviteCard" class="invite-card panel" hidden role="alertdialog" aria-labelledby="invCardTxt">
   <div class="ic-t"><span class="goal-k">Einladung</span><b id="invCardTxt"></b></div>
   <div class="ic-a"><button class="btn primary" id="invCardYes" type="button">Beitreten</button><button class="btn ghost" id="invCardNo" type="button">Ablehnen</button></div>
@@ -1061,8 +1069,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.0.0';
+const GAME_VERSION = '2.2.0';
 const GAME_NOTES = [
+  ['2.2.0', 'Motion Blur (in den Einstellungen anschaltbar)'],
+  ['2.1.0', 'Zombie-Vergiftung beim Blood Moon, Äpfel und Kristalläpfel, Kristalle nur noch in Höhlen'],
   ['2.0.0', 'Versionen in den Einstellungen, Einladungen, Admin-Werkzeuge, Server-Knopf im Startbildschirm'],
   ['1.9.0', 'Server-IPs und Favoriten, Fadenkreuz-Steuerung, Lagerfeuer behält Sachen beim Tod'],
   ['1.8.0', 'Fledermäuse und Zombie-Fledermäuse, Tipps in der ersten Welt, neuer Support'],
@@ -3192,7 +3202,7 @@ function generateChunk(cx, cz) {
       else if (b === BIO.AUTUMN) p = h < 0.05 ? B.TALLGRASS : h < 0.064 ? B.MUSHROOM : 0;
       else if (b === BIO.CHERRY) p = h < 0.07 ? B.TALLGRASS : h < 0.12 ? (h2 < 0.6 ? B.FLOWER_VIOLET : B.FLOWER_RED) : 0;
       else if (b === BIO.TAIGA) p = h < 0.04 ? B.TALLGRASS : h < 0.058 ? B.MUSHROOM : 0;
-      else if (b === BIO.CRYSTAL) p = h < 0.022 ? B.CRYSTAL : h < 0.08 ? B.TALLGRASS : 0;
+      else if (b === BIO.CRYSTAL) p = h < 0.08 ? B.TALLGRASS : 0;   // crystals only grow in caves
       else if (b === BIO.MOUNTAIN || b === BIO.BEACH) p = h < 0.04 ? B.TALLGRASS : 0;
     } else if (sid === B.DARK_GRASS) p = h < 0.035 ? B.TALLGRASS : h < 0.046 ? B.GLOW_SHROOM : h < 0.06 ? B.MUSHROOM : 0;
     else if (sid === B.MYCEL) p = h < 0.07 ? B.GLOW_SHROOM : 0;
@@ -4239,7 +4249,8 @@ function renderFrame(time, focus, opts) {
 
   if (opts.shadows) renderShadows(time, focus, opts.viewDist * CS); else SH.on = false;
 
-  POST.on = !!opts.post && postEnsure(w, h);
+  POST.on = (!!opts.post || !!opts.mb) && postEnsure(w, h);
+  const mbNow = POST.on && !!opts.mb;
   gl.bindFramebuffer(gl.FRAMEBUFFER, sceneTarget());
   gl.viewport(0, 0, w, h);
   gl.depthMask(true);
@@ -4344,8 +4355,20 @@ function renderFrame(time, focus, opts) {
   gl.depthMask(true);
   gl.disable(gl.BLEND);
 
-  // first person view model
-  if (BATCH.view.n) {
+  // first person view model (with motion blur it is drawn on top afterwards, so the hand stays sharp)
+  if (BATCH.view.n && !mbNow) drawViewModelBatch(opts);
+  gl.bindVertexArray(null);
+  if (POST.on) postProcess(w, h, opts);
+  if (BATCH.view.n && mbNow) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);
+    gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.disable(gl.BLEND);
+    drawViewModelBatch(opts);
+    gl.bindVertexArray(null);
+  }
+}
+function drawViewModelBatch(opts) {
+  let P;
+  {
     gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     P = PROG.cuboid;
@@ -4355,8 +4378,6 @@ function renderFrame(time, focus, opts) {
     gl.uniform1f(P.u('u_trans'), 0);
     BATCH.view.draw();
   }
-  gl.bindVertexArray(null);
-  if (POST.on) postProcess(w, h);
 }
 
 /* ---- 06p_post.js ---- */
@@ -4455,9 +4476,33 @@ uniform vec3 u_rayCol;
 uniform float u_bloomK;
 uniform float u_rayK;
 uniform float u_vig;
+uniform float u_mbOn;
+uniform float u_mbK;
+uniform float u_mbZoom;
+uniform mat4 u_mbM;
 out vec4 o;
+/* motion blur: where this pixel was last frame (camera turning) plus a zoom streak when moving fast */
+vec3 sceneMB(vec2 uv) {
+  if (u_mbOn < 0.5) return texture(u_scene, uv).rgb;
+  vec2 ndc = uv * 2.0 - 1.0;
+  vec4 p = u_mbM * vec4(ndc, 1.0, 1.0);
+  vec2 v = (uv - 0.5) * u_mbZoom;
+  if (p.w > 0.0001) v += (uv - ((p.xy / p.w) * 0.5 + 0.5)) * u_mbK;
+  float l = length(v);
+  if (l > 0.075) v *= 0.075 / l;
+  if (l < 0.0006) return texture(u_scene, uv).rgb;
+  vec3 c = vec3(0.0);
+  float wsum = 0.0;
+  for (int i = 0; i < 12; i++) {
+    float t = float(i) / 11.0;
+    float wt = 1.0 - t * 0.55;
+    c += texture(u_scene, uv - v * (t - 0.15)).rgb * wt;
+    wsum += wt;
+  }
+  return c / wsum;
+}
 void main() {
-  vec3 c = texture(u_scene, v_uv).rgb;
+  vec3 c = sceneMB(v_uv);
   vec3 b = texture(u_bloom, v_uv).rgb;
   float r = texture(u_rays, v_uv).r;
   c += b * u_bloomK;
@@ -4532,8 +4577,31 @@ function postEnsure(w, h) {
   }
 }
 function drawFull(P) { gl.bindVertexArray(GEO.triVao); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+/* motion blur: the camera rotation since the last frame, as a matrix for the final pass */
+const MBLUR = { prev: new Float32Array(16), cur: new Float32Array(16), rot: new Float32Array(16), inv: new Float32Array(16), m: new Float32Array(16), has: false, lastT: 0, yaw: 0, pitch: 0 };
+function motionBlurParams() {
+  MBLUR.rot.set(CAM.view); MBLUR.rot[12] = MBLUR.rot[13] = MBLUR.rot[14] = 0;
+  M4.mul(MBLUR.cur, CAM.proj, MBLUR.rot);
+  M4.invert(MBLUR.inv, MBLUR.cur);
+  const now = performance.now();
+  const dt = clamp((now - (MBLUR.lastT || now - 16)) / 1000, 0.004, 0.2);
+  MBLUR.lastT = now;
+  if (!MBLUR.has || CAMC.trans < 1) { MBLUR.prev.set(MBLUR.cur); MBLUR.has = true; }
+  M4.mul(MBLUR.m, MBLUR.prev, MBLUR.inv);
+  MBLUR.prev.set(MBLUR.cur);
+  // the same amount of blur at any frame rate (like a camera shutter at 60 fps)
+  const k = clamp((1 / 60) / dt, 0.35, 2.2) * 0.85;
+  let zoom = 0;
+  if (CAMC.mode === 'fp' && G.state === 'playing') {
+    const sp = Math.hypot(PL.vx, PL.vz, Math.min(0, PL.vy) * 0.8);
+    zoom = clamp((sp - 3.2) / 42, 0, 0.03) * k;
+  }
+  return { k, zoom };
+}
 /* run after the scene was drawn into POST.msFbo */
-function postProcess(w, h) {
+function postProcess(w, h, opts) {
+  const fx = !opts || opts.post;
+  const mb = !!(opts && opts.mb);
   gl.disable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND); gl.depthMask(false);
   // resolve multisampling
   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, POST.msFbo);
@@ -4542,9 +4610,12 @@ function postProcess(w, h) {
   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
   gl.activeTexture(gl.TEXTURE0);
-  // bloom: bright pass into half size, blur down the chain, then add back up
   const L = POST.levels;
-  let P = PROG.pBright;
+  let P;
+  let rayK = 0, lx = 0.5, ly = 0.5;
+  if (fx) {
+  // bloom: bright pass into half size, blur down the chain, then add back up
+  P = PROG.pBright;
   gl.useProgram(P.p);
   gl.bindFramebuffer(gl.FRAMEBUFFER, L[0].fbo); gl.viewport(0, 0, L[0].w, L[0].h);
   gl.bindTexture(gl.TEXTURE_2D, POST.resTex);
@@ -4573,10 +4644,8 @@ function postProcess(w, h) {
   const lw = [CAM.eye[0] + ld[0] * 1000, CAM.eye[1] + ld[1] * 1000, CAM.eye[2] + ld[2] * 1000];
   const vp = CAM.vp;
   const cx = vp[0] * lw[0] + vp[4] * lw[1] + vp[8] * lw[2] + vp[12], cy = vp[1] * lw[0] + vp[5] * lw[1] + vp[9] * lw[2] + vp[13], cw = vp[3] * lw[0] + vp[7] * lw[1] + vp[11] * lw[2] + vp[15];
-  let rayK = 0;
   const vd = normDir(CAM.target, CAM.eye);
   const facing = ld[0] * vd[0] + ld[1] * vd[1] + ld[2] * vd[2];
-  let lx = 0.5, ly = 0.5;
   if (cw > 0 && ld[1] > -0.05) {
     lx = cx / cw * 0.5 + 0.5; ly = cy / cw * 0.5 + 0.5;
     rayK = smoothstep(0.1, 0.55, facing) * (ENV.night > 0.5 ? 0.35 + ENV.blood * 0.9 : 1.0) * (CAM.underwater ? 0 : 1);
@@ -4591,6 +4660,7 @@ function postProcess(w, h) {
     gl.uniform1f(P.u('u_lumMin'), ENV.night > 0.5 ? 0.25 : 0.55);
     drawFull(P);
   }
+  }
   // composite onto the screen
   gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, w, h);
   P = PROG.pFinal; gl.useProgram(P.p);
@@ -4599,9 +4669,15 @@ function postProcess(w, h) {
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, POST.rays.tex); gl.uniform1i(P.u('u_rays'), 2);
   const rc = ENV.night > 0.5 ? mix3([0.55, 0.62, 0.9], [1.0, 0.18, 0.1], ENV.blood) : mix3([1.0, 0.86, 0.62], [1.0, 0.55, 0.3], 1 - ENV.dayF);
   gl.uniform3f(P.u('u_rayCol'), rc[0], rc[1], rc[2]);
-  gl.uniform1f(P.u('u_bloomK'), lerp(0.22, 0.3, ENV.night));
+  gl.uniform1f(P.u('u_bloomK'), fx ? lerp(0.22, 0.3, ENV.night) : 0);
   gl.uniform1f(P.u('u_rayK'), rayK * 0.85);
-  gl.uniform1f(P.u('u_vig'), lerp(0.42, 0.75, ENV.night));
+  gl.uniform1f(P.u('u_vig'), fx ? lerp(0.42, 0.75, ENV.night) : 0);
+  const mp = mb ? motionBlurParams() : null;
+  if (!mb) MBLUR.has = false;
+  gl.uniform1f(P.u('u_mbOn'), mb ? 1 : 0);
+  gl.uniform1f(P.u('u_mbK'), mp ? mp.k : 0);
+  gl.uniform1f(P.u('u_mbZoom'), mp ? mp.zoom : 0);
+  gl.uniformMatrix4fv(P.u('u_mbM'), false, mp ? MBLUR.m : MBLUR.prev);
   drawFull(P);
   gl.activeTexture(gl.TEXTURE0);
   gl.depthMask(true);
@@ -4974,6 +5050,13 @@ function drawItemModel(Bt, ms, k, n, sky) {
   if (it.tool) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, it.tool, Math.max(1, n || 1), sky); ms.pop(); return; }
   if (it.armor) { drawArmorPiece(box, it.armor, Math.max(1, n || 1)); return; }
   if (k === 'torch') { ms.push().t(0, -0.28, 0); drawTool(Bt, ms, 'torch', 0, sky); ms.pop(); return; }
+  if (k === 'apple' || k === 'crystal_apple') {
+    const cr = k === 'crystal_apple';
+    box(0.3, 0.28, 0.3, 0, 0, 0, cr ? [0.37, 0.82, 0.94] : [0.85, 0.18, 0.15], cr ? 0.5 : 0);
+    box(0.04, 0.1, 0.04, 0, 0.18, 0, [0.42, 0.28, 0.15]);
+    box(0.1, 0.03, 0.06, 0.06, 0.2, 0, [0.35, 0.64, 0.27]);
+    return;
+  }
   if (k === 'iron') {
     box(0.42, 0.13, 0.22, 0, -0.06, 0, [0.62, 0.65, 0.69]);
     box(0.34, 0.06, 0.15, 0, 0.03, 0, [0.88, 0.9, 0.93]);
@@ -5467,7 +5550,7 @@ const QUALITY = {
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
-  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true,
+  sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false,
   touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
@@ -5505,6 +5588,8 @@ const ITEMS = {
   chest: { name: 'Truhe', block: B.CHEST, place: 'chest' },
   bucket: { name: 'Eimer', place: 'bucket' },
   water_bucket: { name: 'Wassereimer', place: 'water' },
+  apple: { name: 'Apfel', food: true },
+  crystal_apple: { name: 'Kristallapfel', food: true },
   // tools live in the hotbar and only work while they are held
   axe: { name: 'Axt', tool: 'axe' },
   pickaxe: { name: 'Spitzhacke', tool: 'pickaxe' },
@@ -5541,15 +5626,18 @@ const RES_NAME = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant
 const RES_ONE = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant', crystal: 'Kristall', ruby: 'Rubin', mythril: 'Mythril' };
 function resName(k, n) { return n === 1 ? RES_ONE[k] : RES_NAME[k]; }
 function emptyInv() { return { wood: 0, wool: 0, iron: 0, diamond: 0, crystal: 0, ruby: 0, mythril: 0, items: {} }; }
-function canAfford(cost) { for (const k in cost) if ((G.inv[k] || 0) < cost[k]) return false; return true; }
-function pay(cost) { for (const k in cost) G.inv[k] = (G.inv[k] || 0) - cost[k]; }
-function missingText(cost) { const m = []; for (const k in cost) { const d = cost[k] - (G.inv[k] || 0); if (d > 0) m.push(d + ' ' + resName(k, d)); } return m.join(', '); }
+/* prices are raw materials, and sometimes an item (a crystal apple needs an apple) */
+function have(k) { return RES_NAME[k] ? (G.inv[k] || 0) : itemCount(k); }
+function canAfford(cost) { for (const k in cost) if (have(k) < cost[k]) return false; return true; }
+function pay(cost) { for (const k in cost) { if (RES_NAME[k]) G.inv[k] = (G.inv[k] || 0) - cost[k]; else takeItem(k, cost[k]); } }
+function missingText(cost) { const m = []; for (const k in cost) { const d = cost[k] - have(k); if (d > 0) m.push(d + ' ' + (RES_NAME[k] ? resName(k, d) : itemName(k) + (d > 1 ? '' : ''))); } return m.join(', '); }
 function resHint(cost) {
   if (cost.wool && G.inv.wool < cost.wool) return ' Schafe grasen weit weg vom Spawn.';
   if (cost.iron && G.inv.iron < cost.iron) return ' Eisenerz steckt in den kleinen Höhlen rund ums Lager.';
   if (cost.diamond && G.inv.diamond < cost.diamond) return ' Diamanten liegen tief in den großen Höhlen weiter draußen.';
   if (cost.ruby && (G.inv.ruby || 0) < cost.ruby) return ' Rubine glühen tief unten in Höhlen weit draußen. Du brauchst eine Diamantspitzhacke.';
   if (cost.mythril && (G.inv.mythril || 0) < cost.mythril) return ' Mythril liegt ganz unten bei der Lava, weit weg vom Spawn. Du brauchst eine Diamantspitzhacke.';
+  if (cost.apple && itemCount('apple') < cost.apple) return ' Äpfel fallen manchmal aus Bäumen, wenn du sie fällst.';
   if (cost.crystal && G.inv.crystal < cost.crystal) return ' Leuchtkristalle wachsen hinter dem Schattenwald und tief in den Höhlen.';
   if (cost.wood && G.inv.wood < cost.wood) return ' Fäll noch ein paar Bäume.';
   return '';
@@ -5574,6 +5662,7 @@ function ensureTools() {
 const SHOP = [
   { id: 'campfire', tab: 'survive', item: 'campfire', qty: 1, cost: { wood: 5 }, name: 'Lagerfeuer', desc: 'Hält Zombies nachts fern. Mit E am Feuer verbesserst du es: größerer Schutzkreis, weniger Nebel.' },
   { id: 'torch', tab: 'survive', item: 'torch', qty: 4, cost: { wood: 2 }, name: '4 Fackeln', desc: 'Licht für dein Lager und für Höhlen. In der Hand leuchtet eine Fackel mit.' },
+  { id: 'crystal_apple', tab: 'survive', item: 'crystal_apple', qty: 1, cost: { crystal: 3, apple: 1 }, name: 'Kristallapfel', desc: 'Heilt die Zombie-Vergiftung vom Blood Moon und gibt dir viel Leben zurück. Rechtsklick (oder Tippen) mit dem Apfel in der Hand zum Essen.' },
   { id: 'bed', tab: 'survive', item: 'bed', qty: 1, cost: { wood: 4, wool: 3 }, name: 'Bett', desc: 'Schlaf durch die Nacht und setz deinen Spawnpunkt. Nicht beim Blood Moon.' },
   { id: 'planks', tab: 'build', item: 'planks', qty: 10, cost: { wood: 3 }, name: '10 Holzbretter', desc: 'Günstiges Baumaterial für Wände, Böden und Dächer.' },
   { id: 'bricks', tab: 'build', item: 'bricks', qty: 10, cost: { wood: 6 }, name: '10 Steinziegel', desc: 'Robust: Zombies brauchen beim Blood Moon mehr als doppelt so lange.' },
@@ -6176,20 +6265,30 @@ function dropSelected(all) {
 }
 /* dying: everything you carry falls on the ground, and stays there until somebody picks it up */
 function dropEverything() {
-  // close to your campfire your things stay with you
-  if (keepFire(PL.x, PL.z)) { setTimeout(() => UI.toast('Dein Lagerfeuer war nah genug: du behältst alle deine Sachen.', 'good', 5200), 900); saveGame(true); return; }
+  // close to your campfire your things stay with you (not when the zombie poison killed you)
+  const cursed = !!G._curse;
+  // dying ends the poison (one way or the other)
+  if (G.stats && G.stats.inf) { G.stats.inf = null; uiPoison(); }
+  if (!cursed && keepFire(PL.x, PL.z)) { setTimeout(() => UI.toast('Dein Lagerfeuer war nah genug: du behältst alle deine Sachen.', 'good', 5200), 900); saveGame(true); return; }
   const all = [];
   for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
   for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
   G.inv.items = {};
   for (const t of ['axe', 'sword', 'pickaxe', 'shears', ...ARMOR_SLOTS]) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
-  all.forEach(([k, n], j) => {
-    const a = j / Math.max(1, all.length) * TAU;
+  const cursedSplit = cursed ? curseHalf(all) : null;
+  const fall = cursed ? cursedSplit[0] : all;
+  fall.forEach(([k, n], j) => {
+    const a = j / Math.max(1, fall.length) * TAU;
     sendDrop(dropItem(k, n, PL.x, PL.y + 1, PL.z, Math.cos(a) * 2.2, 3.5, Math.sin(a) * 2.2));
   });
   G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
+  if (cursed) {
+    const [, lost] = cursedSplit;
+    for (let k = 0; k < 30; k++) spawnPart({ x: PL.x + (Math.random() - 0.5) * 2, y: PL.y + 0.5 + Math.random(), z: PL.z + (Math.random() - 0.5) * 2, vx: 0, vy: 1.2 + Math.random(), vz: 0, life: 1.5, size: 0.14, r: 0.5, g: 0.1, b: 0.7, em: 0.8, grav: -0.6, drag: 1 });
+    setTimeout(() => UI.toast('Die Zombie-Vergiftung hat dich getötet. Alles ist herausgefallen, und ' + lost + ' deiner Sachen sind verflucht und für immer weg.', 'warn', 8000), 900);
+  }
   UI.res(); UI.hotbar(); UI.tools && UI.tools();
-  if (all.length) setTimeout(() => UI.toast('Deine Sachen liegen dort, wo du gestorben bist. Sie bleiben liegen, bis sie jemand aufhebt.', 'warn', 6500), 900);
+  if (all.length && !cursed) setTimeout(() => UI.toast('Deine Sachen liegen dort, wo du gestorben bist. Sie bleiben liegen, bis sie jemand aufhebt.', 'warn', 6500), 900);
   saveGame(true);
 }
 function moveInput() {
@@ -6517,6 +6616,8 @@ function updateFalling(dt) {
           const d = 0.8 + n * Math.max(0.7, (f.t.h - 0.5) / 5);
           const x = f.pivot[0] + f.dir[0] * s * d, y = f.pivot[1] + c * d + 0.5, z = f.pivot[2] + f.dir[1] * s * d;
           if (!f.remote) spawnDrop('wood', x, y, z, (Math.random() - 0.5) * 2, 4 + Math.random() * 2.5, (Math.random() - 0.5) * 2, 0.55 + n * 0.08, true);
+          // now and then an apple falls out of the crown
+          if (!f.remote && n === 4 && Math.random() < 0.05) { spawnDrop('apple', x, y + 0.5, z, (Math.random() - 0.5) * 2, 4, (Math.random() - 0.5) * 2, 0.8, true); setTimeout(() => UI.toast('Ein Apfel ist aus dem Baum gefallen!', 'good', 2600, 'apple'), 900); }
           burst(x, y, z, 6, [COL.woodLight, COL.wood], { speed: 2.5, up: 3, life: 0.9, size: 0.08 });
         }
         SFX.pop();
@@ -6728,6 +6829,7 @@ function useBucket(target) {
 }
 function placeSelected(target, retry) {
   const item = selectedItem();
+  if (FOOD[item]) return eatSelected();
   if (item === 'bucket') return useBucket(target);
   const p = placementFor(target, item);
   if (p && p.blockedByPlayer) {
@@ -7048,7 +7150,8 @@ function updateZombies(dt) {
       if (z.atkT > 0) {
         z.atkT -= dt;
         if (z.atkT <= 0) {
-          if (dist < 1.6) { const dmg = blood ? 14 + bl.dmgAdd : 10; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z }); else hurtPlayer(dmg, z.x, z.z); }
+          // a blood moon zombie poisons whoever it hits
+          if (dist < 1.6) { const dmg = blood ? 14 + bl.dmgAdd : 10; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, inf: blood ? 1 : null }); else { hurtPlayer(dmg, z.x, z.z); if (blood) infect(); } }
           z.atkCd = 1.15;
         }
       }
@@ -7456,6 +7559,104 @@ function updateTips(dt) {
     UI._tipT = 16;
     SFX.ui();
   }
+}
+
+/* ---- 09i_infect.js ---- */
+/* =========================================================================
+   Zombie poison. A blood moon zombie that hits you poisons you. The poison
+   gets one level worse every five minutes (the screen turns greener). Only
+   a crystal apple cures it. Who does not eat one in time dies of it, and
+   then everything falls on the ground (also next to the campfire) and half
+   of it is cursed and gone.  State: G.stats.inf = { lv: 1..5, t: seconds }
+   ========================================================================= */
+const INF_STEP = 300;
+const FOOD = { apple: { hp: 20 }, crystal_apple: { hp: 60, cure: true } };
+function infection() { return (G.stats && G.stats.inf) || null; }
+function infect() {
+  if (PL.dead) return;
+  if (!G.stats) G.stats = { trees: 0, zombies: 0 };
+  if (G.stats.inf) return;
+  G.stats.inf = { lv: 1, t: 0 };
+  UI.toast('Ein Blood-Moon-Zombie hat dich gebissen. Du bist vergiftet! Nur ein Kristallapfel heilt dich (Händler: 3 Kristalle und 1 Apfel).', 'warn', 8000, 'inf');
+  SFX.poison && SFX.poison(1);
+  uiPoison();
+  saveGame();
+}
+function cureInfection() {
+  if (!infection()) return false;
+  G.stats.inf = null;
+  uiPoison();
+  burst(PL.x, PL.y + 1.2, PL.z, 26, [[0.6, 0.85, 1.0], [0.85, 0.75, 1.0]], { speed: 2.5, up: 3, life: 1.2, size: 0.09 });
+  return true;
+}
+function updateInfection(dt) {
+  const f = infection();
+  UI._poisonT = (UI._poisonT || 0) - dt;
+  if (UI._poisonT <= 0) { UI._poisonT = 0.25; uiPoison(); }
+  if (!f || PL.dead || G.state === 'menu' || G.state === 'loading' || G.sleep) return;
+  f.t += dt;
+  if (f.t >= INF_STEP) {
+    if (f.lv >= 5) { poisonDeath(); return; }
+    f.lv++; f.t = 0;
+    UI.toast(f.lv >= 5 ? 'Vergiftung Stufe 5! In fünf Minuten ist es zu spät. Iss sofort einen Kristallapfel!' : 'Die Zombie-Vergiftung wird stärker: Stufe ' + f.lv + ' von 5.', 'warn', 6000, 'inf');
+    SFX.poison && SFX.poison(f.lv / 5);
+    saveGame();
+  }
+  // the worse it gets, the more the world sways
+  if (f.lv >= 3 && SETTINGS.camShake && Math.random() < dt * (f.lv - 2) * 0.25) CAMC.shake = Math.min(0.5, CAMC.shake + 0.08 * f.lv);
+}
+/* the poison wins: everything falls out, half of it is gone for good */
+function poisonDeath() {
+  G.stats.inf = null;
+  G._curse = true;
+  PL.invuln = 0;
+  hurtPlayer(99999, PL.x, PL.z);
+  G._curse = false;
+  uiPoison();
+  for (let k = 0; k < 40; k++) spawnPart({ x: PL.x + (Math.random() - 0.5), y: PL.y + Math.random() * 1.8, z: PL.z + (Math.random() - 0.5), vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2, vz: (Math.random() - 0.5) * 2, life: 1.6, size: 0.12, r: 0.45, g: 0.9, b: 0.2, em: 0.6, grav: -0.5, drag: 1 });
+}
+/* half of every stack is cursed and vanishes (tools and armor: one in two) */
+function curseHalf(all) {
+  const out = [];
+  let lost = 0;
+  for (const [k, n] of all) {
+    const it = ITEMS[k];
+    if (it && (it.tool || it.armor)) { if (Math.random() < 0.5) { lost++; continue; } out.push([k, n]); continue; }
+    const keep = Math.floor(n / 2) + (n % 2 && Math.random() < 0.5 ? 1 : 0);
+    lost += n - keep;
+    if (keep > 0) out.push([k, keep]);
+  }
+  return [out, lost];
+}
+/* eat what is in the hand */
+function eatSelected() {
+  const k = selectedItem(); const f = FOOD[k]; if (!f) return false;
+  if (!f.cure && PL.hp >= PL.maxHp) { hint('full', 'Du bist schon ganz gesund.'); return false; }
+  if (!takeItem(k, 1)) return false;
+  PL.hp = Math.min(PL.maxHp, PL.hp + f.hp);
+  SFX.eat && SFX.eat();
+  PL.swingT = 0; PL.swingKind = 'hit';
+  burst(PL.x, PL.y + 1.5, PL.z, 8, k === 'apple' ? [[0.85, 0.15, 0.12], [0.95, 0.9, 0.7]] : [[0.5, 0.85, 1.0], [0.8, 0.7, 1.0]], { speed: 1.2, up: 1.5, life: 0.6, size: 0.06 });
+  if (f.cure) UI.toast(cureInfection() ? 'Der Kristallapfel hat die Vergiftung geheilt!' : 'Lecker! Der Kristallapfel heilt dich ganz.', 'good', 4200);
+  else UI.toast('Apfel gegessen: +' + f.hp + ' Leben.', 'good', 2000, 'eat');
+  saveGame();
+  return true;
+}
+/* green screen and the chip in the corner */
+function uiPoison() {
+  const f = infection();
+  const lv = f ? f.lv : 0;
+  UI._poisonLv = lv;
+  const el = $('poisonFx'), chip = $('poisonChip');
+  if (!el) return;
+  const off = !lv || G.state === 'menu' || G.state === 'loading';
+  el.hidden = off; chip.hidden = off;
+  if (!lv) return;
+  el.style.setProperty('--pz', String([0, 0.16, 0.3, 0.46, 0.62, 0.82][lv]));
+  el.classList.toggle('strong', lv >= 4);
+  const left = Math.max(0, INF_STEP - f.t);
+  const mm = Math.floor(left / 60), ss = Math.floor(left % 60);
+  $('poisonTxt').textContent = 'Vergiftet · Stufe ' + lv + '/5 · ' + (lv >= 5 ? 'Tod in ' : 'stärker in ') + mm + ':' + String(ss).padStart(2, '0');
 }
 
 /* ---- 09m_mobs.js ---- */
@@ -9197,6 +9398,21 @@ function drawToolIcon(ctx, kind, level, S) {
   }
   ctx.restore();
 }
+function drawAppleIcon(ctx, crystal, S) {
+  const k = S / 64;
+  ctx.save(); ctx.scale(k, k);
+  if (crystal) { const g = ctx.createRadialGradient(32, 36, 4, 32, 36, 30); g.addColorStop(0, 'rgba(140,220,255,0.6)'); g.addColorStop(1, 'rgba(140,220,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64); }
+  ctx.fillStyle = crystal ? '#5fd0f0' : '#d8322c';
+  ctx.beginPath(); ctx.arc(24, 38, 15, 0, TAU); ctx.arc(40, 38, 15, 0, TAU); ctx.fill();
+  ctx.fillStyle = crystal ? '#b49cff' : '#a91f1c';
+  ctx.beginPath(); ctx.arc(36, 44, 11, 0, Math.PI); ctx.fill();
+  ctx.fillStyle = crystal ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.ellipse(22, 31, 4, 6, -0.5, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#6b4626'; ctx.fillRect(30, 12, 4, 12);
+  ctx.fillStyle = '#5aa346'; ctx.beginPath(); ctx.ellipse(41, 15, 8, 4, -0.5, 0, TAU); ctx.fill();
+  if (crystal) { ctx.fillStyle = '#e4fbff'; ctx.beginPath(); ctx.moveTo(32, 30); ctx.lineTo(36, 38); ctx.lineTo(32, 46); ctx.lineTo(28, 38); ctx.closePath(); ctx.fill(); }
+  ctx.restore();
+}
 function drawArmorIcon(ctx, slot, level, S) {
   const k = S / 64;
   const c = ARMOR_HEX[level] || ARMOR_HEX[1];
@@ -9315,6 +9531,7 @@ function drawItemIcon(canvasEl, key) {
   const it = ITEMS[key];
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
   if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
+  if (key === 'apple' || key === 'crystal_apple') { drawAppleIcon(ctx, key === 'crystal_apple', S); return; }
   const m = /^(axe|sword|pickaxe|shears)(\d)?$/.exec(key);
   if (m) drawToolIcon(ctx, m[1], parseInt(m[2] || '1', 10), S);
 }
@@ -9669,16 +9886,16 @@ UI.shopRefresh = function (rebuild) {
     b.className = 'buy ' + (st === 'ok' ? '' : st);
     b.textContent = st === 'owned' ? (e.id === 'campfire' ? 'Nur eins erlaubt' : 'Besitzt du') : 'Kaufen';
     b.disabled = st === 'owned';
-    for (const s of card.querySelectorAll('.price span')) s.classList.toggle('lack', (G.inv[s.dataset.k] || 0) < e.cost[s.dataset.k]);
+    for (const s of card.querySelectorAll('.price span')) s.classList.toggle('lack', have(s.dataset.k) < e.cost[s.dataset.k]);
   }
   for (const k of RES_KEYS) $(RES_UI[k][2]).textContent = G.inv[k] || 0;
 };
 /* price tags: one icon and number per material */
 function fillPrice(el, cost) {
   el.innerHTML = '';
-  for (const k of RES_KEYS) {
+  for (const k of [...RES_KEYS, ...Object.keys(cost).filter((q) => !RES_NAME[q])]) {
     if (!cost[k]) continue;
-    const s = document.createElement('span'); s.dataset.k = k; s.title = RES_NAME[k];
+    const s = document.createElement('span'); s.dataset.k = k; s.title = RES_NAME[k] || itemName(k);
     s.innerHTML = '<canvas width="36" height="36"></canvas><b></b>';
     drawItemIcon(s.firstChild, k); s.lastChild.textContent = cost[k];
     el.appendChild(s);
@@ -10054,7 +10271,7 @@ function bindSettingsUI() {
     $('setFov').value = SETTINGS.fov; $('setFovO').textContent = SETTINGS.fov + '°';
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
-    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
+    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
     $('testBox').hidden = MP.isClient() || !isOwner();
   };
   UI.settingsRefresh = refresh;
@@ -10077,7 +10294,7 @@ function bindSettingsUI() {
   rng('setFov', 'fov', (v) => Math.round(v));
   rng('setSens', 'sens', (v) => v);
   rng('setVol', 'volume', (v) => v);
-  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost']]) {
+  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
   // nobody but the owner can use them, even if the box were shown
@@ -10687,6 +10904,8 @@ const SFX = (() => {
     // squeaks and flutter of many bats
     bats(k = 1) { for (let i = 0; i < 2 + Math.floor(k * 4); i++) { const f = r(3200, 5600); tone('sine', f, f * r(0.75, 1.1), r(0.04, 0.09), 0.05 * k, r(0, 0.4)); } hiss('bandpass', 700, 0.9, 0.5, 0.06 * k, 0, 300); },
     screech(d) { const g = near(d, 70); if (g < 0.02) return; tone('sawtooth', 2400, 900, 0.5, 0.16 * g); tone('square', 1800, 600, 0.45, 0.06 * g, 0.03); hiss('bandpass', 2500, 2, 0.4, 0.12 * g); },
+    poison(k = 1) { tone('sine', 220, 140, 0.8, 0.12 + 0.1 * k); tone('sawtooth', 110, 70, 0.9, 0.05 + 0.06 * k, 0.1); },
+    eat() { for (let i = 0; i < 3; i++) hiss('bandpass', r(900, 1500), 1.5, 0.07, 0.25, i * 0.12); },
     batBite() { hiss('bandpass', 1600, 2, 0.12, 0.35); tone('square', 900, 300, 0.12, 0.12); },
     omen() { tone('sine', 196, 185, 3, 0.12, 0, bus, 0.6); tone('sine', 233, 220, 3, 0.08, 0.3, bus, 0.6); },
     ambience(dt, s) {
@@ -10860,6 +11079,7 @@ function showMenu() {
   G.state = 'menu';
   $('scrLoad').hidden = true; $('hud').hidden = true; $('scrDeath').hidden = true; $('scrSkins').hidden = true;
   $('scrMenu').hidden = false;
+  uiPoison();
   UI.skinPreview = false;
   applyTouchMode(false);
   updateCursorStyle();
@@ -11109,6 +11329,7 @@ function gameUpdate(dt) {
   updateArrows(dt);
   updateAmbientBats(dt);
   updateTips(dt);
+  updateInfection(dt);
   updateWeather(dt);
   updateTornado(dt);
   updateFarFog(dt, PL.x, PL.z);
@@ -11171,6 +11392,7 @@ function frame(now) {
   computeEnv(G.time, SETTINGS.viewDist);
   buildDrawLists(shaderTime, inMenu);
   RENDER_OPTS.shadows = TEX.shadowSize > 0;
+  RENDER_OPTS.mb = !!SETTINGS.motionBlur;
   RENDER_OPTS.viewDist = SETTINGS.viewDist;
   RENDER_OPTS.patDen = Math.max(4, TEX.res * 2);
   RENDER_OPTS.cut[0] = PL.x; RENDER_OPTS.cut[1] = PL.y + PL.stepOffset + 1.0; RENDER_OPTS.cut[2] = PL.z;
@@ -12368,7 +12590,7 @@ function applyNetEvent(v) {
       break;
     }
     case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
-    case 'hurt': if (v.to === NET.uid()) hurtPlayer(v.dmg, v.fx, v.fz); break;
+    case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
 }
