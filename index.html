@@ -307,6 +307,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .islot canvas { width: 70%; height: 70%; image-rendering: pixelated; }
 .islot b { position: absolute; right: 4px; bottom: 2px; font-family: var(--font-display); font-weight: 400; font-size: 13px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
 .islot.held { border-color: var(--ember); background: rgba(255, 177, 92, 0.16); }
+.islot.lifted canvas, .islot.lifted b { opacity: 0.22; }
+#invGhost { position: fixed; z-index: 9999; width: 52px; height: 52px; margin: -26px 0 0 -26px; pointer-events: none; display: grid; place-items: center; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55)); color: var(--text); }
+#invGhost[hidden] { display: none; }
+#invGhost canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+#invGhost b { position: absolute; right: -2px; bottom: -4px; font-family: var(--font-display); font-weight: 400; font-size: 14px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7); }
+.islot { touch-action: none; }
 .islot:hover { border-color: rgba(255, 255, 255, 0.3); }
 .inv-acts { margin-top: 12px; }
 .sup-msg { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 10px; }
@@ -770,7 +776,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="sheet-b">
       <p class="sec-t">Grafik</p>
       <div class="qual" id="setQuality" role="radiogroup" aria-label="Grafik">
-        <button type="button" data-v="low" role="radio"><b>Low</b><span>Scharfe 2×2-Pixel, einfaches Licht, läuft überall flüssig</span></button>
+        <button type="button" data-v="low" role="radio"><b>Low</b><span>Texturen wie Mittel, einfaches Licht, läuft überall flüssig</span></button>
         <button type="button" data-v="medium" role="radio"><b>Mittel</b><span>8×8-Texturen, Schatten und Fackellicht</span></button>
         <button type="button" data-v="high" role="radio"><b>High</b><span>16×16-Texturen, volle Auflösung, Leuchten, Lichtstrahlen, weiche Schatten</span></button>
       </div>
@@ -943,7 +949,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <form class="newworld" id="saIpForm" autocomplete="off"><input class="field" id="saIp" maxlength="20" placeholder="z. B. Brickstein" aria-label="Server-IP" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Veröffentlichen</button></form>
       <button class="btn ghost" id="saIpOff" type="button" hidden style="margin-top:8px">IP entfernen</button>
       <p class="sec-t">Regeln</p>
-      <div class="rows"><div class="row"><div class="lbl">Fallschaden<small>Wer tief fällt, nimmt Schaden (ins Wasser fallen tut nie weh)</small></div><button class="tgl" id="saFall" role="switch" aria-label="Fallschaden" type="button" aria-checked="true"></button></div></div>
+      <div class="rows"><div class="row"><div class="lbl">Fallschaden<small>Wer tief fällt, nimmt Schaden (ins Wasser fallen tut nie weh)</small></div><button class="tgl" id="saFall" role="switch" aria-label="Fallschaden" type="button" aria-checked="true"></button></div><div class="row"><div class="lbl">PvP<small>Spieler können sich gegenseitig angreifen</small></div><button class="tgl" id="saPvp" role="switch" aria-label="PvP" type="button" aria-checked="false"></button></div></div>
       <p class="sec-t">Mitglieder</p>
       <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
       <p class="sec-t">Server-Welt</p>
@@ -1072,8 +1078,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.6.2';
+const GAME_VERSION = '2.8.0';
 const GAME_NOTES = [
+  ['2.8.0', 'PvP (Server-Einstellungen), Inventar: Items anheben und verschieben oder ziehen, Q wirft das Item unter der Maus weg, Strg+Q den ganzen Stapel'],
+  ['2.7.0', 'Nur noch ein Lagerfeuer pro Welt, Schaufeln (graben Erde schneller), weggeworfene Items verschwinden nach 15 Sekunden, Low-Grafik mit den Texturen von Mittel'],
   ['2.6.2', 'Zombies drehen sich nicht mehr im Kreis: jeder sucht sich eigene Wege und Grabstellen'],
   ['2.6.1', 'Fallschaden: 30 Blöcke tödlich, mit Stiefeln 50. Zombies spawnen unter Sky-Bases, bauen sich hoch und brechen ein'],
   ['2.6.0', 'Klügere Zombies (finden den Weg in Höhlen, graben sich nach unten), doppelter Fallschaden, Wiederbeleben mit Leertaste/Enter, Ego-Perspektive bleibt gespeichert'],
@@ -5044,9 +5052,10 @@ function dropItem(k, n, x, y, z, vx, vy, vz, id) {
   d.n = n; d.nid = id; d.keep = true;
   return d;
 }
-function sendDrop(d) { if (MP.active() && d) MP.send({ t: 'drop', id: d.nid, k: d.kind, n: d.n, p: [+d.x.toFixed(2), +d.y.toFixed(2), +d.z.toFixed(2), +d.vx.toFixed(2), +d.vy.toFixed(2), +d.vz.toFixed(2)] }); }
+const DROP_LIFE = 15;
+function sendDrop(d) { if (MP.active() && d) MP.send({ t: 'drop', id: d.nid, k: d.kind, n: d.n, l: d.life ? 1 : 0, p: [+d.x.toFixed(2), +d.y.toFixed(2), +d.z.toFixed(2), +d.vx.toFixed(2), +d.vy.toFixed(2), +d.vz.toFixed(2)] }); }
 function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if (k >= 0) DROPS.splice(k, 1); }
-function keptDrops() { return DROPS.filter((d) => d.keep).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
+function keptDrops() { return DROPS.filter((d) => d.keep && !d.life).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
 function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
 const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
@@ -5194,6 +5203,11 @@ function drawTool(Bt, ms, tool, level, sky, item) {
   } else if (tool === 'pickaxe') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
     box(0.07, 0.07, 0.56, 0, 0.53, 0, toolColor(level));
+  } else if (tool === 'shovel') {
+    box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
+    const c = toolColor(level);
+    box(0.17, 0.2, 0.035, 0, 0.62, 0, c);
+    box(0.1, 0.06, 0.04, 0, 0.75, 0, [c[0] * 1.08, c[1] * 1.08, c[2] * 1.08]);
   } else if (tool === 'shears') {
     box(0.05, 0.3, 0.04, -0.03, 0.22, 0, COL.iron);
     box(0.05, 0.3, 0.04, 0.03, 0.22, 0, COL.iron);
@@ -5721,9 +5735,9 @@ const DEVICE = {
 const OPERA_HINT = 'Du spielst in Opera: Schalte dort die Mausgesten aus (Einstellungen → Features → Tastenkombinationen → „Mausgesten aktivieren“). Sonst kann Ziehen mit der rechten Maustaste die Seite verlassen. Alternativ drehst du mit der mittleren Maustaste.';
 const REDUCED_MOTION = MQ('(prefers-reduced-motion: reduce)');
 const SETTINGS_KEY = 'bloodmoon-settings-v1', OLD_SETTINGS_KEY = 'blutmond-settings-v1', SAVE_KEY = 'blutmond-save-v1';
-/* graphics presets: Low = crisp 2x2 textures and a light shader, High = everything */
+/* graphics presets: Low = the textures of Mittel with a light shader, High = everything */
 const QUALITY = {
-  low: { name: 'Low', tex: 2, mips: false, aniso: 1, shadow: 0, lights: 4, q: 0, post: false, view: 6, res: 'low' },
+  low: { name: 'Low', tex: 8, mips: true, aniso: 2, shadow: 0, lights: 4, q: 0, post: false, view: 6, res: 'low' },
   medium: { name: 'Mittel', tex: 8, mips: true, aniso: 4, shadow: 2048, lights: 12, q: 1, post: false, view: 9, res: 'native' },
   high: { name: 'High', tex: 16, mips: true, aniso: 8, shadow: 4096, lights: 16, q: 2, post: true, view: 12, res: 'max' },
 };
@@ -5776,6 +5790,7 @@ const ITEMS = {
   pickaxe: { name: 'Spitzhacke', tool: 'pickaxe' },
   sword: { name: 'Schwert', tool: 'sword' },
   shears: { name: 'Schere', tool: 'shears' },
+  shovel: { name: 'Schaufel', tool: 'shovel' },
   // armor is worn, not held: it never takes a slot
   helmet: { name: 'Helm', armor: 'helmet' },
   chestplate: { name: 'Brustplatte', armor: 'chestplate' },
@@ -5800,6 +5815,7 @@ const TOOL_LEVEL_NAMES = {
   sword: ['Schwert', 'Steinschwert', 'Eisenschwert', 'Diamantschwert', 'Rubinschwert'],
   pickaxe: ['Spitzhacke', 'Spitzhacke', 'Eisenspitzhacke', 'Diamantspitzhacke'],
   shears: ['Schere', 'Schere'],
+  shovel: ['Schaufel', 'Steinschaufel', 'Eisenschaufel', 'Diamantschaufel'],
 };
 /* raw materials: counted, not placed */
 const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal', 'ruby', 'mythril'];
@@ -5830,18 +5846,22 @@ function itemName(k) {
   if (it.armor) return ARMOR_NAMES[it.armor][Math.max(1, G.tools[it.armor] | 0)];
   return it.name;
 }
+const TOOL_KEYS = ['axe', 'sword', 'pickaxe', 'shovel', 'shears'];
+/* shovels dig these faster (stone level, iron, diamond) */
+const SHOVEL_SPEED = [1, 2.2, 3.2, 4.6];
+const SOFT = new Set([B.GRASS, B.DIRT, B.SAND, B.GRAVEL, B.SNOW, B.PATH, B.MYCEL, B.DARK_GRASS]);
 /* the tool in the hand right now (null: hand, block, torch …) */
 function heldToolKind() { const k = selectedItem(); return k && ITEMS[k] && ITEMS[k].tool && G.tools[ITEMS[k].tool] > 0 ? ITEMS[k].tool : null; }
 /* put owned tools into free hotbar slots (purchases, old saves) */
 function ensureTools() {
-  for (const k of ['axe', 'sword', 'pickaxe', 'shears']) {
+  for (const k of TOOL_KEYS) {
     if (!G.tools[k] || G.hotbar.includes(k)) continue;
     const free = G.hotbar.indexOf(null);
     if (free >= 0) G.hotbar[free] = k;
   }
 }
 const SHOP = [
-  { id: 'campfire', tab: 'survive', item: 'campfire', qty: 1, cost: { wood: 5 }, name: 'Lagerfeuer', desc: 'Hält Zombies nachts fern. Mit E am Feuer verbesserst du es: größerer Schutzkreis, weniger Nebel.' },
+  { id: 'campfire', tab: 'survive', item: 'campfire', qty: 1, cost: { wood: 5 }, name: 'Lagerfeuer', desc: 'Hält Zombies nachts fern. Pro Welt gibt es nur ein Lagerfeuer, für alle Spieler zusammen. Mit E am Feuer verbesserst du es.' },
   { id: 'torch', tab: 'survive', item: 'torch', qty: 4, cost: { wood: 2 }, name: '4 Fackeln', desc: 'Licht für dein Lager und für Höhlen. In der Hand leuchtet eine Fackel mit.' },
   { id: 'crystal_apple', tab: 'survive', item: 'crystal_apple', qty: 1, cost: { crystal: 3, apple: 1 }, name: 'Kristallapfel', desc: 'Heilt die Zombie-Vergiftung vom Blood Moon und gibt dir viel Leben zurück. Rechtsklick (oder Tippen) mit dem Apfel in der Hand zum Essen.' },
   { id: 'bed', tab: 'survive', item: 'bed', qty: 1, cost: { wood: 4, wool: 3 }, name: 'Bett', desc: 'Schlaf durch die Nacht und setz deinen Spawnpunkt. Nicht beim Blood Moon.' },
@@ -5862,6 +5882,9 @@ const SHOP = [
   { id: 'pickaxe3', tab: 'tools', tool: 'pickaxe', level: 3, cost: { wood: 16, diamond: 3 }, name: 'Diamantspitzhacke', desc: 'Gräbt am schnellsten und baut Rubin und Mythril ab.' },
   { id: 'sword4', tab: 'tools', tool: 'sword', level: 4, cost: { wood: 16, ruby: 4 }, name: 'Rubinschwert', desc: '48 Schaden. Glüht rot, auch im Dunkeln.' },
   { id: 'axe4', tab: 'tools', tool: 'axe', level: 4, cost: { wood: 16, ruby: 3 }, name: 'Rubinaxt', desc: 'Nur 3 Schläge pro Baum.' },
+  { id: 'shovel1', tab: 'tools', tool: 'shovel', level: 1, cost: { wood: 4 }, name: 'Steinschaufel', desc: 'Gräbt Erde, Gras, Sand, Kies und Schnee gut doppelt so schnell.' },
+  { id: 'shovel2', tab: 'tools', tool: 'shovel', level: 2, cost: { wood: 6, iron: 3 }, name: 'Eisenschaufel', desc: 'Gräbt Erde und Sand dreimal so schnell.' },
+  { id: 'shovel3', tab: 'tools', tool: 'shovel', level: 3, cost: { wood: 10, diamond: 2 }, name: 'Diamantschaufel', desc: 'Erde, Sand und Kies sind fast sofort weg.' },
   { id: 'shears', tab: 'tools', tool: 'shears', level: 1, cost: { wood: 4 }, name: 'Schere', desc: 'In die Hand nehmen und Schafe scheren. Schafe leben weit weg vom Spawn.' },
 ];
 /* armor: helmet 5, chestplate 8, leggings 7, boots 4 (like Minecraft) in iron, diamond or mythril */
@@ -5878,6 +5901,7 @@ function weaponStats() {
   if (k === 'sword') return { dmg: SWORD_DMG[G.tools.sword] || 14, kb: 3.4, charge: 0.6 };
   if (k === 'axe') return { dmg: 6 + 2 * G.tools.axe, kb: 3.8, charge: 0.9 };
   if (k === 'pickaxe') return { dmg: 4, kb: 2.2, charge: 0.75 };
+  if (k === 'shovel') return { dmg: 3 + G.tools.shovel, kb: 2.4, charge: 0.7 };
   if (k === 'shears') return { dmg: 2, kb: 0.8, charge: 0.5 };
   return { dmg: 1, kb: 0, charge: 0.45 };   // bare hand (or a block, a torch …): almost nothing
 }
@@ -5902,7 +5926,7 @@ const G = {
   state: 'loading', seed: 1, playTime: 0, autosaveT: 0,
   time: { phase: 'day', t: 70, day: 1, night: 0, blood: false, bloodTonight: false, afterBlood: false },
   inv: emptyInv(),
-  tools: { axe: 0, sword: 0, pickaxe: 0, shears: 0 },
+  tools: { axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 },
   hotbar: new Array(10).fill(null), sel: -1,
   zombies: [], sheep: [], falling: [], merchant: null,
   chop: { tree: null, timer: 0.25, phase: 0 },
@@ -5967,7 +5991,7 @@ function syncSlots() {
   const seen = new Set();
   const clean = (arr) => { for (let i = 0; i < arr.length; i++) { const k = arr[i]; if (!k || itemCount(k) <= 0 || seen.has(k)) arr[i] = null; else seen.add(k); } };
   clean(G.hotbar); clean(G.bag);
-  const want = [...RES_KEYS, ...Object.keys(G.inv.items), 'axe', 'sword', 'pickaxe', 'shears'];
+  const want = [...RES_KEYS, ...Object.keys(G.inv.items), ...TOOL_KEYS];
   for (const k of want) {
     if (seen.has(k) || itemCount(k) <= 0 || (!RES_NAME[k] && !ITEMS[k])) continue;
     let s = G.hotbar.indexOf(null);
@@ -5995,12 +6019,18 @@ function takeItem(k, n = 1) {
 }
 function selectedItem() { return G.sel >= 0 ? G.hotbar[G.sel] : null; }
 
+/* one campfire per world: bought by anybody, standing somewhere, or carried */
+function worldHasFire() {
+  if (W.rules.fire || (G.stats.campfires || 0) >= 1 || itemCount('campfire') > 0) return true;
+  for (const o of OBJS.values()) if (o.id === B.CAMPFIRE) return true;
+  return false;
+}
 /* ---------- shop ---------- */
 function shopState(e) {
   if (e.tool && G.tools[e.tool] >= e.level) return 'owned';
   if (e.armor && (G.tools[e.armor] | 0) >= e.level) return 'owned';
-  // only one campfire per player, ever
-  if (e.id === 'campfire' && (G.stats.campfires || 0) >= 1) return 'owned';
+  // only one campfire in the whole world, ever (for all players together)
+  if (e.id === 'campfire' && worldHasFire()) return 'owned';
   return canAfford(e.cost) ? 'ok' : 'poor';
 }
 function buy(id) {
@@ -6019,7 +6049,7 @@ function buy(id) {
   }
   else if (e.armor) { G.tools[e.armor] = Math.max(G.tools[e.armor] | 0, e.level); UI.toast(e.name + ' angezogen. Rüstung: ' + Math.round(armorReduce() * 100) + ' % weniger Schaden.', 'good', 4200); }
   else { addItem(e.item, e.qty); UI.toast(e.name + ' gekauft', 'good'); }
-  if (e.id === 'campfire') G.stats.campfires = (G.stats.campfires || 0) + 1;
+  if (e.id === 'campfire') { G.stats.campfires = (G.stats.campfires || 0) + 1; W.rules.fire = true; if (MP.active()) MP.send({ t: 'rules', fire: true }); saveGame(); }
   SFX.buy();
   if (e.item === 'campfire' && G.goal <= 2) setGoal(3);
   UI.res(); UI.hotbar(); UI.tools(); UI.shopRefresh();
@@ -6183,7 +6213,7 @@ function normalizePlayerData(d) {
   return {
     bag,
     inv: normalizeInv(d.inv),
-    tools: Object.assign({ axe: 0, sword: 0, pickaxe: 0, shears: 0 }, d.tools || {}),
+    tools: Object.assign({ axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 }, d.tools || {}),
     hotbar: hb, stats: d.stats || null, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
   };
 }
@@ -6224,7 +6254,7 @@ function applySave(s, convert) {
   }
   Object.assign(G.time, s.time);
   G.playTime = s.playTime || 0;
-  G.inv = normalizeInv(s.inv); G.tools = Object.assign({ axe: 0, sword: 0, pickaxe: 0, shears: 0 }, s.tools || {});
+  G.inv = normalizeInv(s.inv); G.tools = Object.assign({ axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 }, s.tools || {});
   G.hotbar = new Array(10).fill(null);
   if (s.hotbar) for (let i = 0; i < 10; i++) { const v = s.hotbar[i]; if (v && (ITEMS[v] || RES_NAME[v])) G.hotbar[i] = v; }
   G.bag = new Array(BAG_N).fill(null);
@@ -6449,6 +6479,8 @@ function dropSelected(all) {
   const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw + Math.PI;
   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
   const d = dropItem(k, n, PL.x + fx * 0.6, PL.y + 1.3, PL.z + fz * 0.6, fx * 4.5, 2.5, fz * 4.5);
+  // thrown away on purpose: gone after 15 seconds (things lost when dying stay)
+  if (d) { d.life = DROP_LIFE; d.delay = 2.2; }
   sendDrop(d);
   UI.res(); UI.hotbar(); UI.tools && UI.tools();
   SFX.ui();
@@ -6466,7 +6498,7 @@ function dropEverything() {
   for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
   for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
   G.inv.items = {};
-  for (const t of ['axe', 'sword', 'pickaxe', 'shears', ...ARMOR_SLOTS]) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
+  for (const t of [...TOOL_KEYS, ...ARMOR_SLOTS]) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
   const cursedSplit = cursed ? curseHalf(all) : null;
   const fall = cursed ? cursedSplit[0] : all;
   fall.forEach(([k, n], j) => {
@@ -6903,7 +6935,9 @@ function updateBreaking(dt, holding, target) {
   if (G.breaking && NEEDPICK[G.breaking.id] && heldToolKind() !== 'pickaxe') G.breaking = null;
   if (!G.breaking || G.breaking.x !== x || G.breaking.y !== y || G.breaking.z !== z) {
     if (!canBreak(id, x, y, z)) { G.breaking = null; return; }
-    const speed = NEEDPICK[id] && heldToolKind() === 'pickaxe' ? (G.tools.pickaxe >= 3 ? 3.2 : G.tools.pickaxe >= 2 ? 2.3 : 1.5) : 1;
+    const ht = heldToolKind();
+    const speed = NEEDPICK[id] && ht === 'pickaxe' ? (G.tools.pickaxe >= 3 ? 3.2 : G.tools.pickaxe >= 2 ? 2.3 : 1.5)
+      : SOFT.has(id) && ht === 'shovel' ? SHOVEL_SPEED[G.tools.shovel] || 1 : 1;
     // only chests you built can be broken; built logs break like wood
     const hard = id === B.CHEST ? 1.1 : TREEBLOCK[id] && !W.treeAt.has(I(x, y, z)) ? 1.2 : HARD[id];
     G.breaking = { x, y, z, id, p: 0, need: Math.max(0.05, hard / speed), tick: 0 };
@@ -6983,7 +7017,10 @@ function placementFor(target, item) {
     if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: B.TORCH, meta: m }; }
     return null;
   }
-  if (def.place === 'campfire') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CAMPFIRE, meta: 0 }; }
+  if (def.place === 'campfire') {
+    // only one campfire per world: a second one (from an old save) can't be set up
+    for (const o of OBJS.values()) if (o.id === B.CAMPFIRE) { hint('fire1', 'In dieser Welt brennt schon ein Lagerfeuer. Pro Welt gibt es nur eins.'); return null; }
+    if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CAMPFIRE, meta: 0 }; }
   if (def.place === 'chest') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CHEST, meta: STORE_FLAG | (((yawDir() + 2) & 3) << 1) }; }
   if (def.place === 'water') {
     // water on lava cools it down to stone
@@ -7191,6 +7228,23 @@ function attackZombie(z, auto) {
   }
   damageZombie(z, dmg, dx / d, dz / d, kb);
   if (z.state === 'die') G.stats.zombies++;
+}
+/* PvP (only on servers where the owner turned it on): the other player applies the hit to themselves */
+function pvpOn() { return W.rules.pvp === true && !!(G.server || MP.srv) && MP.active(); }
+function attackPlayer(r, auto) {
+  if (!pvpOn() || PL.attackCd > 0 || PL.dead) return;
+  if (auto && PL.charge < 1) return;
+  const w = weaponStats(), c = PL.charge, full = c > 0.92;
+  PL.charge = 0; PL.attackCd = 0.14; PL.chargeVis = 1;
+  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = full;
+  if (w.kb > 0) SFX.swish(full ? 1.2 : 0.7);
+  PL.faceYaw = Math.atan2(r.x - PL.x, r.z - PL.z); PL.faceT = 0.3;
+  // players hit each other softer than zombies (a little over half)
+  const dmg = Math.round(w.dmg * 0.6 * (0.2 + 0.8 * c * c) * 10) / 10;
+  burst(r.x, r.y + 1.2, r.z, full ? 8 : 3, [[0.75, 0.12, 0.1], [0.5, 0.08, 0.06]], { speed: full ? 2.2 : 1.2, up: 2.5, life: 0.7, size: 0.08 });
+  SFX.hit(full ? 1 : 0.45);
+  if (full && w.kb > 0 && SETTINGS.camShake) CAMC.shake = Math.min(0.5, CAMC.shake + 0.12);
+  MP.send({ t: 'pvp', to: r.uid, dmg: Math.max(0.5, dmg), fx: Math.round(PL.x * 100) / 100, fz: Math.round(PL.z * 100) / 100, n: NET.name || '' });
 }
 function damageZombie(z, dmg, kx, kz, kb) {
   if (z.state === 'die' || z.state === 'rise') return;
@@ -9220,7 +9274,7 @@ function drawPlayer(t) {
   if (PL.dead) { const k = easeOutCubic(Math.min(1, PL.deadT / 0.7)); _ms.t(0, 0.12 * k, 0).rx(-Math.PI / 2 * k * 0.98); }
   drawCharacter(BATCH.solid, _ms, SETTINGS.skin, P, sky, t);
 }
-const TOOL_NAMES = [null, 'axe', 'sword', 'pickaxe', 'shears', 'torch', 'block'];
+const TOOL_NAMES = [null, 'axe', 'sword', 'pickaxe', 'shears', 'torch', 'block', 'shovel'];
 /* another player, pose rebuilt from their compact state */
 function drawRemote(r, t) {
   const sky = skyAt(r.x, r.y + 1, r.z);
@@ -9310,6 +9364,8 @@ function drawSheepAll(t) {
 }
 function drawDrops(t) {
   for (const d of DROPS) {
+    // the last 3 seconds before it vanishes: it blinks
+    if (d.life && d.life - d.t < 3 && Math.sin(t * (d.life - d.t < 1 ? 40 : 22)) > 0.3) continue;
     const bob = d.rest ? Math.sin(t * 3 + d.bob) * 0.06 + 0.08 : 0;
     const bid = DROP_BLOCK[d.kind];
     const s = d.magnet ? 0.24 : 0.3;
@@ -9526,6 +9582,7 @@ function updateDrops(dt) {
   for (let k = DROPS.length - 1; k >= 0; k--) {
     const d = DROPS[k];
     d.t += dt; d.spin += dt * (d.rest ? 1.6 : 6);
+    if (d.life && d.t > d.life && !d.magnet) { DROPS.splice(k, 1); burst(d.x, d.y, d.z, 6, [0.85, 0.85, 0.85], { speed: 1.2, up: 1.5, life: 0.5, size: 0.06, spread: 0.3 }); continue; }
     const dx = px - d.x, dy = py - d.y, dz = pz - d.z, dist = Math.hypot(dx, dy, dz);
     if (!PL.dead && d.t > d.delay && (d.force || dist < 3.2)) d.magnet = true;
     if (d.magnet && !PL.dead) {
@@ -9678,6 +9735,7 @@ function initInput() {
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
     if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
     if ((e.code === 'Tab' || e.code === 'KeyI') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
+    if (e.code === 'KeyQ' && !$('mdlInv').hidden) { e.preventDefault(); UI.invDropKey(e.ctrlKey || e.metaKey || e.shiftKey); return; }
     if (e.code.startsWith('Digit') && !$('mdlInv').hidden) { UI.invHotkey(e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1); return; }
     if (!playing()) return;
     if (G.sleep && G.sleep.mp && ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE'].includes(e.code)) { leaveBed(); return; }
@@ -9932,6 +9990,13 @@ function drawToolIcon(ctx, kind, level, S) {
     ctx.fillStyle = '#7a5233'; rrect(ctx, -3.5, -22, 7, 46, 3); ctx.fill();
     ctx.strokeStyle = metal; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(-20, -12); ctx.quadraticCurveTo(0, -30, 20, -12); ctx.stroke();
     ctx.restore();
+  } else if (kind === 'shovel') {
+    ctx.save(); ctx.translate(32, 32); ctx.rotate(0.78);
+    ctx.fillStyle = '#7a5233'; rrect(ctx, -3, -14, 6, 38, 3); ctx.fill();
+    ctx.fillStyle = '#2b2522'; rrect(ctx, -7, 20, 14, 5, 2); ctx.fill();
+    ctx.fillStyle = metal; ctx.beginPath(); ctx.moveTo(-9, -12); ctx.lineTo(9, -12); ctx.lineTo(9, -24); ctx.quadraticCurveTo(0, -33, -9, -24); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-6, -24, 2.4, 10);
+    ctx.restore();
   } else if (kind === 'shears') {
     ctx.save(); ctx.translate(32, 30);
     ctx.fillStyle = '#d9dee2';
@@ -10079,7 +10144,7 @@ function drawItemIcon(canvasEl, key) {
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
   if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
   if (key === 'apple' || key === 'crystal_apple') { drawAppleIcon(ctx, key === 'crystal_apple', S); return; }
-  const m = /^(axe|sword|pickaxe|shears)(\d)?$/.exec(key);
+  const m = /^(axe|sword|pickaxe|shovel|shears)(\d)?$/.exec(key);
   if (m) drawToolIcon(ctx, m[1], parseInt(m[2] || '1', 10), S);
 }
 function drawMerchantFace(c) {
@@ -10509,7 +10574,7 @@ UI.invRefresh = function () {
       for (let i = 0; i < arr.length; i++) {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'islot';
         b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>';
-        b.addEventListener('click', () => UI.invClick(where, i));
+        b.addEventListener('pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); UI.invPress(where, i, e); });
         b.addEventListener('mouseenter', () => { UI._invHover = { where, i }; });
         b.addEventListener('mouseleave', () => { if (UI._invHover && UI._invHover.where === where && UI._invHover.i === i) UI._invHover = null; });
         el.appendChild(b);
@@ -10524,6 +10589,7 @@ UI.invRefresh = function () {
       b.querySelector('b').textContent = k && !tool && n > 1 ? n : '';
       b.title = k ? itemName(k) + (tool ? '' : ' (' + n + ')') : 'Leer';
       b.classList.toggle('held', !!held && held.where === where && held.i === i);
+      b.classList.toggle('lifted', !!held && held.where === where && held.i === i);
     }
   };
   // what you wear
@@ -10544,7 +10610,8 @@ UI.invRefresh = function () {
   fill($('invHot'), G.hotbar, 'hot');
   const hk = held ? (held.where === 'bag' ? G.bag : G.hotbar)[held.i] : null;
   $('invDrop1').disabled = $('invDropAll').disabled = !hk;
-  $('invSub').textContent = hk ? itemName(hk) + ' ist ausgewählt. Tippe einen Platz an, um es dorthin zu legen.' : 'Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.' + (touchUI() ? '' : ' Oder: Maus drüber und 1–0 drücken.');
+  $('invSub').textContent = hk ? itemName(hk) + ' hast du in der Hand. Klick einen Platz an, um es dort hinzulegen.' : 'Klick ein Ding an, um es hochzuheben, oder zieh es auf einen anderen Platz.' + (touchUI() ? '' : ' Maus drüber: 1–0 legt es auf die Hotbar, Q wirft eins weg, Strg+Q den ganzen Stapel.');
+  invGhost(hk);
 };
 UI.invClick = function (where, i) {
   const arr = where === 'bag' ? G.bag : G.hotbar;
@@ -10559,6 +10626,69 @@ UI.invClick = function (where, i) {
   SFX.ui();
   UI.invRefresh();
 };
+/* pressing a slot lifts the thing up: it hangs at the mouse (or finger) until you click a place,
+   or you drag it there and let go */
+UI.invPress = function (where, i, e) {
+  const arr = where === 'bag' ? G.bag : G.hotbar;
+  UI._invPtr = [e.clientX, e.clientY];
+  if (!UI._invHeld) {
+    if (!arr[i]) return;
+    UI._invHeld = { where, i }; UI._invDrag = { where, i, x: e.clientX, y: e.clientY, moved: false };
+    SFX.ui(); UI.invRefresh();
+    return;
+  }
+  UI._invDrag = null;
+  UI.invClick(where, i);
+};
+function invSlotAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  const b = el && el.closest && el.closest('.islot');
+  if (!b || !b.parentElement) return null;
+  const where = b.parentElement.id === 'invBag' ? 'bag' : b.parentElement.id === 'invHot' ? 'hot' : null;
+  if (!where) return null;
+  return { where, i: [...b.parentElement.children].indexOf(b) };
+}
+function invPointerMove(e) {
+  if ($('mdlInv').hidden) return;
+  UI._invPtr = [e.clientX, e.clientY];
+  const d = UI._invDrag;
+  if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8) d.moved = true;
+  const g = $('invGhost'); if (g && !g.hidden) { g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px'; }
+  // touch: hover follows the finger, so Q-like buttons know the slot
+  if (e.pointerType === 'touch' && d) { const s = invSlotAt(e.clientX, e.clientY); if (s) UI._invHover = s; }
+}
+function invPointerUp(e) {
+  const d = UI._invDrag; UI._invDrag = null;
+  if (!d || !d.moved || $('mdlInv').hidden || !UI._invHeld) return;
+  const s = invSlotAt(e.clientX, e.clientY);
+  if (s && !(s.where === d.where && s.i === d.i)) UI.invClick(s.where, s.i);
+  // dragged out of the window: thrown away (all of it)
+  else if (!s && !e.target.closest('.inv-sheet')) invDropSlot(UI._invHeld.where, UI._invHeld.i, true);
+}
+/* the lifted thing drawn at the pointer */
+function invGhost(k) {
+  let g = $('invGhost');
+  if (!g) { g = document.createElement('div'); g.id = 'invGhost'; g.innerHTML = '<canvas width="64" height="64"></canvas><b></b>'; document.body.appendChild(g); }
+  if (!k || $('mdlInv').hidden) { g.hidden = true; return; }
+  const tool = ITEMS[k] && ITEMS[k].tool;
+  const icon = tool ? tool + Math.max(1, G.tools[tool]) : k;
+  if (g.dataset.key !== icon) { drawItemIcon(g.firstChild, icon); g.dataset.key = icon; }
+  const n = itemCount(k);
+  g.querySelector('b').textContent = !tool && n > 1 ? n : '';
+  const p = UI._invPtr || [innerWidth / 2, innerHeight / 2];
+  g.style.left = p[0] + 'px'; g.style.top = p[1] + 'px';
+  g.hidden = false;
+}
+window.addEventListener('pointermove', invPointerMove);
+window.addEventListener('pointerup', invPointerUp);
+/* Q over a slot (like Minecraft): one away, with Ctrl (or Shift) the whole stack */
+UI.invDropKey = function (all) {
+  const h = UI._invHover;
+  const arr = h ? (h.where === 'bag' ? G.bag : G.hotbar) : null;
+  if (h && arr[h.i]) { invDropSlot(h.where, h.i, all); return true; }
+  if (UI._invHeld) { invDropSlot(UI._invHeld.where, UI._invHeld.i, all); return true; }
+  return false;
+};
 /* number key over a slot (like Minecraft): swap that slot with hotbar place n */
 UI.invHotkey = function (n) {
   const h = UI._invHover; if (!h) return false;
@@ -10569,20 +10699,22 @@ UI.invHotkey = function (n) {
   SFX.ui(); UI.hotbar(); UI.invRefresh();
   return true;
 };
-function invDropHeld(all) {
-  const h = UI._invHeld; if (!h) return;
-  const arr = h.where === 'bag' ? G.bag : G.hotbar;
-  const k = arr[h.i]; if (!k) return;
+function invDropHeld(all) { const h = UI._invHeld; if (h) invDropSlot(h.where, h.i, all); }
+function invDropSlot(where, i, all) {
+  const arr = where === 'bag' ? G.bag : G.hotbar;
+  const k = arr[i]; if (!k) return;
   // drop it as if it were in the hand
   const keepSel = G.sel, slot = G.hotbar.indexOf(k);
   let tmp = -1;
   if (slot < 0) { tmp = G.hotbar.indexOf(null); if (tmp < 0) tmp = 9; G._swap = G.hotbar[tmp]; G.hotbar[tmp] = k; G.sel = tmp; }
   else G.sel = slot;
   dropSelected(all);
-  if (tmp >= 0 && G._swap) { G.hotbar[tmp] = G._swap; }
+  // the rest stays where it was
+  if (tmp >= 0) G.hotbar[tmp] = G._swap || null;
   G._swap = null;
+  if (itemCount(k) > 0) { for (const a of [G.hotbar, G.bag]) { const j = a.indexOf(k); if (j >= 0) a[j] = null; } arr[i] = k; }
   G.sel = keepSel;
-  if (!itemCount(k)) UI._invHeld = null;
+  if (!itemCount(k) && UI._invHeld && UI._invHeld.where === where && UI._invHeld.i === i) UI._invHeld = null;
   UI.hotbar(); UI.invRefresh();
 }
 /* inventory: put something on the selected hotbar slot (or the first free one) */
@@ -10747,9 +10879,10 @@ UI.closeTop = function () {
   }
   return false;
 };
-UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._friendsFrom = null; };
+UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._friendsFrom = null; UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; };
 UI.closeModal = function (id) {
   $(id).hidden = true;
+  if (id === 'mdlInv') { UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; }
   if (id === 'mdlConfirm' && UI._cf) { const r = UI._cf; UI._cf = null; r(false); }
   if ((id === 'mdlSettings' || id === 'mdlControls') && UI._from === 'pause') { $('mdlPause').hidden = false; return; }
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
@@ -11526,7 +11659,7 @@ function resetGameState() {
   G.time = { phase: 'day', t: 70, day: 1, night: 0, blood: false, bloodTonight: false, afterBlood: false };
   G.playTime = 0;
   G.inv = emptyInv();
-  G.tools = { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
+  G.tools = { axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 };
   G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
   G.zombies = []; G.falling = []; G.goal = 0; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
@@ -11564,7 +11697,7 @@ async function loadWorld(seed, save, opts = {}) {
     // a guest keeps its own inventory in the host's world; on a server world everybody does
     const you = opts.you ? normalizePlayerData(opts.you) : null;
     G.inv = you ? you.inv : emptyInv();
-    G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shears: 0 };
+    G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 };
     G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.bag = you ? you.bag : new Array(BAG_N).fill(null); G.sel = -1;
     G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = you && you.stats ? Object.assign({ trees: 0, zombies: 0 }, you.stats) : { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
@@ -11783,6 +11916,7 @@ function pickRay(o, d) {
     if (z.type === 'wolf') chk(z, 'zombie', z.x - 0.5, z.y, z.z - 0.5, z.x + 0.5, z.y + 1.1, z.z + 0.5);
     else chk(z, 'zombie', z.x - 0.45, z.y, z.z - 0.45, z.x + 0.45, z.y + 2.1, z.z + 0.45);
   }
+  if (pvpOn()) for (const u in REMOTE) { const r = REMOTE[u]; if (r.seen && r.hp > 0 && r.y > -50) chk(r, 'player', r.x - 0.4, r.y, r.z - 0.4, r.x + 0.4, r.y + 1.9, r.z + 0.4); }
   for (const s of G.sheep) chk(s, 'sheep', s.x - 0.6, s.y, s.z - 0.6, s.x + 0.6, s.y + 1.2, s.z + 0.6);
   const m = G.merchant;
   if (m && m.visible > 0.6 && !m.sleep) chk(m, 'merchant', m.x - 0.45, m.y, m.z - 0.45, m.x + 0.45, m.y + 2.2, m.z + 0.45);
@@ -11819,6 +11953,7 @@ function primaryOn(h) {
   if (!h) return;
   if (!h.inReach) { if (h.type === 'merchant') hint('mreach', 'Geh näher zum Händler.'); return; }
   if (h.type === 'zombie') attackZombie(h.e);
+  else if (h.type === 'player') attackPlayer(h.e);
   else if (h.type === 'sheep') shearSheep(h.e);
   else if (h.type === 'merchant') { if (!isNight()) doInteract({ kind: 'merchant' }); }
   else if (h.type === 'block') {
@@ -11851,6 +11986,7 @@ function handleActions(dt) {
   }
   if (INPUT.primaryHeld) G.holdT = (G.holdT || 0) + dt; else G.holdT = 0;
   if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
+  if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'player' && target.inReach) attackPlayer(target.e, true);
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
   updateBreaking(dt, INPUT.primaryHeld && breakable, target);
   if (INPUT.secondaryPressed) {
@@ -12920,7 +13056,7 @@ const MP = {
   },
   sendP() {
     const [tool, lvl, item] = heldTool();
-    const toolCode = { axe: 1, sword: 2, pickaxe: 3, shears: 4, torch: 5, block: 6 }[tool] || 0;
+    const toolCode = { axe: 1, sword: 2, pickaxe: 3, shears: 4, torch: 5, block: 6, shovel: 7 }[tool] || 0;
     let f = 0;
     if (PL.onGround) f |= 1; if (PL.chopping > 0) f |= 2; if (PL.swingT < 0.5) f |= 4; if (G.sleep) f |= 8; if (PL.dead) f |= 16; if (PL.inWater) f |= 32; if (PL.sprint) f |= 64;
     const r2 = (v) => Math.round(v * 100) / 100;
@@ -13145,7 +13281,7 @@ function applyNetEvent(v) {
     }
     case 'chest': openChest(v.x, v.y, v.z, true); break;
     case 'chst': applyChestEvent(v); break;
-    case 'drop': if (v.p && !DROPS.some((d) => d.nid === v.id)) dropItem(v.k, v.n, v.p[0], v.p[1], v.p[2], v.p[3], v.p[4], v.p[5], v.id); break;
+    case 'drop': if (v.p && !DROPS.some((d) => d.nid === v.id)) { const d = dropItem(v.k, v.n, v.p[0], v.p[1], v.p[2], v.p[3], v.p[4], v.p[5], v.id); if (d && v.l) d.life = DROP_LIFE; } break;
     case 'pick': removeDropById(v.id); break;
     case 'camp': upgradeCampfire(v.x, v.y, v.z, v.lv); break;
     case 'clr': clearTower(v.id, true); break;
@@ -13159,7 +13295,8 @@ function applyNetEvent(v) {
       break;
     }
     case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
-    case 'rules': if (typeof v.fall === 'boolean') { W.rules.fall = v.fall; UI.toast('Fallschaden ist jetzt ' + (v.fall ? 'an' : 'aus') + '.', 'info', 3000, 'rules'); } break;
+    case 'rules': if (v.fire) W.rules.fire = true; if (typeof v.pvp === 'boolean') { W.rules.pvp = v.pvp; UI.toast('PvP ist jetzt ' + (v.pvp ? 'an: Spieler können sich gegenseitig angreifen.' : 'aus.'), v.pvp ? 'warn' : 'info', 3600, 'pvp'); } if (typeof v.fall === 'boolean') { W.rules.fall = v.fall; UI.toast('Fallschaden ist jetzt ' + (v.fall ? 'an' : 'aus') + '.', 'info', 3000, 'rules'); } break;
+    case 'pvp': if (v.to === NET.uid() && pvpOn() && !PL.dead) { hurtPlayer(+v.dmg || 0, +v.fx, +v.fz); if (PL.dead && v.n) UI.toast(v.n + ' hat dich besiegt.', 'warn', 4200); } break;
     case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
@@ -13399,6 +13536,7 @@ async function playServer(srv, keep) {
   await loadWorld(save.seed, save, { mode: save.mode, force: true, server: true, you });
   // the owner's rules for this server
   try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 8000)).val(); W.rules.fall = f !== false; } catch (e) { /* keep */ }
+  try { W.rules.pvp = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').once('value'), 8000)).val() === true; } catch (e) { W.rules.pvp = false; }
   startPlaying();
   UI.toast('Du bist auf dem Server „' + srv.name + '“. Deine Freunde können jetzt jederzeit dazukommen.', 'good', 5200);
 }
@@ -13927,6 +14065,7 @@ UI.srvIpRefresh = async function () {
   try { ip = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/ip').once('value'), 15000)).val(); } catch (e) { /* ignore */ }
   if (UI._admin !== srv) return;
   try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 15000)).val(); $('saFall').setAttribute('aria-checked', String(f !== false)); } catch (e) { /* ignore */ }
+  try { const p = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').once('value'), 15000)).val(); $('saPvp').setAttribute('aria-checked', String(p === true)); } catch (e) { /* ignore */ }
   srv.ip = ip || null;
   $('saIp').value = ip || '';
   $('saIpOff').hidden = !ip;
@@ -14024,6 +14163,16 @@ function bindBackupUI() {
       // playing on it right now: everybody inside gets it at once
       if ((G.server && G.server.wid === srv.wid) || (MP.srv && MP.srv.wid === srv.wid)) { W.rules.fall = on; if (MP.active()) MP.send({ t: 'rules', fall: on }); }
       saMsg('Fallschaden ist jetzt ' + (on ? 'an' : 'aus') + '.', true);
+    } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
+  });
+  $('saPvp').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    const on = $('saPvp').getAttribute('aria-checked') !== 'true';
+    try {
+      await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').set(on), 15000);
+      $('saPvp').setAttribute('aria-checked', String(on));
+      if ((G.server && G.server.wid === srv.wid) || (MP.srv && MP.srv.wid === srv.wid)) { W.rules.pvp = on; if (MP.active()) MP.send({ t: 'rules', pvp: on }); }
+      saMsg('PvP ist jetzt ' + (on ? 'an' : 'aus') + '.', true);
     } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
   });
   $('saIpOff').addEventListener('click', async () => {
