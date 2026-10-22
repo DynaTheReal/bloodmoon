@@ -133,7 +133,7 @@ const firebaseConfig = {
   appId: "1:787692180288:web:b2f7d0c599b962cd7c60a5"
 };
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Blood Moon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -256,6 +256,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .ms-h { display: flex; justify-content: space-between; align-items: center; }
 .ms-ip { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
 .ms-ip .field { flex: 1 1 150px; min-width: 0; padding: 8px 10px; font-size: 13px; }
+@media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
+#zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
+#zoomNote[hidden] { display: none; }
+#zoomNote button { flex: none; border: 0; border-radius: 8px; padding: 5px 10px; background: rgba(255, 255, 255, 0.14); color: #fff; font: inherit; cursor: pointer; }
 .ms-ip .btn { padding: 8px 10px; font-size: 13px; flex: none; }
 .ms-star { color: #ffd36b; }
 .ms-h b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
@@ -1078,8 +1082,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <script>
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.8.0';
+const GAME_VERSION = '2.9.1';
 const GAME_NOTES = [
+  ['2.9.1', 'Die Seite zoomt nicht mehr aus Versehen (Strg+Mausrad, Touchpad, Handy-Textfelder). Ist sie doch gezoomt, sagt ein Hinweis, wie es zurückgeht'],
+  ['2.9.0', 'Blood-Moon-Zombies finden dich jetzt von überall (viel weitere Wegsuche, klettern, graben sich durch, bauen sich hoch, kein Stillstehen mehr), 14 neue Skins'],
   ['2.8.0', 'PvP (Server-Einstellungen), Inventar: Items anheben und verschieben oder ziehen, Q wirft das Item unter der Maus weg, Strg+Q den ganzen Stapel'],
   ['2.7.0', 'Nur noch ein Lagerfeuer pro Welt, Schaufeln (graben Erde schneller), weggeworfene Items verschwinden nach 15 Sekunden, Low-Grafik mit den Texturen von Mittel'],
   ['2.6.2', 'Zombies drehen sich nicht mehr im Kreis: jeder sucht sich eigene Wege und Grabstellen'],
@@ -5477,6 +5483,48 @@ const SKINS = [
   { id: 'robot', name: 'Blechkumpel', note: 'Mit Antenne',
     c: { skin: hx('#a7b0b8'), hair: hx('#8a939b'), eye: [0.3, 0.95, 1.0], brow: hx('#5d666e'), mouth: hx('#5d666e'), top: hx('#8f989f'), topDark: hx('#6f787f'), sleeve: hx('#7d868d'), cuff: hx('#5d666e'), hand: hx('#5d666e'), pants: hx('#6f787f'), boots: hx('#4e565d'), sole: hx('#2f3438'), belt: hx('#4e565d'), metal: hx('#e3bd57'), hat: hx('#a7b0b8'), hatDark: hx('#8a939b'), led: [1.0, 0.25, 0.2] },
     head: 'robot', torso: 'plate', back: 'none' },
+  { id: 'king', name: 'König', note: 'Krone und Umhang',
+    c: { skin: hx('#e8b896'), hair: hx('#8a5a2b'), eye: hx('#2b2430'), brow: hx('#6e4520'), mouth: hx('#a5604f'), top: hx('#6a1f8c'), topDark: hx('#521670'), sleeve: hx('#6a1f8c'), cuff: hx('#f2ece0'), hand: hx('#e8b896'), pants: hx('#3b2350'), boots: hx('#3a2a1e'), sole: hx('#1f1712'), belt: hx('#e3bd57'), metal: hx('#f0c64a'), hat: hx('#f0c64a'), hatDark: hx('#c9a032'), gem: [1.0, 0.2, 0.3], cape: hx('#b8232f'), capeDark: hx('#f2ece0') },
+    head: 'crown', torso: 'robe', back: 'cape' },
+  { id: 'viking', name: 'Wikinger', note: 'Hörnerhelm und Schild',
+    c: { skin: hx('#eab394'), hair: hx('#d08a3a'), eye: hx('#3a5f8a'), brow: hx('#b8742c'), mouth: hx('#a5604f'), top: hx('#5a6b3a'), topDark: hx('#8a6a48'), sleeve: hx('#5a6b3a'), cuff: hx('#8a6a48'), hand: hx('#eab394'), pants: hx('#4a3a2a'), boots: hx('#5a3b26'), sole: hx('#2c201a'), belt: hx('#3b2b1f'), metal: hx('#b7bec5'), hat: hx('#9aa3ab'), hatDark: hx('#6f787f'), horn: hx('#efe4c8'), pack: hx('#a3342c'), packDark: hx('#e3d2a8') },
+    head: 'viking', torso: 'fur', back: 'shield' },
+  { id: 'chef', name: 'Chefkoch', note: 'Mit Kochmütze',
+    c: { skin: hx('#f0c6a4'), hair: hx('#2e2018'), eye: hx('#1e1a22'), brow: hx('#2e2018'), mouth: hx('#a5604f'), top: hx('#f4f4f2'), topDark: hx('#d9d9d4'), sleeve: hx('#f4f4f2'), cuff: hx('#d9d9d4'), hand: hx('#f0c6a4'), pants: hx('#2c2c34'), boots: hx('#1d1d22'), sole: hx('#0e0e10'), belt: hx('#c33a35'), metal: hx('#9aa3ab'), hat: hx('#fbfbfa'), hatDark: hx('#e2e2de'), shirt: hx('#c33a35') },
+    head: 'chef', torso: 'apron', back: 'none' },
+  { id: 'gamer', name: 'Gamer', note: 'Headset und Hoodie',
+    c: { skin: hx('#d9a07c'), hair: hx('#1d1a24'), eye: hx('#1d1a24'), brow: hx('#1d1a24'), mouth: hx('#8a4d40'), top: hx('#3a3f9a'), topDark: hx('#2b2f78'), sleeve: hx('#3a3f9a'), cuff: hx('#2b2f78'), hand: hx('#d9a07c'), pants: hx('#25262c'), boots: hx('#f2f2f2'), sole: hx('#c33a35'), belt: hx('#25262c'), metal: hx('#25262c'), hat: hx('#c33a35'), hatDark: hx('#8c2622'), led: [0.3, 1.0, 0.6] },
+    head: 'headset', torso: 'hoodie', back: 'none' },
+  { id: 'wizard', name: 'Zauberer', note: 'Spitzer Hut, langer Bart',
+    c: { skin: hx('#e7b48c'), hair: hx('#ecebe6'), eye: hx('#2b2430'), brow: hx('#d8d6cf'), mouth: hx('#a5604f'), top: hx('#2a3f8f'), topDark: hx('#1f2f6e'), sleeve: hx('#2a3f8f'), cuff: hx('#e3bd57'), hand: hx('#e7b48c'), pants: hx('#1f2f6e'), boots: hx('#3a2a1e'), sole: hx('#1f1712'), belt: hx('#e3bd57'), metal: hx('#ffe27a'), hat: hx('#2a3f8f'), hatDark: hx('#1f2f6e'), cape: hx('#1f2f6e'), capeDark: hx('#e3bd57') },
+    head: 'wizard', torso: 'robe', back: 'none' },
+  { id: 'cowboy', name: 'Cowgirl', note: 'Hut, Weste, Sheriffstern',
+    c: { skin: hx('#e3a982'), hair: hx('#c27a3a'), eye: hx('#3b2a1e'), brow: hx('#9a5c28'), mouth: hx('#a5604f'), top: hx('#d8c7a0'), topDark: hx('#7a4a2a'), sleeve: hx('#d8c7a0'), cuff: hx('#b8a27a'), hand: hx('#e3a982'), pants: hx('#3c5a85'), boots: hx('#6b3f22'), sole: hx('#2c1b10'), belt: hx('#4a2c18'), metal: hx('#f0c64a'), hat: hx('#8a5a33'), hatDark: hx('#4a2c18') },
+    head: 'cowboy', torso: 'vest', back: 'none' },
+  { id: 'samurai', name: 'Samurai', note: 'Rüstung und Katana',
+    c: { skin: hx('#e3b08a'), hair: hx('#141417'), eye: hx('#141417'), brow: hx('#141417'), mouth: hx('#8a4d40'), top: hx('#8c1f24'), topDark: hx('#1d1f24'), sleeve: hx('#8c1f24'), cuff: hx('#1d1f24'), hand: hx('#e3b08a'), pants: hx('#1d1f24'), boots: hx('#141417'), sole: hx('#08090a'), belt: hx('#e3bd57'), metal: hx('#e3bd57'), hat: hx('#1d1f24'), hatDark: hx('#8c1f24') },
+    head: 'kabuto', torso: 'lamellar', back: 'katana' },
+  { id: 'diver', name: 'Tiefseetaucher', note: 'Messinghelm',
+    c: { skin: hx('#d79a72'), hair: hx('#2c2119'), eye: hx('#1e1a22'), brow: hx('#2c2119'), mouth: hx('#8f4f42'), top: hx('#5a6470'), topDark: hx('#454d57'), sleeve: hx('#5a6470'), cuff: hx('#c9a032'), hand: hx('#3a3328'), pants: hx('#5a6470'), boots: hx('#c9a032'), sole: hx('#2f3438'), belt: hx('#3a3328'), metal: hx('#e0b54a'), hat: hx('#c9a032'), hatDark: hx('#8a6a1e'), visor: [0.25, 0.55, 0.6] },
+    head: 'diver', torso: 'suit', back: 'tanks' },
+  { id: 'bunny', name: 'Häschen', note: 'Kuschelige Ohren',
+    c: { skin: hx('#f0c6a4'), hair: hx('#6b4427'), eye: hx('#2b2430'), brow: hx('#6b4427'), mouth: hx('#c46a6a'), top: hx('#f2e6ef'), topDark: hx('#e2c9d9'), sleeve: hx('#f2e6ef'), cuff: hx('#f5a8c4'), hand: hx('#f0c6a4'), pants: hx('#c9b8d6'), boots: hx('#f2e6ef'), sole: hx('#c9b8d6'), belt: hx('#f5a8c4'), metal: hx('#f5a8c4'), hat: hx('#f2e6ef'), hatDark: hx('#e2c9d9'), pom: hx('#f5a8c4') },
+    head: 'ears', torso: 'hoodie', back: 'none' },
+  { id: 'cat', name: 'Katze', note: 'Ohren und Schnurrhaare',
+    c: { skin: hx('#e9b48f'), hair: hx('#2a2a2e'), eye: hx('#3fae5a'), brow: hx('#2a2a2e'), mouth: hx('#a5604f'), top: hx('#2a2a2e'), topDark: hx('#1c1c20'), sleeve: hx('#2a2a2e'), cuff: hx('#f2f2f2'), hand: hx('#f2f2f2'), pants: hx('#3a3a40'), boots: hx('#1c1c20'), sole: hx('#0e0e10'), belt: hx('#f5a8c4'), metal: hx('#f0c64a'), hat: hx('#2a2a2e'), hatDark: hx('#1c1c20'), pom: hx('#f5a8c4') },
+    head: 'cat', torso: 'hoodie', back: 'none' },
+  { id: 'fire', name: 'Feuerwehrfrau', note: 'Helm und Leuchtstreifen',
+    c: { skin: hx('#e3ae8a'), hair: hx('#5a3a22'), eye: hx('#2b2430'), brow: hx('#5a3a22'), mouth: hx('#a5604f'), top: hx('#3a3328'), topDark: hx('#2a251d'), sleeve: hx('#3a3328'), cuff: hx('#f2e84a'), hand: hx('#2a251d'), pants: hx('#3a3328'), boots: hx('#141417'), sole: hx('#08090a'), belt: hx('#2a251d'), metal: hx('#f0c64a'), hat: hx('#d0302a'), hatDark: hx('#a22420') },
+    head: 'firehelm', torso: 'stripes', back: 'tanks' },
+  { id: 'hunter', name: 'Zombiejäger', note: 'Kopftuch und Schutzbrille',
+    c: { skin: hx('#c98d68'), hair: hx('#2c2119'), eye: hx('#1e1a22'), brow: hx('#2c2119'), mouth: hx('#8f4f42'), top: hx('#5a5f3a'), topDark: hx('#3f432a'), sleeve: hx('#4a4e30'), cuff: hx('#3f432a'), hand: hx('#3a3328'), pants: hx('#4a3f2e'), boots: hx('#2a1f18'), sole: hx('#140f0c'), belt: hx('#2a1f18'), metal: hx('#9aa3ab'), hat: hx('#a3342c'), hatDark: hx('#3a3328'), visor: [1.0, 0.6, 0.2], pack: hx('#5a3b26'), packDark: hx('#c9d1dc') },
+    head: 'bandana', torso: 'vest', back: 'quiver' },
+  { id: 'alien', name: 'Besucher', note: 'Von sehr weit weg',
+    c: { skin: hx('#7fd17a'), hair: hx('#5fae5a'), eye: hx('#101418'), brow: hx('#5fae5a'), mouth: hx('#3f7a3a'), top: hx('#c9d1dc'), topDark: hx('#9aa3ab'), sleeve: hx('#c9d1dc'), cuff: hx('#7a5cff'), hand: hx('#7fd17a'), pants: hx('#9aa3ab'), boots: hx('#5d666e'), sole: hx('#2f3438'), belt: hx('#7a5cff'), metal: hx('#7a5cff'), hat: hx('#c9d1dc'), hatDark: hx('#9aa3ab'), led: [0.75, 0.5, 1.0] },
+    head: 'alien', torso: 'suit', back: 'none' },
+  { id: 'ghost', name: 'Gespenst', note: 'Buuuh!',
+    c: { skin: hx('#f2f2f6'), hair: hx('#dcdce6'), eye: hx('#16161c'), brow: hx('#16161c'), mouth: hx('#16161c'), top: hx('#f2f2f6'), topDark: hx('#dcdce6'), sleeve: hx('#f2f2f6'), cuff: hx('#dcdce6'), hand: hx('#f2f2f6'), pants: hx('#e6e6ee'), boots: hx('#dcdce6'), sole: hx('#c8c8d4'), belt: hx('#dcdce6'), metal: hx('#c8c8d4'), hat: hx('#f2f2f6'), hatDark: hx('#dcdce6') },
+    head: 'ghost', torso: 'sheet', back: 'none' },
 ];
 const SKIN_BY_ID = {}; SKINS.forEach((s) => (SKIN_BY_ID[s.id] = s));
 function skinOf(id) { return SKIN_BY_ID[id] || SKINS[0]; }
@@ -5547,6 +5595,39 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
     box(0.04, 0.04, 0.02, -0.12, 0.3, 0.156, C.metal);
     box(0.04, 0.04, 0.02, 0.12, 0.45, 0.156, C.metal);
     box(0.04, 0.04, 0.02, 0.12, 0.3, 0.156, C.metal);
+  } else if (T === 'robe') {
+    box(0.56, 0.4, 0.33, 0, -0.12, 0, C.top);
+    box(0.06, 0.92, 0.02, -0.1, 0.12, 0.17, C.cape ? C.capeDark : C.cuff);
+    box(0.06, 0.92, 0.02, 0.1, 0.12, 0.17, C.cape ? C.capeDark : C.cuff);
+    box(0.58, 0.06, 0.34, 0, 0.6, 0, C.cuff);
+  } else if (T === 'fur') {
+    box(0.6, 0.14, 0.35, 0, 0.58, 0, C.topDark);
+    box(0.1, 0.1, 0.02, 0, 0.36, 0.152, C.metal);
+  } else if (T === 'apron') {
+    box(0.36, 0.6, 0.02, 0, 0.22, 0.152, C.topDark);
+    box(0.12, 0.08, 0.02, 0, 0.5, 0.155, C.shirt);
+    for (const y of [0.42, 0.3]) { box(0.04, 0.04, 0.02, -0.08, y, 0.156, C.metal); box(0.04, 0.04, 0.02, 0.08, y, 0.156, C.metal); }
+  } else if (T === 'hoodie') {
+    box(0.3, 0.14, 0.02, 0, 0.16, 0.152, C.topDark);
+    box(0.02, 0.12, 0.02, -0.06, 0.5, 0.156, C.cuff);
+    box(0.02, 0.12, 0.02, 0.06, 0.5, 0.156, C.cuff);
+    box(0.44, 0.14, 0.12, 0, 0.6, -0.14, C.topDark);
+  } else if (T === 'vest') {
+    box(0.15, 0.56, 0.02, -0.17, 0.33, 0.152, C.topDark);
+    box(0.15, 0.56, 0.02, 0.17, 0.33, 0.152, C.topDark);
+    box(0.4, 0.5, 0.02, 0, 0.33, -0.152, C.topDark);
+    box(0.07, 0.07, 0.02, -0.17, 0.44, 0.158, C.metal, 0.3);
+  } else if (T === 'lamellar') {
+    for (let k = 0; k < 4; k++) box(0.55, 0.035, 0.32, 0, 0.14 + k * 0.13, 0, C.topDark);
+    box(0.62, 0.12, 0.36, 0, 0.6, 0, C.top);
+    box(0.08, 0.08, 0.02, 0, 0.42, 0.162, C.metal);
+  } else if (T === 'stripes') {
+    box(0.54, 0.05, 0.31, 0, 0.2, 0, C.cuff, 0.25);
+    box(0.54, 0.05, 0.31, 0, 0.42, 0, C.cuff, 0.25);
+    box(0.03, 0.56, 0.02, 0, 0.33, 0.153, C.metal);
+  } else if (T === 'sheet') {
+    box(0.6, 0.72, 0.36, 0, 0.26, 0, C.top);
+    for (let k = 0; k < 5; k++) box(0.1, 0.1, 0.36, -0.24 + k * 0.12, -0.12 - (k % 2) * 0.06, 0, C.topDark);
   } else if (T === 'plate') {
     box(0.4, 0.3, 0.02, 0, 0.36, 0.152, C.topDark);
     for (let k = 0; k < 4; k++) box(0.03, 0.03, 0.02, -0.15 + k * 0.1, 0.55, 0.156, C.metal);
@@ -5563,6 +5644,29 @@ function drawCharacter(Bt, ms, skinId, P, sky, t) {
     box(0.14, 0.44, 0.14, -0.09, 0.32, -0.22, C.topDark);
     box(0.14, 0.44, 0.14, 0.09, 0.32, -0.22, C.topDark);
     box(0.32, 0.06, 0.16, 0, 0.12, -0.22, C.cuff);
+  } else if (Bk === 'cape') {
+    const sw = Math.sin((t || 0) * 3 + (P.bob || 0) * 6) * 0.06;
+    ms.push().t(0, 0.6, -0.16).rx(0.12 + sw + Math.abs(P.walkSway || 0) * 0.6);
+    box(0.56, 0.95, 0.03, 0, -0.47, 0, C.cape);
+    box(0.58, 0.06, 0.04, 0, 0.0, 0.01, C.capeDark);
+    ms.pop();
+  } else if (Bk === 'shield') {
+    box(0.46, 0.46, 0.05, 0, 0.33, -0.2, C.pack);
+    box(0.46, 0.06, 0.055, 0, 0.33, -0.2, C.packDark);
+    box(0.06, 0.46, 0.055, 0, 0.33, -0.2, C.packDark);
+    box(0.11, 0.11, 0.04, 0, 0.33, -0.235, C.metal);
+  } else if (Bk === 'katana') {
+    ms.push().t(0, 0.33, -0.19).rz(0.7);
+    box(0.05, 0.62, 0.05, 0, 0.05, 0, C.topDark);
+    box(0.045, 0.2, 0.045, 0, 0.45, 0, C.hatDark);
+    box(0.12, 0.03, 0.08, 0, 0.35, 0, C.metal);
+    ms.pop();
+  } else if (Bk === 'quiver') {
+    ms.push().t(0.08, 0.36, -0.2).rz(-0.35);
+    box(0.14, 0.48, 0.14, 0, 0, 0, C.pack);
+    for (const dx of [-0.03, 0.03]) box(0.02, 0.14, 0.02, dx, 0.3, 0, C.packDark);
+    box(0.06, 0.04, 0.06, -0.03, 0.38, 0, [0.9, 0.9, 0.9]);
+    ms.pop();
   } else if (Bk === 'scarf') {
     const sw = Math.sin((t || 0) * 5 + (P.bob || 0) * 9) * 0.12;
     ms.push().t(0.1, 0.6, -0.16).rx(0.5 + sw + P.walkSway);
@@ -5637,7 +5741,35 @@ function drawSkinHead(box, sk, P, t) {
     box(0.04, 0.12, 0.12, 0.235, 0.22, 0, C.hatDark);
     return;
   }
+  if (H === 'alien') {
+    box(0.46, 0.46, 0.44, 0, 0.23, 0, C.skin);
+    box(0.14, 0.16, 0.02, -0.1, 0.25, 0.222, C.eye, 0.15);
+    box(0.14, 0.16, 0.02, 0.1, 0.25, 0.222, C.eye, 0.15);
+    box(0.04, 0.04, 0.02, -0.08, 0.29, 0.226, WHITE, 0.6);
+    box(0.04, 0.04, 0.02, 0.12, 0.29, 0.226, WHITE, 0.6);
+    box(0.08, 0.02, 0.02, 0, 0.1, 0.222, C.mouth);
+    for (const x of [-0.1, 0.1]) { box(0.03, 0.15, 0.03, x, 0.53, 0, C.hair); box(0.07, 0.07, 0.07, x, 0.63, 0, C.led, 0.7 + 0.3 * Math.sin((t || 0) * 5 + x * 20)); }
+    return;
+  }
+  if (H === 'ghost') {
+    box(0.48, 0.5, 0.48, 0, 0.23, 0, C.skin);
+    const blink = P.blink ? 0.25 : 1;
+    box(0.08, 0.12 * blink, 0.02, -0.1, 0.27, 0.242, C.eye);
+    box(0.08, 0.12 * blink, 0.02, 0.1, 0.27, 0.242, C.eye);
+    box(0.08, 0.08 + 0.03 * Math.sin((t || 0) * 3), 0.02, 0, 0.12, 0.242, C.mouth);
+    return;
+  }
   box(0.42, 0.42, 0.42, 0, 0.21, 0, C.skin);
+  if (H === 'diver') {
+    drawFace(box, C, P);
+    box(0.54, 0.54, 0.54, 0, 0.22, 0, C.hat);
+    box(0.28, 0.26, 0.02, 0, 0.22, 0.272, C.visor, 0.3);
+    box(0.34, 0.04, 0.03, 0, 0.36, 0.272, C.hatDark); box(0.34, 0.04, 0.03, 0, 0.08, 0.272, C.hatDark);
+    box(0.04, 0.3, 0.03, -0.16, 0.22, 0.272, C.hatDark); box(0.04, 0.3, 0.03, 0.16, 0.22, 0.272, C.hatDark);
+    box(0.16, 0.16, 0.02, -0.272, 0.22, 0, C.visor, 0.2); box(0.16, 0.16, 0.02, 0.272, 0.22, 0, C.visor, 0.2);
+    box(0.6, 0.08, 0.6, 0, -0.04, 0, C.hatDark);
+    return;
+  }
   if (H === 'space') {
     drawFace(box, C, P);
     box(0.5, 0.5, 0.5, 0, 0.22, 0, C.hat);
@@ -5661,8 +5793,81 @@ function drawSkinHead(box, sk, P, t) {
     box(0.44, 0.06, 0.45, 0, 0.36, 0, C.scarf);
     return;
   }
-  drawFace(box, C, P, { glowEyes: sk.id === 'night' ? 0.6 : 0 });
-  if (H === 'beanie') {
+  const beard = H === 'viking' || H === 'wizard' || H === 'crown';
+  drawFace(box, C, P, { glowEyes: sk.id === 'night' ? 0.6 : 0, noMouth: beard });
+  if (beard) {
+    const long = H === 'wizard';
+    box(0.34, long ? 0.34 : 0.18, 0.05, 0, long ? -0.02 : 0.05, 0.212, C.hair);
+    box(0.08, 0.06, 0.05, -0.17, 0.15, 0.2, C.hair); box(0.08, 0.06, 0.05, 0.17, 0.15, 0.2, C.hair);
+    box(0.18, 0.04, 0.03, 0, 0.13, 0.236, C.brow);
+    box(0.44, 0.08, 0.44, 0, 0.38, 0, C.hair);
+  }
+  if (H === 'crown') {
+    box(0.46, 0.1, 0.46, 0, 0.47, 0, C.hat);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.08, 0.1, 0.08, sx * 0.19, 0.57, sz * 0.19, C.hat);
+    box(0.08, 0.12, 0.04, 0, 0.58, 0.21, C.hat);
+    box(0.07, 0.07, 0.02, 0, 0.47, 0.237, C.gem, 0.6);
+    box(0.47, 0.03, 0.47, 0, 0.42, 0, C.hatDark);
+  } else if (H === 'viking') {
+    box(0.47, 0.2, 0.47, 0, 0.44, 0, C.hat);
+    box(0.48, 0.04, 0.48, 0, 0.36, 0, C.hatDark);
+    box(0.05, 0.16, 0.03, 0, 0.3, 0.24, C.hatDark);
+    for (const s of [-1, 1]) { box(0.1, 0.08, 0.08, s * 0.28, 0.46, 0, C.horn); box(0.08, 0.12, 0.07, s * 0.33, 0.55, 0, C.horn); box(0.06, 0.08, 0.06, s * 0.33, 0.65, -0.02, C.horn); }
+  } else if (H === 'chef') {
+    box(0.44, 0.06, 0.44, 0, 0.42, 0, C.hatDark);
+    box(0.4, 0.26, 0.4, 0, 0.58, 0, C.hat);
+    box(0.5, 0.14, 0.5, 0, 0.76, 0, C.hat);
+    box(0.18, 0.045, 0.03, 0, 0.13, 0.222, C.hair);
+  } else if (H === 'headset') {
+    box(0.44, 0.1, 0.44, 0, 0.41, 0, C.hat);
+    box(0.36, 0.03, 0.18, 0, 0.375, 0.28, C.hatDark);
+    box(0.5, 0.05, 0.06, 0, 0.48, 0, C.metal);
+    for (const s of [-1, 1]) { box(0.07, 0.17, 0.15, s * 0.245, 0.22, 0, C.metal); box(0.02, 0.06, 0.06, s * 0.282, 0.22, 0, C.led, 0.9); }
+    box(0.025, 0.025, 0.16, -0.25, 0.12, 0.12, C.metal);
+  } else if (H === 'wizard') {
+    box(0.64, 0.04, 0.64, 0, 0.44, 0, C.hat);
+    box(0.4, 0.14, 0.4, 0, 0.52, 0, C.hat);
+    box(0.3, 0.14, 0.3, 0, 0.65, -0.02, C.hat);
+    box(0.2, 0.12, 0.2, 0, 0.77, -0.05, C.hat);
+    box(0.1, 0.1, 0.1, 0, 0.87, -0.09, C.hat);
+    box(0.41, 0.04, 0.41, 0, 0.47, 0, C.hatDark);
+    box(0.06, 0.06, 0.02, 0.09, 0.55, 0.205, C.metal, 0.8);
+  } else if (H === 'cowboy') {
+    box(0.44, 0.1, 0.44, 0, 0.38, 0, C.hair);
+    box(0.08, 0.2, 0.44, -0.19, 0.26, -0.01, C.hair); box(0.08, 0.2, 0.44, 0.19, 0.26, -0.01, C.hair);
+    box(0.7, 0.04, 0.66, 0, 0.44, 0, C.hat);
+    box(0.06, 0.06, 0.66, -0.34, 0.48, 0, C.hat); box(0.06, 0.06, 0.66, 0.34, 0.48, 0, C.hat);
+    box(0.38, 0.18, 0.36, 0, 0.55, 0, C.hat);
+    box(0.39, 0.045, 0.37, 0, 0.48, 0, C.hatDark);
+  } else if (H === 'kabuto') {
+    box(0.47, 0.2, 0.47, 0, 0.44, 0, C.hat);
+    box(0.52, 0.18, 0.08, 0, 0.24, -0.24, C.hat);
+    for (const s of [-1, 1]) box(0.08, 0.14, 0.36, s * 0.26, 0.3, -0.04, C.hat);
+    box(0.48, 0.035, 0.48, 0, 0.35, 0, C.hatDark);
+    for (const s of [-1, 1]) { box(0.05, 0.08, 0.02, s * 0.06, 0.56, 0.235, C.metal); box(0.05, 0.08, 0.02, s * 0.11, 0.63, 0.235, C.metal); box(0.05, 0.08, 0.02, s * 0.16, 0.7, 0.235, C.metal); }
+    box(0.08, 0.08, 0.025, 0, 0.5, 0.24, C.hatDark);
+  } else if (H === 'ears') {
+    box(0.47, 0.18, 0.47, 0, 0.44, -0.01, C.hat);
+    box(0.06, 0.34, 0.46, -0.235, 0.24, -0.02, C.hat); box(0.06, 0.34, 0.46, 0.235, 0.24, -0.02, C.hat);
+    box(0.47, 0.34, 0.07, 0, 0.24, -0.235, C.hat);
+    for (const s of [-1, 1]) { box(0.11, 0.32, 0.06, s * 0.12, 0.66, -0.06, C.hat); box(0.055, 0.24, 0.02, s * 0.12, 0.66, -0.025, C.pom); }
+  } else if (H === 'cat') {
+    box(0.44, 0.08, 0.44, 0, 0.38, 0, C.hair);
+    for (const s of [-1, 1]) { box(0.13, 0.1, 0.07, s * 0.15, 0.47, -0.02, C.hair); box(0.07, 0.07, 0.07, s * 0.16, 0.54, -0.02, C.hair); box(0.06, 0.06, 0.02, s * 0.15, 0.47, 0.015, C.pom); }
+    for (const s of [-1, 1]) for (const dy of [0, 0.035]) box(0.12, 0.012, 0.012, s * 0.2, 0.12 + dy, 0.214, C.brow);
+  } else if (H === 'firehelm') {
+    box(0.48, 0.2, 0.48, 0, 0.44, 0, C.hat);
+    box(0.06, 0.08, 0.5, 0, 0.56, 0, C.hatDark);
+    box(0.52, 0.04, 0.22, 0, 0.35, -0.27, C.hat);
+    box(0.13, 0.14, 0.02, 0, 0.47, 0.245, C.metal, 0.2);
+  } else if (H === 'bandana') {
+    box(0.44, 0.09, 0.44, 0, 0.36, 0, C.hat);
+    box(0.44, 0.06, 0.44, 0, 0.415, 0, C.hair);
+    box(0.06, 0.1, 0.12, 0, 0.32, -0.27, C.hat);
+    box(0.4, 0.05, 0.02, 0, 0.36, 0.224, C.hatDark);
+    box(0.11, 0.075, 0.025, -0.09, 0.37, 0.232, C.visor, 0.35);
+    box(0.11, 0.075, 0.025, 0.09, 0.37, 0.232, C.visor, 0.35);
+  } else if (H === 'beanie') {
     box(0.44, 0.08, 0.44, 0, 0.36, 0, C.hair);
     box(0.08, 0.16, 0.44, -0.19, 0.27, -0.01, C.hair);
     box(0.08, 0.16, 0.44, 0.19, 0.27, -0.01, C.hair);
@@ -5706,6 +5911,13 @@ function drawSkinAvatar(cv, skinId) {
     r(5, 11, 6, 1, C.brow); r(10, 0, 1, 3, C.hatDark); r(9, 0, 2, 1, C.led);
     return;
   }
+  if (H === 'alien') {
+    r(2, 3, 12, 12, C.skin); r(4, 6, 3, 4, C.eye); r(9, 6, 3, 4, C.eye); r(5, 6, 1, 1, WHITE); r(10, 6, 1, 1, WHITE); r(7, 12, 2, 1, C.mouth);
+    r(4, 0, 1, 3, C.hair); r(11, 0, 1, 3, C.hair); r(3, 0, 2, 1, C.led); r(11, 0, 2, 1, C.led);
+    return;
+  }
+  if (H === 'ghost') { r(2, 2, 12, 13, C.skin); r(4, 6, 2, 3, C.eye); r(10, 6, 2, 3, C.eye); r(7, 10, 2, 2, C.mouth); return; }
+  if (H === 'diver') { r(1, 1, 14, 14, C.hat); r(4, 4, 8, 8, C.visor); r(3, 3, 10, 1, C.hatDark); r(3, 12, 10, 1, C.hatDark); r(5, 7, 2, 2, C.eye); r(9, 7, 2, 2, C.eye); return; }
   r(3, 4, 10, 10, C.skin);
   const eyes = (y) => { r(4, y, 3, 2, WHITE); r(9, y, 3, 2, WHITE); r(5, y, 2, 2, C.eye); r(10, y, 2, 2, C.eye); };
   if (H === 'space') { r(2, 2, 12, 13, C.hat); r(3, 5, 10, 7, C.visor); eyes(7); return; }
@@ -5715,6 +5927,17 @@ function drawSkinAvatar(cv, skinId) {
   r(4, 7, 3, 1, C.brow); r(9, 7, 3, 1, C.brow); r(6, 12, 4, 1, C.mouth);
   if (H === 'beanie') { r(3, 4, 10, 2, C.hair); r(2, 1, 12, 4, C.hat); r(2, 4, 12, 1, C.hatDark); r(7, 0, 2, 1, C.pom); }
   else if (H === 'hood') { r(2, 2, 12, 3, C.hat); r(2, 2, 2, 13, C.hat); r(12, 2, 2, 13, C.hat); r(4, 8, 8, 0, C.eye); }
+  else if (H === 'crown') { r(3, 4, 10, 2, C.hair); r(3, 11, 10, 3, C.hair); r(6, 11, 4, 1, C.brow); r(3, 2, 10, 2, C.hat); r(3, 0, 2, 2, C.hat); r(7, 0, 2, 2, C.hat); r(11, 0, 2, 2, C.hat); r(7, 2, 2, 1, C.gem); }
+  else if (H === 'viking') { r(3, 11, 10, 4, C.hair); r(6, 11, 4, 1, C.brow); r(3, 2, 10, 4, C.hat); r(7, 5, 2, 3, C.hatDark); r(0, 1, 3, 2, C.horn); r(13, 1, 3, 2, C.horn); r(0, 0, 1, 1, C.horn); r(15, 0, 1, 1, C.horn); }
+  else if (H === 'chef') { r(3, 4, 10, 1, C.hatDark); r(3, 0, 10, 4, C.hat); r(2, 0, 12, 2, C.hat); r(6, 11, 4, 1, C.hair); }
+  else if (H === 'headset') { r(3, 3, 10, 2, C.hat); r(7, 4, 7, 1, C.hatDark); r(1, 7, 2, 4, C.metal); r(13, 7, 2, 4, C.metal); r(1, 8, 1, 2, C.led); r(3, 2, 10, 1, C.metal); }
+  else if (H === 'wizard') { r(3, 11, 10, 5, C.hair); r(6, 11, 4, 1, C.brow); r(1, 4, 14, 1, C.hat); r(4, 2, 8, 2, C.hat); r(6, 0, 4, 2, C.hat); r(8, 2, 1, 1, C.metal); }
+  else if (H === 'cowboy') { r(3, 4, 10, 2, C.hair); r(0, 3, 16, 1, C.hat); r(4, 0, 8, 3, C.hat); r(4, 2, 8, 1, C.hatDark); r(3, 8, 1, 0, C.hair); }
+  else if (H === 'kabuto') { r(2, 2, 12, 4, C.hat); r(2, 5, 12, 1, C.hatDark); r(4, 0, 2, 2, C.metal); r(10, 0, 2, 2, C.metal); r(7, 2, 2, 2, C.hatDark); }
+  else if (H === 'ears') { r(2, 3, 12, 3, C.hat); r(2, 3, 2, 12, C.hat); r(12, 3, 2, 12, C.hat); r(4, 0, 2, 4, C.hat); r(10, 0, 2, 4, C.hat); r(4, 1, 1, 2, C.pom); r(11, 1, 1, 2, C.pom); }
+  else if (H === 'cat') { r(3, 4, 10, 2, C.hair); r(3, 2, 3, 2, C.hair); r(10, 2, 3, 2, C.hair); r(4, 2, 1, 1, C.pom); r(11, 2, 1, 1, C.pom); r(1, 11, 3, 1, C.brow); r(12, 11, 3, 1, C.brow); }
+  else if (H === 'firehelm') { r(2, 2, 12, 4, C.hat); r(7, 0, 2, 2, C.hatDark); r(6, 3, 4, 2, C.metal); }
+  else if (H === 'bandana') { r(3, 4, 10, 2, C.hat); r(3, 6, 10, 1, C.hatDark); r(4, 5, 3, 2, C.visor); r(9, 5, 3, 2, C.visor); r(13, 5, 2, 2, C.hat); }
   else if (H === 'tricorn') { r(3, 4, 10, 2, C.hair); r(1, 2, 14, 2, C.hat); r(3, 0, 10, 2, C.hat); r(1, 3, 14, 1, C.metal); r(9, 8, 3, 2, C.hatDark); }
 }
 
@@ -7344,6 +7567,7 @@ function updateZombies(dt) {
   const fires = [];
   for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && o.lit > 0.2) fires.push(o);
   const players = allPlayers();
+  if (G.zombies.some((q) => q.type === 'zombie')) updatePaths(players);
   // where the zombies stand right now (so they spread out on the way and do not all queue in one spot)
   ZOCC.clear();
   for (const q of G.zombies) if (q.type === 'zombie' && q.state !== 'die') { const k2 = I(Math.floor(q.x), Math.floor(q.y + 0.05), Math.floor(q.z)); ZOCC.set(k2, (ZOCC.get(k2) || 0) + 1); }
@@ -7358,7 +7582,8 @@ function updateZombies(dt) {
     for (const p of players) { const d = Math.hypot(p.x - z.x, p.z - z.z); if (d < dist) { dist = d; tgt = p; } }
     if (!tgt) { tgt = { x: PL.x, y: PL.y, z: PL.z, uid: null, none: true }; dist = Math.hypot(PL.x - z.x, PL.z - z.z); }
     const dxp = tgt.x - z.x, dzp = tgt.z - z.z;
-    if (dist > (z.type === 'archer' || z.type === 'bat' ? 150 : 90)) { G.zombies.splice(k, 1); continue; }
+    // a blood moon zombie never gives up: it knows where you are, however far away you go
+    if (dist > (blood && z.type === 'zombie' ? 400 : z.type === 'archer' || z.type === 'bat' ? 150 : 90)) { G.zombies.splice(k, 1); continue; }
     if (z.state === 'die') {
       if (z.type === 'bat') fallBat(z, dt);
       if (z.t > 1.1) {
@@ -7385,13 +7610,19 @@ function updateZombies(dt) {
       if (Math.random() < dt * 30) spawnPart({ x: z.x + (Math.random() - 0.5) * 0.6, y: z.y + Math.random() * 1.8, z: z.z + (Math.random() - 0.5) * 0.6, vx: 0, vy: 1.5 + Math.random(), vz: 0, life: 0.6, size: 0.12, r: 1, g: 0.5 + Math.random() * 0.3, b: 0.1, em: 1, grav: -1, drag: 1 });
       if (z.burning <= 0) { z.state = 'die'; z.t = 0.4; continue; }
     }
+    // no progress for a long time and nobody sees it (stuck in a cave far away): it is gone,
+    // and a new one comes up near the players instead
+    const d3 = dist + Math.abs(tgt.y - z.y);
+    if (z.bestD === undefined || d3 < z.bestD - 1) { z.bestD = d3; z.progT = 0; } else z.progT = (z.progT || 0) + dt;
+    if (!tgt.none && z.state !== 'break' && z.progT > (blood ? 14 : 30) && nearestPlayerDist(z.x, z.z) > 22) { G.zombies.splice(k, 1); continue; }
+    if (z.progT > 6 && z.bestD < d3 - 6) z.bestD = d3;   // the player ran away: measure from here again
     // groans
     z.groanT -= dt;
     if (z.groanT <= 0) { z.groanT = 4 + Math.random() * 7; const dl = Math.hypot(PL.x - z.x, PL.z - z.z); if (dl < 40) SFX.groan(dl, blood ? 1.15 : 1); }
     // steering
     let wx = dist > 0.01 ? dxp / dist : 0, wz = dist > 0.01 ? dzp / dist : 0;
     // find the way (into caves, around walls) when the player is not simply ahead on the same level
-    if (!tgt.none && dist < 46 && (Math.abs(tgt.y - z.y) > 1.2 || z.stuckT > 0.2 || z.pathKnown)) { const pd = zombiePathDir(z, tgt); if (pd) { wx = pd[0]; wz = pd[1]; } }
+    if (!tgt.none && dist < (blood ? 100 : 50) && (Math.abs(tgt.y - z.y) > 1.2 || z.stuckT > 0.2 || z.pathKnown)) { const pd = zombiePathDir(z, tgt); if (pd) { wx = pd[0]; wz = pd[1]; } }
     // no way to you: every zombie picks its own spot around you (to dig down or build up there), not all the same one
     if (!tgt.none && !z.pathKnown && Math.abs(tgt.y - z.y) > 1.6 && dist < 12) {
       if (z.slotA === undefined) { z.slotA = (z.id * 2.399) % TAU; z.slotR = 0.6 + (z.id % 4) * 0.8; }
@@ -7401,6 +7632,7 @@ function updateZombies(dt) {
       // no progress for a while: another spot
       z.slotT = (z.slotT || 0) + dt;
       if (sd < (z.slotBest === undefined ? 1e9 : z.slotBest) - 0.5) { z.slotBest = sd; z.slotT = 0; }
+      if ((z.progT || 0) < 0.05 || z.state === 'break' || z.pillar || (z.placed && !z.onGround)) z.slotT = 0;          // getting closer (building up, digging down): stay on this spot
       if (z.slotT > 5) { z.slotA += 2.1 + Math.random(); z.slotR = 0.6 + Math.random() * 2.6; z.slotT = 0; z.slotBest = undefined; }
     } else z.slotD = undefined;
     // keep a little distance from each other (no clumps going round in circles)
@@ -7476,27 +7708,34 @@ function updateZombies(dt) {
       z.stuckT += dt;
       // from the second blood moon on they climb walls and pillars
       const wantUp = !tgt.none && tgt.y > z.y + 1.1 && dist < 7;
-      if (bl && bl.climb && (wantUp || z.stuckT > 1.3) && zombieCanClimb(z, wx, wz)) { z.climb = 0.3; }
+      const wallA = zombieWallAhead(z, wx, wz);
+      const natural = wallA && !BUILT[wallA.id] && !W.prot.has(I(wallA.x, wallA.y, wallA.z));
+      if (bl && (bl.climb || natural) && (wantUp || z.stuckT > (bl.climb ? 1.3 : 0.8)) && zombieCanClimb(z, wx, wz)) { z.climb = 0.3; }
       else if (z.stuckT > 0.35) {
         const wall = zombieWallAhead(z, wx, wz);
         const need = wall ? zombieBreakTime(wall.id) * (bl ? bl.breakMul : 1) : 0;
         if (wall && (blood || z.sky) && need > 0 && !W.prot.has(I(wall.x, wall.y, wall.z))) { z.state = 'break'; z.breakCell = { ...wall, need }; z.breakT = 0; z.stuckT = 0; }
+        // a blood moon zombie with no way to you digs through the rock (slowly) instead of standing there
+        else if (wall && blood && !z.pathKnown && z.stuckT > 1.4 && !W.prot.has(I(wall.x, wall.y, wall.z)) && digDownTime(wall.id, true, bl) > 0) { z.state = 'break'; z.breakCell = { ...wall, need: digDownTime(wall.id, true, bl) }; z.breakT = 0; z.stuckT = 0; }
         else if (z.stuckT > 0.9) { z.sideT = 1.2 + Math.random(); z.side = Math.random() < 0.5 ? -1 : 1; z.stuckT = 0; if (z.onGround && Math.random() < 0.4) z.vy = 7.5; }
       }
     } else z.stuckT = Math.max(0, z.stuckT - dt);
     if (z.climb > 0) { z.climb -= dt; if (z.vy < 3.6) z.vy = 3.6; z.stuckT = 0; }
     // you are high up and there is no way to you (a sky base): every zombie builds itself up, as high as it takes
     if (!tgt.none && !z.sky && !z.pathKnown && tgt.y > z.y + 4.5 && dist < 3) z.sky = true;
-    const placeCap = z.sky ? 64 : bl ? bl.place : 0;
+    // no way up to you during a blood moon: they build themselves up (from the second one on also when there is a way)
+    const placeCap = z.sky ? 64 : bl ? (z.pathKnown ? bl.place : Math.max(bl.place, 24)) : 0;
     // a zombie right below you builds itself up
-    if (z.state === 'walk' && !tgt.none && (z.placed || 0) < placeCap && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && dist < 2.6) {
+    if (z.state === 'walk' && !tgt.none && (z.placed || 0) < placeCap && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && (dist < 2.6 || (blood && z.slotD !== undefined && z.slotD < 0.7 && dist < 4.5))) {
       const px = Math.floor(z.x), py = Math.floor(z.y + 0.05), pz = Math.floor(z.z);
       if (getB(px, py, pz) === B.AIR && !SOLID[getB(px, py + 2, pz)] && !SOLID[getB(px, py + 3, pz)] && SOLID[getB(px, py - 1, pz)]) { z.pillar = [px, py, pz]; z.vy = 8.4; z.pillarT = 0; }
-      else if (z.sky) {
+      else if (z.sky || (bl && !z.pathKnown)) {
         // the floor of the sky base is above its head: it breaks in from below
         for (const by of [py + 2, py + 3]) {
           const id = getB(px, by, pz);
           if (!SOLID[id] && !(KIND[id] === K_OBJ && id !== B.TORCH)) continue;
+          // natural blocks over its head (a tree crown, an overhang): try another spot instead of chewing through
+          if (!BUILT[id] && !(bl && !z.pathKnown && !z.sky && !TREEBLOCK[id])) { if (z.slotA !== undefined) { z.slotA += 2.1 + Math.random(); z.slotR = 0.6 + Math.random() * 2.6; z.slotT = 0; z.slotBest = undefined; } break; }
           const need = W.prot.has(I(px, by, pz)) || id === B.BEDROCK ? 0 : (zombieBreakTime(id) || 6) * (bl ? bl.breakMul : 1.4);
           if (need > 0) { z.state = 'break'; z.breakCell = { x: px, y: by, z: pz, id, need }; z.breakT = 0; }
           break;
@@ -8402,9 +8641,11 @@ function drawMob(z, t) {
    player, so it finds the way into a cave through its entrance instead of
    waiting on the surface above you. If there is no way, it digs straight down.
    ========================================================================= */
-const PATHS = new Map();
-const ZOCC = new Map();    // cell -> zombies standing in it (this frame)   // player key -> { t, d: Map(cell -> steps), at: [x, y, z] }
-const PATH_NODES = 6000, PATH_R = 44, PATH_DROP = 4;
+const PATHS = new Map();   // player key -> { d: Map(cell -> steps) of the last finished search, at, t, b: search in progress }
+const ZOCC = new Map();    // cell -> zombies standing in it (this frame)
+const PATH_DROP = 4;
+/* how far the search reaches: during a blood moon very far (they find you from anywhere around) */
+function pathLimits() { return G.time.phase === 'night' && G.time.blood ? { r: 96, n: 42000 } : { r: 48, n: 9000 }; }
 function walkOpen(id) { return !SOLID[id] && id !== B.LAVA && !(KIND[id] === K_OBJ && id !== B.TORCH && id !== B.CAMPFIRE); }
 function standable(x, y, z) {
   if (y < 1 || y >= WY - 2) return false;
@@ -8414,71 +8655,101 @@ function standable(x, y, z) {
 }
 function pathStart(p) {
   const x = Math.floor(p.x), z = Math.floor(p.z), y = Math.floor(p.y + 0.05);
-  for (const dy of [0, 1, -1, 2, -2]) if (standable(x, y + dy, z)) return [x, y + dy, z];
+  for (const dy of [0, 1, -1, 2, -2, 3, -3]) if (standable(x, y + dy, z)) return [x, y + dy, z];
   return null;
 }
-function buildPathField(p) {
+function pathBegin(p) {
   const s = pathStart(p); if (!s) return null;
-  const d = new Map();
-  const q = [s]; d.set(I(s[0], s[1], s[2]), 0);
-  let head = 0;
-  while (head < q.length && d.size < PATH_NODES) {
-    const [x, y, z] = q[head++];
+  const lim = pathLimits();
+  const d = new Map(); d.set(I(s[0], s[1], s[2]), 0);
+  return { d, qx: [s[0]], qy: [s[1]], qz: [s[2]], head: 0, at: s, r: lim.r, n: lim.n };
+}
+/* a breadth-first search from the player over the cells a zombie can stand in, a bit every frame */
+function pathStep(b, budget) {
+  const { d, qx, qy, qz, at } = b;
+  const end = b.head + budget;
+  while (b.head < qx.length && b.head < end && d.size < b.n) {
+    const x = qx[b.head], y = qy[b.head], z = qz[b.head]; b.head++;
     const dc = d.get(I(x, y, z)) + 1;
-    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, nz = z + dz;
-      if (Math.abs(nx - s[0]) > PATH_R || Math.abs(nz - s[2]) > PATH_R) continue;
+    for (let k = 0; k < 4; k++) {
+      const nx = x + (k === 0 ? 1 : k === 1 ? -1 : 0), nz = z + (k === 2 ? 1 : k === 3 ? -1 : 0);
+      if (Math.abs(nx - at[0]) > b.r || Math.abs(nz - at[2]) > b.r) continue;
       // cells a zombie could come from to get to (x, y, z):
       // the same level, one lower (it steps up), or up to PATH_DROP higher (it drops down)
       for (let h = -1; h <= PATH_DROP; h++) {
         const ny = y + h;
-        if (!standable(nx, ny, nz)) continue;
+        const kk = I(nx, ny, nz);
+        if (d.has(kk) || !standable(nx, ny, nz)) continue;
         if (h === -1 && !walkOpen(getB(nx, ny + 2, nz))) continue;           // head room for the step up
         if (h > 0) { let clear = true; for (let yy = y + 1; yy <= ny + 1; yy++) if (!walkOpen(getB(x, yy, z))) { clear = false; break; } if (!clear) continue; }
-        const k = I(nx, ny, nz);
-        if (d.has(k)) continue;
-        d.set(k, dc); q.push([nx, ny, nz]);
+        d.set(kk, dc); qx.push(nx); qy.push(ny); qz.push(nz);
       }
     }
   }
-  return { d, at: s };
+  return b.head >= qx.length || d.size >= b.n;
 }
+/* one search per player, spread over several frames; zombies use the last finished one */
 function pathField(p) {
   const key = p.uid || 'me';
   let f = PATHS.get(key);
-  const now = G.playTime;
-  const moved = f && f.at && (Math.abs(Math.floor(p.x) - f.at[0]) + Math.abs(Math.floor(p.z) - f.at[2]) + Math.abs(Math.floor(p.y) - f.at[1]) > 1);
-  if (!f || now - f.t > 1.2 || (moved && now - f.t > 0.35)) {
-    const b = buildPathField(p);
-    f = { t: now, d: b ? b.d : new Map(), at: b ? b.at : null };
-    PATHS.set(key, f);
-  }
+  if (!f) { f = { d: new Map(), at: null, t: -99, b: null }; PATHS.set(key, f); }
   return f;
+}
+function updatePaths(players) {
+  const now = G.playTime;
+  // a few thousand cells per player and frame
+  const budget = Math.max(700, Math.floor(2400 / Math.max(1, players.length)));
+  for (const p of players) {
+    const f = pathField(p);
+    if (!f.b) {
+      const moved = !f.at || Math.abs(Math.floor(p.x) - f.at[0]) + Math.abs(Math.floor(p.z) - f.at[2]) + Math.abs(Math.floor(p.y + 0.05) - f.at[1]) > 1;
+      if (now - f.t > 2 || (moved && now - f.t > 0.3)) { f.b = pathBegin(p); f.bt = now; if (!f.b) { f.d = new Map(); f.at = null; f.t = now; } }
+    }
+    if (f.b && pathStep(f.b, budget)) {
+      // the first one is used even unfinished, so zombies do not wait for it
+      f.d = f.b.d; f.at = f.b.at; f.t = f.bt; f.b = null;
+    } else if (f.b && !f.at) { f.d = f.b.d; f.at = f.b.at; }
+  }
+}
+/* the steps to the player from where the zombie stands (its feet may hang over the edge of the next cell) */
+function pathHere(f, z) {
+  const y = Math.floor(z.y + 0.05);
+  let best, by = y, bx = 0, bz = 0;
+  const xs = [Math.floor(z.x)], zs = [Math.floor(z.z)];
+  const ex = Math.floor(z.x + (z.x - Math.floor(z.x) > 0.5 ? 0.33 : -0.33)), ez = Math.floor(z.z + (z.z - Math.floor(z.z) > 0.5 ? 0.33 : -0.33));
+  if (ex !== xs[0]) xs.push(ex);
+  if (ez !== zs[0]) zs.push(ez);
+  for (const x of xs) for (const zz of zs) for (const dy of [0, 1, -1]) {
+    const v = f.d.get(I(x, y + dy, zz));
+    if (v !== undefined && (best === undefined || v < best)) { best = v; by = y + dy; bx = x; bz = zz; }
+  }
+  return best === undefined ? null : { v: best, x: bx, y: by, z: bz };
 }
 /* where to walk: the next cell on the way to the player, or null (no way known) */
 function zombiePathDir(z, tgt) {
   if (tgt.none) return null;
   const f = pathField(tgt);
-  const x = Math.floor(z.x), z0 = Math.floor(z.z);
+  if (!f.at) { z.pathKnown = false; return null; }
+  let x = Math.floor(z.x), z0 = Math.floor(z.z);
   let y = Math.floor(z.y + 0.05);
-  let here = f.d.get(I(x, y, z0));
-  // standing on an edge or falling: the cell it will land in counts
-  if (here === undefined) { const v = f.d.get(I(x, y + 1, z0)); if (v !== undefined) { here = v; y += 1; } }
+  let here;
+  const h0 = pathHere(f, z);
+  if (h0) { here = h0.v; x = h0.x; y = h0.y; z0 = h0.z; }
   if (here === undefined) {
     // only straight down through open air (not through the floor it would have to dig)
-    for (let dy = -1; dy >= -6; dy--) {
-      if (!walkOpen(getB(x, y + dy, z0))) break;
+    for (let dy = -2; dy >= -8; dy--) {
+      if (!walkOpen(getB(x, y + dy + 1, z0))) break;
       const v = f.d.get(I(x, y + dy, z0)); if (v !== undefined) { here = v; y += dy; break; }
     }
   }
   if (here === undefined) {
     // just stepped off the known way (over a drop): keep going the way it went for a moment
-    if (z.pathDir && G.playTime - (z.pathT || 0) < 1.2) { z.pathKnown = true; return z.pathDir; }
+    if (z.pathDir && G.playTime - (z.pathT || 0) < 1.5) { z.pathKnown = true; return z.pathDir; }
     z.pathKnown = false; return null;
   }
   z.pathKnown = true;
   // the way goes down right here: step into the middle of this cell and drop
-  if (y < Math.floor(z.y + 0.05)) {
+  if (y < Math.floor(z.y + 0.05) - 1 || (y < Math.floor(z.y + 0.05) && (x !== Math.floor(z.x) || z0 !== Math.floor(z.z)))) {
     const cx = x + 0.5 - z.x, cz = z0 + 0.5 - z.z, cl = Math.hypot(cx, cz);
     if (cl < 0.08) return null;
     z.pathDir = [cx / cl, cz / cl]; z.pathT = G.playTime;
@@ -9717,7 +9988,55 @@ function noteKeyboard(e) {
   if (wasOn !== touchUI()) applyTouchMode(true);
 }
 
+/* the page must never zoom: not with Ctrl + mouse wheel, a touchpad pinch, Ctrl +/-,
+   a pinch or double tap on a touch screen, or a small text field on an iPhone/iPad.
+   If the browser is zoomed anyway (it remembers that per website, even after a reload), a note says how to undo it. */
+function initNoZoom() {
+  const stop = (e) => { if (e.cancelable) e.preventDefault(); };
+  window.addEventListener('wheel', (e) => { if (e.ctrlKey || e.metaKey) stop(e); }, { passive: false, capture: true });
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && ['Equal', 'Minus', 'NumpadAdd', 'NumpadSubtract', 'BracketRight', 'Slash'].includes(e.code)) stop(e);
+    if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=')) stop(e);
+  }, { capture: true });
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, stop, { passive: false });
+  // two fingers on the page (outside the game, which handles them itself): no pinch zoom
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 && !(e.target && e.target.id === 'gl')) stop(e); }, { passive: false });
+  // a text field zoomed the page in (iPhone/iPad): snap back when it loses focus
+  const meta = document.querySelector('meta[name="viewport"]');
+  const unzoom = () => {
+    if (!meta || !window.visualViewport || visualViewport.scale <= 1.01) return;
+    const c = meta.getAttribute('content');
+    meta.setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');
+    setTimeout(() => meta.setAttribute('content', c), 60);
+    window.scrollTo(0, 0);
+  };
+  document.addEventListener('focusout', () => setTimeout(unzoom, 50));
+  if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (!document.activeElement || !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) setTimeout(unzoom, 300); });
+  // the browser's own zoom (desktop): it can't be undone from inside the page, so tell how
+  const note = document.createElement('div'); note.id = 'zoomNote'; note.hidden = true;
+  note.innerHTML = '<span></span><button type="button">OK</button>';
+  document.body.appendChild(note);
+  let dismissed = 0;
+  note.querySelector('button').addEventListener('click', () => { note.hidden = true; dismissed = zoomNow(); });
+  function zoomNow() {
+    if (DEVICE && !DEVICE.fine) return 1;
+    if (!window.outerWidth || !window.innerWidth || document.fullscreenElement) return 1;
+    return Math.round((window.outerWidth / window.innerWidth) * 20) / 20;
+  }
+  const check = () => {
+    const z = zoomNow();
+    const zoomed = z >= 1.15 || z <= 0.85;
+    if (zoomed && z !== dismissed) {
+      const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+      note.firstChild.textContent = 'Die Seite ist auf ' + Math.round(z * 100) + ' % gezoomt. Drück ' + (mac ? '⌘ + 0' : 'Strg + 0') + ', dann ist alles wieder normal.';
+      note.hidden = false;
+    } else if (!zoomed) { note.hidden = true; dismissed = 0; }
+  };
+  window.addEventListener('resize', check);
+  setTimeout(check, 1500);
+}
 function initInput() {
+  initNoZoom();
   try {
     const mq = matchMedia('(any-pointer: fine)');
     const onMq = () => { const was = touchUI(); DEVICE.fine = mq.matches; if (was !== touchUI()) applyTouchMode(false); };
