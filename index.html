@@ -1190,10 +1190,8 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.11.0';
+const GAME_VERSION = '2.10.0';
 const GAME_NOTES = [
-  ['2.11.0', 'Mods 2.0 (Items, Dimensionen, Kategorien, Testwelt), Admin-Suche und Zuschauer-Modus, tiefere Welt mit neuen Höhlen und Mineschächten, neue Biome, Shop-Umbau, bessere Sounds, Schleichen, Wasser-Fixes'],
-
   ['2.10.0', 'Mods (Bibliothek, Hochladen, Prüfung durch DynaTheReal), Schleichen mit Strg, Wasser fließt nach 1 Sekunde, Eimer in der Hand, Fixes'],
   ['2.9.2', 'Schutz vor Kopien: das Spiel startet nur auf der echten Website (und in Claude), abschaltbar mit SITE_LOCK im Code'],
   ['2.9.1', 'Die Seite zoomt nicht mehr aus Versehen (Strg+Mausrad, Touchpad, Handy-Textfelder). Ist sie doch gezoomt, sagt ein Hinweis, wie es zurückgeht'],
@@ -1482,7 +1480,7 @@ const TILE_LIST = [
   'roof', 'sapling', 'pine_top_leaf',
   'iron_ore', 'diamond_ore', 'crystal', 'dark_side', 'dark_top', 'dark_leaves', 'mycel_top', 'mycel_side',
   'shroom_stem', 'shroom_cap', 'glow_shroom', 'tower_brick', 'tower_moss', 'chest', 'dark_grass_top', 'dark_grass_side',
-  'ruby_ore', 'mythril_ore', 'lava', 'deepslate', 'ice', 'moss',
+  'ruby_ore', 'mythril_ore', 'lava',
 ];
 const TI = {}; TILE_LIST.forEach((n, i) => (TI[n] = i));
 
@@ -1496,7 +1494,7 @@ const B = {
   TALLGRASS: 40, FLOWER_RED: 41, FLOWER_YELLOW: 42, FLOWER_VIOLET: 43, MUSHROOM: 44, DEADBUSH: 45, SAPLING: 46,
   CRYSTAL: 47, GLOW_SHROOM: 48,
   TORCH: 50, CAMPFIRE: 51, BED: 52, DOOR: 53, CHEST: 54,
-  RUBY_ORE: 55, MYTHRIL_ORE: 56, LAVA: 57, DEEPSLATE: 58, ICE: 59, MOSS: 60,
+  RUBY_ORE: 55, MYTHRIL_ORE: 56, LAVA: 57,
 };
 const K_AIR = 0, K_CUBE = 1, K_WATER = 2, K_GLASS = 3, K_PLANT = 4, K_OBJ = 5;
 const KIND = new Uint8Array(256);
@@ -1588,9 +1586,6 @@ defB(B.MYCEL, 'Pilzboden', K_CUBE, ['mycel_top', 'dirt', 'mycel_side'], { hard: 
 defB(B.SHROOM_STEM, 'Pilzstiel', K_CUBE, 'shroom_stem', { hard: 0.9, drop: null });
 defB(B.SHROOM_CAP, 'Leuchtpilzhut', K_CUBE, 'shroom_cap', { hard: 0.6, drop: null, emit: 12 });
 defB(B.TOWER_BRICK, 'Turmstein', K_CUBE, 'tower_brick', { hard: 2.6, pick: 1, drop: 'cobble' });
-defB(B.DEEPSLATE, 'Tiefenschiefer', K_CUBE, 'deepslate', { hard: 2.4, pick: 1, drop: 'cobble' });
-defB(B.ICE, 'Eis', K_CUBE, 'ice', { hard: 0.7, drop: null });
-defB(B.MOSS, 'Moos', K_CUBE, 'moss', { hard: 0.6, drop: 'dirt' });
 defB(B.TOWER_MOSS, 'Moosiger Turmstein', K_CUBE, 'tower_moss', { hard: 2.6, pick: 1, drop: 'cobble' });
 
 /* Zombie break time (seconds) during the blood moon */
@@ -1673,9 +1668,6 @@ const PAL = {
   towerMortar: pal(['#3c3f45', '#43464c']),
   moss: pal(['#4f6b45', '#5a774d', '#465f3d']),
   chestWood: pal(['#8a5a33', '#7c4f2c', '#96643a']),
-  deepslate: pal(['#3d4048', '#363940', '#44474f', '#2e3036']),
-  ice: pal(['#a9d8f5', '#b9e2fa', '#9bcff0', '#c9ecff']),
-  mossBlock: pal(['#4a7a3c', '#52853f', '#44703a', '#5b9145']),
 };
 
 function genTile(name, R, seed) {
@@ -1865,9 +1857,6 @@ function genTile(name, R, seed) {
       }
       break;
     }
-        case 'deepslate': noisy(PAL.deepslate); if (R >= 8) for (let k = 0; k < R / 2; k++) put(Math.floor(rnd() * R), Math.floor(rnd() * R), shade(PAL.deepslate[2], 1.25)); break;
-    case 'ice': noisy(PAL.ice); if (R >= 4) for (let k = 0; k < R / 2; k++) put(Math.floor(rnd() * R), Math.floor(rnd() * R), hexToRgb('#eefaff')); break;
-    case 'moss': noisy(PAL.mossBlock); break;
     case 'chest': noisy(PAL.chestWood); break;
     default: noisy(PAL.stone);
   }
@@ -2674,19 +2663,17 @@ class CuboidBatch {
    position forever, so maps keyed by it (edits, door states, trees) work
    across loading and unloading.
    ========================================================================= */
-const CS = 16, WY = 176;
-let SEA = 30;                              // neue Welten: 106 (siehe resetWorld)
+const CS = 16, WY = 96, SEA = 30;
 const CX = 0, CZ = 0;                      // the spawn sits at the origin
 const WOFF = 1 << 20, WSPAN = 1 << 21;
 const SZS = WY, SXS = WSPAN * WY;          // index strides of z and x
 const WLIM = 30000;                        // soft world border (far beyond anything you reach)
 const I = (x, y, z) => ((x + WOFF) * WSPAN + (z + WOFF)) * WY + y;
-const RING_IN = 300;
-let RING_OUT = 375;                        // neue Welten: 560 (breiterer Schattenwald)
+const RING_IN = 300, RING_OUT = 375;       // the dark forest ring around the spawn
 const ISLAND_S = 0.5;                      // island: the layout comes this much closer to the spawn
 const ISLAND_R = 244, ISLAND_LIMIT = 320;  // island: coast radius, how far out you can swim
-const BIO = { OCEAN: 0, BEACH: 1, PLAINS: 2, FOREST: 3, AUTUMN: 4, CHERRY: 5, TAIGA: 6, SNOWY: 7, DESERT: 8, MOUNTAIN: 9, DARK: 10, CRYSTAL: 11, SHROOM: 12, MEADOW: 13, SWAMP: 14 };
-const BIO_NAME = ['Ozean', 'Strand', 'Wiese', 'Wald', 'Herbstwald', 'Kirschhain', 'Nadelwald', 'Schneewald', 'Wüste', 'Berge', 'Schattenwald', 'Kristallfelder', 'Leuchtpilzwald', 'Blumenmeer', 'Sumpf'];
+const BIO = { OCEAN: 0, BEACH: 1, PLAINS: 2, FOREST: 3, AUTUMN: 4, CHERRY: 5, TAIGA: 6, SNOWY: 7, DESERT: 8, MOUNTAIN: 9, DARK: 10, CRYSTAL: 11, SHROOM: 12 };
+const BIO_NAME = ['Ozean', 'Strand', 'Wiese', 'Wald', 'Herbstwald', 'Kirschhain', 'Nadelwald', 'Schneewald', 'Wüste', 'Berge', 'Schattenwald', 'Kristallfelder', 'Leuchtpilzwald'];
 
 const W = {
   seed: 1,
@@ -2707,7 +2694,6 @@ const W = {
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
-  gen: 2, gen3: new Set(),   // gen 3 = neue Weltgenerierung; gen3 = Chunks mit den neuen Höhlen (in alten Welten)
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
   merchantPos: [CX + 0.5, SEA + 6, CZ - 1.6],
   hutDoor: [CX + 0.5, SEA + 6, CZ - 7.2],
@@ -2790,82 +2776,11 @@ function makeWorldNoise(seed) {
     mm: makeSimplex(seed + 5), temp: makeSimplex(seed + 6), moist: makeSimplex(seed + 7), vari: makeSimplex(seed + 8),
     river: makeSimplex(seed + 9), sand: makeSimplex(seed + 10), ring: makeSimplex(seed + 11), lake: makeSimplex(seed + 12),
     ent: makeSimplex(seed + 13),
-    warpx: makeSimplex(seed + 14), warpz: makeSimplex(seed + 15), biome: makeSimplex(seed + 16), biome2: makeSimplex(seed + 17),
     c1: makeSimplex3(seed + 21), c2: makeSimplex3(seed + 22), c3: makeSimplex3(seed + 23), c4: makeSimplex3(seed + 24),
   };
 }
 /* everything about one column that does not depend on neighbours */
-function colInfo(x, z, o) { return W.gen >= 3 ? colInfo3(x, z, o) : colInfoOld(x, z, o); }
-function colInfo3(x, z, o) {
-  const N = W.N;
-  const isl = W.mode === 'island';
-  const k = isl ? 1 / ISLAND_S : 1;
-  const d = Math.sqrt(x * x + z * z);
-  const dd = d * k;
-  const lx = x * k, lz = z * k;
-  const ux = lx + fbm(N.warpx, lx / 240, lz / 240, 2) * 80, uz = lz + fbm(N.warpz, lx / 240 + 9, lz / 240 - 5, 2) * 80;
-  const rd = dd + fbm(N.ring, lx / 170, lz / 170, 2) * 40;
-  const ring = smoothstep(RING_IN - 14, RING_IN + 6, rd) * (1 - smoothstep(RING_OUT - 6, RING_OUT + 14, rd));
-  const beyond = smoothstep(RING_OUT, RING_OUT + 40, rd);
-  const near = 1 - smoothstep(110, 190, dd);
-  const temp = fbm(N.temp, ux / 300 + 11, uz / 300 + 7, 3);
-  const moist = fbm(N.moist, ux / 250 - 40, uz / 250 + 22, 3);
-  const vari = fbm(N.vari, ux / 170, uz / 170, 2);
-  const patch = fbm(N.biome, ux / 130, uz / 130, 2);
-  let sea, coast = 0;
-  if (isl) { coast = ISLAND_R + fbm(N.cont, x / 150, z / 150, 3) * 32; sea = smoothstep(coast - 24, coast + 6, d); }
-  else { const cont = fbm(N.cont, x / 650, z / 650, 3); sea = smoothstep(-0.26, -0.42, cont) * smoothstep(200, 280, d) * (1 - ring); }
-  const rough = smoothstep(0.1, 0.5, fbm(N.biome2, ux / 210 + 3, uz / 210 + 8, 2));
-  const hills = fbm(N.hills, ux / 120, uz / 120, 3);
-  const detail = fbm(N.det, x / 18, z / 18, 2);
-  const amp = lerp(1.4, 3.2, smoothstep(30, 170, dd)) * (1 + rough * 1.6);
-  let h = SEA + 5 + hills * amp + detail * 0.7;
-  const mMask = smoothstep(0.1, 0.45, fbm(N.mm, ux / 420 + 31, uz / 420 - 17, 2) + 0.05) * smoothstep(170, 260, dd) * (1 - ring) * (1 - sea);
-  let ridge = 1 - Math.abs(fbm(N.ridge, x / 95, z / 95, 4)); ridge = ridge * ridge * ridge;
-  h += mMask * ridge * (isl ? 34 : 42);
-  const dW = smoothstep(0.2, 0.36, temp) * smoothstep(0.04, -0.14, moist) * (1 - mMask) * (1 - near * 0.85) * (1 - ring);
-  if (dW > 0) h = lerp(h, SEA + 4 + fbm(N.sand, x / 40, z / 40, 3) * 3.0, dW);
-  const sw = smoothstep(0.2, 0.32, moist) * smoothstep(-0.05, 0.1, temp) * smoothstep(0.0, 0.2, patch) * (1 - near) * (1 - ring) * (1 - mMask) * (1 - dW);
-  if (sw > 0) h = lerp(h, SEA + 1.2 + fbm(N.sand, x / 20, z / 20, 2) * 2.4, sw);
-  if (sea > 0) h = lerp(h, SEA - 6 - fbm(N.det, x / 50, z / 50, 2) * 3 - (isl ? smoothstep(coast, coast + 90, d) * 12 : 0), sea);
-  const rv = Math.abs(fbm(N.river, x / 240 + 5, z / 240 - 9, 3));
-  const rMask = (1 - smoothstep(0.012, 0.038, rv)) * smoothstep(80, 120, dd) * (1 - mMask * 0.9) * (1 - sea) * (1 - ring * 0.7);
-  if (rMask > 0) h = lerp(h, Math.min(h, SEA - 2.3), rMask);
-  const lk = fbm(N.lake, ux / 150, uz / 150, 3);
-  const lMask = smoothstep(0.28, 0.42, lk) * smoothstep(70, 130, dd) * (1 - mMask) * (1 - ring) * (1 - dW) * (1 - sea);
-  if (lMask > 0) h = lerp(h, Math.min(h, SEA - 2.5 - smoothstep(0.42, 0.62, lk) * 4), lMask);
-  if (ring > 0) h = lerp(h, SEA + 8 + hills * 5 + detail * 1.2, ring);
-  h = lerp(SEA + 5, h, smoothstep(16, 34, d));
-  const crystal = beyond * smoothstep(0.2, 0.32, vari) * (1 - dW);
-  const shroom = beyond * smoothstep(0.12, 0.24, moist) * smoothstep(-0.1, -0.22, vari);
-  let b;
-  const wet = Math.max(sea, rMask, lMask);
-  if (h < SEA + 1.4 && wet > 0.2) b = h < SEA - 2.5 ? BIO.OCEAN : BIO.BEACH;
-  else if (ring > 0.5) b = BIO.DARK;
-  else if (mMask * ridge > 0.3 && h > SEA + 17) b = BIO.MOUNTAIN;
-  else if (d < 48) b = BIO.PLAINS;
-  else if (crystal > 0.5) b = BIO.CRYSTAL;
-  else if (shroom > 0.5) b = BIO.SHROOM;
-  else if (dW > 0.5) b = BIO.DESERT;
-  else if (sw > 0.5) b = BIO.SWAMP;
-  else if (temp < -0.3 && near < 0.5) b = temp < -0.48 ? BIO.SNOWY : BIO.TAIGA;
-  else if (patch < -0.26 && temp > -0.15) b = BIO.CHERRY;
-  else if (patch > 0.3 && moist < 0.2 && moist > -0.3) b = BIO.MEADOW;
-  else if (moist > 0.16) b = vari > 0.22 ? BIO.AUTUMN : BIO.FOREST;
-  else if (vari < -0.38) b = BIO.CHERRY;
-  else b = BIO.PLAINS;
-  let tr = 1.0 + temp * 0.18 - moist * 0.1, tg = 1.03 + moist * 0.05 - Math.abs(temp) * 0.05, tb = 0.9 - temp * 0.2 + moist * 0.05;
-  const cold = smoothstep(-0.28, -0.5, temp) * (1 - near);
-  tr = lerp(tr, 0.76, cold); tg = lerp(tg, 0.9, cold); tb = lerp(tb, 0.94, cold);
-  tr = lerp(tr, 1.16, dW); tg = lerp(tg, 1.02, dW); tb = lerp(tb, 0.62, dW);
-  tr = lerp(tr, 0.84, crystal); tg = lerp(tg, 1.0, crystal); tb = lerp(tb, 1.12, crystal);
-  tr = lerp(tr, 0.78, sw); tg = lerp(tg, 0.92, sw); tb = lerp(tb, 0.6, sw);
-  tr = lerp(tr, 0.62, ring); tg = lerp(tg, 0.74, ring); tb = lerp(tb, 0.8, ring);
-  o.h = h; o.b = b; o.d = d; o.dd = dd; o.rd = rd; o.ring = ring; o.beyond = beyond; o.river = rMask; o.wet = wet;
-  o.tr = tr; o.tg = tg; o.tb = tb; o.dW = dW;
-  return o;
-}
-function colInfoOld(x, z, o) {
+function colInfo(x, z, o) {
   const N = W.N;
   const isl = W.mode === 'island';
   const k = isl ? 1 / ISLAND_S : 1;
@@ -2994,7 +2909,7 @@ function treeShape(type, rnd) {
   return { logs, leaves, logId, leafId };
 }
 const TREE_G = 5;
-const TREE_DENS = [0, 0, 0.1, 0.62, 0.6, 0.3, 0.55, 0.36, 0, 0.08, 0.85, 0.06, 0.05, 0.06, 0.26];
+const TREE_DENS = [0, 0, 0.1, 0.62, 0.6, 0.3, 0.55, 0.36, 0, 0.08, 0.85, 0.06, 0.05];
 /* the tree that may grow in grid cell (gx, gz), or null; pure function of the seed */
 function treeCandidate(gx, gz) {
   const seed = W.seed;
@@ -3022,7 +2937,6 @@ function treeCandidate(gx, gz) {
   else if (b === BIO.PLAINS) type = r < 0.22 ? 'birch' : 'oak';
   else if (b === BIO.DARK) type = r < 0.12 ? 'pine' : 'dark';
   else if (b === BIO.CRYSTAL) type = 'birch';
-  else if (b === BIO.MEADOW) type = r < 0.6 ? 'birch' : 'oak';
   const y = top + 1;
   return { id: I(x, y, z), x, y, z, type, seed: Math.floor(hashi(gx, 6, gz, seed) * 1e9) };
 }
@@ -3277,7 +3191,7 @@ function shroomOps(t) {
    4000, at 6000 and so on (endless worlds only, and only in land nobody has
    seen yet). Houses with beds, a well, paths, and a trader with a stall.
    ========================================================================= */
-let VILLAGE_RING = 2000, VILLAGE_N = 3; const VILLAGE_R = 26;
+const VILLAGE_RING = 2000, VILLAGE_R = 26;
 const VILLAGES = new Map();     // id -> village (once its blocks are known)
 const _vi = {};
 function villageAt(k, i) {
@@ -3286,7 +3200,7 @@ function villageAt(k, i) {
   if (STRUCT_CACHE.has(key)) return STRUCT_CACHE.get(key);
   const seed = W.seed;
   const base = hashi(k, 91, 0, seed) * TAU;
-  let a = base + i * TAU / VILLAGE_N + (hashi(k, 92, i, seed) - 0.5) * 0.7;
+  let a = base + i * TAU / 3 + (hashi(k, 92, i, seed) - 0.5) * 0.7;
   const r = VILLAGE_RING * k + (hashi(k, 93, i, seed) - 0.5) * 240;
   let v = null;
   // somewhere dry and not too steep near the planned spot
@@ -3314,7 +3228,7 @@ function villagesNear(x, z, r) {
   const k = Math.round(d / VILLAGE_RING);
   if (k < 1 || Math.abs(d - k * VILLAGE_RING) > 200 + r) return [];
   const out = [];
-  for (let i = 0; i < VILLAGE_N; i++) { const v = villageAt(k, i); if (v && Math.abs(v.x - x) <= r + VILLAGE_R && Math.abs(v.z - z) <= r + VILLAGE_R) out.push(v); }
+  for (let i = 0; i < 3; i++) { const v = villageAt(k, i); if (v && Math.abs(v.x - x) <= r + VILLAGE_R && Math.abs(v.z - z) <= r + VILLAGE_R) out.push(v); }
   return out;
 }
 function villageOps(v) {
@@ -3423,7 +3337,7 @@ function nearStructure(x, z) {
   return chk(towerGrid(), towerAt, 7) || chk(ruinGrid(), ruinAt, 6) || villagesNear(x, z, 4).length > 0;
 }
 /* all structures touching chunk (cx, cz) */
-function structuresFor(cx, cz, v3) {
+function structuresFor(cx, cz) {
   const out = [];
   const x0 = cx * CS, z0 = cz * CS;
   const near = (sx, sz, r) => sx + r >= x0 && sx - r < x0 + CS && sz + r >= z0 && sz - r < z0 + CS;
@@ -3450,7 +3364,6 @@ function structuresFor(cx, cz, v3) {
   };
   if (d > RING_IN - 80 && d < RING_OUT + 80) scan(towerGrid(), towerAt, towerOps, 4);
   if (d > RING_OUT - 20) { scan(ruinGrid(), ruinAt, ruinOps, 4); scan(SHROOM_G, shroomAt, shroomOps, 4); }
-  if (v3 && d > 150) scan(MINE_G, mineAt, mineOps, 52);
   // villages far out
   for (const v of villagesNear(x0 + 8, z0 + 8, 12)) {
     if (!near(v.x, v.z, VILLAGE_R)) continue;
@@ -3475,11 +3388,6 @@ function newChunk(cx, cz) {
 function generateChunk(cx, cz) {
   const c = newChunk(cx, cz);
   CHM.set(c.key, c); resetChunkCache();
-  const dimHere = dimAt(c.x0 + 8, c.z0 + 8);
-  if (dimHere) { generateDimChunk(c, dimHere); return c; }
-  // neue Höhlen: neue Welten immer, alte Welten nur in Chunks, die noch nie generiert wurden
-  const useV3 = W.gen >= 3 || W.gen3.has(c.key) || (!W.explored.has(c.key) && !W.genOld.has(c.key));
-  if (useV3 && W.gen < 3) W.gen3.add(c.key);
   const N = W.N, seed = W.seed;
   const bl = c.blocks;
   const H = new Int16Array(CS * CS);
@@ -3520,9 +3428,9 @@ function generateChunk(cx, cz) {
     for (let y = 0; y <= top; y++) bl[base + y] = y === 0 ? B.BEDROCK : y === top ? surf : y > top - depth ? fill : B.STONE;
     for (let y = top + 1; y <= SEA; y++) bl[base + y] = B.WATER;
   }
-  if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
+  if (W.genOld.has(c.key)) carveCaves(c, H, info); else carveCaves2(c, H, info);
   // structures
-  const structs = structuresFor(cx, cz, useV3);
+  const structs = structuresFor(cx, cz);
   c.structs = structs;
   const objCells = [];
   for (const s of structs) {
@@ -3579,8 +3487,6 @@ function generateChunk(cx, cz) {
       else if (b === BIO.CHERRY) p = h < 0.07 ? B.TALLGRASS : h < 0.12 ? (h2 < 0.6 ? B.FLOWER_VIOLET : B.FLOWER_RED) : 0;
       else if (b === BIO.TAIGA) p = h < 0.04 ? B.TALLGRASS : h < 0.058 ? B.MUSHROOM : 0;
       else if (b === BIO.CRYSTAL) p = h < 0.08 ? B.TALLGRASS : 0;   // crystals only grow in caves
-      else if (b === BIO.MEADOW) p = h < 0.12 ? B.TALLGRASS : h < 0.34 ? [B.FLOWER_RED, B.FLOWER_YELLOW, B.FLOWER_VIOLET][Math.floor(h2 * 3)] : 0;
-      else if (b === BIO.SWAMP) p = h < 0.09 ? B.TALLGRASS : h < 0.12 ? B.MUSHROOM : 0;
       else if (b === BIO.MOUNTAIN || b === BIO.BEACH) p = h < 0.04 ? B.TALLGRASS : 0;
     } else if (sid === B.DARK_GRASS) p = h < 0.035 ? B.TALLGRASS : h < 0.046 ? B.GLOW_SHROOM : h < 0.06 ? B.MUSHROOM : 0;
     else if (sid === B.MYCEL) p = h < 0.07 ? B.GLOW_SHROOM : 0;
@@ -3676,260 +3582,6 @@ function carveCaves(c, H, info) {
   }
 }
 
-/* =========================================================================
-   Höhlen, dritte Version. Kleine Eingänge (schmale Schächte), die in der Tiefe zu Hallen
-   werden. Am Spawn nur Mini-Höhlen mit Eisen. Große Höhlen, Schluchten, Lava und Erze erst
-   weit draußen. Jede Höhle sieht anders aus (Würmer aus dem Seed).
-   ========================================================================= */
-const WORM_G = 44, WORM_REACH = 128;
-const WORM_CACHE = new Map();
-function caveLavaY() { return W.gen >= 3 ? 14 : 8; }
-function caveDeepY() { return W.gen >= 3 ? SEA - 52 : 15; }
-function caveFar(dd) { return smoothstep(RING_OUT - 60, RING_OUT + 560, dd); }
-function wormCell(gx, gz) {
-  const key = gx + ',' + gz;
-  let w = WORM_CACHE.get(key);
-  if (w !== undefined) return w;
-  w = null;
-  const seed = W.seed;
-  const R = mulberry32((hashi(gx, 201, gz, seed) * 4294967296) >>> 0);
-  const sx = gx * WORM_G + Math.floor(R() * WORM_G), sz = gz * WORM_G + Math.floor(R() * WORM_G);
-  const dd = Math.hypot(sx - CX, sz - CZ) / (W.mode === 'island' ? ISLAND_S : 1);
-  const far = caveFar(dd);
-  const kindR = R(), chR = R();
-  if (dd >= 24 && chR < 0.5 - 0.18 * (1 - far)) {
-    const top = colHeight(sx, sz);
-    if (top > SEA + 1) {
-      const lava = caveLavaY();
-      const pts = [], falls = [];
-      const D = top - 4;
-      const mini = far < 0.12;
-      const canyon = far > 0.25 && kindR < 0.1;
-      let x = sx + 0.5, y = top + 0.5, z = sz + 0.5, a = R() * TAU;
-      if (canyon) {
-        // eine offene Schlucht
-        const len = 28 + Math.floor(R() * 30);
-        for (let s = 0; s < len; s++) {
-          a += (R() - 0.5) * 0.35;
-          x += Math.cos(a) * 1.4; z += Math.sin(a) * 1.4;
-          const th = colHeight(Math.floor(x), Math.floor(z));
-          const depth = 10 + 14 * Math.sin(s / len * Math.PI) * (0.6 + 0.4 * R());
-          pts.push([x, th - depth * 0.5 + 1, z, 2.0 + R() * 0.8, depth * 0.55 + 2]);
-        }
-      } else {
-        const rShaft = mini ? 0.9 + R() * 0.5 : 1.2 + R() * 0.8;
-        const target = mini ? top - (8 + R() * 14) : top - D * (0.3 + 0.6 * R());
-        const tY = Math.max(lava + 5, target);
-        let pitch = -(0.45 + R() * 0.35), steps = 0;
-        while (y > tY && steps++ < 80) {
-          a += (R() - 0.5) * 0.45; pitch = clamp(pitch + (R() - 0.5) * 0.2, -0.9, -0.3);
-          const c = Math.cos(pitch);
-          x += Math.cos(a) * c * 1.2; z += Math.sin(a) * c * 1.2; y += Math.sin(pitch) * 1.2;
-          pts.push([x, y, z, rShaft, rShaft]);
-        }
-        // die Halle am Ende: ein paar überlappende Blasen
-        const rc = mini ? 1.8 + R() * 1.4 : 3.2 + R() * 2.6 + far * R() * 9;
-        const nb = mini ? 2 : 3 + Math.floor(R() * 3);
-        const hx = x, hy = y, hz = z;
-        for (let b = 0; b < nb; b++) {
-          const bx = hx + (R() - 0.5) * rc * 1.5, bz = hz + (R() - 0.5) * rc * 1.5, by = hy + (R() - 0.5) * rc * 0.45;
-          const rb = rc * (0.6 + R() * 0.5);
-          pts.push([bx, Math.max(lava + 2, by), bz, rb, rb * (0.5 + R() * 0.25)]);
-        }
-        if (!mini && y < caveDeepY() + 14 && R() < 0.5) falls.push([hx + (R() - 0.5) * rc, hz + (R() - 0.5) * rc, hy + rc * 0.5]);
-        // Gänge, die aus der Halle weiterführen
-        const nt = mini ? 1 : 1 + Math.floor(R() * 2 + far);
-        for (let k = 0; k < nt; k++) {
-          let tx = hx, ty = hy, tz = hz, ta = R() * TAU, tp = 0;
-          const tl = mini ? 8 + Math.floor(R() * 10) : 20 + Math.floor(R() * 30);
-          const tr = mini ? 0.8 + R() * 0.5 : 1.3 + R() * 1.0 + far * R() * 1.5;
-          for (let s = 0; s < tl; s++) {
-            ta += (R() - 0.5) * 0.5; tp = clamp(tp * 0.8 + (R() - 0.5) * 0.3, -0.5, 0.5);
-            tx += Math.cos(ta) * 1.3; tz += Math.sin(ta) * 1.3; ty = clamp(ty + tp * 1.3, lava + 2, top - 6);
-            const widen = (!mini && s % 14 === 13) ? 2 + R() * 1.5 : 0;
-            pts.push([tx, ty, tz, tr + widen, tr + widen * 0.7]);
-          }
-        }
-      }
-      const keep = pts.filter((p) => Math.abs(p[0] - sx) < WORM_REACH && Math.abs(p[2] - sz) < WORM_REACH);
-      if (keep.length) {
-        let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
-        for (const p of keep) { x0 = Math.min(x0, p[0] - p[3]); x1 = Math.max(x1, p[0] + p[3]); z0 = Math.min(z0, p[2] - p[3]); z1 = Math.max(z1, p[2] + p[3]); }
-        w = { pts: keep, falls, far, x0, x1, z0, z1 };
-      }
-    }
-  }
-  WORM_CACHE.set(key, w);
-  return w;
-}
-function carveWorms(c, H, bl, lava) {
-  const cx0 = c.x0, cz0 = c.z0;
-  for (let gx = Math.floor((cx0 - WORM_REACH - 4) / WORM_G); gx <= Math.floor((cx0 + CS + WORM_REACH + 4) / WORM_G); gx++)
-    for (let gz = Math.floor((cz0 - WORM_REACH - 4) / WORM_G); gz <= Math.floor((cz0 + CS + WORM_REACH + 4) / WORM_G); gz++) {
-      const w = wormCell(gx, gz); if (!w) continue;
-      if (w.x1 < cx0 - 1 || w.x0 > cx0 + CS || w.z1 < cz0 - 1 || w.z0 > cz0 + CS) continue;
-      const lv = w.far > 0.1;
-      for (const p of w.pts) {
-        const rh = p[3], rv = p[4];
-        const x0 = Math.max(cx0, Math.floor(p[0] - rh)), x1 = Math.min(cx0 + CS - 1, Math.ceil(p[0] + rh));
-        const z0 = Math.max(cz0, Math.floor(p[2] - rh)), z1 = Math.min(cz0 + CS - 1, Math.ceil(p[2] + rh));
-        if (x0 > x1 || z0 > z1) continue;
-        const y0 = Math.max(2, Math.floor(p[1] - rv)), y1 = Math.min(WY - 3, Math.ceil(p[1] + rv));
-        for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) {
-          const dx = (x + 0.5 - p[0]) / rh, dz = (z + 0.5 - p[2]) / rh, dxz = dx * dx + dz * dz;
-          if (dxz > 1) continue;
-          const ci = ((x & 15) << 4) | (z & 15), top = H[ci], base = ci * WY, under = top <= SEA + 1;
-          for (let y = y0; y <= Math.min(y1, top); y++) {
-            const dy = (y + 0.5 - p[1]) / rv;
-            if (dxz + dy * dy > 1) continue;
-            if (under && top - y < 6) continue;
-            const id = bl[base + y];
-            if (id === B.BEDROCK || id === B.WATER) continue;
-            bl[base + y] = y <= lava && lv ? B.LAVA : B.AIR;
-          }
-        }
-      }
-      // Lavafälle: Lava rinnt als Säule von der Hallendecke
-      for (const f of w.falls) {
-        const x = Math.floor(f[0]), z = Math.floor(f[1]);
-        if (x < cx0 || x >= cx0 + CS || z < cz0 || z >= cz0 + CS) continue;
-        const base = (((x & 15) << 4) | (z & 15)) * WY;
-        for (let y = Math.floor(f[2]); y > lava - 3; y--) { const id = bl[base + y]; if (id === B.AIR) bl[base + y] = B.LAVA; else if (SOLID[id]) break; }
-      }
-    }
-}
-function carveCaves3(c, H, info) {
-  const N = W.N, seed = W.seed, bl = c.blocks;
-  const lava = caveLavaY(), deepY = caveDeepY();
-  // 1) Tiefenschiefer unten
-  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
-    const x = c.x0 + lx, z = c.z0 + lz, base = ((lx << 4) | lz) * WY;
-    const lim = deepY + ((hashi(x, 3, z, seed + 9) * 5) | 0);
-    for (let y = 1; y <= lim; y++) if (bl[base + y] === B.STONE) bl[base + y] = B.DEEPSLATE;
-  }
-  // 2) kleine Taschen (am Spawn nur die), dünne Tunnel und seltene Hallen weit draußen
-  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
-    const x = c.x0 + lx, z = c.z0 + lz, ci = (lx << 4) | lz, o = info[lx * CS + lz];
-    const top = H[ci], far = caveFar(o.dd), base = ci * WY, under = top <= SEA + 1, pockets = o.d > 22;
-    const yMin = far > 0.15 ? 3 : Math.max(3, top - 26);
-    for (let y = yMin; y <= top - 4; y++) {
-      const depth = top - y;
-      if (under && depth < 6) continue;
-      let carve = false;
-      if (pockets && depth < 26 && N.c1(x / 9, y / 6, z / 9) > 0.6 - far * 0.1) carve = true;
-      if (!carve && far > 0.15 && depth > 8) {
-        const w = 0.03 + 0.03 * far;
-        const a = N.c2(x / 42, y / 20, z / 42);
-        if (Math.abs(a) < w) { const b = N.c3(x / 42 + 50, y / 20, z / 42 - 50); if (Math.abs(b) < w) carve = true; }
-        if (!carve && far > 0.3 && N.c4(x / 56, y / 26, z / 56) > 0.78 - far * 0.06) carve = true;
-      }
-      if (carve) bl[base + y] = y <= lava && far > 0.1 ? B.LAVA : B.AIR;
-    }
-  }
-  // 3) Schächte, Hallen, Schluchten, Lavafälle
-  carveWorms(c, H, bl, lava);
-  // 4) Höhlenbiome (Eishöhlen unter Schnee, Moos-Höhlen unter Wäldern), Pflanzen, Erze
-  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
-    const x = c.x0 + lx, z = c.z0 + lz, ci = (lx << 4) | lz, o = info[lx * CS + lz];
-    const top = H[ci], far = caveFar(o.dd), base = ci * WY, bio = c.biome[ci];
-    const ice = bio === BIO.SNOWY || bio === BIO.TAIGA || (bio === BIO.MOUNTAIN && top > SEA + 22);
-    const lush = bio === BIO.FOREST || bio === BIO.AUTUMN || bio === BIO.CHERRY || bio === BIO.MEADOW || bio === BIO.SWAMP;
-    for (let y = 3; y < top - 3; y++) {
-      const id = bl[base + y];
-      if (id === B.AIR) {
-        const dn = bl[base + y - 1], up = bl[base + y + 1];
-        const deep = top - y > 6 && y > lava + 8;
-        if ((dn === B.STONE || dn === B.DEEPSLATE) && top - y > 6) {
-          const hh = hashi(x, y, z, seed + 7);
-          if (lush && deep) {
-            if (hh < 0.9) bl[base + y - 1] = B.MOSS;
-            const h2 = hashi(x, y, z, seed + 12);
-            if (h2 < 0.22) bl[base + y] = B.TALLGRASS; else if (h2 < 0.27) bl[base + y] = B.GLOW_SHROOM; else if (h2 < 0.3) bl[base + y] = B.FLOWER_VIOLET; else if (h2 < 0.315) bl[base + y] = B.CRYSTAL;
-          } else if (ice && deep) { if (hh < 0.85) bl[base + y - 1] = B.ICE; if (hh > 0.97) bl[base + y] = B.CRYSTAL; }
-          else if (far > 0.2 && hh < 0.035 * far) bl[base + y] = B.CRYSTAL;
-          else if (far > 0.05 && hashi(x, y, z, seed + 8) < 0.012) bl[base + y] = B.GLOW_SHROOM;
-        }
-        if ((up === B.STONE || up === B.DEEPSLATE) && top - y > 6 && y > lava + 8) {
-          const hc = hashi(x, y, z, seed + 13);
-          if (lush && hc < 0.6) bl[base + y + 1] = B.MOSS; else if (ice && hc < 0.7) bl[base + y + 1] = B.ICE;
-        }
-        continue;
-      }
-      if (id !== B.STONE && id !== B.DEEPSLATE) continue;
-      const exp = bl[base + y + 1] === B.AIR || bl[base + y - 1] === B.AIR;
-      if (hashi(x >> 1, y >> 1, z >> 1, seed + 3) < (exp ? 0.028 : 0.004) && hashi(x, y, z, seed + 4) < 0.7) { bl[base + y] = B.IRON_ORE; continue; }
-      // Diamanten: selten, tief und weit weg
-      if (far > 0.12 && y < deepY + 24 && hashi(x >> 1, y >> 1, z >> 1, seed + 5) < 0.00025 * (0.3 + far) && hashi(x, y, z, seed + 6) < 0.7) { bl[base + y] = B.DIAMOND_ORE; continue; }
-      if (far > 0.3 && y < lava + 24 && hashi(x >> 1, y >> 1, z >> 1, seed + 31) < 0.0007 * far && hashi(x, y, z, seed + 32) < 0.55) { bl[base + y] = B.RUBY_ORE; continue; }
-      if (far > 0.4 && y < lava + 10 && (exp || bl[base + y - 1] === B.LAVA) && hashi(x, y, z, seed + 33) < 0.0035 * far) bl[base + y] = B.MYTHRIL_ORE;
-    }
-  }
-}
-
-/* ---------- Mineschächte: verlassene Gänge unter der Erde mit Stützen, Fackeln und Truhen ---------- */
-const MINE_G = 110;
-function mineAt(gx, gz) {
-  const seed = W.seed;
-  const x = gx * MINE_G + 20 + Math.floor(hashi(gx, 61, gz, seed) * (MINE_G - 40));
-  const z = gz * MINE_G + 20 + Math.floor(hashi(gx, 62, gz, seed) * (MINE_G - 40));
-  if (hashi(gx, 63, gz, seed) > 0.42) return null;
-  colInfo(x, z, _cs);
-  if (_cs.dd < 150 || _cs.wet > 0.1 || _cs.b === BIO.OCEAN) return null;
-  const top = Math.round(clamp(_cs.h, 2, WY - 14));
-  if (top <= SEA) return null;
-  const lo = caveLavaY() + 6, hi = top - 14;
-  if (hi < lo) return null;
-  const y = lo + Math.floor(hashi(gx, 64, gz, seed) * (hi - lo + 1));
-  return { id: I(x, y, z), x, z, y, kind: 'mine', seed: Math.floor(hashi(gx, 65, gz, seed) * 1e9) };
-}
-function mineOps(t) {
-  const ops = [], rnd = mulberry32(t.seed);
-  const put = (x, y, z, id, meta) => ops.push([x, y, z, id, meta === undefined ? null : meta, 0]);
-  // ein Gang: 3 breit, 3 hoch, alle 5 Blöcke ein Holzrahmen, ab und zu eine Fackel
-  const corridor = (x0, z0, dx, dz, len) => {
-    const px = dz ? 1 : 0, pz = dx ? 1 : 0;
-    for (let s = 0; s <= len; s++) {
-      const x = x0 + dx * s, z = z0 + dz * s;
-      for (let w = -1; w <= 1; w++) {
-        for (let h = 1; h <= 3; h++) put(x + px * w, t.y + h, z + pz * w, B.AIR);
-        if (rnd() < 0.1) put(x + px * w, t.y, z + pz * w, B.PLANKS);
-      }
-      if (s > 0 && s % 5 === 0) {
-        for (const w of [-1, 1]) { put(x + px * w, t.y + 1, z + pz * w, B.OAK_LOG); put(x + px * w, t.y + 2, z + pz * w, B.OAK_LOG); }
-        for (let w = -1; w <= 1; w++) put(x + px * w, t.y + 3, z + pz * w, B.PLANKS);
-      } else if (s % 9 === 4) put(x, t.y + 1, z, B.TORCH, 0);
-    }
-  };
-  const room = (cx, cz) => {
-    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) for (let h = 1; h <= 4; h++) put(cx + dx, t.y + h, cz + dz, B.AIR);
-    for (const [dx, dz] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) for (let h = 1; h <= 3; h++) put(cx + dx, t.y + h, cz + dz, B.OAK_LOG);
-    put(cx - 2, t.y + 1, cz - 2, B.TORCH, 0);
-  };
-  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  room(t.x, t.z);
-  const nArms = 2 + Math.floor(rnd() * 3);
-  const used = [];
-  for (let a = 0; a < nArms; a++) {
-    let di = Math.floor(rnd() * 4), guard = 0;
-    while (used.includes(di) && guard++ < 8) di = Math.floor(rnd() * 4);
-    used.push(di);
-    const [dx, dz] = dirs[di];
-    const len = 14 + Math.floor(rnd() * 24);
-    corridor(t.x + dx * 4, t.z + dz * 4, dx, dz, len);
-    const ex = t.x + dx * (4 + len), ez = t.z + dz * (4 + len);
-    // am Ende eine kleine Kammer mit Truhe
-    room(ex + dx * 3, ez + dz * 3);
-    if (rnd() < 0.8) put(ex + dx * 3, t.y + 1, ez + dz * 3, B.CHEST, 0);
-    // Abzweig
-    if (len > 22 && rnd() < 0.6) {
-      const s = 8 + Math.floor(rnd() * (len - 14));
-      const bd = dirs[(di < 2 ? 2 : 0) + Math.floor(rnd() * 2)];
-      corridor(t.x + dx * (4 + s), t.z + dz * (4 + s), bd[0], bd[1], 7 + Math.floor(rnd() * 8));
-    }
-  }
-  if (rnd() < 0.7) put(t.x, t.y + 1, t.z, B.CHEST, 0);
-  return ops;
-}
 /* ---------- caves, second version (only for land nobody has seen yet) ----------
    Wide craters lead down, tunnels and halls are bigger, the deepest floors are lava.
    Diamonds sit in small hidden nests of two or three; rubies and mythril glow deep down. */
@@ -4143,13 +3795,8 @@ function updateLightAround(x0, z0, x1, z1) {
 }
 
 /* ---------- world setup ---------- */
-function resetWorld(seed, mode, gen) {
+function resetWorld(seed, mode) {
   W.mode = mode === 'island' ? 'island' : 'endless';
-  W.gen = gen >= 3 ? 3 : 2;
-  SEA = W.gen >= 3 ? 106 : 30;
-  RING_OUT = W.gen >= 3 ? 560 : 375;
-  VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); DIMS.clear();
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -4219,7 +3866,7 @@ function dropTree(t, l, n) {
    Meshing works on a padded copy of the chunk and its neighbours (18 x 18 x WY+2).
    ========================================================================= */
 function makeMeshBuf(cap) { const ab = new ArrayBuffer(cap * 16); return { ab, u16: new Uint16Array(ab), u8: new Uint8Array(ab), n: 0, cap }; }
-const MB = makeMeshBuf(600000), TB = makeMeshBuf(140000), XB = makeMeshBuf(60000);
+const MB = makeMeshBuf(300000), TB = makeMeshBuf(140000), XB = makeMeshBuf(60000);
 
 const MS_D = 18, MS_H = WY + 2;
 const MSZ = MS_H, MSX = MS_D * MS_H;
@@ -6882,8 +6529,8 @@ function makeSave() {
   const sheep = [];
   for (const [id, st] of W.sheepState) if (!st[0] && st[1] > G.playTime) sheep.push(id, st[1]);
   return {
-    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
-    pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
+    v: 2, seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
+    pl: [PL.x, PL.y, PL.z, PL.yaw, PL.hp], cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
@@ -6931,25 +6578,7 @@ function markOldChunks(s) {
 }
 /* load a save into the freshly reset world (before any chunk is generated).
    Saves from the island version (v1) keep the player's things, the world is new. */
-function remapCell(i) { const y = i % 96; return (i - y) / 96 * WY + y; }
-function remapSave(s) {
-  s = Object.assign({}, s);
-  s.ch = (s.ch || []).slice(); for (let k = 0; k < s.ch.length; k += 2) s.ch[k] = remapCell(s.ch[k]);
-  s.mc = (s.mc || []).slice(); for (let k = 0; k < s.mc.length; k += 2) s.mc[k] = remapCell(s.mc[k]);
-  s.trees = (s.trees || []).map((t) => [remapCell(t[0]), t[1], t[2], t[3]]);
-  s.clr = (s.clr || []).map(remapCell);
-  s.chests = (s.chests || []).map(([i, c]) => [remapCell(i), c]);
-  s.wy = WY;
-  return s;
-}
-/* in einer Mod-Dimension wird die Position in der normalen Welt gespeichert */
-function savePos() {
-  if (PL.dim) { const b = PL.dimBack || W.spawn; return [b[0], b[1], b[2], PL.yaw, PL.hp]; }
-  return [PL.x, PL.y, PL.z, PL.yaw, PL.hp];
-}
 function applySave(s, convert) {
-  if (s.v === 2 && s.wy !== WY) s = remapSave(s);
-  if (Array.isArray(s.g3)) for (const k of s.g3) W.gen3.add(k);
   const v2 = s.v === 2;
   // an old island (or an island the update made endless): the buildings move to the new island
   const fix = !v2 || !!convert;
@@ -7135,7 +6764,7 @@ function raycast(ox, oy, oz, dx, dy, dz, maxDist, test) {
 }
 const pickTest = (id) => id !== B.WATER;
 const NATURAL = new Uint8Array(256);
-[B.GRASS, B.DIRT, B.STONE, B.SAND, B.SNOW, B.GRAVEL, B.BEDROCK, B.PATH, B.DARK_GRASS, B.MYCEL, B.DEEPSLATE, B.ICE, B.MOSS].forEach((b) => (NATURAL[b] = 1));
+[B.GRASS, B.DIRT, B.STONE, B.SAND, B.SNOW, B.GRAVEL, B.BEDROCK, B.PATH, B.DARK_GRASS, B.MYCEL].forEach((b) => (NATURAL[b] = 1));
 const camTest = (id) => NATURAL[id] === 1;
 function rayAabb(ox, oy, oz, dx, dy, dz, x0, y0, z0, x1, y1, z1) {
   let tmin = 0, tmax = 1e9;
@@ -7280,7 +6909,7 @@ function updatePlayer(dt) {
     if (Math.random() < dt * 14) spawnPart({ x: PL.x + (Math.random() - 0.5) * 0.6, y: PL.y + 0.6 + Math.random(), z: PL.z + (Math.random() - 0.5) * 0.6, vx: 0, vy: 1.6, vz: 0, life: 0.5, size: 0.12, r: 1, g: 0.5, b: 0.1, kind: 0, grav: -1, drag: 1, em: 1 });
   } else PL.lavaT = 0;
   const ctrl = INPUT.down('ControlLeft') || INPUT.down('ControlRight');
-  PL.sneak = !!ctrl && !PL.inWater && !PL.flying && !G.spectator;
+  PL.sneak = !!ctrl && !PL.inWater && !PL.flying;
   PL.sneakK = damp(PL.sneakK || 0, PL.sneak ? 1 : 0, 14, dt);
   PL.sprint = (INPUT.down('ShiftLeft') || INPUT.down('ShiftRight') || INPUT.sprintToggle || INPUT.sprintBtn) && amt > 0.1 && !PL.sneak;
   let speed = PL.sprint ? 6.4 : 4.3;
@@ -7301,7 +6930,7 @@ function updatePlayer(dt) {
     PL.vy -= 9 * dt; PL.vy *= Math.exp(-2.6 * dt);
     if (INPUT.down('Space') || INPUT.jump) PL.vy = Math.min(PL.vy + 22 * dt, 3.2);
   } else {
-    PL.vy -= 28 * dt * MODFX.gravity * (CURDIM ? CURDIM.gravity : 1);
+    PL.vy -= 28 * dt * MODFX.gravity;
     if (PL.vy < -42) PL.vy = -42;
     if ((INPUT.down('Space') || INPUT.jump) && PL.onGround) { PL.vy = 8.6 * MODFX.jump; PL.onGround = false; SFX.jump(); }
   }
@@ -7331,7 +6960,7 @@ function updatePlayer(dt) {
   if (PL.y < -8) respawnPlayer();
   stormPush(PL, dt, true);
   // the island: beyond this there is only open sea
-  if (W.mode === 'island' && !CURDIM) {
+  if (W.mode === 'island') {
     const dist = Math.hypot(PL.x, PL.z);
     if (dist > ISLAND_LIMIT) {
       const nx = PL.x / dist, nz = PL.z / dist;
@@ -7767,7 +7396,7 @@ function placementFor(target, item) {
     for (const o of OBJS.values()) if (o.id === B.CAMPFIRE) { hint('fire1', 'In dieser Welt brennt schon ein Lagerfeuer. Pro Welt gibt es nur eins.'); return null; }
     if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CAMPFIRE, meta: 0 }; }
   if (def.place === 'chest') { if (!SOLID[below] || entityBlocksCell(x, y, z)) return null; return { x, y, z, id: B.CHEST, meta: STORE_FLAG | (((yawDir() + 2) & 3) << 1) }; }
-    if (def.place === 'water') {
+  if (def.place === 'water') {
     if (getB(x, y, z) === B.LAVA) return { x, y, z, id: B.COBBLE, meta: null, cool: true };
     return { x, y, z, id: B.WATER, meta: null, delayed: true };
   }
@@ -9398,7 +9027,7 @@ function onChunkUnloaded(c) {
 }
 
 /* ---------- sheep herds: a few chunks far from the spawn have one ---------- */
-const HERD_BIOMES = new Set([BIO.PLAINS, BIO.FOREST, BIO.AUTUMN, BIO.CHERRY, BIO.TAIGA, BIO.SNOWY, BIO.MOUNTAIN, BIO.CRYSTAL, BIO.MEADOW]);
+const HERD_BIOMES = new Set([BIO.PLAINS, BIO.FOREST, BIO.AUTUMN, BIO.CHERRY, BIO.TAIGA, BIO.SNOWY, BIO.MOUNTAIN, BIO.CRYSTAL]);
 function spawnHerd(c) {
   const seed = W.seed;
   if (hashi(c.cx, 91, c.cz, seed) > 0.075) return;
@@ -9432,11 +9061,6 @@ function chestLoot(x, y, z) {
     loot.iron = 6 + Math.floor(r() * 6); loot.diamond = 1 + Math.floor(r() * 3);
     if (r() < 0.6) loot.crystal = 1 + Math.floor(r() * 2);
     loot.torch = 4;
-  } else if (y < SEA - 4) {
-    loot.iron = 2 + Math.floor(r() * 5); loot.torch = 2 + Math.floor(r() * 5);
-    if (r() < 0.4) loot.apple = 1;
-    if (r() < 0.25) loot.crystal = 1;
-    if (r() < 0.22) loot.diamond = 1;
   } else {
     loot.iron = 3 + Math.floor(r() * 5); loot.diamond = 1 + Math.floor(r() * 2); loot.crystal = 1 + Math.floor(r() * 3);
   }
@@ -9519,7 +9143,7 @@ function updateFarFog(dt, x, z) {
   const clear = CAMP_LV[W.campLv].clear;
   // underground (caves) there is no fog of the far lands
   const sk = getSky(Math.floor(CAM.eye[0]), Math.floor(CAM.eye[1]), Math.floor(CAM.eye[2])) / 15;
-  const target = (W.mode === 'island' || CURDIM) ? 0 : smoothstep(clear, clear + 130, d) * smoothstep(0.05, 0.5, sk);
+  const target = W.mode === 'island' ? 0 : smoothstep(clear, clear + 130, d) * smoothstep(0.05, 0.5, sk);
   // back near the spawn it clears quickly
   WEATHER.farFog = dt > 0 ? damp(WEATHER.farFog, target, target < WEATHER.farFog ? 3.5 : 1.2, dt) : target;
   if (G.state === 'playing' && target > 0.4 && !G._fogHint && W.campLv < 5) {
@@ -12540,7 +12164,7 @@ async function loadWorld(seed, save, opts = {}) {
   await nextFrame();
   for (const f of G.falling) freeModel(f.model);
   G.falling = []; G.sheep = []; G.zombies = [];
-  resetWorld(seed, mode, save ? ((save.gen | 0) || 2) : 3);
+  resetWorld(seed, mode);
   resetWeather();
   computeTileAverages(seed);
   buildTextureArray(QP().tex, seed);
@@ -12556,7 +12180,7 @@ async function loadWorld(seed, save, opts = {}) {
     G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = you && you.stats ? Object.assign({ trees: 0, zombies: 0 }, you.stats) : { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
     PL.hp = you ? clamp(you.hp, 20, 100) : 100; PL.dead = false;
-    if (you && you.pos && you.pos.slice(0, 3).every((v) => isFinite(v))) { PL.x = +you.pos[0]; PL.y = +you.pos[1] + 0.05; PL.z = +you.pos[2]; PL.yaw = +you.pos[3] || 0; }
+    if (you && you.pos) { PL.x = you.pos[0]; PL.y = you.pos[1] + 0.05; PL.z = you.pos[2]; PL.yaw = you.pos[3] || 0; }
     else { PL.x = W.spawn[0] + (Math.random() - 0.5) * 3; PL.y = W.spawn[1] + 0.05; PL.z = W.spawn[2] + Math.random() * 2; }
     CAMC.mode = 'drone'; CAMC.yaw = 0.55; CAMC.pitch = 0.68; CAMC.dist = CAMC.distT = CAMC.eff = 12;
   }
@@ -12652,8 +12276,6 @@ function startPlaying() {
   $('hud').hidden = false;
   UI.skinPreview = false;
   G.state = 'playing';
-  if (!CAM.eye.every((v) => isFinite(v))) CAM.eye = [PL.x, PL.y + 10, PL.z + 10];
-  if (!CAM.target.every((v) => isFinite(v))) CAM.target = [PL.x, PL.y + 1, PL.z];
   applyTouchMode(false);
   CAMC.from = { eye: CAM.eye.slice(), target: CAM.target.slice() };
   CAMC.trans = 0; CAMC.transDur = 2.4; CAMC.transT0 = performance.now(); // slow swoop from the menu camera down to the player
@@ -12810,7 +12432,21 @@ function hoverFromPointer(noWater) {
   const r = screenRay(INPUT.pointer[0], INPUT.pointer[1]);
   return pickRay(r.o, r.d, noWater);
 }
-
+function normDir(a, b) { const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]; const l = Math.hypot(dx, dy, dz) || 1; return [dx / l, dy / l, dz / l]; }
+function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST); }
+function primaryOn(h) {
+  if (!h) return;
+  if (!h.inReach) { if (h.type === 'merchant') hint('mreach', 'Geh näher zum Händler.'); return; }
+  if (h.type === 'zombie') attackZombie(h.e);
+  else if (h.type === 'player') attackPlayer(h.e);
+  else if (h.type === 'sheep') shearSheep(h.e);
+  else if (h.type === 'merchant') { if (!isNight()) doInteract({ kind: 'merchant' }); }
+  else if (h.type === 'block') {
+    if (h.id === B.DOOR) toggleDoor(h.x, h.y, h.z);
+    else if (h.id === B.BED) trySleep(h.x, h.y, h.z);
+    else if (h.id === B.CHEST) { if (isStoreChest(h.x, h.y, h.z)) UI.openStore(h.x, h.y, h.z); else openChest(h.x, h.y, h.z); }
+  }
+}
 function handleActions(dt) {
   if (PL.dead || G.sleep) { G.breaking = null; G.prompt = null; return; }
   updateTouchHold();
@@ -12864,42 +12500,40 @@ function handleActions(dt) {
 /* ---------- loop ---------- */
 function gameUpdate(dt) {
   const active = G.state === 'playing';
-  const S = guard;
-  S('Zeit', () => updateTime(dt));
+  updateTime(dt);
   const n = clamp(Math.ceil(dt / (1 / 60)), 1, 4), h = dt / n;
   const client = MP.isClient();
   for (let k = 0; k < n; k++) {
-    S('Spieler', () => updatePlayer(h));
-    if (!client) { S('Zombies', () => updateZombies(h)); S('Schafe', () => updateSheep(h)); S('Händler', () => updateMerchant(h)); }
-    S('Drops', () => updateDrops(h));
+    updatePlayer(h);
+    if (!client) { updateZombies(h); updateSheep(h); updateMerchant(h); }
+    updateDrops(h);
   }
-  if (client) S('Mobs', () => updateMobsClient(dt));
-  if (active) { S('Aktionen', () => handleActions(dt)); S('Fällen', () => updateChopping(dt)); }
+  if (client) updateMobsClient(dt);
+  if (active) { handleActions(dt); updateChopping(dt); }
   else { G.prompt = null; G.breaking = null; }
-  S('Bäume', () => updateTrees(dt));
-  S('Fallende Bäume', () => updateFalling(dt));
-  S('Spawns', () => updateSpawns(dt));
-  S('Pfeile', () => updateArrows(dt));
-  S('Fledermäuse', () => updateAmbientBats(dt));
-  S('Tipps', () => updateTips(dt));
-  S('Gift', () => updateInfection(dt));
-  S('Mods', () => updateMods(dt));
-  S('Zuschauer', () => updateSpectator(dt));
-  S('Fadenkreuz', () => syncCrosshair());
-  S('Wasser', () => updateFlow(dt));
-  S('Dorfhändler', () => updateTraders(dt));
-  S('Wetter', () => updateWeather(dt));
-  S('Tornado', () => updateTornado(dt));
-  S('Nebel', () => updateFarFog(dt, PL.x, PL.z));
-  S('Schlaf', () => updateSleep(dt));
-  S('Partikel', () => updateParts(dt));
-  S('Objekte', () => updateObjects(dt, shaderTime));
-  S('Kamera', () => updateCamera(dt));
-  S('Mehrspieler', () => MP.update(dt));
+  updateTrees(dt);
+  updateFalling(dt);
+  updateSpawns(dt);
+  updateArrows(dt);
+  updateAmbientBats(dt);
+  updateTips(dt);
+  updateInfection(dt);
+  updateMods(dt);
+  syncCrosshair();
+  updateFlow(dt);
+  updateTraders(dt);
+  updateWeather(dt);
+  updateTornado(dt);
+  updateFarFog(dt, PL.x, PL.z);
+  updateSleep(dt);
+  updateParts(dt);
+  updateObjects(dt, shaderTime);
+  updateCamera(dt);
+  MP.update(dt);
   G.autosaveT += dt;
-  if (G.autosaveT > 25) { G.autosaveT = 0; S('Speichern', () => saveGame()); }
+  if (G.autosaveT > 25) { G.autosaveT = 0; saveGame(); }
 }
-
+const MENU_CAM = { eye: null, target: null };
 function menuUpdate(dt) {
   let eye, target;
   if (UI.skinPreview) {
@@ -12932,16 +12566,6 @@ function menuUpdate(dt) {
   updateParts(dt); updateObjects(dt, shaderTime);
   updateWeather(dt); updateTornado(dt); updateFarFog(dt, PL.x, PL.z);
 }
-const ERRS = { n: 0, last: 0 };
-function guard(name, fn) {
-  try { return fn(); }
-  catch (err) {
-    ERRS.n++;
-    console.error('Fehler in ' + name, err);
-    if (performance.now() - ERRS.last > 4000 && ERRS.n < 60) { ERRS.last = performance.now(); UI.toast('Interner Fehler (' + name + '): ' + (err && err.message ? err.message : err), 'warn', 5000, 'err'); }
-    return undefined;
-  }
-}
 function frame(now) {
   if (G.lost) return;
   requestAnimationFrame(frame);
@@ -12949,22 +12573,21 @@ function frame(now) {
   if (!(dt > 0)) dt = 0.016;
   if (dt > 0.1) dt = 0.1;
   if (G.state === 'loading') return;
-  guard('Größe', () => resize());
+  resize();
   shaderTime += dt;
   const inMenu = G.state === 'menu';
+  // with friends the world keeps running while menus are open
   const simulate = G.state === 'playing' || (MP.active() && !inMenu);
-  // eine ungültige Position (NaN) würde Kamera und alles andere lahmlegen
-  if (!inMenu && !(isFinite(PL.x) && isFinite(PL.y) && isFinite(PL.z))) {
-    PL.x = W.spawn[0]; PL.y = W.spawn[1] + 0.05; PL.z = W.spawn[2]; PL.vx = PL.vy = PL.vz = 0;
-    CAMC.focus = [PL.x, PL.y + 1.25, PL.z]; CAMC.trans = 1; CAM.eye = [PL.x, PL.y + 8, PL.z + 8];
+  if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1; // Notbremse
+  if (simulate) {
+    G.playTime += dt;
+    try { gameUpdate(dt); }
+    catch (err) { console.error('Update-Fehler', err); try { updateCamera(dt); } catch (e2) { /* ignore */ } }
   }
-  if (simulate) { G.playTime += dt; guard('Spiel', () => gameUpdate(dt)); }
-  else if (inMenu) guard('Menü', () => menuUpdate(dt));
-  else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
-  // Notbremse: eine Kamerafahrt darf nie ewig dauern
-  if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
-  guard('Umgebung', () => { computeEnv(G.time, SETTINGS.viewDist); applyDimEnv(); });
-  guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
+  else if (inMenu) menuUpdate(dt);
+  else { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); }
+  computeEnv(G.time, SETTINGS.viewDist);
+  buildDrawLists(shaderTime, inMenu);
   RENDER_OPTS.shadows = TEX.shadowSize > 0;
   RENDER_OPTS.mb = !!SETTINGS.motionBlur;
   RENDER_OPTS.viewDist = SETTINGS.viewDist;
@@ -12972,16 +12595,13 @@ function frame(now) {
   RENDER_OPTS.cut[0] = PL.x; RENDER_OPTS.cut[1] = PL.y + PL.stepOffset + 1.0; RENDER_OPTS.cut[2] = PL.z;
   RENDER_OPTS.cut[3] = !inMenu && CAMC.mode === 'drone' ? 1 : 0;
   const focus = inMenu ? CAM.target : [PL.x, PL.y + 1, PL.z];
-  const okR = guard('Render', () => { renderFrame(shaderTime, focus, RENDER_OPTS); return true; });
-  if (!okR) { try { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindVertexArray(null); gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.DEPTH_TEST); } catch (e) { /* ignore */ } }
-  if (!inMenu) guard('Anzeige', () => UI.frame(dt));
-  guard('Welt laden', () => streamWorld(dt, inMenu));
-  guard('Ton', () => {
-    let fire = 0;
-    for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && o.lit > 0.05) { const d = Math.hypot(o.x + 0.5 - CAM.eye[0], o.z + 0.5 - CAM.eye[2]); fire = Math.max(fire, o.lit * clamp(1 - d / 14, 0, 1)); }
-    const roof = colTop(Math.floor(CAM.eye[0]), Math.floor(CAM.eye[2])) > CAM.eye[1] + 1;
-    SFX.ambience(dt, { day: ENV.dayF, night: ENV.night, blood: ENV.blood, fire, menu: inMenu, rain: WEATHER.rain * (roof ? 0.45 : 1), snow: WEATHER.snow > 0.5, tor: WEATHER.torNear });
-  });
+  renderFrame(shaderTime, focus, RENDER_OPTS);
+  if (!inMenu) UI.frame(dt);
+  streamWorld(dt, inMenu);
+  let fire = 0;
+  for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && o.lit > 0.05) { const d = Math.hypot(o.x + 0.5 - CAM.eye[0], o.z + 0.5 - CAM.eye[2]); fire = Math.max(fire, o.lit * clamp(1 - d / 14, 0, 1)); }
+  const roof = colTop(Math.floor(CAM.eye[0]), Math.floor(CAM.eye[2])) > CAM.eye[1] + 1;
+  SFX.ambience(dt, { day: ENV.dayF, night: ENV.night, blood: ENV.blood, fire, menu: inMenu, rain: WEATHER.rain * (roof ? 0.45 : 1), snow: WEATHER.snow > 0.5, tor: WEATHER.torNear });
   INPUT.endFrame();
 }
 
@@ -13584,7 +13204,6 @@ const MP = {
     if (this.active() || !NET.uid() || G.state === 'menu') return;
     if (!srv && (!SETTINGS.allowFriends || !WORLDS.current)) return;
     const uid = NET.uid();
-    try { await withTimeout(NET.db.ref(base + '/snaps/' + me).remove(), 8000); } catch (e) { /* ignore */ }
     this.srv = srv || null;
     this.role = 'host'; this.hostUid = uid; this.hostName = NET.name; this.base = srv ? srvRoomPath(srv) : 'rooms/' + uid; this.ready = true;
     this.applied.clear();
