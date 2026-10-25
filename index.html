@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -3479,8 +3479,7 @@ function newChunk(cx, cz) {
 function generateChunk(cx, cz) {
   const c = newChunk(cx, cz);
   CHM.set(c.key, c); resetChunkCache();
-  const dimHere = dimAt(c.x0 + 8, c.z0 + 8);
-  if (dimHere) { generateDimChunk(c, dimHere); return c; }
+  // Mod-Dimensionen sind in dieser Patch-Datei nicht implementiert; normale Chunk-Generierung fortsetzen.
   // neue Höhlen: neue Welten immer, alte Welten nur in Chunks, die noch nie generiert wurden
   const useV3 = W.gen >= 3 || W.gen3.has(c.key) || (!W.explored.has(c.key) && !W.genOld.has(c.key));
   if (useV3 && W.gen < 3) W.gen3.add(c.key);
