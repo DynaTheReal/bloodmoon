@@ -232,7 +232,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .chop-n span { font-size: 9px; color: var(--muted); margin-top: 1px; }
 .chop.hit svg { animation: chopHit 0.18s ease-out; }
 @keyframes chopHit { 0% { transform: rotate(-90deg) scale(1.16); } 100% { transform: rotate(-90deg) scale(1); } }
-.bubble { box-sizing: border-box; max-width: 220px; padding: 8px 12px; margin-left: -110px; width: 220px; text-align: center; border-radius: 12px; background: rgba(250, 247, 240, 0.95); color: var(--ink); font-size: 13px; line-height: 1.3; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); transform-origin: 50% 100%; }
+.bubble { box-sizing: border-box; max-width: calc(220px * var(--ms, 1)); padding: 8px 12px; margin-left: calc(-110px * var(--ms, 1)); width: calc(220px * var(--ms, 1)); text-align: center; border-radius: 12px; background: rgba(250, 247, 240, 0.95); color: var(--ink); font-size: calc(13px * var(--ms, 1)); line-height: 1.3; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); transform-origin: 50% 100%; }
 .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: rgba(250, 247, 240, 0.95); }
 .mobbar { width: 46px; height: 5px; margin-left: -23px; border-radius: 99px; background: rgba(8, 12, 13, 0.6); overflow: hidden; transition: opacity 0.4s; }
 .mobbar i { display: block; height: 100%; background: var(--blood); border-radius: 99px; }
@@ -397,6 +397,9 @@ select.field { appearance: auto; }
 .mu-row .mu-bar { flex: 0 0 90px; }
 #muFoot { justify-content: flex-end; flex-wrap: wrap; }
 .mu-from { font-size: 12px; opacity: 0.6; }
+.sa-mods { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sa-mods .hint { margin: 0; flex: 1 1 200px; }
+.li-mods { display: block; width: fit-content; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 800; background: rgba(160, 130, 255, 0.18); color: #cdb9ff; }
 .my-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
 .my-top .hint { flex: 1 1 260px; margin: 0; }
 .my-list { display: grid; gap: 8px; }
@@ -433,7 +436,7 @@ select.field { appearance: auto; }
 .mod-bar { height: 10px; min-width: 60px; border-radius: 99px; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
 .mod-bar > span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 10px; }
 .mod-barfill { display: block; height: 100%; background: #7ed957; border-radius: inherit; transition: width 0.15s; }
-.toast { padding: 8px 14px; border-radius: 99px; font-size: 13px; text-align: center; animation: toastIn 0.25s ease-out; transition: opacity 0.4s, transform 0.4s; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+.toast { padding: calc(8px * var(--ms, 1)) calc(14px * var(--ms, 1)); border-radius: 99px; font-size: calc(13px * var(--ms, 1)); text-align: center; animation: toastIn 0.25s ease-out; transition: opacity 0.4s, transform 0.4s; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
 .toast.drag { transition: none; }
 .notes { position: fixed; z-index: 60; top: calc(var(--safe-t) + 10px); left: 50%; transform: translateX(-50%); display: grid; gap: 8px; justify-items: center; pointer-events: none; width: min(380px, 92vw); }
 .note { pointer-events: auto; cursor: grab; touch-action: none; user-select: none; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px 10px 10px; border-radius: 18px; background: rgba(18, 24, 26, 0.92); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: noteIn 0.38s cubic-bezier(0.2, 0.9, 0.25, 1.15); transition: opacity 0.35s, transform 0.35s; }
@@ -452,15 +455,15 @@ select.field { appearance: auto; }
 .toast.long { border-radius: 14px; padding: 10px 16px; line-height: 1.4; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-8px) scale(0.96); } }
 .banner { position: absolute; left: 0; right: 0; top: 24%; text-align: center; pointer-events: none; padding-inline: var(--safe-l) var(--safe-r); animation: bannerIn 4.2s ease forwards; }
-.banner-t { font-family: var(--font-display); font-size: clamp(38px, 7vw, 72px); line-height: 1; letter-spacing: 0.03em; text-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.45); text-wrap: balance; }
-.banner-s { margin-top: 10px; font-size: clamp(14px, 2vw, 17px); color: var(--text); opacity: 0.9; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); text-wrap: balance; }
+.banner-t { font-family: var(--font-display); font-size: calc(clamp(38px, 7vw, 72px) * var(--ms, 1)); line-height: 1; letter-spacing: 0.03em; text-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.45); text-wrap: balance; }
+.banner-s { margin-top: calc(10px * var(--ms, 1)); font-size: calc(clamp(14px, 2vw, 17px) * var(--ms, 1)); color: var(--text); opacity: 0.9; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); text-wrap: balance; }
 .banner.blood .banner-t { color: #ff7a7a; text-shadow: 0 0 30px rgba(232, 30, 40, 0.8), 0 4px 0 rgba(40, 0, 0, 0.5); }
 .banner.night .banner-t { color: #cfdcff; }
 .banner.day .banner-t { color: #ffe3b8; }
 @keyframes bannerIn { 0% { opacity: 0; transform: translateY(10px) scale(0.97); } 12% { opacity: 1; transform: none; } 78% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
 .hud-bottom { position: absolute; left: var(--safe-l); right: var(--safe-r); bottom: var(--safe-b); display: grid; justify-items: center; gap: 10px; pointer-events: none; }
 .bar-row { display: flex; align-items: flex-end; gap: 10px; max-width: 100%; pointer-events: none; }
-.prompt { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 7px; border-radius: 99px; font-size: 14px; pointer-events: none; animation: toastIn 0.2s ease-out; }
+.prompt { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 7px; border-radius: 99px; font-size: calc(14px * var(--ms, 1)); pointer-events: none; animation: toastIn 0.2s ease-out; }
 kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width: 24px; height: 24px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 7px; background: var(--text); color: var(--ink); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25); }
 .hotbar { display: flex; gap: 6px; padding: 6px; overflow-x: auto; scrollbar-width: none; max-width: calc(100vw - 32px); pointer-events: auto; }
 .hotbar::-webkit-scrollbar { display: none; }
@@ -983,6 +986,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="sec-t">Steuerung</p>
       <div class="rows">
         <div class="row ctl-row"><div class="lbl">Steuerungsart<small id="touchHint">Automatisch: Touch, wenn keine Tastatur da ist</small></div><div class="seg" id="setTouch"><button data-v="auto" type="button">Auto</button><button data-v="off" type="button">Tastatur</button><button data-v="on" type="button">Touch</button><button data-v="cross" type="button">Fadenkreuz</button></div></div>
+        <div class="row ctl-row"><div class="lbl">Meldungen<small>Größe der Hinweise und Texte in der Mitte. Auto: am Handy kleiner</small></div><div class="seg" id="setMsg"><button data-v="auto" type="button">Auto</button><button data-v="s" type="button">Klein</button><button data-v="m" type="button">Normal</button><button data-v="l" type="button">Groß</button></div></div>
         <div class="row"><label for="setSens">Kamera-Empfindlichkeit</label><div class="rng"><input id="setSens" type="range" min="0.3" max="2.5" step="0.05"><output id="setSensO"></output></div></div>
         <div class="row"><label for="setFov">Sichtfeld<small>Ego-Perspektive</small></label><div class="rng"><input id="setFov" type="range" min="60" max="100" step="1"><output id="setFovO"></output></div></div>
         <div class="row"><div class="lbl">Auto-Springen<small>Automatisch auf Blöcke steigen</small></div><button class="tgl" id="setStep" role="switch" aria-label="Auto-Springen" type="button"></button></div>
@@ -1095,8 +1099,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlMods" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modTitle">
   <div class="sheet panel wide">
-    <div class="sheet-h"><div class="grow"><h2 id="modTitle">Mods</h2><p>Für deine eigenen Welten. Auf Servern und als Gast laufen sie nicht.</p></div><button class="link" id="modReload" type="button">Neu laden</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="mod-wbar" id="modWorldBar" hidden><span>🌍 <b id="mwN">noch keine an</b> · nur in dieser Welt, nie auf Servern</span><button class="btn primary" id="mwDone" type="button">Fertig</button></div>
+    <div class="sheet-h"><div class="grow"><h2 id="modTitle">Mods</h2><p>Für deine eigenen Welten und deine Server. Als Gast bei Freunden laufen sie nicht.</p></div><button class="link" id="modReload" type="button">Neu laden</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="mod-wbar" id="modWorldBar" hidden><span>🌍 <b id="mwN">noch keine an</b> · nur in dieser Welt</span><button class="btn primary" id="mwDone" type="button">Fertig</button></div>
     <div class="tabs" id="modTabs" role="tablist">
       <button class="tab" type="button" data-tab="lib" aria-selected="true">Bibliothek</button>
       <button class="tab" type="button" data-tab="inst" aria-selected="false">Installiert<span id="modInstN"></span></button>
@@ -1152,7 +1156,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlModPick" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mpTitle">
   <div class="sheet narrow panel">
-    <div class="sheet-h"><div class="grow"><h2 id="mpTitle">Mods für diese Welt</h2><p><span id="mpN">keine an</span> · nur in dieser Welt, nie auf Servern</p></div><button class="x" id="mpClose" aria-label="Fertig" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-h"><div class="grow"><h2 id="mpTitle">Mods für diese Welt</h2><p><span id="mpN">keine an</span> · nur in dieser Welt</p></div><button class="x" id="mpClose" aria-label="Fertig" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
       <div class="list" id="mpList"></div>
       <div class="btnrow" style="margin-top:12px"><button class="btn ghost" id="mpLib" type="button">Mehr Mods in der Bibliothek</button><button class="btn primary" id="mpDone" type="button">Fertig</button></div>
@@ -1227,6 +1231,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="rows"><div class="row"><div class="lbl">Fallschaden<small>Wer tief fällt, nimmt Schaden (ins Wasser fallen tut nie weh)</small></div><button class="tgl" id="saFall" role="switch" aria-label="Fallschaden" type="button" aria-checked="true"></button></div><div class="row"><div class="lbl">PvP<small>Spieler können sich gegenseitig angreifen</small></div><button class="tgl" id="saPvp" role="switch" aria-label="PvP" type="button" aria-checked="false"></button></div></div>
       <p class="sec-t">Mitglieder</p>
       <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
+      <p class="sec-t">Mods</p>
+      <div class="sa-mods"><button class="mods-pill" id="saMods" type="button">Mods</button><span class="hint">Laufen bei allen Spielern auf dem Server. Ändern geht, wenn gerade niemand drauf ist.</span></div>
       <p class="sec-t">Server-Welt</p>
       <div class="btnrow"><button class="btn" id="saCopy" type="button">In meine Welten kopieren</button><button class="btn" id="saBackup" type="button">Backup machen</button><button class="btn" id="saExport" type="button">Exportieren</button></div>
       <p class="form-msg" id="saMsg" hidden></p>
@@ -1401,8 +1407,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.15.0';
+const GAME_VERSION = '2.16.0';
 const GAME_NOTES = [
+  ['2.16.0', 'Mods auf Servern (bei allen Spielern, der Besitzer wählt sie unter Server → Verwalten → Mods). Die Mods einer Welt samt Daten sind jetzt in Backups, Kopien, Welt-Dateien und beim Hochladen als Server dabei. Die Weltenliste zeigt die Mods jeder Welt. Handy: Kamera, Tasche, Pause und Hotbar reagieren auch, während du mit dem Stick läufst. Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Handy: neben den Knöpfen kann man sich jetzt umschauen; Meldungen in der Mitte sind kleiner (Einstellungen → Meldungen). Fix: Mods-Fenster einer Welt schließen.'],
   ['2.15.0', 'Meine Mods: eigene Mods werden automatisch gespeichert (mit Konto auch in der Cloud), bearbeiten, testen, einreichen, Updates einreichen und löschen. Im Editor ein KI-Prompt zum Kopieren, der immer alle aktuellen Mod-Befehle und deinen Code enthält.'],
   ['2.14.0', 'Mods 4.0: eigene Zeichenfläche (Canvas) über dem Spiel, Bilder aus Dateien, Knöpfe/Bilder/Texte überall (auch neben Springen und Sprinten), Kamera (Zoom, Sichtfeld, echtes Wackeln, Blickrichtung, Hand und Anzeige aus), jede Taste und jeder Klick/Tipp, Angriff übernehmen (Tippen zum Schießen), Geschosse mit Treffern, Spieler und Kreaturen direkt steuern, viele Blöcke auf einmal lesen und setzen, eigene Sounds aus Dateien, Mods bis 200.000 Zeichen.'],
   ['2.13.0', 'Mods 3.0: eigene Blöcke mit eigenen Texturen (Pixel-Bilder oder Muster, leuchtend, Glas, Pflanzen), eigene Erze in neuen Chunks, Items mit eigenem Bild, eigene Werkzeuge und Waffen, eigene Kreaturen (Mensch, Tier, Schleim oder eigenes Modell), eigene Fenster, Anzeigen, Knöpfe und Tasten, Effekte, Töne, Daten pro Welt, Abfragen. Neue Beispiel-Mods: Jade, Tierwelt, Bau-Paket, Sammel-Aufträge. Freunde sehen die Mod-Sachen in deiner Welt. Neue Höhlen (nur in neuen Chunks): kaum noch Schluchten, 3-4 Höhlen am Spawn mit Eingängen und Eisen, riesige Höhlen hinter dem Wald, viele Höhlen-Biome. Freundemenü neu (zuletzt online oben), Mitteilung, wenn ein Freund online kommt, alle Meldungen wegwischbar, Mods-Knopf beim Erstellen einer Welt mit Installieren/Hinzufügen/Entfernen. Keine Lava-Hinweise mehr, keine Bäume in der Glutwelt.'],
@@ -1459,6 +1466,13 @@ function hashi(x, y, z, s) {
   h = Math.imul(h ^ (h >>> 15), 2246822519);
   h ^= h >>> 13;
   return (h >>> 0) / 4294967296;
+}
+/* a button that also works while another finger is on the screen (running with the stick):
+   phones send no "click" then, so it reacts to the touch itself */
+function fastTap(el, fn) {
+  let tT = 0;
+  el.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); tT = performance.now(); el.classList.add('tapped'); fn(e); setTimeout(() => el.classList.remove('tapped'), 140); }, { passive: false });
+  el.addEventListener('click', (e) => { e.stopPropagation(); if (performance.now() - tT < 800) return; fn(e); });
 }
 function strHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function vnoise1(t, s) {
@@ -2935,7 +2949,7 @@ const W = {
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
-  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {},   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
+  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
     // gen 3 = neue Weltgenerierung; gen3 = Chunks mit den neuen Höhlen (in alten Welten)
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
   merchantPos: [CX + 0.5, SEA + 6, CZ - 1.6],
@@ -4383,7 +4397,7 @@ function resetWorld(seed, mode, gen) {
   SEA = W.gen >= 3 ? 106 : 30;
   RING_OUT = W.gen >= 3 ? 560 : 375;
   VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
+  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -6925,8 +6939,14 @@ const SETTINGS_VERSION = 3;
 const SETTINGS = {
   quality: 'medium', viewDist: 9, fov: 72,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
-  touchMode: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
+  touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
+/* size of the messages in the middle of the screen (hints, banners, prompts): smaller on phones */
+function applyMsgSize() {
+  const v = SETTINGS.msgSize;
+  const k = v === 's' ? 0.75 : v === 'm' ? 1 : v === 'l' ? 1.2 : (touchUI() ? 0.8 : 1);
+  document.documentElement.style.setProperty('--ms', String(k));
+}
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
 /* touch with a crosshair: aim with the middle of the screen, buttons dig and build, the finger only looks around */
 function crossUI() { return SETTINGS.touchMode === 'cross'; }
@@ -7391,7 +7411,7 @@ function makeSave() {
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
-    dims: dimsForSave(), portals: W.portals || [], dimRet: W.dimReturn || null, mitems: W.modItems || {}, mblocks: W.modBlocks || {}, mmobs: W.modMobs || {}, mores: W.modOres || [], oreCh: oreChPack(), oreEp: W.oreEp | 0, mdata: W.modData || {},
+    dims: dimsForSave(), portals: W.portals || [], dimRet: W.dimReturn || null, mitems: W.modItems || {}, mblocks: W.modBlocks || {}, mmobs: W.modMobs || {}, mores: W.modOres || [], oreCh: oreChPack(), oreEp: W.oreEp | 0, mdata: W.modData || {}, wmods: W.wmods || [],
   };
 }
 /* own world: save locally (and to the cloud when logged in); guest: send inventory to the host */
@@ -7459,7 +7479,7 @@ function applySave(s, convert) {
   // Mods: Dimensionen, Portale und eigene Items gehören zur Welt
   restoreDims(s.dims); W.portals = Array.isArray(s.portals) ? s.portals.slice(0, 64) : []; W.dimReturn = s.dimRet || null;
   restoreModBlocks(s.mblocks); restoreModItems(s.mitems); restoreModMobs(s.mmobs);
-  W.modOres = Array.isArray(s.mores) ? s.mores.slice(0, 24) : []; W.oreCh = oreChUnpack(s.oreCh); W.oreEp = s.oreEp | 0; W.modData = s.mdata && typeof s.mdata === 'object' ? s.mdata : {};
+  W.modOres = Array.isArray(s.mores) ? s.mores.slice(0, 24) : []; W.oreCh = oreChUnpack(s.oreCh); W.oreEp = s.oreEp | 0; W.modData = s.mdata && typeof s.mdata === 'object' ? s.mdata : {}; W.wmods = modSlimList(Array.isArray(s.wmods) ? s.wmods : []);
   const v2 = s.v === 2;
   // an old island (or an island the update made endless): the buildings move to the new island
   const fix = !v2 || !!convert;
@@ -11089,6 +11109,7 @@ function endDrag() {
 
 /* ---------- touch UI mode ---------- */
 function applyTouchMode(announce) {
+  applyMsgSize();
   const on = touchUI();
   const el = $('touchUi');
   if (el) el.hidden = !on || G.state === 'menu' || G.state === 'loading';
@@ -11282,10 +11303,10 @@ function initInput() {
     INPUT.lastSource = 'touch';
     if (G.sleep && G.sleep.mp) { leaveBed(); return; }
     const joyAllowed = touchUI();
-    // a finger that just misses the jump or sprint button does not dig or place
-    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop', 'tAtk', 'tUse'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 34 && t.clientX < r.right + 34 && t.clientY > r.top - 34 && t.clientY < r.bottom + 34; });
+    // a finger that just misses the jump or sprint button does not dig or place, but it can still look around
+    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop', 'tAtk', 'tUse'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 30 && t.clientX < r.right + 30 && t.clientY > r.top - 30 && t.clientY < r.bottom + 30; });
     for (const t of e.changedTouches) {
-      if (near(t)) continue;
+      if (near(t)) { INPUT.touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, t0: performance.now(), moved: 0, hold: false, look: true }); continue; }
       const left = t.clientX < window.innerWidth * 0.42;
       if (joyAllowed && left && !INPUT.joy.active) {
         INPUT.joy.active = true; INPUT.joy.id = t.identifier; INPUT.joy.ox = t.clientX; INPUT.joy.oy = t.clientY; INPUT.joy.x = 0; INPUT.joy.y = 0;
@@ -11665,7 +11686,7 @@ UI.hotbar = function () {
       const b = document.createElement('button');
       b.className = 'slot'; b.type = 'button';
       b.innerHTML = '<span class="k">' + ((i + 1) % 10) + '</span><canvas width="64" height="64"></canvas><span class="n"></span>';
-      b.addEventListener('click', (e) => { e.stopPropagation(); UI.select(G.sel === i ? -1 : i); });
+      fastTap(b, () => UI.select(G.sel === i ? -1 : i));
       b.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
       hb.appendChild(b);
     }
@@ -12476,6 +12497,7 @@ function bindSettingsUI() {
   const refresh = () => {
     $('setQuality').querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.v === SETTINGS.quality)));
     $('setTouch').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === SETTINGS.touchMode)));
+    $('setMsg').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === (SETTINGS.msgSize || 'auto'))));
     $('touchHint').textContent = SETTINGS.touchMode === 'auto' ? 'Automatisch: gerade ' + (touchUI() ? 'Touch, weil keine Tastatur erkannt wurde' : 'Tastatur, weil ' + (DEVICE.hasTouch ? 'eine Tastatur oder Maus da ist' : 'kein Touchscreen da ist'))
       : SETTINGS.touchMode === 'on' ? 'Joystick links, tippen zum Abbauen und Bauen'
         : SETTINGS.touchMode === 'cross' ? 'Wisch zum Umschauen, ziel mit dem Fadenkreuz, Knöpfe rechts zum Abbauen und Bauen'
@@ -12496,6 +12518,11 @@ function bindSettingsUI() {
     applyQuality(false);
     saveSettings(); refresh();
     UI.toast('Grafik: ' + QP().name, 'good', 1800, 'quality');
+  });
+  $('setMsg').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    SETTINGS.msgSize = b.dataset.v; saveSettings(); applyMsgSize(); refresh();
+    UI.toast('So groß sind die Meldungen jetzt.', 'info', 2000, 'msgsize');
   });
   $('setTouch').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
@@ -12589,7 +12616,17 @@ UI.worldsRefresh = function () {
     const mode = entryMode(e);
     sp.innerHTML = '<span class="li-mode ' + mode + '">' + (mode === 'island' ? 'Insel' : 'Normal') + '</span> Tag ' + (e.day || 1) + ' · ' + ago(e.updated) + ' · <span class="cloud"></span>';
     sp.querySelector('.cloud').innerHTML = cloud;
+    // which mods this world has
+    const mids = Array.isArray(e.mods) ? e.mods : [];
+    if (mids.length) {
+      const names = mids.map((id) => (MODS.get(id) || {}).name).filter(Boolean);
+      const chip = document.createElement('div'); chip.className = 'li-mods';
+      chip.textContent = '🧩 ' + (names.length === mids.length && names.length <= 2 ? names.join(', ') : mids.length + (mids.length === 1 ? ' Mod' : ' Mods'));
+      chip.title = names.join(', ');
+      main._chip = chip;
+    }
     main.append(b, sp);
+    if (main._chip) main.appendChild(main._chip);
     const act = document.createElement('div'); act.className = 'li-act';
     const play = document.createElement('button'); play.className = 'btn primary'; play.type = 'button'; play.textContent = 'Spielen';
     play.addEventListener('click', () => { UI.closeAll(); playWorld(e); });
@@ -12891,10 +12928,10 @@ function bindUI() {
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => UI.closeModal(b.closest('.modal').id)));
   document.querySelectorAll('.modal').forEach((m) => m.addEventListener('pointerdown', (e) => { if (e.target === m && m.id !== 'mdlPause') UI.closeModal(m.id); }));
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.addEventListener('click', () => { UI.shopTab = t.dataset.tab; UI.shopRefresh(true); }));
-  $('btnPause').addEventListener('click', () => UI.pause(true));
-  $('btnCam').addEventListener('click', () => toggleCamMode());
+  fastTap($('btnPause'), () => UI.pause(true));
+  fastTap($('btnCam'), () => toggleCamMode());
   $('btnResume').addEventListener('click', () => UI.pause(false));
-  $('btnBag').addEventListener('click', () => { if (G.state === 'playing') UI.openInventory(); });
+  fastTap($('btnBag'), () => { if (G.state === 'playing') UI.openInventory(); });
   $('btnInv').addEventListener('click', () => { $('mdlPause').hidden = true; UI._invFrom = 'pause'; UI.openInventory(); G.state = 'paused'; });
   $('btnPauseFriends').addEventListener('click', () => { $('mdlPause').hidden = true; UI._friendsFrom = 'pause'; UI.openFriends(); });
   $('btnPauseSettings').addEventListener('click', () => UI.openSettings('pause'));
@@ -15047,6 +15084,7 @@ const SERVER = {
     s.vis = s.vis || {};
     s.vis[uid] = { inv: s.inv, tools: s.tools, hotbar: s.hotbar, pos: s.pl ? [s.pl[0], s.pl[1], s.pl[2], s.pl[3]] : null, hp: s.pl ? s.pl[4] : 100, bed: s.bed || null };
     s.mode = s.mode || entryMode(e);
+    s.wmods = worldModsOf(e, s);   // the world's mods run on the server, for everybody
     const wid = 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     const upd = {};
     upd['srv/' + uid + '/' + wid + '/save'] = JSON.stringify(s);
@@ -15732,6 +15770,8 @@ function addWorldCopy(name, save, mode) {
   s.mode = s.mode || (mode === 'island' ? 'island' : 'endless');
   delete s.vis;
   const e = WORLDS.newEntry(name, s.seed, s.mode);
+  // the world's mods come along (their code is in the save)
+  e.mods = Array.isArray(s.wmods) ? s.wmods.filter((m) => m && typeof m.id === 'string').map((m) => m.id).slice(0, 30) : [];
   const str = WORLDS.writeLocal(e, s);
   if (!e.hasLocal) { WORLDS.list = WORLDS.list.filter((w) => w.id !== e.id); WORLDS.saveIndex(); throw new Error('Auf diesem Gerät ist kein Platz mehr für eine Kopie. Lösch eine alte Welt oder exportiere sie.'); }
   if (NET.uid()) { e.owner = NET.uid(); WORLDS.saveIndex(); WORLDS.pendingCloud.set(e.id, str); WORLDS.flushCloud(); }
@@ -15756,8 +15796,11 @@ function parseWorldFile(text) {
 }
 async function worldSaveOf(e) {
   if (G.state !== 'menu' && WORLDS.current === e) saveGame(true);
-  const s = await WORLDS.fetchData(e);
-  if (!s) throw new Error('Diese Welt ist gerade nicht erreichbar.');
+  const s0 = await WORLDS.fetchData(e);
+  if (!s0) throw new Error('Diese Welt ist gerade nicht erreichbar.');
+  const s = JSON.parse(JSON.stringify(s0));
+  // the mods of the world (code and data) go into the copy / file
+  s.wmods = worldModsOf(e, s);
   return s;
 }
 
@@ -15801,6 +15844,8 @@ UI.openSrvAdmin = function (srv) {
   $('saMsg').hidden = true;
   UI.srvIpRefresh();
   UI.srvAdminRefresh();
+  modBtnLabel($('saMods'), []);
+  SRVB.save(srv).then((s) => { if (UI._admin === srv) modBtnLabel($('saMods'), (s.wmods || []).map((m) => m.id)); }).catch(() => { });
 };
 UI.srvIpRefresh = async function () {
   const srv = UI._admin; if (!srv) return;
@@ -15932,6 +15977,27 @@ function bindBackupUI() {
     UI._admin = null; UI.closeAll(); UI.menuServers(true);
   });
   $('saInvite').addEventListener('click', () => { const srv = UI._admin; if (srv) UI.openInvite(srv); });
+  // the mods of the server: they run for everybody on it
+  $('saMods').addEventListener('click', async () => {
+    const srv = UI._admin; if (!srv) return;
+    let save;
+    try { save = await SRVB.save(srv); } catch (e) { saMsg(e && e.message ? e.message : String(e)); return; }
+    const old = Array.isArray(save.wmods) ? save.wmods : [];
+    const sel = old.map((m) => m.id);
+    UI.openMods('lib', { sel, name: srv.name, back: ['mdlSrvAdmin'], onDone: async (ids) => {
+      const same = ids.length === old.length && ids.every((id, i) => id === old[i].id);
+      modBtnLabel($('saMods'), ids);
+      if (same) return;
+      try {
+        const info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val();
+        if (info && info.open) { saMsg('Gerade spielt jemand auf dem Server. Mods ändern geht nur, wenn er leer ist.'); return; }
+        const s = await SRVB.save(srv);
+        s.wmods = modSlimList(ids.map((id) => (MODS.isInstalled(id) && MODS.get(id)) || old.find((m) => m.id === id)).filter(Boolean));
+        await withTimeout(NET.db.ref(srvPath(srv) + '/save').set(JSON.stringify(s)), 60000);
+        saMsg(s.wmods.length ? s.wmods.length + (s.wmods.length === 1 ? ' Mod läuft' : ' Mods laufen') + ' jetzt auf dem Server, für alle Spieler.' : 'Auf dem Server laufen jetzt keine Mods.', true);
+      } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
+    } });
+  });
 }
 
 /* ---- 19s_support.js ---- */
@@ -16033,7 +16099,7 @@ function bindSupportUI() {
    Mods. Jede Mod ist ein kleines Programm, das in einem Web Worker läuft
    (kein Zugriff auf die Seite, das Konto oder das Netz) und dem Spiel nur
    erlaubte Befehle schicken darf. Mods laufen NUR in eigenen Welten,
-   nie auf Servern und nie als Gast in der Welt von jemand anderem.
+   auf Servern (dort bei jedem Spieler), nie als Gast in der Welt eines Freundes.
    ========================================================================= */
 const MODFX_DEF = { speed: 1, jump: 1, gravity: 1, reach: 1, magnet: 1, maxHp: 100, fly: false, godmode: false, instaBreak: false, infiniteItems: false, noFall: false, noNight: false, peaceful: false, nightVision: false, keepInventory: false, regen: 0, dmg: 1, zombieSpeed: 1, zombieHp: 1 };
 const MODFX = Object.assign({}, MODFX_DEF);
@@ -16312,15 +16378,34 @@ function modsEnd() {
   for (const e of MODRT.shop) { const i = SHOP.indexOf(e); if (i >= 0) SHOP.splice(i, 1); }
   MODRT.shop.length = 0;
 }
-/* Mods starten: nur in einer eigenen Welt, nie auf Servern oder bei Freunden als Gast */
-function modsAllowed() { return !!WORLDS.current && !G.server && !MP.isClient(); }
+/* Mods starten: in einer eigenen Welt oder auf einem Server, nie bei Freunden als Gast */
+function modsAllowed() {
+  if (G.spectator) return false;
+  // Server: die Mods des Servers laufen bei jedem Spieler (wer die Welt gerade laufen lässt, bestimmt über die Welt)
+  if (G.server || (MP.isClient() && MP.srv)) return true;
+  return !!WORLDS.current && !MP.isClient();
+}
+function modServerMode() { return !!(G.server || (MP.isClient() && MP.srv)); }
+/* the mods of a world, with their code (they are saved with the world: backups, files and servers keep them) */
+function modSlimList(list) { return (list || []).filter((m) => m && typeof m.id === 'string' && typeof m.code === 'string' && m.code.length <= 200000).slice(0, 30).map((m) => MODS.slim(m)); }
+function worldModsOf(e, save) {
+  const ids = Array.isArray(e && e.mods) ? e.mods : [];
+  const emb = (save && Array.isArray(save.wmods)) ? save.wmods : [];
+  return modSlimList(ids.map((id) => (MODS.isInstalled(id) && MODS.get(id)) || emb.find((m) => m && m.id === id)).filter(Boolean));
+}
 function modsBegin() {
   modsEnd();
+  if (!modsAllowed()) return;
   const e = WORLDS.current;
-  if (!modsAllowed() || !Array.isArray(e.mods) || !e.mods.length) return;
+  let list;
+  if (modServerMode()) list = modSlimList(W.wmods);
+  else if (e && e.temp) list = (e.mods || []).map((id) => (e.testMod && e.testMod.id === id ? e.testMod : MODS.get(id))).filter(Boolean);
+  else { list = worldModsOf(e, { wmods: W.wmods }); W.wmods = list; }
+  if (!list.length) return;
   let n = 0;
-  for (const id of e.mods) { const m = e.temp && e.testMod && e.testMod.id === id ? e.testMod : MODS.get(id); if (m && (e.temp || MODS.isInstalled(id)) && startModWorker(m)) n++; }
-  if (n) setTimeout(() => UI.toast(e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv.' : ' Mods sind aktiv.'), 'info', e.temp ? 5200 : 2800, 'modsOn'), 600);
+  for (const m of list) if (startModWorker(m)) n++;
+  const srvTxt = modServerMode() ? ' (Server)' : '';
+  if (n) setTimeout(() => UI.toast(e && e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv' : ' Mods sind aktiv') + srvTxt + '.', 'info', e && e.temp ? 5200 : 2800, 'modsOn'), 600);
 }
 function startModWorker(m) {
   let worker;
@@ -16337,7 +16422,7 @@ function startModWorker(m) {
 }
 function modState() {
   const T = G.time;
-  return { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), hp: Math.round(PL.hp), maxHp: PL.maxHp, day: T.day, night: T.night, phase: T.phase, blood: !!T.blood, t: Math.round(T.t), weather: WEATHER.kind, dim: CURDIM ? CURDIM.id : null, held: selectedItem() || null, sneak: !!PL.sneak, flying: !!PL.flying, trees: G.stats.trees | 0, kills: G.stats.zombies | 0, yaw: +(CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw || 0).toFixed(3) };
+  return { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), hp: Math.round(PL.hp), maxHp: PL.maxHp, day: T.day, night: T.night, phase: T.phase, blood: !!T.blood, t: Math.round(T.t), weather: WEATHER.kind, dim: CURDIM ? CURDIM.id : null, held: selectedItem() || null, sneak: !!PL.sneak, flying: !!PL.flying, server: modServerMode(), host: !MP.isClient(), trees: G.stats.trees | 0, kills: G.stats.zombies | 0, yaw: +(CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw || 0).toFixed(3) };
 }
 function modEmit(ev, d) {
   if (!MODRT.workers.size) return;
@@ -16411,6 +16496,7 @@ function modCmd(rec, msg) {
   if (now - rec.t > 1000) { rec.t = now; rec.n = 0; }
   if (++rec.n > 1500 || G.state === 'menu' || G.state === 'loading' || !modsAllowed()) return;
   const a = msg.a;
+  if (MP.isClient() && !modClientOk(rec, msg.c, a)) return;
   const near = (x, y, z) => Math.hypot(x - PL.x, z - PL.z) <= 80 && Math.abs(y - PL.y) <= 60;
   switch (msg.c) {
     case 'set': setFx(String(a[0]), a[1]); break;
@@ -16546,6 +16632,16 @@ function modCmd(rec, msg) {
     case 'error': rec.errs++; console.warn('Mod "' + rec.m.name + '" Fehler:', String(a[0])); if (rec.errs === 1 && WORLDS.current && WORLDS.current.temp) UI.toast('Fehler in deiner Mod: ' + String(a[0]).slice(0, 120), 'warn', 6000, 'moderr'); break;
   }
 }
+/* auf einem Server bei einem Mitspieler (nicht der, der die Welt laufen lässt):
+   alles für den eigenen Spieler geht, die Welt selbst bestimmt nur der Host */
+const MOD_HOST_ONLY = new Set(['time', 'weather', 'spawn', 'clear', 'bolt', 'spawnmob', 'hurtmob', 'rmmobs', 'setmob', 'ore', 'portal', 'save']);
+function modClientOk(rec, c, a) {
+  if (MOD_HOST_ONLY.has(c)) return false;
+  if (c === 'blockdef') return MODBLK.has(modItemKey(rec.m.id, String(a[0])));
+  if (c === 'mob') return MOBDEFS.has(modItemKey(rec.m.id, String(a[0])));
+  if (c === 'dim') return DIMS.has(dimKey(rec.m.id, String(a[0])));
+  return true;
+}
 /* eine Explosion: ein Loch, Schaden an Gegnern in der Nähe */
 function modExplode(x, y, z, r) {
   const cx = Math.floor(x), cy = Math.floor(y), cz = Math.floor(z), R = Math.ceil(r);
@@ -16561,7 +16657,7 @@ function modExplode(x, y, z, r) {
   burst(x, y, z, 40, [[1, 0.6, 0.2], [0.35, 0.33, 0.32], [1, 0.9, 0.5]], { speed: 6, up: 4, life: 1.1, size: 0.16, spread: 1.2 });
   SFX.thunder && SFX.thunder(Math.hypot(x - PL.x, z - PL.z) * 0.3);
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.6);
-  for (const zb of G.zombies) { const d = Math.hypot(zb.x - x, zb.y - y, zb.z - z); if (d < r + 2 && zb.state !== 'die') damageZombie(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6); }
+  for (const zb of G.zombies) { const d = Math.hypot(zb.x - x, zb.y - y, zb.z - z); if (d < r + 2 && zb.state !== 'die') modHitMob(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6) || damageZombie(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6); }
   const dp = Math.hypot(PL.x - x, PL.y + 0.9 - y, PL.z - z);
   if (dp < r + 1.5) hurtPlayer(Math.round(30 * (1 - dp / (r + 1.5))), x, z);
 }
@@ -16868,7 +16964,7 @@ function modBtnLabel(el, sel) {
 function closeModWorld() {
   const Wd = MODUI.world; MODUI.world = null;
   $('mdlMods').hidden = true;
-  $('modWorldBar').hidden = true; $('modTabs').querySelector('[data-tab="up"]').hidden = false; $('modTitle').textContent = 'Mods';
+  $('modWorldBar').hidden = true; $('modTabs').querySelector('[data-tab="mine"]').hidden = false; $('modTitle').textContent = 'Mods';
   if (Wd) { for (const id of Wd.back || []) $(id).hidden = false; if (Wd.onDone) Wd.onDone(Wd.sel); }
 }
 
@@ -17990,7 +18086,7 @@ function updateModShots(dt) {
         if (s.x > z.x - hw && s.x < z.x + hw && s.z > z.z - hw && s.z < z.z + hw && s.y > z.y - s.size && s.y < z.y + (z.h || 1.9) + s.size) {
           s.hitSet.add(z.id);
           const l = Math.hypot(s.vx, s.vz) || 1;
-          damageZombie(z, s.dmg * MODFX.dmg, s.vx / l, s.vz / l, s.kb);
+          if (!modHitMob(z, s.dmg * MODFX.dmg, s.vx / l, s.vz / l, s.kb)) damageZombie(z, s.dmg * MODFX.dmg, s.vx / l, s.vz / l, s.kb);
           if (z.state === 'die') G.stats.zombies++;
           burst(s.x, s.y, s.z, 8, [[0.75, 0.12, 0.1], [0.5, 0.08, 0.06]], { speed: 2, up: 2, life: 0.6, size: 0.07 });
           modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'mob', id: z.id, mob: z.md ? z.md.key : z.type, killed: z.state === 'die', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
@@ -18008,6 +18104,13 @@ function updateModShots(dt) {
   }
 }
 
+/* a guest on a server hits a creature: the host owns it (like a normal attack) */
+function modHitMob(z, dmg, kx, kz, kb) {
+  if (!MP.isClient()) return false;
+  z.hurtT = 0.22; z.barT = 3;
+  MP.send({ t: 'hitZ', id: z.id, dmg: Math.round(dmg * 10) / 10, kx: Math.round(kx * 100) / 100, kz: Math.round(kz * 100) / 100, kb: Math.round((kb || 0) * 10) / 10 });
+  return true;
+}
 /* ---------- Spieler und Kreaturen direkt steuern ---------- */
 function modSetPlayer(def) {
   def = def || {};
@@ -18315,7 +18418,13 @@ mod.on('key', (e) => ...)         // Taste aus mod.bindKey: {key,code}
 mod.on('button', (e) => ...)      // Knopf aus mod.button: {id}
 mod.on('ui', (e) => ...)          // Fenster: {ui, button, values}  (button null = geschlossen)
 mod.on('dimension', (e) => ...)   // {id, entered}
-mod.on('night' | 'day' | 'death', (e) => ...)`;
+mod.on('night' | 'day' | 'death', (e) => ...)
+
+// ---------- Server ----------
+// Mods laufen auch auf Servern, bei jedem Spieler: Anzeigen, Kamera, Eingaben, Effekte, Inventar sind pro Spieler.
+// Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save)
+// und neue Blöcke/Kreaturen/Dimensionen kommen nur vom Spieler, der den Server gerade laufen lässt.
+// mod.player().server ist true auf einem Server, mod.player().host true beim Spieler, der ihn laufen lässt.`;
 
 /* the full prompt for an AI: rules, the idea, the code so far, all commands */
 function buildModPrompt(d) {
@@ -18344,7 +18453,7 @@ function buildModPrompt(d) {
   L.push('- Alles für den Spieler auf Deutsch. Kommentare im Code auf Deutsch.');
   L.push('- Registriere Blöcke, Items, Kreaturen, Erze, Shop und Dimensionen direkt am Anfang. Dinge beim Betreten der Welt kommen in mod.on(\'start\').');
   L.push('- Die Mod soll am PC UND am Handy gut spielbar sein (Knöpfe mit touch: true für das Handy, Tasten für den PC).');
-  L.push('- Mods laufen nur in eigenen Welten (nicht auf Servern, nicht als Gast).');
+  L.push('- Mods laufen in eigenen Welten und auf Servern (dort bei jedem Spieler). Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save) wirken auf einem Server nur beim Spieler, der den Server gerade laufen lässt. Bei Freunden als Gast laufen keine Mods.');
   L.push('- Nutze alle Möglichkeiten, die zur Idee passen. Erfinde KEINE Befehle, die unten nicht stehen.');
   L.push('');
   L.push('==================== DIE KOMPLETTE API ====================');
@@ -18450,16 +18559,16 @@ async function myModsRender(pull) {
   }
   for (const m of mine) {
     card(m.icon, m.name, ['pub', 'In der Bibliothek'], 'von dir veröffentlicht', [
-      ['Bearbeiten', 'primary', () => { const d = Object.assign(newMyMod(), { name: m.name, icon: m.icon, desc: m.desc, cat: m.cat, code: m.code, pub: m.id }); MYMODS.put(d); myModEdit(d.id); }],
+      ['Bearbeiten', 'primary', () => myModEdit(null, Object.assign(newMyMod(), { name: m.name, icon: m.icon, desc: m.desc, cat: m.cat, code: m.code, pub: m.id }))],
       ['🗑', 'ghost danger', () => myModDeletePub(m), 'Aus der Bibliothek löschen'],
     ]);
   }
 }
 /* ---------- Editor ---------- */
 const MY_FIELDS = [['mdName', 'name'], ['mdIcon', 'icon'], ['mdDesc', 'desc'], ['mdCat', 'cat'], ['mdCode', 'code'], ['mdIdea', 'idea']];
-function myModEdit(id) {
-  const d = MYMODS.get(id); if (!d) return;
-  MYMODS.cur = id;
+function myModEdit(id, temp) {
+  const d = temp || MYMODS.get(id); if (!d) return;
+  MYMODS.cur = d.id; MYMODS.temp = temp || null;
   for (const [el, k] of MY_FIELDS) $(el).value = d[k] || (k === 'cat' ? 'fun' : '');
   $('mdMsg').hidden = true; $('mdPromptOut').hidden = true;
   myModStateLine(d);
@@ -18467,28 +18576,35 @@ function myModEdit(id) {
 }
 function myModStateLine(d) {
   const st = myModState(d);
-  $('mdState').textContent = (st[1] === 'Entwurf' ? 'Entwurf' : st[1]) + ' · automatisch gespeichert ' + agoText(d.updated);
+  const saved = !!MYMODS.get(d.id);
+  $('mdState').textContent = saved ? st[1] + (MYMODS.dirty ? ' · Änderungen werden beim Einreichen gespeichert' : '') : 'Neu · wird erst beim Einreichen gespeichert';
   $('mdSubmit').textContent = d.pub ? 'Update einreichen' : 'Einreichen';
 }
 function myModFromForm() {
-  if (!MYMODS.cur) { const d = newMyMod(); MYMODS.put(d, false); MYMODS.cur = d.id; }
-  const d = MYMODS.get(MYMODS.cur) || Object.assign(newMyMod(), { id: MYMODS.cur });
+  if (!MYMODS.cur) { MYMODS.temp = newMyMod(); MYMODS.cur = MYMODS.temp.id; }
+  const d = Object.assign({}, MYMODS.get(MYMODS.cur) || MYMODS.temp || Object.assign(newMyMod(), { id: MYMODS.cur }));
   for (const [el, k] of MY_FIELDS) d[k] = $(el).value;
   return d;
 }
 let MY_SAVE_T = null;
 function myModChanged() {
   clearTimeout(MY_SAVE_T);
-  MY_SAVE_T = setTimeout(() => { const d = myModFromForm(); MYMODS.put(d); myModStateLine(d); }, 500);
+  MY_SAVE_T = setTimeout(() => { MYMODS.dirty = true; myModStateLine(myModFromForm()); }, 300);
 }
+/* leave the editor: nothing is stored (only "Einreichen" stores a mod) */
 function myModLeave() {
   clearTimeout(MY_SAVE_T);
-  if (MYMODS.cur) {
-    const d = myModFromForm();
-    // eine ganz leere neue Mod wird nicht aufgehoben
-    if (!d.name.trim() && !d.code.trim() && !d.idea.trim() && !d.desc.trim() && !d.pub && !d.pend) MYMODS.remove(d.id); else MYMODS.put(d);
-  }
-  MYMODS.cur = null;
+  MYMODS.cur = null; MYMODS.temp = null; MYMODS.dirty = false;
+}
+/* unsaved changes: ask before throwing them away */
+async function myModLeaveAsk() {
+  if (!MYMODS.cur) return true;
+  const d = myModFromForm(), old = MYMODS.get(d.id);
+  const changed = old ? MY_FIELDS.some(([, k]) => k !== 'idea' && String(old[k] || '') !== String(d[k] || '')) : !!(d.name.trim() || d.code.trim() || d.desc.trim());
+  if (!changed) return true;
+  const ok = await UI.confirm({ title: 'Änderungen verwerfen?', text: 'Gespeichert wird eine Mod erst, wenn du sie einreichst.', yes: 'Verwerfen' });
+  $('mdlMods').hidden = false;
+  return ok;
 }
 async function myModDelete(id) {
   const d = MYMODS.get(id); if (!d) return;
@@ -18515,8 +18631,8 @@ async function myModDeletePub(m) {
 }
 async function myModSubmit() {
   const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
-  if (!NET.uid()) { msg('Melde dich zuerst an. Deine Mod bleibt hier gespeichert.'); return; }
-  const d = myModFromForm(); MYMODS.put(d);
+  if (!NET.uid()) { msg('Melde dich zuerst an, dann kannst du die Mod einreichen.'); return; }
+  const d = myModFromForm();
   const name = d.name.trim(), code = d.code;
   if (name.length < 3) { msg('Der Name braucht mindestens 3 Zeichen.'); return; }
   if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
@@ -18529,7 +18645,7 @@ async function myModSubmit() {
     if (isOwner()) {
       if (pub) await withTimeout(NET.db.ref('mods/approved/' + d.pub).set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000);
       else { const r = NET.db.ref('mods/approved').push(); await withTimeout(r.set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); d.pub = r.key; }
-      d.pend = null; MYMODS.put(d);
+      d.pend = null; MYMODS.put(d); MYMODS.temp = null;
       msg(pub ? 'Update veröffentlicht (du bist der Owner, deshalb ohne Prüfung).' : 'Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true);
       await modsLoadLib();
     } else {
@@ -18538,17 +18654,19 @@ async function myModSubmit() {
       const r = NET.db.ref('mods/pending').push();
       await withTimeout(r.set(rec), 15000);
       d.pend = r.key; d.sentAt = Date.now(); d.sentCode = code; MYMODS.put(d);
+      MYMODS.temp = null;
       msg(pub ? 'Update eingereicht! Nach der Prüfung bekommen alle die neue Version.' : 'Eingereicht! DynaTheReal prüft die Mod. Wenn er sie annimmt, erscheint sie in der Bibliothek.', true);
     }
+    MYMODS.dirty = false;
     myModStateLine(d);
   } catch (e) { msg(netMsg(e)); }
 }
 function bindMyMods() {
   $('modApiDoc').textContent = MOD_API_DOC;
-  $('myNew').addEventListener('click', () => { myModLeave(); const d = newMyMod(); MYMODS.put(d, false); myModEdit(d.id); $('mdIdea').focus(); });
-  $('mdBack').addEventListener('click', () => { myModLeave(); modsTab('mine'); });
+  $('myNew').addEventListener('click', () => { myModLeave(); myModEdit(null, newMyMod()); $('mdIdea').focus(); });
+  $('mdBack').addEventListener('click', async () => { if (!(await myModLeaveAsk())) return; myModLeave(); modsTab('mine'); });
   for (const [el] of MY_FIELDS) $(el).addEventListener(el === 'mdCat' ? 'change' : 'input', myModChanged);
-  const prompt = () => { const d = myModFromForm(); MYMODS.put(d); return buildModPrompt(d); };
+  const prompt = () => buildModPrompt(myModFromForm());
   $('mdPrompt').addEventListener('click', async () => {
     const p = prompt();
     const ok = await copyText(p);
