@@ -46,7 +46,8 @@
           ".read": "auth != null && auth.uid === $uid",
           "$from": { ".write": "auth != null && (auth.uid === $uid || auth.uid === $from)" }
         },
-        "mods": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
+        "mods": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" },
+        "myMods": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
       }
     },
     "status": {
@@ -114,13 +115,17 @@
       "kick": { "$uid": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid && !newData.exists()" } }
     },
     "mods": {
-      "approved": { ".read": "auth != null", ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid" },
+      "approved": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+        "$id": { ".write": "auth != null && !newData.exists() && data.child('authorUid').val() === auth.uid" }
+      },
       "meta": { ".read": "auth != null", ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid" },
       "pending": {
         ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
         ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
         "$id": {
-          ".write": "auth != null && !data.exists() && !root.child('bans/' + auth.uid).exists() && newData.child('authorUid').val() === auth.uid",
+          ".write": "auth != null && ((!data.exists() && !root.child('bans/' + auth.uid).exists() && newData.child('authorUid').val() === auth.uid) || (!newData.exists() && data.child('authorUid').val() === auth.uid))",
           ".validate": "newData.child('name').isString() && newData.child('code').isString() && newData.child('code').val().length <= 200000"
         }
       }
@@ -392,6 +397,27 @@ select.field { appearance: auto; }
 .mu-row .mu-bar { flex: 0 0 90px; }
 #muFoot { justify-content: flex-end; flex-wrap: wrap; }
 .mu-from { font-size: 12px; opacity: 0.6; }
+.my-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.my-top .hint { flex: 1 1 260px; margin: 0; }
+.my-list { display: grid; gap: 8px; }
+.my-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
+.my-card .my-ico { width: 44px; height: 44px; flex: none; display: grid; place-items: center; font-size: 26px; border-radius: 12px; background: rgba(255, 255, 255, 0.07); }
+.my-card .my-m { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.my-card .my-m b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-card .my-m span { font-size: 12px; opacity: 0.7; }
+.my-st { font-style: normal; display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 800; margin-right: 6px; background: rgba(255, 255, 255, 0.1); }
+.my-st.pub { background: rgba(126, 217, 87, 0.22); color: #a8f08a; }
+.my-st.pend { background: rgba(255, 196, 92, 0.2); color: #ffd27a; }
+.my-card .my-b { display: flex; gap: 6px; flex: none; }
+.my-card .my-b .btn { padding-inline: 12px; }
+.my-empty { padding: 26px 12px; text-align: center; opacity: 0.7; border: 1.5px dashed rgba(255, 255, 255, 0.14); border-radius: 16px; }
+.ed-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ed-state { font-size: 12px; opacity: 0.65; }
+.ai-box { display: grid; gap: 8px; padding: 12px; margin-bottom: 14px; border-radius: 16px; background: linear-gradient(135deg, rgba(120, 90, 255, 0.14), rgba(80, 200, 255, 0.08)); border: 1px solid rgba(160, 140, 255, 0.25); }
+.ai-h { display: grid; gap: 3px; }
+#mdIdea { font-family: inherit; }
+.ai-h span { font-size: 12.5px; opacity: 0.8; line-height: 1.4; }
+@media (max-width: 560px) { .my-card { flex-wrap: wrap; } .my-card .my-b { width: 100%; } .my-card .my-b .btn { flex: 1; } }
 .modhide { visibility: hidden !important; }
 .mod-layer { position: fixed; inset: 0; pointer-events: none; }
 .mod-screen { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -1074,7 +1100,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="tabs" id="modTabs" role="tablist">
       <button class="tab" type="button" data-tab="lib" aria-selected="true">Bibliothek</button>
       <button class="tab" type="button" data-tab="inst" aria-selected="false">Installiert<span id="modInstN"></span></button>
-      <button class="tab" type="button" data-tab="up" aria-selected="false">Mod erstellen</button>
+      <button class="tab" type="button" data-tab="mine" aria-selected="false">Meine Mods<span id="myModN"></span></button>
     </div>
     <div class="sheet-b">
       <div id="modLib">
@@ -1090,8 +1116,21 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <p class="hint">Installierte Mods schaltest du für jede Welt einzeln an: beim Erstellen einer Welt unter „Mods“ oder später unter Welten → Bearbeiten → Mods.</p>
         <div class="mod-grid" id="modInstList"></div>
       </div>
+      <div id="modMine" hidden>
+        <div class="my-top">
+          <p class="hint">Deine eigenen Mods. Sie werden automatisch gespeichert (mit Konto auch in der Cloud). Bearbeiten, in einer Testwelt ausprobieren, einreichen oder löschen.</p>
+          <button class="btn primary" id="myNew" type="button">＋ Mod erstellen</button>
+        </div>
+        <div class="my-list" id="myModList"></div>
+      </div>
       <div id="modUp" hidden>
-        <p class="hint">Programmiere eine Mod, probier sie in einer Testwelt aus und reich sie ein. DynaTheReal prüft sie, erst danach erscheint sie in der Bibliothek.</p>
+        <div class="ed-top"><button class="btn ghost" id="mdBack" type="button">← Meine Mods</button><span class="ed-state" id="mdState"></span></div>
+        <div class="ai-box">
+          <div class="ai-h"><b>🤖 Mod mit einer KI bauen</b><span>Beschreib deine Idee, kopier den Prompt und füg ihn in eine KI ein (z. B. Claude). Den Code, den sie dir gibt, kopierst du unten ins Feld „Code“. Der Prompt enthält immer alle aktuellen Mod-Befehle und deinen bisherigen Code.</span></div>
+          <textarea class="field area" id="mdIdea" rows="3" maxlength="4000" placeholder="z. B. Ein Scharfschützengewehr: Zielen-Knopf neben Springen, Zielfernrohr-Bild mit Zoom, Tippen zum Schießen, die Kamera wackelt beim Schuss …"></textarea>
+          <div class="btnrow"><button class="btn primary" id="mdPrompt" type="button">📋 KI-Prompt kopieren</button><button class="btn ghost" id="mdPromptShow" type="button">Prompt ansehen</button></div>
+          <textarea class="field area" id="mdPromptOut" rows="8" readonly hidden></textarea>
+        </div>
         <form id="modUpForm" autocomplete="off">
           <div class="mod-form">
             <div><label class="flabel" for="mdName">Name</label><input class="field" id="mdName" maxlength="30" placeholder="z. B. Super-Sprung"></div>
@@ -1102,164 +1141,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
           <label class="flabel" for="mdCode">Code (JavaScript)</label>
           <textarea class="field area" id="mdCode" rows="11" spellcheck="false" maxlength="200000" placeholder="mod.set('jump', 2);&#10;mod.on('kill', () => mod.heal(5));"></textarea>
           <p class="form-msg" id="mdMsg" hidden></p>
-          <div class="btnrow"><button class="btn" id="mdTest" type="button">Code prüfen</button><button class="btn" id="mdPlay" type="button">▶ In Testwelt ausprobieren</button><button class="btn primary" type="submit">Einreichen</button></div>
+          <div class="btnrow"><button class="btn" id="mdTest" type="button">Code prüfen</button><button class="btn" id="mdPlay" type="button">▶ In Testwelt ausprobieren</button><button class="btn primary" id="mdSubmit" type="submit">Einreichen</button></div>
+          <p class="hint">DynaTheReal prüft eingereichte Mods, erst danach erscheinen sie in der Bibliothek. Änderungen an einer veröffentlichten Mod werden auch erst geprüft.</p>
         </form>
-        <details class="mod-doc"><summary>Mod-Programmierung: alle Befehle</summary>
-<pre class="mod-code">// Werte (bleiben, solange die Mod läuft)
-mod.set('speed', 1.5)     // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500,
-                          // regen 0-10 (Leben pro Sekunde), dmg 0.25-10 (Schaden mal), zombieSpeed 0.3-3, zombieHp 0.2-10
-mod.set('fly', true)      // fly, godmode, instaBreak, infiniteItems, noFall, noNight, peaceful, nightVision, keepInventory
-
-// Sachen
-mod.give('diamond', 3)    mod.take('diamond', 1)
-                          // wood wool iron diamond crystal ruby mythril, planks bricks glass cobble dirt sand gravel
-                          // door torch campfire bed chest bucket apple crystal_apple, oder eigene Items
-mod.heal(10)  mod.hurt(5)  mod.toast('Text')  mod.sound('upgrade')  // ui buy upgrade chest pop hit thud eat thunder ...
-mod.teleport(x, y, z)
-mod.setBlock(x, y, z, 'stone')                 // Blocknamen klein: stone, planks, glass, air, water ...
-mod.fill(x1, y1, z1, x2, y2, z2, 'glass')      // höchstens 4096 Blöcke
-mod.explode(x, y, z, 3)   mod.lightning(x, z)   mod.particles(x, y, z, '#ff8800', 20)
-mod.time('day')  mod.time('night')  mod.weather('clear'|'cloudy'|'rain'|'storm'|'fog')
-mod.spawn(2)  mod.spawn(1, 'wolf')  mod.clearMobs()
-
-// Eigene Items
-mod.item('wand', { name: 'Zauberstab', icon: '🪄', color: '#8ef0c0', desc: 'Text',
-                   use: true,        // Rechtsklick löst 'use' aus
-                   food: 20,         // essbar: so viele Leben
-                   damage: 30,       // als Waffe
-                   place: 'glass' }) // baut diesen Block
-mod.shop('wand', { wood: 4, crystal: 1 }, 1)   // beim Händler im Reiter „Mods“
-
-// Eigene Dimensionen
-mod.dimension('sky', { name: 'Himmel', style: 'islands',   // land, flat, islands, cave, void
-  sky: '#c9a2ff', horizon: '#ffd6f0', fog: '#f0d8ff', fogDist: 160, light: 'day',   // day, dusk, night, dark
-  top: 'grass', ground: 'dirt', fill: 'stone', sea: 'water',   // water, lava, none
-  height: 90, hills: 12, trees: 'cherry', treeDensity: 0.5,     // oak birch pine cherry dark autumn mushroom none
-  ores: { diamond: 2, ruby: 1, crystal: 1 }, gravity: 0.7, mobs: false })
-mod.portal('sky', x, y, z, 'glass')    // ein Portal (Rahmen aus diesem Block)
-mod.enterDimension('sky')  mod.leaveDimension()
-
-// Ereignisse
-mod.on('start', (s) => ...)
-mod.on('tick', (s) => ...)      // alle 0,25 s: s = {x,y,z,hp,maxHp,day,night,phase,blood,t,weather,dim,held,sneak}
-mod.on('break', (e) => ...)     // e = {x,y,z,block}
-mod.on('place', (e) => ...)     // e = {x,y,z,block}
-mod.on('use', (e) => ...)       // e = {item,x,y,z,px,py,pz} (x,y,z: der Block, auf den du zeigst, oder null)
-mod.on('dimension', (e) => ...) // e = {id, entered}
-mod.on('kill', (e) => ...)      // e = {type, mob, id, x,y,z}  (mob: Schlüssel deiner Kreatur oder null)
-mod.on('night' | 'day' | 'death', (e) => ...)
-mod.on('interact', (e) => ...)  // Rechtsklick auf einen eigenen Block mit interact: true. e = {x,y,z,block,held}
-mod.on('key', (e) => ...)       // eine Taste aus mod.bindKey. e = {key}
-mod.on('button', (e) => ...)    // ein Knopf aus mod.button. e = {id}
-mod.on('ui', (e) => ...)        // ein Knopf im Fenster. e = {ui, button, values} (button null = geschlossen)
-mod.on('mobattack', (e) => ...) // eine deiner Kreaturen greift an. e = {mob, id}
-
-// Eigene Blöcke mit eigener Textur (bis 120 pro Welt, mit der Welt gespeichert)
-mod.block('lampe', { name: 'Lampe',
-  texture: { pixels: ['wwww', 'wyyw', 'wyyw', 'wwww'],            // Zeilen aus Buchstaben, bis 32 x 32
-             palette: { w: '#5b4630', y: '#ffd36b' } },         // '.' oder fehlend = durchsichtig
-  // oder ein Muster: { pattern: 'bricks', color: '#e4e2db', color2: '#aaa' }
-  //   noise smooth bricks planks ore stripes dots checker border log rings leaves glass gem orb ingot
-  // oder ein Bild aus dem Spiel: 'planks', 'stone', 'ice' ...
-  top: ..., side: ..., bottom: ...,  // eigene Bilder je Seite (sonst texture)
-  light: 15,           // leuchtet 0-15
-  hardness: 1,         // Abbauzeit
-  pick: 0,             // Spitzhacke nötig: 1 Stein, 2 Eisen, 3 Diamant
-  drop: 'self',        // 'self', 'none' oder ein Item
-  glass: true,         // durchsichtig wie Glas      plant: true   // eine Pflanze (gekreuzt)
-  seeThrough: true,    // Löcher im Bild (Laub)     solid: false  // man läuft hindurch
-  tint: true,          // färbt sich mit dem Biom (wie Gras)
-  interact: true })    // Rechtsklick löst 'interact' aus
-mod.ore('lampe', { veins: 3, size: 5, minY: 5, maxY: 60, in: 'stone' })  // als Erz, nur in neuen Chunks
-mod.setBlock(x, y, z, 'lampe')  mod.give('lampe', 10)  mod.shop('lampe', { wood: 2 }, 4)
-
-// Items mit eigenem Bild, Werkzeuge
-mod.item('schwert', { name: 'Jadeschwert', tool: 'sword', level: 3, damage: 40,
-  texture: { pattern: 'sword', color: '#3fd17a' } })      // auch pixels/palette wie bei Blöcken
-mod.item('hacke', { name: 'Superhacke', tool: 'pickaxe', level: 3, speed: 2 })   // sword axe pickaxe shovel shears
-mod.shop('schwert', { jade: 6, iron: 2 }, 1)             // Preise auch in eigenen Items
-
-// Eigene Kreaturen
-mod.mob('schleim', { name: 'Schleim', shape: 'slime',   // humanoid, animal, slime, custom
-  behavior: 'hostile',   // hostile, neutral (greift an, wenn du zuschlägst), passive (flieht)
-  hp: 30, damage: 7, speed: 2.4, size: 1.1, fly: false, burnInSun: false, sight: 18,
-  colors: { body: '#6fd35c', accent: '#3f9a35', eyes: '#10200c' },
-         // humanoid: skin shirt pants shoes hair eyes belt / animal: body head legs eyes accent
-  drops: { schleim: 2 },
-  spawn: { time: 'night', chance: 0.5, max: 5, cave: false, dimension: 'sky' } })   // von selbst
-  // eigenes Modell: shape: 'custom', model: [{ size: [w,h,d], pos: [x,y,z], color: '#hex',
-  //   part: 'head' | 'legL' | 'legR' | 'armL' | 'armR' | 'wingL' | 'wingR' | 'tail', glow: true }, ...]
-mod.spawnMob('schleim')  mod.spawnMob('schleim', x, y, z, 3)  mod.hurtMob(id, 10)  mod.removeMobs('schleim')
-
-// Fenster und Anzeigen
-mod.ui('shop', { title: 'Mein Fenster', text: 'Hallo!', image: { pattern: 'gem', color: '#ff0' },
-  rows: [{ icon: 'diamond', label: 'Diamanten', value: 3, bar: 0.5, color: '#5fe3e6' }],
-  inputs: [{ id: 'name', label: 'Name', type: 'text' }],      // text number range checkbox
-  buttons: [{ id: 'ok', label: 'OK' }, { id: 'nein', label: 'Nein', style: 'ghost' }], keepOpen: false })
-mod.closeUi()
-mod.hud('punkte', { text: 'Punkte: 5', icon: 'diamond', bar: 0.4, color: '#ffd36b' })   mod.hud('punkte', null)
-mod.button('menu', '📜 Menü')       // ein Knopf links (auch für Handys)
-mod.bindKey('g')                    // frei: B C G H J K L M N O P U X Y Z
-mod.notify('Titel', 'Text')  mod.title('Großer Text', 'Untertitel')
-
-// Mehr
-mod.effect('speed', 3, 10)          // ein Wert für 10 Sekunden
-mod.tone(440, 0.3, 'square', 0.3)   mod.melody([523, 659, 784], 0.15)
-mod.data.punkte = 5; mod.save()     // bleibt in dieser Welt gespeichert (max. 64 KB)
-mod.after(2, fn)  mod.every(1, fn)  // Zeitgeber (oder setTimeout / setInterval)
-mod.getBlock(x, y, z).then((b) => ...)   // oder await in einer async-Funktion. Auch: mod.player(), mod.inventory(), mod.mobs(32), mod.groundY(x, z), mod.players()
-mod.key('lampe')                    // 'x_<mod>_lampe': so heißen deine Sachen in Ereignissen (e.block)
-
-// ===== Freie Bausteine: damit baust du fast alles selbst =====
-// Eigene Zeichenfläche über dem Spiel (normales Canvas 2D, jedes Bild, jede Animation)
-mod.screen({ top: false }).then((s) => {          // top: true = über der Anzeige
-  mod.on('frame', (f) => { const g = s.ctx; g.clearRect(0, 0, s.w, s.h); g.fillText('Hallo', 20, 40); });
-})                                                // s = {ctx, canvas, w, h, dpr, cw, ch}; mod.on('resize', ...)
-mod.on('frame', (f) => ...)   // jeden Frame: {dt,t,x,y,z,vx,vy,vz,yaw,pitch,cam,onGround,held,hp,w,h,touch}
-mod.loadImage('data:image/png;base64,...')       // -> ImageBitmap zum Zeichnen
-mod.imageData('data:image/png;base64,...', 64)   // -> {w,h,rgba} -> als texture: {w, h, rgba} für Blöcke/Items
-
-// Elemente überall auf dem Bildschirm (Knöpfe, Bilder, Texte, Balken)
-mod.element('schuss', { type: 'button', text: '💥', image: 'data:image/png;base64,...' oder Textur,
-  anchor: 'jump', side: 'left',   // neben einem Knopf: jump sprint attack use drop action hotbar bag pause hp
-                                  // oder Bildschirm: tl tr bl br t b l r c (x, y = Abstand)
-  x: 0, y: 0, w: 70, h: 70,       // Zahlen = px, oder '100%', '50vw' ...
-  touch: true, desktop: false,    // nur am Handy / nur am PC
-  style: { background: '#c33', borderRadius: '50%', fontSize: '28px', transform: 'scale(1.2)', transition: 'transform .3s' },
-  clickable: true, visible: true })        // type: button text image box bar (bar: value 0-1, fill)
-mod.on('element', (e) => ...)              // {id, type: 'down'|'up'|'click', x, y}
-mod.updateElement('schuss', { visible: false })   mod.element('schuss', null)   // ändern / löschen
-mod.keyframes('puls', { from: { transform: 'scale(1)' }, to: { transform: 'scale(1.3)' } })  // style.animation: 'm_<modid>_puls 1s infinite'
-
-// Kamera
-mod.camera({ zoom: 4, fov: 70, shake: 0.8, shakeTime: 0.4, hand: false, hud: false, crosshair: false,
-             mode: 'fp'|'tp', yaw, pitch, lookAt: [x, y, z] })   mod.camera(null)   mod.shake(0.6, 0.3)
-
-// Eingaben
-mod.captureInput({ attack: true, use: true })   // Linksklick / Tippen / Rechtsklick gehören jetzt der Mod
-mod.on('attack', (e) => ...)      // {type: 'down'|'tap'|'up', eye, dir, x, y, hit}   (Tippen am Handy = 'tap')
-mod.on('useaction', (e) => ...)   // Rechtsklick
-mod.on('pointer', (e) => ...)     // jede Maus/jeder Finger: {type: down|up|move, x, y (0-1), button, touch, dx, dy, locked}
-mod.on('keydown' | 'keyup', (e) => ...)   // jede Taste: {code, key, repeat, shift, ctrl, alt}
-
-// Zielen, Geschosse
-mod.aim().then((a) => ...)        // {eye, dir, hit: {type: 'block'|'mob', x,y,z, block | id,mob, dist}}
-mod.raycast([x, y, z], [dx, dy, dz], 100)
-const id = mod.shoot({ speed: 120, damage: 25, gravity: 0, range: 150, size: 0.07, color: '#ffee88',
-  spread: 0, pierce: 0, explode: 0, knockback: 1.5, breakBlocks: false, trail: true, hurtsPlayer: false,
-  from: [x, y, z], dir: [dx, dy, dz] })   // ohne from/dir: aus der Kamera
-mod.on('hit', (e) => ...)         // {shot, type: 'mob'|'block'|'player'|'none', id, mob, killed, x, y, z, block}
-
-// Direkt steuern
-mod.setPlayer({ x, y, z, vx, vy, vz, hp, yaw, pitch, flying, select })
-mod.setMob(id, { x, y, z, vx, vy, vz, yaw, hp, maxHp, speed, ai: false, gravity: false, burn: 3 })
-mod.setBlocks([[x, y, z, 'stone'], ...])        // bis 8192
-mod.getBlocks(x1, y1, z1, x2, y2, z2).then((r) => ...)   // {x,y,z,w,h,d, blocks: [...]} (bis 65536)
-
-// Sounds aus Dateien, Rest
-mod.loadSound('knall', 'data:audio/mpeg;base64,...')   mod.playSound('knall', 0.8, 1)   // mp3 wav ogg
-mod.tickRate(20)    mod.vibrate(50)    mod.off('frame')
-mod.on('hurt', (e) => ...)  mod.on('mobhurt', (e) => ...)  mod.on('respawn', (e) => ...)</pre></details>
+        <details class="mod-doc"><summary>Mod-Programmierung: alle Befehle</summary><pre class="mod-code" id="modApiDoc"></pre></details>
       </div>
     </div>
   </div>
@@ -1516,8 +1401,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.14.0';
+const GAME_VERSION = '2.15.0';
 const GAME_NOTES = [
+  ['2.15.0', 'Meine Mods: eigene Mods werden automatisch gespeichert (mit Konto auch in der Cloud), bearbeiten, testen, einreichen, Updates einreichen und löschen. Im Editor ein KI-Prompt zum Kopieren, der immer alle aktuellen Mod-Befehle und deinen Code enthält.'],
   ['2.14.0', 'Mods 4.0: eigene Zeichenfläche (Canvas) über dem Spiel, Bilder aus Dateien, Knöpfe/Bilder/Texte überall (auch neben Springen und Sprinten), Kamera (Zoom, Sichtfeld, echtes Wackeln, Blickrichtung, Hand und Anzeige aus), jede Taste und jeder Klick/Tipp, Angriff übernehmen (Tippen zum Schießen), Geschosse mit Treffern, Spieler und Kreaturen direkt steuern, viele Blöcke auf einmal lesen und setzen, eigene Sounds aus Dateien, Mods bis 200.000 Zeichen.'],
   ['2.13.0', 'Mods 3.0: eigene Blöcke mit eigenen Texturen (Pixel-Bilder oder Muster, leuchtend, Glas, Pflanzen), eigene Erze in neuen Chunks, Items mit eigenem Bild, eigene Werkzeuge und Waffen, eigene Kreaturen (Mensch, Tier, Schleim oder eigenes Modell), eigene Fenster, Anzeigen, Knöpfe und Tasten, Effekte, Töne, Daten pro Welt, Abfragen. Neue Beispiel-Mods: Jade, Tierwelt, Bau-Paket, Sammel-Aufträge. Freunde sehen die Mod-Sachen in deiner Welt. Neue Höhlen (nur in neuen Chunks): kaum noch Schluchten, 3-4 Höhlen am Spawn mit Eingängen und Eisen, riesige Höhlen hinter dem Wald, viele Höhlen-Biome. Freundemenü neu (zuletzt online oben), Mitteilung, wenn ein Freund online kommt, alle Meldungen wegwischbar, Mods-Knopf beim Erstellen einer Welt mit Installieren/Hinzufügen/Entfernen. Keine Lava-Hinweise mehr, keine Bäume in der Glutwelt.'],
   ['2.12.0', 'Mods 2.0: neues Mod-Menü (Empfohlen, Suche, Kategorien), Mods-Knopf beim Erstellen einer Welt, Testwelt im Editor, eigene Dimensionen, Items und Shop-Waren aus Mods. Admin: Spieler suchen, unsichtbar zuschauen, alle Server. Werkzeuge stapelbar, strukturierter Shop, Rubinschwert besiegt Zombies mit einem Schlag, Zombies klettern nicht mehr und bauen langsamer, bessere Baum-Sounds und Laufanimationen, Eimer holt die Wasserquelle'],
@@ -16725,7 +16611,7 @@ const MODS = {
   installed() { return this.installedIds().map((id) => this.get(id)).filter(Boolean); },
   /* alles, was man in der Bibliothek sieht: eingebaute (außer ausgeblendete) und Community-Mods */
   all() { return BUILTIN_MODS.filter((m) => !this.hidden(m.id)).map((m) => Object.assign({ builtin: true }, m)).concat(this.lib); },
-  slim(m) { return { id: m.id, name: m.name, icon: m.icon || '🧩', desc: m.desc || '', author: m.author || '', cat: MOD_CAT_NAME[m.cat] && m.cat !== 'all' ? m.cat : 'fun', code: m.code, authorUid: m.authorUid || '' }; },
+  slim(m) { return { id: m.id, name: m.name, icon: m.icon || '🧩', desc: m.desc || '', author: m.author || '', cat: MOD_CAT_NAME[m.cat] && m.cat !== 'all' ? m.cat : 'fun', code: m.code, authorUid: m.authorUid || '', draftId: m.draftId || '' }; },
   install(m) {
     const l = this.installedIds(); if (!l.includes(m.id)) l.push(m.id); this.saveIds(l);
     if (!this.builtin(m.id)) { try { localStorage.setItem(this.PRE + m.id, JSON.stringify(this.slim(m))); } catch (e) { /* ignore */ } }
@@ -16874,7 +16760,7 @@ UI.openMods = function (tab, world) {
   else UI.closeAll();
   MODUI.world = world || null;
   $('modWorldBar').hidden = !world;
-  $('modTabs').querySelector('[data-tab="up"]').hidden = !!world;
+  $('modTabs').querySelector('[data-tab="mine"]').hidden = !!world;
   $('modTitle').textContent = world ? 'Mods für „' + (world.name || 'neue Welt') + '“' : 'Mods';
   $('mdlMods').hidden = false;
   modsTab(tab || 'lib');
@@ -16882,9 +16768,12 @@ UI.openMods = function (tab, world) {
   modsLoadLib();
 };
 function modsTab(t) {
+  if (MODUI.tab === 'up' && t !== 'up' && typeof myModLeave === 'function') myModLeave();
   MODUI.tab = t;
-  $('modTabs').querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  $('modLib').hidden = t !== 'lib'; $('modInst').hidden = t !== 'inst'; $('modUp').hidden = t !== 'up';
+  const tt = t === 'up' ? 'mine' : t;
+  $('modTabs').querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tt)));
+  $('modLib').hidden = t !== 'lib'; $('modInst').hidden = t !== 'inst'; $('modUp').hidden = t !== 'up'; $('modMine').hidden = t !== 'mine';
+  if (t === 'mine') myModsRender(true);
 }
 UI.modsRefresh = function () {
   if (MODUI.world) $('mwN').textContent = MODUI.world.sel.length ? MODUI.world.sel.length + (MODUI.world.sel.length === 1 ? ' Mod an' : ' Mods an') : 'noch keine an';
@@ -17028,22 +16917,8 @@ function bindModsUI() {
     msg('Teste …', true); const r = await MODS.test(code); msg(r.msg, r.ok);
   });
   $('mdPlay').addEventListener('click', () => modTestWorld());
-  $('modUpForm').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    if (!NET.uid()) { msg('Melde dich zuerst an.'); return; }
-    const name = $('mdName').value.trim(), code = $('mdCode').value;
-    if (name.length < 3) { msg('Der Name braucht mindestens 3 Zeichen.'); return; }
-    if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
-    if (code.length > 200000) { msg('Der Code ist zu lang (max. 200000 Zeichen).'); return; }
-    msg('Teste und sende …', true);
-    const t = await MODS.test(code); if (!t.ok) { msg(t.msg); return; }
-    const rec = { name: name.slice(0, 30), icon: ($('mdIcon').value.trim() || '🧩').slice(0, 4), desc: $('mdDesc').value.trim().slice(0, 140), cat: $('mdCat').value, code, author: NET.name, authorUid: NET.uid(), at: NET.TS() };
-    try {
-      if (isOwner()) { await withTimeout(NET.db.ref('mods/approved').push().set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); msg('Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true); modsLoadLib(); }
-      else { await withTimeout(NET.db.ref('mods/pending').push(rec), 15000); msg('Eingereicht! DynaTheReal prüft die Mod. Wenn er sie annimmt, erscheint sie in der Bibliothek.', true); }
-      $('mdName').value = ''; $('mdIcon').value = ''; $('mdDesc').value = ''; $('mdCode').value = '';
-    } catch (e) { msg(netMsg(e)); }
-  });
+  $('modUpForm').addEventListener('submit', (ev) => { ev.preventDefault(); myModSubmit(); });
+  bindMyMods();
 }
 /* ---------- Owner: Prüfung ---------- */
 ADMIN.watchMods = function () {
@@ -17087,7 +16962,12 @@ async function renderAdminMods() {
     $('admModsN').textContent = ids.length;
     if (!ids.length) pe.innerHTML = '<div class="list-empty">Keine Mods zur Prüfung.</div>';
     for (const k of ids) add(pe, p[k], [
-      ['Annehmen', 'primary', async () => { const u = {}; u['mods/approved/' + k] = Object.assign({}, p[k], { approvedAt: NET.TS() }); u['mods/pending/' + k] = null; await withTimeout(NET.db.ref().update(u), 15000); admMsg('„' + p[k].name + '“ ist jetzt in der Bibliothek.', true); }],
+      ['Annehmen', 'primary', async () => {
+        const u = {}; const rec = Object.assign({}, p[k], { approvedAt: NET.TS() }); const rp = rec.replaces; delete rec.replaces;
+        // ein Update einer schon veröffentlichten Mod (gleicher Autor): die alte wird ersetzt, Installationen bleiben
+        let target = k;
+        if (rp && /^[-\w]+$/.test(rp)) { const old = (await withTimeout(NET.db.ref('mods/approved/' + rp).once('value'), 15000)).val(); if (old && old.authorUid === rec.authorUid) target = rp; }
+        u['mods/approved/' + target] = rec; u['mods/pending/' + k] = null; await withTimeout(NET.db.ref().update(u), 15000); admMsg('„' + p[k].name + '“ ist jetzt in der Bibliothek.', true); }],
       ['Ablehnen', 'danger', async () => { await withTimeout(NET.db.ref('mods/pending/' + k).remove(), 15000); admMsg('Abgelehnt.', true); }],
     ]);
   } catch (e) { pe.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; }
@@ -18232,6 +18112,450 @@ function modApi2End() {
   MODRT.tickLen = 0.25;
   if (MOD_KF) MOD_KF.textContent = '';
   for (const z of G.zombies) { z.modCtl = false; z.modNoGrav = false; }
+}
+
+/* ---- 19td_mymods.js ---- */
+/* =========================================================================
+   Meine Mods: eigene Mods (Entwürfe) erstellen, bearbeiten, testen,
+   einreichen, löschen. Und ein Prompt für eine KI, die eine Mod schreibt.
+   Die Befehlsliste unten ist die eine Quelle für die Hilfe im Editor UND
+   für den KI-Prompt: wer die Mod-API erweitert, ergänzt sie hier, dann
+   ist beides automatisch aktuell.
+   ========================================================================= */
+const MOD_CODE_MAX = 200000;
+const MOD_API_DOC = `// ---------- Werte (gelten, solange die Mod läuft) ----------
+mod.set('speed', 1.5)   // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500,
+                        // regen 0-10 (Leben/Sek.), dmg 0.25-10 (Schaden mal), zombieSpeed 0.3-3, zombieHp 0.2-10
+mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, noFall, noNight, peaceful, nightVision, keepInventory
+mod.effect('speed', 3, 10)   // einen Wert für 10 Sekunden ändern
+
+// ---------- Spieler, Welt, Meldungen ----------
+mod.give('diamond', 3)   mod.take('diamond', 1)
+  // Rohstoffe: wood wool iron diamond crystal ruby mythril
+  // Items: planks bricks glass cobble dirt sand gravel door torch campfire bed chest bucket apple crystal_apple
+  // oder eigene Items/Blöcke (eigene ID reicht)
+mod.heal(10)   mod.hurt(5)   mod.teleport(x, y, z)
+mod.setBlock(x, y, z, 'stone')   mod.fill(x1, y1, z1, x2, y2, z2, 'glass')   // max. 4096 Blöcke, max. 80 Blöcke vom Spieler
+  // Blöcke: stone dirt grass sand gravel planks bricks glass cobble wool_red wool_white snow ice moss deepslate air water … oder eigene
+mod.setBlocks([[x, y, z, 'stone'], ...])                    // bis 8192 auf einmal
+mod.getBlocks(x1, y1, z1, x2, y2, z2).then((r) => ...)      // {x,y,z,w,h,d, blocks: ['stone','air',...]}, bis 65536
+mod.explode(x, y, z, 3)   mod.lightning(x, z)   mod.particles(x, y, z, '#ff8800', 20)
+mod.time('day' | 'night')   mod.weather('clear' | 'cloudy' | 'rain' | 'storm' | 'fog')
+mod.spawn(2)   mod.spawn(1, 'wolf')   mod.clearMobs()
+mod.toast('Text')   mod.notify('Titel', 'Text')   mod.title('Großer Text', 'Untertitel')   mod.log('Debug')
+mod.vibrate(50)   // Handy vibriert (ms)
+
+// ---------- Töne und Sounds ----------
+mod.sound('upgrade')   // ui buy upgrade chest pop hit thud eat thunder bloodStart dawn nightfall deny greet poison
+mod.tone(440, 0.3, 'square', 0.3, 880)   // Frequenz, Sekunden, sine|square|sawtooth|triangle, Lautstärke 0-0.6, End-Frequenz
+mod.melody([523, 659, 784], 0.15)
+mod.loadSound('knall', 'data:audio/mpeg;base64,...')   // mp3 / wav / ogg, max. 4 MB, max. 48 Sounds
+mod.playSound('knall', 0.8, 1)                          // Name, Lautstärke 0-1, Tempo 0.25-4
+
+// ---------- Texturen (für Blöcke, Items, Fenster, Elemente) ----------
+//  1) Pixel-Art: { pixels: ['..aa..', '.abba.', ...], palette: { a: '#3fd17a', b: '#ffffff' } }
+//       bis 64x64, '.' oder fehlende Buchstaben = durchsichtig, Farben '#rgb', '#rrggbb', '#rrggbbaa'
+//  2) Muster: { pattern: 'bricks', color: '#e4e2db', color2: '#aaaaaa', base: '#7d7d7d' }
+//       noise smooth bricks planks ore stripes dots checker border log rings leaves glass gem orb ingot sword pickaxe axe shovel
+//  3) Spieltextur: 'planks', 'stone', 'ice', 'bricks' …
+//  4) Bilddatei: const t = await mod.imageData('data:image/png;base64,...', 64)  -> {w, h, rgba}, direkt als texture verwendbar
+
+// ---------- Eigene Blöcke (max. 120 pro Welt, werden mit der Welt gespeichert) ----------
+mod.block('lampe', {
+  name: 'Lampe', desc: 'Text', color: '#ffd36b',
+  texture: {...}, top: {...}, side: {...}, bottom: {...},   // Seiten optional, sonst texture
+  light: 15,          // leuchtet 0-15
+  hardness: 1,        // Abbauzeit 0.05-60
+  pick: 0,            // Spitzhacke nötig: 0 nein, 1 Stein, 2 Eisen, 3 Diamant
+  drop: 'self',       // 'self', 'none' oder ein Item/Rohstoff
+  glass: true,        // durchsichtig wie Glas
+  plant: true,        // gekreuzte Pflanze
+  seeThrough: true,   // Löcher im Bild wie Laub
+  solid: false,       // man läuft hindurch
+  tint: true,         // färbt sich wie Gras mit dem Biom
+  sway: true,         // wackelt im Wind
+  interact: true })   // Rechtsklick löst 'interact' aus (Maschinen, Schalter …)
+mod.ore('lampe', { veins: 3, size: 5, minY: 5, maxY: 60, in: 'stone' | 'any' })
+  // Erz, nur in neuen Chunks. Welthöhe 176, Meer bei 106, Oberfläche meist 106-130
+
+// ---------- Eigene Items, Werkzeuge, Waffen ----------
+mod.item('stab', {
+  name: 'Zauberstab', icon: '🪄', color: '#8ef0c0', desc: 'Text',
+  texture: {...},     // eigenes Pixelbild (sonst Emoji)
+  use: true,          // Rechtsklick löst 'use' aus
+  food: 20,           // essbar, heilt so viel
+  damage: 30,         // Schaden als Waffe
+  tool: 'pickaxe',    // sword axe pickaxe shovel shears
+  level: 3,           // Werkzeugstufe 1-4 (Spitzhacke/Schaufel max. 3)
+  speed: 2,           // Abbautempo mal
+  place: 'glass' })   // baut diesen Block (auch eigene)
+mod.shop('stab', { wood: 4, crystal: 1 }, 1, 'Name im Shop')
+  // beim Händler im Reiter „Mods“; Preise auch in eigenen Items
+
+// ---------- Eigene Kreaturen (max. 40 gleichzeitig) ----------
+mod.mob('schleim', {
+  name: 'Schleim',
+  shape: 'humanoid' | 'animal' | 'slime' | 'custom',
+  behavior: 'hostile' | 'neutral' | 'passive',   // neutral: greift an, wenn man zuschlägt; passive: flieht
+  hp: 30, damage: 7, speed: 2.4, size: 1.1, sight: 18, fly: false, burnInSun: false,
+  colors: { body, head, legs, eyes, accent,              // für animal/slime
+            skin, shirt, pants, shoes, hair, belt },     // für humanoid  ('#rrggbb')
+  model: [ { size: [w, h, d], pos: [x, y, z], color: '#hex',
+             part: 'body'|'head'|'legL'|'legR'|'armL'|'armR'|'wingL'|'wingR'|'tail', glow: true } ],
+    // nur bei shape 'custom', max. 48 Boxen, Einheit Blöcke, pos = Mitte, y ab den Füßen, vorne = +z
+  drops: { schleim: 2, iron: 1 },
+  spawn: { time: 'day'|'night'|'any', chance: 0.5, max: 5, cave: false, dimension: 'id' } })   // erscheint von selbst
+mod.spawnMob('schleim')   mod.spawnMob('schleim', x, y, z, 3)
+mod.hurtMob(id, 10)   mod.removeMobs('schleim')
+mod.setMob(id, { x, y, z, vx, vy, vz, yaw, hp, maxHp, speed, ai: false, gravity: false, burn: 3 })
+  // ai: false = die Mod steuert die Kreatur selbst (nur noch Physik)
+
+// ---------- Dimensionen ----------
+mod.dimension('sky', { name: 'Himmel', style: 'land'|'flat'|'islands'|'cave'|'void',
+  sky: '#c9a2ff', horizon: '#ffd6f0', fog: '#f0d8ff', fogDist: 160, light: 'day'|'dusk'|'night'|'dark',
+  top: 'grass', ground: 'dirt', fill: 'stone',      // auch eigene Blöcke
+  sea: 'water'|'lava'|'none', seaLevel: 60, height: 90, hills: 12,
+  trees: 'oak'|'birch'|'pine'|'cherry'|'dark'|'autumn'|'mushroom'|'none', treeDensity: 0.5, plants: true,
+  ores: { diamond: 2, ruby: 1, crystal: 1, iron: 2, mythril: 1 }, gravity: 0.7, mobs: false })
+mod.portal('sky', x, y, z, 'glass')   mod.enterDimension('sky')   mod.leaveDimension()
+
+// ---------- Spieler direkt steuern ----------
+mod.setPlayer({ x, y, z, vx, vy, vz, hp, yaw, pitch, flying, select })   // select = Hotbar-Platz 0-9
+
+// ---------- Kamera ----------
+mod.camera({ zoom: 4, fov: 70, shake: 0.8, shakeTime: 0.4, hand: false, hud: false, crosshair: false,
+             mode: 'fp'|'tp', yaw, pitch, lookAt: [x, y, z] })
+mod.camera(null)          // alles zurück
+mod.shake(0.6, 0.3)       // echtes Kamera-Wackeln: Stärke, Sekunden
+
+// ---------- Eigene Zeichenfläche über dem Spiel ----------
+mod.screen({ top: false }).then((s) => {   // top: true = über der Anzeige
+  // s = {ctx, canvas, w, h, dpr, cw, ch} – normales Canvas 2D (w/h in echten Pixeln, cw/ch in CSS-Pixeln)
+  mod.on('frame', (f) => { const g = s.ctx; g.clearRect(0, 0, s.w, s.h); /* zeichnen */ });
+})
+mod.on('resize', (s) => ...)
+mod.loadImage('data:image/png;base64,...')   // -> Promise<ImageBitmap> zum Zeichnen mit ctx.drawImage
+
+// ---------- Elemente überall auf dem Bildschirm (Knöpfe, Bilder, Texte, Balken) ----------
+mod.element('id', {
+  type: 'button'|'text'|'image'|'box'|'bar',
+  text: '💥', image: 'data:image/png;base64,...' oder eine Textur,
+  anchor: 'jump'|'sprint'|'attack'|'use'|'drop'|'action'|'hotbar'|'bag'|'pause'|'hp',
+    // mit side: 'left'|'right'|'above'|'below'|'center' und gap: 10 (neben diesem Knopf)
+    // oder Bildschirm: 'tl'|'tr'|'bl'|'br'|'t'|'b'|'l'|'r'|'c'  (x, y = Abstand vom Rand)
+  x: 0, y: 0, w: 70, h: 70,   // Zahlen = px, oder '100%', '50vw', '30vh' …
+  touch: true,                // nur am Handy     desktop: true = nur am PC
+  clickable: true, visible: true, pass: false,   // pass: true = Klicks gehen durch
+  value: 0.5, fill: '#7ed957',                   // nur bei bar
+  style: { background, color, border, borderRadius, fontSize, fontWeight, opacity, padding, transform,
+           transformOrigin, transition, animation, objectFit, imageRendering, filter, boxShadow,
+           textShadow, textAlign, zIndex, clipPath … } })   // kein url() erlaubt
+mod.updateElement('id', { visible: false })   // nur einzelne Werte ändern
+mod.element('id', null)                       // löschen
+mod.on('element', (e) => ...)                 // {id, type: 'down'|'up'|'click', x, y}
+mod.keyframes('puls', { from: { transform: 'scale(1)' }, to: { transform: 'scale(1.3)' } })
+  // dann style.animation: 'm_<modid>_puls 1s infinite'
+// Bild bildschirmfüllend: mod.element('bild', { type: 'image', image: ..., anchor: 'tl', w: '100%', h: '100%',
+//   style: { objectFit: 'cover', transition: 'transform .3s', transform: 'scale(1.5)' } })
+
+// ---------- Fenster und einfache Anzeigen ----------
+mod.ui('menu', { title: 'Titel', text: 'Text\\nmit Zeilen', image: {...Textur...},
+  rows: [{ icon: 'diamond', label: 'Diamanten', value: 3, bar: 0.5, color: '#5fe3e6' }],
+  inputs: [{ id: 'name', label: 'Name', type: 'text'|'number'|'range'|'checkbox', value: '', min: 0, max: 10, step: 1 }],
+  buttons: [{ id: 'ok', label: 'OK', style: 'primary'|'ghost'|'danger', close: true }],
+  keepOpen: false })
+mod.closeUi()
+mod.hud('punkte', { text: 'Punkte: 5', icon: 'diamond', bar: 0.4, color: '#ffd36b' })   mod.hud('punkte', null)
+mod.button('menu', '📜 Menü', 'diamond')   // einfacher Knopf links
+mod.bindKey('g', 'Name')                   // eigene Taste, frei: B C G H J K L M N O P U X Y Z
+
+// ---------- Eingaben ----------
+mod.captureInput({ attack: true, use: true })   // Linksklick / Tippen / Rechtsklick gehören der Mod (false = zurück)
+mod.on('attack', (e) => ...)       // {type: 'down'|'tap'|'up', eye, dir, x, y, hit}  ('tap' = Tippen am Handy)
+mod.on('useaction', (e) => ...)    // Rechtsklick: {type, eye, dir, x, y, hit}
+mod.on('pointer', (e) => ...)      // jede Maus / jeder Finger: {type: 'down'|'up'|'move', x, y (0-1), button, touch, dx, dy, locked}
+mod.on('keydown' | 'keyup', (e) => ...)   // jede Taste: {code, key, repeat, shift, ctrl, alt}  (nur mitlesen)
+
+// ---------- Zielen und Geschosse ----------
+mod.aim(sx, sy, max).then((a) => ...)   // ohne Werte: Bildschirmmitte
+  // a = {eye, dir, x, y, hit: {type: 'block'|'mob', x,y,z, block | id,mob, dist}}
+mod.raycast([x, y, z], [dx, dy, dz], 100).then((hit) => ...)
+const shotId = mod.shoot({ speed: 120, damage: 25, gravity: 0, range: 150, size: 0.07, color: '#ffee88',
+  spread: 0, pierce: 0, explode: 0, knockback: 1.5, breakBlocks: false, trail: true, glow: true, hurtsPlayer: false,
+  from: [x, y, z], dir: [dx, dy, dz] })   // ohne from/dir: aus der Kamera
+mod.on('hit', (e) => ...)   // {shot, type: 'mob'|'block'|'player'|'none', id, mob, killed, x, y, z, block}
+
+// ---------- Daten, Zeit, Abfragen ----------
+mod.data.punkte = 5; mod.save()   // bleibt in dieser Welt gespeichert (max. 64 KB); beim Start ist mod.data schon geladen
+mod.after(2, fn)   mod.every(1, fn)   mod.tickRate(20)   // tick bis 20x pro Sekunde
+mod.off('frame', fn)              // Ereignis abmelden (ohne fn: alle)
+mod.getBlock(x, y, z)             // -> 'stone', 'air', 'x_mod_id' oder null
+mod.groundY(x, z)                 // -> Höhe über dem Boden
+mod.player()                      // -> {x,y,z,hp,maxHp,day,night,phase,blood,t,weather,dim,held,sneak,flying,trees,kills,yaw}
+mod.inventory()                   // -> {res:{wood,...}, items:{...}, hotbar:[...], held}
+mod.mobs(32)                      // -> [{id,type,x,y,z,hp,maxHp}]
+mod.players()                     // -> [{name,x,y,z,me}]
+mod.get('time')                   // -> {phase,t,day,night,blood}
+mod.id   mod.key('id')            // mod.key('lampe') -> 'x_<modid>_lampe' (so heißen eigene Sachen in Ereignissen)
+
+// ---------- Ereignisse ----------
+mod.on('start', (s) => ...)       // s wie mod.player()
+mod.on('tick', (s) => ...)        // alle 0,25 s (oder mod.tickRate)
+mod.on('frame', (f) => ...)       // jeden Frame: {dt,t,x,y,z,vx,vy,vz,yaw,pitch,cam,onGround,held,hp,w,h,touch}
+mod.on('break', (e) => ...)       // {x,y,z,block}  (nur vom Spieler)
+mod.on('place', (e) => ...)       // {x,y,z,block}
+mod.on('use', (e) => ...)         // Rechtsklick mit use-Item: {item,key,x,y,z,px,py,pz}  (x = null, wenn kein Block)
+mod.on('interact', (e) => ...)    // Rechtsklick auf Block mit interact: {x,y,z,block,held}
+mod.on('kill', (e) => ...)        // {type,mob,id,x,y,z}
+mod.on('mobattack', (e) => ...)   // eigene Kreatur greift an: {mob,id}
+mod.on('mobhurt', (e) => ...)     // {id,mob,dmg,hp}
+mod.on('hurt', (e) => ...)        // Spieler bekommt Schaden: {dmg,hp,fx,fz}
+mod.on('respawn', (e) => ...)     // {x,y,z}
+mod.on('key', (e) => ...)         // Taste aus mod.bindKey: {key,code}
+mod.on('button', (e) => ...)      // Knopf aus mod.button: {id}
+mod.on('ui', (e) => ...)          // Fenster: {ui, button, values}  (button null = geschlossen)
+mod.on('dimension', (e) => ...)   // {id, entered}
+mod.on('night' | 'day' | 'death', (e) => ...)`;
+
+/* the full prompt for an AI: rules, the idea, the code so far, all commands */
+function buildModPrompt(d) {
+  const idea = String(d.idea || '').trim() || String(d.desc || '').trim() || '[HIER DEINE IDEE EINTRAGEN]';
+  const code = String(d.code || '').trim();
+  const L = [];
+  L.push('Du schreibst eine Mod für mein Browser-Voxelspiel „Blood Moon“ (Survival im Minecraft-Stil, deutsch). Spielversion ' + GAME_VERSION + '.');
+  L.push('');
+  L.push('MEINE MOD-IDEE: ' + idea);
+  if (d.name) L.push('Name der Mod: ' + d.name);
+  L.push('');
+  if (code) {
+    L.push('MEIN BISHERIGER CODE (verbessere und erweitere ihn nach meiner Idee, gib den kompletten neuen Code zurück):');
+    L.push('```js'); L.push(code); L.push('```');
+    L.push('');
+  }
+  L.push('Gib mir zuerst den kompletten JavaScript-Code in EINEM Codeblock. Danach kurz: Name, Symbol (ein Emoji), Beschreibung (max. 140 Zeichen), Kategorie (' + MOD_CATS.filter((c) => c[0] !== 'all').map((c) => c[0]).join(', ') + ').');
+  L.push('');
+  L.push('REGELN');
+  L.push('- Der Code läuft in einem Web Worker. Es gibt kein DOM, kein window, kein document, kein fetch, kein Netz, kein import, kein localStorage. Erlaubt sind nur das Objekt `mod` und normales JavaScript (Promises, async/await, setTimeout/setInterval, OffscreenCanvas, createImageBitmap).');
+  L.push('- Kein await auf oberster Ebene, nur innerhalb von async-Funktionen.');
+  L.push('- Max. ' + MOD_CODE_MAX.toLocaleString('de-DE') + ' Zeichen. Bilder und Sounds kommen als data:-URL (Base64) direkt in den Code.');
+  L.push('- Eigene IDs immer klein, nur a-z und 0-9 (z. B. \'jadeerz\').');
+  L.push('- Eigene Sachen heißen in Ereignissen \'x_<modid>_<id>\'. Vergleiche deshalb mit mod.key(\'id\'), z. B. if (e.block === mod.key(\'lampe\')).');
+  L.push('- Max. ca. 1500 Befehle pro Sekunde. Pro Frame nur das Nötigste senden.');
+  L.push('- Alles für den Spieler auf Deutsch. Kommentare im Code auf Deutsch.');
+  L.push('- Registriere Blöcke, Items, Kreaturen, Erze, Shop und Dimensionen direkt am Anfang. Dinge beim Betreten der Welt kommen in mod.on(\'start\').');
+  L.push('- Die Mod soll am PC UND am Handy gut spielbar sein (Knöpfe mit touch: true für das Handy, Tasten für den PC).');
+  L.push('- Mods laufen nur in eigenen Welten (nicht auf Servern, nicht als Gast).');
+  L.push('- Nutze alle Möglichkeiten, die zur Idee passen. Erfinde KEINE Befehle, die unten nicht stehen.');
+  L.push('');
+  L.push('==================== DIE KOMPLETTE API ====================');
+  L.push('');
+  L.push(MOD_API_DOC);
+  L.push('');
+  L.push('WICHTIG: Schreib sauberen, funktionierenden Code, der sofort läuft. Prüfe, dass jeder benutzte Befehl oben steht.');
+  return L.join('\n');
+}
+async function copyText(t) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch (e) { /* fallback */ }
+  try {
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+    const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+
+/* ---------- Speicher: auf dem Gerät, mit Konto auch in der Cloud ---------- */
+const MYMODS = {
+  KEY: 'bloodmoon-mymods', cur: null, timers: {}, pulledFor: null,
+  all() { try { const o = JSON.parse(localStorage.getItem(this.KEY) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } },
+  saveAll(o) { try { localStorage.setItem(this.KEY, JSON.stringify(o)); return true; } catch (e) { UI.toast('Der Speicher auf diesem Gerät ist voll. Lösch alte Mods.', 'warn', 4000, 'mmfull'); return false; } },
+  get(id) { return this.all()[id] || null; },
+  list() { return Object.values(this.all()).filter((d) => d && d.id).sort((a, b) => (b.updated || 0) - (a.updated || 0)); },
+  put(d, cloud) {
+    const o = this.all(); d.updated = Date.now(); o[d.id] = d; this.saveAll(o);
+    if (cloud !== false) this.cloud(d.id);
+  },
+  /* in die Cloud: höchstens alle 3 Sekunden pro Mod, nicht bei jedem Tastendruck */
+  cloud(id) {
+    if (!NET.uid() || !NET.db) return;
+    clearTimeout(this.timers[id]);
+    this.timers[id] = setTimeout(() => {
+      delete this.timers[id];
+      const d = this.get(id); if (!d) return;
+      NET.db.ref('users/' + NET.uid() + '/myMods/' + id).set(d).catch(() => { });
+    }, 3000);
+  },
+  remove(id) {
+    const o = this.all(); delete o[id]; this.saveAll(o);
+    clearTimeout(this.timers[id]); delete this.timers[id];
+    if (NET.uid() && NET.db) NET.db.ref('users/' + NET.uid() + '/myMods/' + id).remove().catch(() => { });
+  },
+  /* einmal pro Anmeldung: Mods von anderen Geräten holen (der neuere Stand gewinnt) */
+  async pull() {
+    if (!NET.uid() || !NET.db || this.pulledFor === NET.uid()) return;
+    this.pulledFor = NET.uid();
+    try {
+      const v = (await withTimeout(NET.db.ref('users/' + NET.uid() + '/myMods').once('value'), 12000)).val() || {};
+      const o = this.all(); let ch = false;
+      for (const id in v) { const r = v[id]; if (!r || typeof r !== 'object' || !r.id) continue; if (!o[id] || (r.updated || 0) > (o[id].updated || 0)) { o[id] = r; ch = true; } }
+      for (const id in o) if (!v[id]) this.cloud(id);
+      if (ch) this.saveAll(o);
+    } catch (e) { this.pulledFor = null; }
+  },
+};
+function newMyMod() { return { id: 'd' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: '', icon: '', desc: '', cat: 'fun', code: '', idea: '', created: Date.now(), updated: Date.now(), pub: null, pend: null }; }
+/* the state of a mod of mine: draft, waiting for the check, in the library */
+function myModState(d) {
+  const lib = MODS.lib || [];
+  if (d.pend && lib.length) {
+    let done = null;
+    if (d.pub) { const q = lib.find((m) => m.id === d.pub); if (q && q.code === d.sentCode) done = q; }
+    else done = lib.find((m) => m.draftId === d.id);
+    if (done) { d.pub = done.id; d.pend = null; d.sentCode = null; MYMODS.put(d, true); }
+  }
+  const pub = d.pub && lib.some((q) => q.id === d.pub);
+  if (d.pend) return pub ? ['pend', 'Update wird geprüft'] : ['pend', 'Wird geprüft'];
+  if (pub) return ['pub', 'In der Bibliothek'];
+  return ['', 'Entwurf'];
+}
+function agoText(t) {
+  const s = Math.max(0, (Date.now() - (t || 0)) / 1000);
+  if (s < 60) return 'gerade eben'; if (s < 3600) return 'vor ' + Math.floor(s / 60) + ' Min.'; if (s < 86400) return 'vor ' + Math.floor(s / 3600) + ' Std.';
+  return 'vor ' + Math.floor(s / 86400) + ' Tagen';
+}
+async function myModsRender(pull) {
+  const box = $('myModList'); if (!box) return;
+  if (pull) { await MYMODS.pull(); }
+  const list = MYMODS.list();
+  // veröffentlichte Mods von mir ohne Entwurf hier (von früher oder einem anderen Gerät)
+  const mine = (MODS.lib || []).filter((m) => NET.uid() && m.authorUid === NET.uid() && !list.some((d) => d.pub === m.id || d.id === m.draftId));
+  box.innerHTML = '';
+  $('myModN').textContent = list.length + mine.length ? ' ' + (list.length + mine.length) : '';
+  if (!list.length && !mine.length) { box.innerHTML = '<div class="my-empty">Du hast noch keine eigenen Mods. Tipp auf „＋ Mod erstellen“.</div>'; return; }
+  const card = (icon, name, st, line, btns) => {
+    const c = document.createElement('div'); c.className = 'my-card';
+    c.innerHTML = '<div class="my-ico"></div><div class="my-m"><b></b><span><i class="my-st"></i><em></em></span></div><div class="my-b"></div>';
+    c.querySelector('.my-ico').textContent = icon || '🧩';
+    c.querySelector('b').textContent = name || 'Ohne Namen';
+    const s = c.querySelector('.my-st'); s.className = 'my-st ' + st[0]; s.textContent = st[1];
+    c.querySelector('em').textContent = line; c.querySelector('em').style.fontStyle = 'normal';
+    for (const [t, cls, fn, title] of btns) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + cls; b.textContent = t; if (title) b.title = title; b.addEventListener('click', fn); c.querySelector('.my-b').appendChild(b); }
+    box.appendChild(c);
+  };
+  for (const d of list) {
+    card(d.icon, d.name, myModState(d), 'bearbeitet ' + agoText(d.updated), [
+      ['Bearbeiten', 'primary', () => myModEdit(d.id)],
+      ['▶', 'ghost', () => { myModEdit(d.id); modTestWorld(); }, 'In der Testwelt ausprobieren'],
+      ['🗑', 'ghost danger', () => myModDelete(d.id), 'Löschen'],
+    ]);
+  }
+  for (const m of mine) {
+    card(m.icon, m.name, ['pub', 'In der Bibliothek'], 'von dir veröffentlicht', [
+      ['Bearbeiten', 'primary', () => { const d = Object.assign(newMyMod(), { name: m.name, icon: m.icon, desc: m.desc, cat: m.cat, code: m.code, pub: m.id }); MYMODS.put(d); myModEdit(d.id); }],
+      ['🗑', 'ghost danger', () => myModDeletePub(m), 'Aus der Bibliothek löschen'],
+    ]);
+  }
+}
+/* ---------- Editor ---------- */
+const MY_FIELDS = [['mdName', 'name'], ['mdIcon', 'icon'], ['mdDesc', 'desc'], ['mdCat', 'cat'], ['mdCode', 'code'], ['mdIdea', 'idea']];
+function myModEdit(id) {
+  const d = MYMODS.get(id); if (!d) return;
+  MYMODS.cur = id;
+  for (const [el, k] of MY_FIELDS) $(el).value = d[k] || (k === 'cat' ? 'fun' : '');
+  $('mdMsg').hidden = true; $('mdPromptOut').hidden = true;
+  myModStateLine(d);
+  modsTab('up');
+}
+function myModStateLine(d) {
+  const st = myModState(d);
+  $('mdState').textContent = (st[1] === 'Entwurf' ? 'Entwurf' : st[1]) + ' · automatisch gespeichert ' + agoText(d.updated);
+  $('mdSubmit').textContent = d.pub ? 'Update einreichen' : 'Einreichen';
+}
+function myModFromForm() {
+  if (!MYMODS.cur) { const d = newMyMod(); MYMODS.put(d, false); MYMODS.cur = d.id; }
+  const d = MYMODS.get(MYMODS.cur) || Object.assign(newMyMod(), { id: MYMODS.cur });
+  for (const [el, k] of MY_FIELDS) d[k] = $(el).value;
+  return d;
+}
+let MY_SAVE_T = null;
+function myModChanged() {
+  clearTimeout(MY_SAVE_T);
+  MY_SAVE_T = setTimeout(() => { const d = myModFromForm(); MYMODS.put(d); myModStateLine(d); }, 500);
+}
+function myModLeave() {
+  clearTimeout(MY_SAVE_T);
+  if (MYMODS.cur) {
+    const d = myModFromForm();
+    // eine ganz leere neue Mod wird nicht aufgehoben
+    if (!d.name.trim() && !d.code.trim() && !d.idea.trim() && !d.desc.trim() && !d.pub && !d.pend) MYMODS.remove(d.id); else MYMODS.put(d);
+  }
+  MYMODS.cur = null;
+}
+async function myModDelete(id) {
+  const d = MYMODS.get(id); if (!d) return;
+  const pub = d.pub && (MODS.lib || []).some((q) => q.id === d.pub);
+  const ok = await UI.confirm({ title: '„' + (d.name || 'Ohne Namen') + '“ löschen?', text: pub ? 'Die Mod wird auch aus der Bibliothek entfernt. Das geht nicht rückgängig.' : 'Das geht nicht rückgängig.', yes: 'Löschen' });
+  $('mdlMods').hidden = false;
+  if (!ok) return;
+  try {
+    if (NET.uid() && d.pend) await withTimeout(NET.db.ref('mods/pending/' + d.pend).remove(), 12000).catch(() => { });
+    if (NET.uid() && pub) { await withTimeout(NET.db.ref('mods/approved/' + d.pub).remove(), 12000); MODS.uninstall(d.pub); }
+  } catch (e) { UI.toast(netMsg(e), 'warn', 4000); return; }
+  MYMODS.remove(id);
+  if (MYMODS.cur === id) MYMODS.cur = null;
+  if (pub) await modsLoadLib();
+  myModsRender();
+  UI.toast('Gelöscht.', 'info', 1800, 'mmdel');
+}
+async function myModDeletePub(m) {
+  const ok = await UI.confirm({ title: '„' + m.name + '“ löschen?', text: 'Die Mod wird aus der Bibliothek entfernt. Das geht nicht rückgängig.', yes: 'Löschen' });
+  $('mdlMods').hidden = false;
+  if (!ok) return;
+  try { await withTimeout(NET.db.ref('mods/approved/' + m.id).remove(), 12000); MODS.uninstall(m.id); } catch (e) { UI.toast(netMsg(e), 'warn', 4000); return; }
+  await modsLoadLib(); myModsRender();
+}
+async function myModSubmit() {
+  const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
+  if (!NET.uid()) { msg('Melde dich zuerst an. Deine Mod bleibt hier gespeichert.'); return; }
+  const d = myModFromForm(); MYMODS.put(d);
+  const name = d.name.trim(), code = d.code;
+  if (name.length < 3) { msg('Der Name braucht mindestens 3 Zeichen.'); return; }
+  if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
+  if (code.length > MOD_CODE_MAX) { msg('Der Code ist zu lang (max. ' + MOD_CODE_MAX + ' Zeichen).'); return; }
+  msg('Teste und sende …', true);
+  const t = await MODS.test(code); if (!t.ok) { msg(t.msg); return; }
+  const rec = { name: name.slice(0, 30), icon: (d.icon.trim() || '🧩').slice(0, 4), desc: d.desc.trim().slice(0, 140), cat: d.cat, code, author: NET.name, authorUid: NET.uid(), at: NET.TS(), draftId: d.id };
+  const pub = d.pub && (MODS.lib || []).some((q) => q.id === d.pub);
+  try {
+    if (isOwner()) {
+      if (pub) await withTimeout(NET.db.ref('mods/approved/' + d.pub).set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000);
+      else { const r = NET.db.ref('mods/approved').push(); await withTimeout(r.set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); d.pub = r.key; }
+      d.pend = null; MYMODS.put(d);
+      msg(pub ? 'Update veröffentlicht (du bist der Owner, deshalb ohne Prüfung).' : 'Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true);
+      await modsLoadLib();
+    } else {
+      if (d.pend) await withTimeout(NET.db.ref('mods/pending/' + d.pend).remove(), 12000).catch(() => { });
+      if (pub) rec.replaces = d.pub;
+      const r = NET.db.ref('mods/pending').push();
+      await withTimeout(r.set(rec), 15000);
+      d.pend = r.key; d.sentAt = Date.now(); d.sentCode = code; MYMODS.put(d);
+      msg(pub ? 'Update eingereicht! Nach der Prüfung bekommen alle die neue Version.' : 'Eingereicht! DynaTheReal prüft die Mod. Wenn er sie annimmt, erscheint sie in der Bibliothek.', true);
+    }
+    myModStateLine(d);
+  } catch (e) { msg(netMsg(e)); }
+}
+function bindMyMods() {
+  $('modApiDoc').textContent = MOD_API_DOC;
+  $('myNew').addEventListener('click', () => { myModLeave(); const d = newMyMod(); MYMODS.put(d, false); myModEdit(d.id); $('mdIdea').focus(); });
+  $('mdBack').addEventListener('click', () => { myModLeave(); modsTab('mine'); });
+  for (const [el] of MY_FIELDS) $(el).addEventListener(el === 'mdCat' ? 'change' : 'input', myModChanged);
+  const prompt = () => { const d = myModFromForm(); MYMODS.put(d); return buildModPrompt(d); };
+  $('mdPrompt').addEventListener('click', async () => {
+    const p = prompt();
+    const ok = await copyText(p);
+    if (ok) UI.toast('Prompt kopiert. Füg ihn jetzt in eine KI ein.', 'good', 3200, 'mmprompt');
+    else { $('mdPromptOut').hidden = false; $('mdPromptOut').value = p; $('mdPromptOut').select(); UI.toast('Kopieren ging nicht automatisch. Markier den Text und kopier ihn.', 'warn', 4000, 'mmprompt'); }
+  });
+  $('mdPromptShow').addEventListener('click', () => { const o = $('mdPromptOut'); o.hidden = !o.hidden; if (!o.hidden) o.value = prompt(); });
 }
 
 /* ---- 19u_dims.js ---- */
