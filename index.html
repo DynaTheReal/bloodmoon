@@ -121,7 +121,7 @@
         ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
         "$id": {
           ".write": "auth != null && !data.exists() && !root.child('bans/' + auth.uid).exists() && newData.child('authorUid').val() === auth.uid",
-          ".validate": "newData.child('name').isString() && newData.child('code').isString() && newData.child('code').val().length <= 30000"
+          ".validate": "newData.child('name').isString() && newData.child('code').isString() && newData.child('code').val().length <= 200000"
         }
       }
     },
@@ -392,6 +392,21 @@ select.field { appearance: auto; }
 .mu-row .mu-bar { flex: 0 0 90px; }
 #muFoot { justify-content: flex-end; flex-wrap: wrap; }
 .mu-from { font-size: 12px; opacity: 0.6; }
+.modhide { visibility: hidden !important; }
+.mod-layer { position: fixed; inset: 0; pointer-events: none; }
+.mod-screen { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mod-els { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
+.mod-el { position: fixed; box-sizing: border-box; pointer-events: none; color: #fff; font: 800 14px/1.2 inherit; font-family: inherit; user-select: none; -webkit-user-select: none; touch-action: none; }
+.mod-el[hidden] { display: none; }
+.mod-el > span { display: block; }
+.mod-el .mod-img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.mod-button { pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 56px; min-height: 56px; padding: 6px 12px; border-radius: 16px; background: rgba(18, 24, 26, 0.72); border: 1.5px solid rgba(255, 255, 255, 0.22); color: #fff; font-size: 14px; font-weight: 800; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: transform 0.08s, background 0.12s; }
+.mod-button .mod-img { width: 60%; height: auto; flex: 1; min-height: 0; }
+.mod-button.down { transform: scale(0.92); background: rgba(60, 70, 74, 0.85); }
+.mod-text { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); white-space: pre-line; }
+.mod-bar { height: 10px; min-width: 60px; border-radius: 99px; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
+.mod-bar > span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 10px; }
+.mod-barfill { display: block; height: 100%; background: #7ed957; border-radius: inherit; transition: width 0.15s; }
 .toast { padding: 8px 14px; border-radius: 99px; font-size: 13px; text-align: center; animation: toastIn 0.25s ease-out; transition: opacity 0.4s, transform 0.4s; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
 .toast.drag { transition: none; }
 .notes { position: fixed; z-index: 60; top: calc(var(--safe-t) + 10px); left: 50%; transform: translateX(-50%); display: grid; gap: 8px; justify-items: center; pointer-events: none; width: min(380px, 92vw); }
@@ -1085,7 +1100,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
           </div>
           <label class="flabel" for="mdDesc">Beschreibung</label><input class="field" id="mdDesc" maxlength="140" placeholder="Was macht die Mod?">
           <label class="flabel" for="mdCode">Code (JavaScript)</label>
-          <textarea class="field area" id="mdCode" rows="11" spellcheck="false" maxlength="30000" placeholder="mod.set('jump', 2);&#10;mod.on('kill', () => mod.heal(5));"></textarea>
+          <textarea class="field area" id="mdCode" rows="11" spellcheck="false" maxlength="200000" placeholder="mod.set('jump', 2);&#10;mod.on('kill', () => mod.heal(5));"></textarea>
           <p class="form-msg" id="mdMsg" hidden></p>
           <div class="btnrow"><button class="btn" id="mdTest" type="button">Code prüfen</button><button class="btn" id="mdPlay" type="button">▶ In Testwelt ausprobieren</button><button class="btn primary" type="submit">Einreichen</button></div>
         </form>
@@ -1193,7 +1208,58 @@ mod.tone(440, 0.3, 'square', 0.3)   mod.melody([523, 659, 784], 0.15)
 mod.data.punkte = 5; mod.save()     // bleibt in dieser Welt gespeichert (max. 64 KB)
 mod.after(2, fn)  mod.every(1, fn)  // Zeitgeber (oder setTimeout / setInterval)
 mod.getBlock(x, y, z).then((b) => ...)   // oder await in einer async-Funktion. Auch: mod.player(), mod.inventory(), mod.mobs(32), mod.groundY(x, z), mod.players()
-mod.key('lampe')                    // 'x_<mod>_lampe': so heißen deine Sachen in Ereignissen (e.block)</pre></details>
+mod.key('lampe')                    // 'x_<mod>_lampe': so heißen deine Sachen in Ereignissen (e.block)
+
+// ===== Freie Bausteine: damit baust du fast alles selbst =====
+// Eigene Zeichenfläche über dem Spiel (normales Canvas 2D, jedes Bild, jede Animation)
+mod.screen({ top: false }).then((s) => {          // top: true = über der Anzeige
+  mod.on('frame', (f) => { const g = s.ctx; g.clearRect(0, 0, s.w, s.h); g.fillText('Hallo', 20, 40); });
+})                                                // s = {ctx, canvas, w, h, dpr, cw, ch}; mod.on('resize', ...)
+mod.on('frame', (f) => ...)   // jeden Frame: {dt,t,x,y,z,vx,vy,vz,yaw,pitch,cam,onGround,held,hp,w,h,touch}
+mod.loadImage('data:image/png;base64,...')       // -> ImageBitmap zum Zeichnen
+mod.imageData('data:image/png;base64,...', 64)   // -> {w,h,rgba} -> als texture: {w, h, rgba} für Blöcke/Items
+
+// Elemente überall auf dem Bildschirm (Knöpfe, Bilder, Texte, Balken)
+mod.element('schuss', { type: 'button', text: '💥', image: 'data:image/png;base64,...' oder Textur,
+  anchor: 'jump', side: 'left',   // neben einem Knopf: jump sprint attack use drop action hotbar bag pause hp
+                                  // oder Bildschirm: tl tr bl br t b l r c (x, y = Abstand)
+  x: 0, y: 0, w: 70, h: 70,       // Zahlen = px, oder '100%', '50vw' ...
+  touch: true, desktop: false,    // nur am Handy / nur am PC
+  style: { background: '#c33', borderRadius: '50%', fontSize: '28px', transform: 'scale(1.2)', transition: 'transform .3s' },
+  clickable: true, visible: true })        // type: button text image box bar (bar: value 0-1, fill)
+mod.on('element', (e) => ...)              // {id, type: 'down'|'up'|'click', x, y}
+mod.updateElement('schuss', { visible: false })   mod.element('schuss', null)   // ändern / löschen
+mod.keyframes('puls', { from: { transform: 'scale(1)' }, to: { transform: 'scale(1.3)' } })  // style.animation: 'm_<modid>_puls 1s infinite'
+
+// Kamera
+mod.camera({ zoom: 4, fov: 70, shake: 0.8, shakeTime: 0.4, hand: false, hud: false, crosshair: false,
+             mode: 'fp'|'tp', yaw, pitch, lookAt: [x, y, z] })   mod.camera(null)   mod.shake(0.6, 0.3)
+
+// Eingaben
+mod.captureInput({ attack: true, use: true })   // Linksklick / Tippen / Rechtsklick gehören jetzt der Mod
+mod.on('attack', (e) => ...)      // {type: 'down'|'tap'|'up', eye, dir, x, y, hit}   (Tippen am Handy = 'tap')
+mod.on('useaction', (e) => ...)   // Rechtsklick
+mod.on('pointer', (e) => ...)     // jede Maus/jeder Finger: {type: down|up|move, x, y (0-1), button, touch, dx, dy, locked}
+mod.on('keydown' | 'keyup', (e) => ...)   // jede Taste: {code, key, repeat, shift, ctrl, alt}
+
+// Zielen, Geschosse
+mod.aim().then((a) => ...)        // {eye, dir, hit: {type: 'block'|'mob', x,y,z, block | id,mob, dist}}
+mod.raycast([x, y, z], [dx, dy, dz], 100)
+const id = mod.shoot({ speed: 120, damage: 25, gravity: 0, range: 150, size: 0.07, color: '#ffee88',
+  spread: 0, pierce: 0, explode: 0, knockback: 1.5, breakBlocks: false, trail: true, hurtsPlayer: false,
+  from: [x, y, z], dir: [dx, dy, dz] })   // ohne from/dir: aus der Kamera
+mod.on('hit', (e) => ...)         // {shot, type: 'mob'|'block'|'player'|'none', id, mob, killed, x, y, z, block}
+
+// Direkt steuern
+mod.setPlayer({ x, y, z, vx, vy, vz, hp, yaw, pitch, flying, select })
+mod.setMob(id, { x, y, z, vx, vy, vz, yaw, hp, maxHp, speed, ai: false, gravity: false, burn: 3 })
+mod.setBlocks([[x, y, z, 'stone'], ...])        // bis 8192
+mod.getBlocks(x1, y1, z1, x2, y2, z2).then((r) => ...)   // {x,y,z,w,h,d, blocks: [...]} (bis 65536)
+
+// Sounds aus Dateien, Rest
+mod.loadSound('knall', 'data:audio/mpeg;base64,...')   mod.playSound('knall', 0.8, 1)   // mp3 wav ogg
+mod.tickRate(20)    mod.vibrate(50)    mod.off('frame')
+mod.on('hurt', (e) => ...)  mod.on('mobhurt', (e) => ...)  mod.on('respawn', (e) => ...)</pre></details>
       </div>
     </div>
   </div>
@@ -1410,6 +1476,8 @@ mod.key('lampe')                    // 'x_<mod>_lampe': so heißen deine Sachen 
   </div>
 </div>
 <div id="modHud" class="mod-hud" hidden></div>
+<div id="modLayer" class="mod-layer" hidden></div>
+<div id="modEls" class="mod-els"></div>
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
 <div id="notes" class="notes" aria-live="polite"></div>
@@ -1448,8 +1516,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.13.0';
+const GAME_VERSION = '2.14.0';
 const GAME_NOTES = [
+  ['2.14.0', 'Mods 4.0: eigene Zeichenfläche (Canvas) über dem Spiel, Bilder aus Dateien, Knöpfe/Bilder/Texte überall (auch neben Springen und Sprinten), Kamera (Zoom, Sichtfeld, echtes Wackeln, Blickrichtung, Hand und Anzeige aus), jede Taste und jeder Klick/Tipp, Angriff übernehmen (Tippen zum Schießen), Geschosse mit Treffern, Spieler und Kreaturen direkt steuern, viele Blöcke auf einmal lesen und setzen, eigene Sounds aus Dateien, Mods bis 200.000 Zeichen.'],
   ['2.13.0', 'Mods 3.0: eigene Blöcke mit eigenen Texturen (Pixel-Bilder oder Muster, leuchtend, Glas, Pflanzen), eigene Erze in neuen Chunks, Items mit eigenem Bild, eigene Werkzeuge und Waffen, eigene Kreaturen (Mensch, Tier, Schleim oder eigenes Modell), eigene Fenster, Anzeigen, Knöpfe und Tasten, Effekte, Töne, Daten pro Welt, Abfragen. Neue Beispiel-Mods: Jade, Tierwelt, Bau-Paket, Sammel-Aufträge. Freunde sehen die Mod-Sachen in deiner Welt. Neue Höhlen (nur in neuen Chunks): kaum noch Schluchten, 3-4 Höhlen am Spawn mit Eingängen und Eisen, riesige Höhlen hinter dem Wald, viele Höhlen-Biome. Freundemenü neu (zuletzt online oben), Mitteilung, wenn ein Freund online kommt, alle Meldungen wegwischbar, Mods-Knopf beim Erstellen einer Welt mit Installieren/Hinzufügen/Entfernen. Keine Lava-Hinweise mehr, keine Bäume in der Glutwelt.'],
   ['2.12.0', 'Mods 2.0: neues Mod-Menü (Empfohlen, Suche, Kategorien), Mods-Knopf beim Erstellen einer Welt, Testwelt im Editor, eigene Dimensionen, Items und Shop-Waren aus Mods. Admin: Spieler suchen, unsichtbar zuschauen, alle Server. Werkzeuge stapelbar, strukturierter Shop, Rubinschwert besiegt Zombies mit einem Schlag, Zombies klettern nicht mehr und bauen langsamer, bessere Baum-Sounds und Laufanimationen, Eimer holt die Wasserquelle'],
   ['2.11.0', 'Tiefere Welt (176 Blöcke), neue Weltgenerierung mit mehr Biomen, neue Höhlen mit kleinen Eingängen, Tiefenschiefer, Eis- und Moos-Höhlen, Lavafälle, Mineschächte, Einfrier-Fix'],
@@ -6181,7 +6250,7 @@ function drawTool(Bt, ms, tool, level, sky, item) {
   const box = (w, h, d, x, y, z, c, em = 0, s = sky) => Bt.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, s);
   // things from mods: their own picture, or the normal tool in the mod's color
   const mt = item && tool !== 'block' && ITEMS[item] && ITEMS[item].mod ? MODITEMTEX.get(item) : null;
-  if (mt) { drawModSprite(Bt, ms, mt, sky, !!ITEMS[item].tool); return; }
+  if (mt) { drawModSprite(Bt, ms, mt.small || mt, sky, !!ITEMS[item].tool); return; }
   const toolColor = (lv) => (item && ITEMS[item] && ITEMS[item].mod && DROP_COLOR[item] ? DROP_COLOR[item] : toolColorOf(lv));
   if (tool === 'axe') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
@@ -7713,6 +7782,7 @@ function doRespawn() {
   if (!PL.dead) return;
   $('scrDeath').hidden = true;
   respawnPlayer();
+  modEmit('respawn', { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2) });
   if (CAMC.mode === 'fp' && !touchUI()) { INPUT.lockSoft = true; requestLock('fp', true); }
 }
 function respawnPlayer() {
@@ -7727,6 +7797,7 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   dmg *= 1 - armorReduce() * (armorK === undefined ? 1 : armorK);
   PL.hp = Math.max(0, PL.hp - dmg);
   PL.lastHurt = G.playTime; PL.hurtT = 0.35;
+  if (MODRT.workers.size) modEmit('hurt', { dmg: Math.round(dmg * 10) / 10, hp: Math.round(PL.hp), fx: fromX, fz: fromZ });
   const dx = PL.x - fromX, dz = PL.z - fromZ, d = Math.hypot(dx, dz) || 1;
   if (!noPush) { PL.vx += dx / d * 6; PL.vz += dz / d * 6; PL.vy = Math.max(PL.vy, 4.5); }
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.55);
@@ -7982,6 +8053,7 @@ function updateCamera(dt) {
     eye[0] += (Math.random() - 0.5) * s; eye[1] += (Math.random() - 0.5) * s; eye[2] += (Math.random() - 0.5) * s;
     CAMC.shake = Math.max(0, CAMC.shake - dt * 2.4);
   }
+  modCamApply(dt, eye, target);
   CAM.eye = eye; CAM.target = target;
   CAM.far = SETTINGS.viewDist * CS + 80;
   CAM.underwater = getB(Math.floor(eye[0]), Math.floor(eye[1] + 0.12), Math.floor(eye[2])) === B.WATER;
@@ -8582,6 +8654,7 @@ function damageZombie(z, dmg, kx, kz, kb) {
   if (kb === undefined) kb = 3.4;
   z.hp -= dmg; z.hurtT = 0.22; z.barT = 3;
   if (z.md) { z.angry = 12; z.fleeT = 3.5; }
+  if (MODRT.workers.size) modEmit('mobhurt', { id: z.id, mob: z.md ? z.md.key : z.type, dmg: Math.round(dmg * 10) / 10, hp: Math.max(0, Math.round(z.hp)) });
   if (kb > 0.05) {
     z.vx += kx * kb; z.vz += kz * kb; z.vy = Math.max(z.vy, Math.min(3, 1.4 + kb * 0.3));
     z.stun = 0.12 + kb * 0.04;
@@ -8717,6 +8790,7 @@ function updateZombies(dt) {
     if (!chunkForBlock(Math.floor(z.x), Math.floor(z.z))) continue;
     stormPush(z, dt, false);
     if (z.type === 'wolf') { updateWolf(z, dt, tgt, dist, fires); continue; }
+    if (z.modCtl) { modMobCtl(z, dt); continue; }
     if (z.type === 'modmob') { updateModMob(z, dt, tgt, dist); continue; }
     if (z.type === 'archer') { updateArcher(z, dt, tgt, dist); continue; }
     if (z.state === 'rise') {
@@ -10933,6 +11007,7 @@ function viewPose(tool) {
   return s < 0.35 ? vpLerp(VP_REST, VP_JAB, easeOutCubic(s / 0.35)) : vpLerp(VP_JAB, VP_REST, easeInOut((s - 0.35) / 0.65));
 }
 function drawViewModel(t) {
+  if (!MODCAM.hand) return;
   if (CAMC.mode !== 'fp' || CAMC.trans < 0.6 || PL.dead || G.sleep) return;
   M4.invert(_invView, CAM.view);
   const sky = skyAt(CAM.eye[0], CAM.eye[1], CAM.eye[2]);
@@ -13121,6 +13196,9 @@ const SFX = (() => {
   const r = (a, b) => a + Math.random() * (b - a);
   const api = {
     unlock,
+    /* sounds from files inside a mod */
+    decode(buf) { if (!init()) return Promise.resolve(null); return new Promise((res) => { try { const p = ctx.decodeAudioData(buf, res, () => res(null)); if (p && p.catch) p.catch(() => res(null)); } catch (e) { res(null); } }); },
+    playBuffer(b, v, rate) { if (!ok() || !b) return; const s = ctx.createBufferSource(); s.buffer = b; s.playbackRate.value = clamp(+rate || 1, 0.25, 4); const g = ctx.createGain(); g.gain.value = clamp(v === undefined ? 0.8 : +v || 0, 0, 1); s.connect(g); g.connect(bus); s.start(); },
     /* a tone from a mod: wave form, start and end pitch, length, loudness */
     custom(type, f0, f1, dur, vol0) { tone(['sine', 'square', 'sawtooth', 'triangle'].includes(type) ? type : 'sine', clamp(+f0 || 440, 30, 4000), clamp(+f1 || +f0 || 440, 30, 4000), clamp(+dur || 0.2, 0.02, 3), clamp(vol0 === undefined ? 0.3 : +vol0 || 0, 0, 0.6)); },
     setVolume(v) { vol = v; if (master) master.gain.setTargetAtTime(v, T(), 0.05); },
@@ -13604,7 +13682,7 @@ function primaryOn(h) {
     else if (h.id === B.CHEST) { if (isStoreChest(h.x, h.y, h.z)) UI.openStore(h.x, h.y, h.z); else openChest(h.x, h.y, h.z); }
   }
 }
-function handleActions(dt) {
+function handleActionsCore(dt) {
   if (G.spectator) { G.breaking = null; G.prompt = null; return; }
   if (PL.dead || G.sleep) { G.breaking = null; G.prompt = null; return; }
   updateTouchHold();
@@ -16083,7 +16161,21 @@ const MOD_CAT_NAME = {}; for (const [k, n] of MOD_CATS) MOD_CAT_NAME[k] = n;
 const MOD_WORKER_SRC = `'use strict';
 const H = {};
 const send = (c, a) => postMessage({ c: c, a: a });
-const clone = (o) => { try { return JSON.parse(JSON.stringify(o === undefined ? null : o)); } catch (e) { return null; } };
+const clone = (o) => { try { return JSON.parse(JSON.stringify(o === undefined ? null : o, (k, v) => (ArrayBuffer.isView(v) ? Array.from(v) : v))); } catch (e) { return null; } };
+const HF = ['frame', 'pointer', 'keydown', 'keyup'];
+const SCR = { canvas: null, ctx: null, w: 0, h: 0, dpr: 1, cw: 0, ch: 0, wait: [], err: null };
+let SHOTN = 0;
+/* a data: URL (from a file in the mod) -> bytes */
+const dataBytes = (u) => {
+  u = String(u); const c = u.indexOf(',');
+  if (u.slice(0, 5) !== 'data:' || c < 0) throw new Error('Nur data:-URLs (Bild oder Sound als Text in der Mod).');
+  const head = u.slice(5, c), body = u.slice(c + 1);
+  let bin;
+  if (head.indexOf(';base64') >= 0) bin = atob(body.split(' ').join('').split(String.fromCharCode(10)).join(''));
+  else bin = decodeURIComponent(body);
+  const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i) & 255;
+  return { type: head.split(';')[0] || 'application/octet-stream', bytes: b };
+};
 const err = (e) => send('error', [String(e && e.message || e)]);
 let QN = 0; const QW = {};
 const ask = (what, args) => new Promise((res) => { const id = ++QN; QW[id] = res; send('get', [id, what, clone(args) || []]); setTimeout(() => { if (QW[id]) { delete QW[id]; res(null); } }, 5000); });
@@ -16091,7 +16183,37 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 1
 const mod = {
   id: '', data: {},
   key(id) { return 'x_' + mod.id + '_' + slug(id); },
-  on(ev, fn) { if (typeof fn === 'function') (H[ev] = H[ev] || []).push(fn); },
+  on(ev, fn) { if (typeof fn !== 'function') return; if (!H[ev] && HF.indexOf(ev) >= 0) send('listen', [ev]); (H[ev] = H[ev] || []).push(fn); },
+  off(ev, fn) { const l = H[ev]; if (!l) return; if (fn) { const i = l.indexOf(fn); if (i >= 0) l.splice(i, 1); } else l.length = 0; },
+  screen(opts) {
+    if (SCR.ctx) { if (opts) send('screen', [clone(opts) || {}]); return Promise.resolve(SCR); }
+    if (SCR.err) return Promise.resolve(null);
+    return new Promise((res) => { SCR.wait.push(res); if (SCR.wait.length === 1) send('screen', [clone(opts) || {}]); });
+  },
+  loadImage(src) { try { const d = dataBytes(src); return createImageBitmap(new Blob([d.bytes], { type: d.type })); } catch (e) { return Promise.reject(e); } },
+  async imageData(src, maxSize) {
+    const img = await mod.loadImage(src); const m = Math.max(1, Math.min(+maxSize || 64, 256));
+    const k = Math.min(1, m / Math.max(img.width, img.height)); const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+    const c = new OffscreenCanvas(w, h); const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(img, 0, 0, w, h);
+    return { w: w, h: h, rgba: Array.from(g.getImageData(0, 0, w, h).data) };
+  },
+  element(id, def) { send('element', [String(id), def === null || def === undefined ? null : clone(def)]); },
+  updateElement(id, def) { const d = clone(def) || {}; d.update = true; send('element', [String(id), d]); },
+  keyframes(name, frames) { send('keyframes', [String(name), clone(frames) || {}]); },
+  camera(def) { send('camera', [def === null ? null : clone(def) || {}]); },
+  shake(power, sec) { send('camera', [{ shake: +power || 0.5, shakeTime: sec === undefined ? 0.4 : +sec }]); },
+  captureInput(def) { send('capture', [clone(def) || {}]); },
+  shoot(def) { const id = ++SHOTN; send('shoot', [id, clone(def) || {}]); return id; },
+  setPlayer(def) { send('setplayer', [clone(def) || {}]); },
+  setMob(id, def) { send('setmob', [id | 0, clone(def) || {}]); },
+  setBlocks(list) { send('setblocks', [clone(list) || []]); },
+  getBlocks(x1, y1, z1, x2, y2, z2) { return ask('blocks', [x1, y1, z1, x2, y2, z2]); },
+  aim(sx, sy, max) { return ask('aim', [sx === undefined ? null : +sx, sy === undefined ? null : +sy, +max || 120]); },
+  raycast(from, dir, max) { return ask('ray', [clone(from), clone(dir), +max || 120]); },
+  loadSound(name, src) { try { const d = dataBytes(src); const buf = d.bytes.buffer; postMessage({ c: 'loadsound', a: [String(name), buf] }, [buf]); } catch (e) { err(e); } },
+  playSound(name, vol, rate) { send('playsound', [String(name), vol === undefined ? 0.8 : +vol, rate === undefined ? 1 : +rate]); },
+  tickRate(hz) { send('tickrate', [+hz || 4]); },
+  vibrate(ms) { send('vibrate', [ms | 0]); },
   set(k, v) { send('set', [String(k), v]); },
   toast(t) { send('toast', [String(t).slice(0, 160)]); },
   give(i, n) { send('give', [String(i), (n === undefined ? 1 : n) | 0]); },
@@ -16159,6 +16281,11 @@ self.onmessage = function (e) {
   const m = e.data || {};
   if (m.t === 'init') { mod.id = String(m.id || 'x'); mod.data = (m.data && typeof m.data === 'object') ? m.data : {}; try { (new Function('mod', m.code))(mod); } catch (e2) { err(e2); } }
   else if (m.t === 'res') { const f = QW[m.id]; if (f) { delete QW[m.id]; f(m.v); } }
+  else if (m.t === 'screen') {
+    if (m.err) { SCR.err = m.err; err(m.err); } else { SCR.canvas = m.canvas; SCR.ctx = m.canvas.getContext('2d'); SCR.w = m.w; SCR.h = m.h; SCR.dpr = m.dpr; SCR.cw = m.cw; SCR.ch = m.ch; }
+    const l = SCR.wait; SCR.wait = []; for (const f of l) f(SCR.ctx ? SCR : null);
+  }
+  else if (m.t === 'resize') { if (SCR.canvas) { SCR.canvas.width = m.w; SCR.canvas.height = m.h; SCR.w = m.w; SCR.h = m.h; SCR.dpr = m.dpr; SCR.cw = m.cw; SCR.ch = m.ch; } const l = H.resize; if (l) for (let i = 0; i < l.length; i++) { try { l[i](SCR); } catch (e2) { err(e2); } } }
   else if (m.t === 'ev') { const l = H[m.ev]; if (l) for (let i = 0; i < l.length; i++) { try { l[i](m.d); } catch (err) { send('error', [String(err && err.message || err)]); } } }
   else if (m.t === 'ping') send('pong', []);
 };`;
@@ -16288,6 +16415,7 @@ const MODRT = { workers: new Map(), url: null, tick: 0, shop: [] };
 function modWorkerURL() { if (!MODRT.url) MODRT.url = URL.createObjectURL(new Blob([MOD_WORKER_SRC], { type: 'text/javascript' })); return MODRT.url; }
 function applyMaxHp() { if (PL.maxHp !== MODFX.maxHp) { PL.maxHp = MODFX.maxHp; PL.hp = Math.min(PL.hp, PL.maxHp); } }
 function modsEnd() {
+  if (typeof modApi2End === 'function') modApi2End();
   for (const rec of MODRT.workers.values()) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } }
   MODRT.workers.clear();
   if (typeof modUiEnd === 'function') modUiEnd();
@@ -16352,7 +16480,7 @@ function registerModItem(modId, id, def) {
   ITEMS[key] = { name: d.name, mod: modId, emoji: d.emoji, color: d.color, desc: d.desc, dmg: d.dmg, use: d.use };
   if (d.tool) { ITEMS[key].tool = d.tool; ITEMS[key].level = d.tool === 'shears' ? 1 : d.tool === 'pickaxe' || d.tool === 'shovel' ? Math.min(3, d.level) : d.level; ITEMS[key].mine = d.mine; }
   MODITEMTEX.delete(key);
-  if (d.tex !== null) { const t = modParseTex(typeof d.tex === 'string' && !d.tex.startsWith('#') && !MODTEX_PATTERNS.includes(d.tex) ? { pattern: 'noise', color: col } : d.tex, col, 0); if (t && !t.tile) MODITEMTEX.set(key, modShrinkTex(t)); }
+  if (d.tex !== null) { const t = modParseTex(typeof d.tex === 'string' && !d.tex.startsWith('#') && !MODTEX_PATTERNS.includes(d.tex) ? { pattern: 'noise', color: col } : d.tex, col, 0); if (t && !t.tile) { t.small = modShrinkTex(t); MODITEMTEX.set(key, t); } }
   if (d.block !== undefined) { ITEMS[key].block = d.block; ITEMS[key].place = 'block'; }
   if (d.food > 0) FOOD[key] = { hp: d.food };
   DROP_COLOR[key] = hexToRgb(d.color);
@@ -16395,7 +16523,7 @@ function modCmd(rec, msg) {
   if (!msg || typeof msg.c !== 'string' || !Array.isArray(msg.a) || MODRT.workers.get(rec.m.id) !== rec) return;
   const now = performance.now();
   if (now - rec.t > 1000) { rec.t = now; rec.n = 0; }
-  if (++rec.n > 300 || G.state === 'menu' || G.state === 'loading' || !modsAllowed()) return;
+  if (++rec.n > 1500 || G.state === 'menu' || G.state === 'loading' || !modsAllowed()) return;
   const a = msg.a;
   const near = (x, y, z) => Math.hypot(x - PL.x, z - PL.z) <= 80 && Math.abs(y - PL.y) <= 60;
   switch (msg.c) {
@@ -16514,6 +16642,20 @@ function modCmd(rec, msg) {
     case 'title': UI.banner(String(a[0]), String(a[1] || ''), 'day'); break;
     case 'save': { let j = ''; try { j = JSON.stringify(a[0] === undefined ? null : a[0]); } catch (e) { break; } if (j.length > 65536) { console.warn('Mod "' + rec.m.name + '": Daten zu groß (max. 64 KB)'); break; } if (!W.modData) W.modData = {}; W.modData[modSlug(rec.m.id)] = j; break; }
     case 'get': rec.worker.postMessage({ t: 'res', id: a[0] | 0, v: modQuery(rec, String(a[1]), Array.isArray(a[2]) ? a[2] : []) }); break;
+    case 'listen': modListen(rec, String(a[0])); break;
+    case 'screen': modScreen(rec, a[0] || {}); break;
+    case 'element': modElement(rec, String(a[0]), a[1] === null ? null : a[1] || {}); break;
+    case 'keyframes': modKeyframes(rec, String(a[0]), a[1] || {}); break;
+    case 'camera': modCamera(a[0] === null ? null : a[0] || {}); break;
+    case 'capture': modCapture(rec, a[0] || {}); break;
+    case 'shoot': modShoot(rec, a[0] | 0, a[1] || {}); break;
+    case 'setplayer': modSetPlayer(a[0] || {}); break;
+    case 'setmob': modSetMob(a[0] | 0, a[1] || {}); break;
+    case 'setblocks': modSetBlocks(rec, a[0]); break;
+    case 'loadsound': modLoadSound(rec, String(a[0]), a[1]); break;
+    case 'playsound': { const b = rec.sounds && rec.sounds.get(String(a[0])); if (b) SFX.playBuffer(b, a[1], a[2]); break; }
+    case 'tickrate': MODRT.tickLen = 1 / clamp(+a[0] || 4, 1, 20); break;
+    case 'vibrate': { const ms = clamp(a[0] | 0, 0, 1000); if (ms && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } break; }
     case 'log': console.log('[Mod ' + rec.m.name + ']', String(a[0])); break;
     case 'error': rec.errs++; console.warn('Mod "' + rec.m.name + '" Fehler:', String(a[0])); if (rec.errs === 1 && WORLDS.current && WORLDS.current.temp) UI.toast('Fehler in deiner Mod: ' + String(a[0]).slice(0, 120), 'warn', 6000, 'moderr'); break;
   }
@@ -16550,11 +16692,12 @@ function updateMods(dt) {
   if (MODFX.regen > 0 && !PL.dead && PL.hp < PL.maxHp) PL.hp = Math.min(PL.maxHp, PL.hp + MODFX.regen * dt);
   updatePortals(dt);
   updateModEffects(dt);
+  if (MODRT.workers.size || MODSHOTS.length) modFrame(dt);
   if (MODRT.workers.size) modMobSpawns(dt);
   if (!MODRT.workers.size) return;
   MODRT.tick -= dt;
   if (MODRT.tick > 0) return;
-  MODRT.tick = 0.25;
+  MODRT.tick = MODRT.tickLen || 0.25;
   if (MODFX.infiniteItems) creativeTopUp();
   modEmit('tick', modState());
 }
@@ -16891,7 +17034,7 @@ function bindModsUI() {
     const name = $('mdName').value.trim(), code = $('mdCode').value;
     if (name.length < 3) { msg('Der Name braucht mindestens 3 Zeichen.'); return; }
     if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
-    if (code.length > 30000) { msg('Der Code ist zu lang (max. 30000 Zeichen).'); return; }
+    if (code.length > 200000) { msg('Der Code ist zu lang (max. 200000 Zeichen).'); return; }
     msg('Teste und sende …', true);
     const t = await MODS.test(code); if (!t.ok) { msg(t.msg); return; }
     const rec = { name: name.slice(0, 30), icon: ($('mdIcon').value.trim() || '🧩').slice(0, 4), desc: $('mdDesc').value.trim().slice(0, 140), cat: $('mdCat').value, code, author: NET.name, authorUid: NET.uid(), at: NET.TS() };
@@ -16991,8 +17134,13 @@ function modParseTex(spec, color, kind, tint) {
   }
   if (typeof spec !== 'object') return null;
   let w, h, px;
-  if (Array.isArray(spec.pixels) && spec.pixels.length) {
-    const rows = spec.pixels.slice(0, 32).map((r) => String(r).slice(0, 32));
+  if ((Array.isArray(spec.rgba) || (spec.rgba && typeof spec.rgba === 'object')) && spec.w > 0 && spec.h > 0) {
+    w = clamp(spec.w | 0, 1, 64); h = clamp(spec.h | 0, 1, 64);
+    const src = spec.rgba, sw = spec.w | 0;
+    px = new Uint8Array(w * h * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let k = 0; k < 4; k++) px[(y * w + x) * 4 + k] = clamp(+src[(y * sw + x) * 4 + k] || 0, 0, 255);
+  } else if (Array.isArray(spec.pixels) && spec.pixels.length) {
+    const rows = spec.pixels.slice(0, 64).map((r) => String(r).slice(0, 64));
     h = rows.length; w = Math.max(1, ...rows.map((r) => r.length));
     const pal = {};
     for (const k in spec.palette || {}) { const c = modColor(spec.palette[k]); if (c && k.length === 1) pal[k] = c; }
@@ -17628,6 +17776,9 @@ function modQuery(rec, what, a) {
       const id = getB(x, y, z);
       return id === B.AIR ? 'air' : BKEY[id] || null;
     }
+    case 'blocks': return modGetBlocks(a.slice(0, 6));
+    case 'aim': return modAim(a[0] === null || a[0] === undefined ? null : clamp(+a[0], 0, 1) * innerWidth, a[1] === null || a[1] === undefined ? null : clamp(+a[1], 0, 1) * innerHeight, a[2]);
+    case 'ray': { const o = (a[0] || []).map(Number), d = (a[1] || []).map(Number); if (o.length < 3 || d.length < 3 || ![...o, ...d].every(isFinite)) return null; const l = Math.hypot(d[0], d[1], d[2]) || 1; return modTrace(o, [d[0] / l, d[1] / l, d[2] / l], a[2]); }
     case 'top': { const x = a[0] | 0, z = a[1] | 0; const t = colTop(x, z); return t < 0 ? null : t + 1; }
     case 'player': return modState();
     case 'inventory': { const res = {}; for (const k of RES_KEYS) res[k] = G.inv[k] || 0; return { res, items: Object.assign({}, G.inv.items), hotbar: G.hotbar.slice(), held: selectedItem() || null }; }
@@ -17640,6 +17791,447 @@ function modQuery(rec, what, a) {
     case 'players': { const out = [{ name: NET.name || 'Du', x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), me: true }]; for (const u in REMOTE) { const r = REMOTE[u]; if (r.seen) out.push({ name: r.name, x: +r.x.toFixed(2), y: +r.y.toFixed(2), z: +r.z.toFixed(2) }); } return out; }
     default: return null;
   }
+}
+
+/* ---- 19tc_modapi2.js ---- */
+/* =========================================================================
+   Mod-API, dritter Teil: die offenen Bausteine, mit denen eine Mod fast
+   alles selbst bauen kann, ohne dass das Spiel jede Idee kennen muss:
+   - eine eigene Zeichenfläche über dem Spiel (Canvas, jedes Bild, jede Animation)
+   - frei platzierbare Elemente (Knöpfe, Bilder, Texte) an jeder Stelle, auch
+     neben Springen / Sprinten, mit eigenem Aussehen
+   - Kamera (Zoom, Sichtfeld, echtes Wackeln, Blickrichtung, Hand / HUD aus)
+   - Eingaben: jede Taste, jeder Klick / jedes Tippen, Angriff und Benutzen
+     übernehmen (z. B. Tippen zum Schießen)
+   - Geschosse, Spieler und Kreaturen direkt steuern, Blöcke in Mengen
+     lesen und setzen, Zielstrahl, eigene Sounds aus Dateien
+   Alles läuft weiter nur in eigenen Welten. Mods sehen nichts von der Seite,
+   vom Konto oder vom Netz.
+   ========================================================================= */
+const MODCAM = { zoom: 1, fov: 0, shake: 0, shakeDecay: 2.4, hand: true, hud: true, cross: true };
+const MODIN = { attack: null, use: null, aHeld: false, uHeld: false };
+const MODLISTEN = new Map();      // event -> Set(rec): events that come very often (frame, pointer, keys)
+const MODSHOTS = [];
+const MODEL = new Map();          // 'mod/id' -> { el, def, rec }
+const MOD_HF = ['frame', 'pointer', 'keydown', 'keyup'];
+const MOD_ANCHOR_EL = { jump: 'tJump', sprint: 'tSprint', attack: 'tAtk', use: 'tUse', drop: 'tDrop', action: 'tAct', hotbar: 'hotbar', bag: 'btnBag', pause: 'btnPause', hp: 'hp' };
+const MOD_CSS_OK = ['color', 'background', 'backgroundColor', 'border', 'borderRadius', 'fontSize', 'fontWeight', 'fontStyle', 'opacity', 'padding', 'textAlign', 'boxShadow', 'transform', 'transformOrigin', 'transition', 'letterSpacing', 'lineHeight', 'textShadow', 'outline', 'objectFit', 'imageRendering', 'filter', 'mixBlendMode', 'whiteSpace', 'display', 'alignItems', 'justifyContent', 'gap', 'animation', 'zIndex', 'cursor', 'backdropFilter', 'textTransform', 'borderTop', 'borderBottom', 'borderLeft', 'borderRight', 'clipPath', 'rotate', 'scale', 'translate'];
+let MOD_KF = null;
+
+function modPost(rec, msg, transfer) { if (MODRT.workers.get(rec.m.id) === rec) { try { rec.worker.postMessage(msg, transfer || []); } catch (e) { /* ignore */ } } }
+function modEmitHF(ev, d) { const l = MODLISTEN.get(ev); if (!l || !l.size) return; for (const rec of l) modPost(rec, { t: 'ev', ev, d }); }
+function modListen(rec, ev) { if (!MOD_HF.includes(ev)) return; let l = MODLISTEN.get(ev); if (!l) MODLISTEN.set(ev, l = new Set()); l.add(rec); }
+
+/* ---------- Zeichenfläche ---------- */
+function modScreenSize() { const dpr = Math.min(2, window.devicePixelRatio || 1); return { w: Math.max(1, Math.round(innerWidth * dpr)), h: Math.max(1, Math.round(innerHeight * dpr)), dpr }; }
+function modScreen(rec, o) {
+  o = o || {};
+  if (rec.canvas) { rec.canvas.style.zIndex = o.top ? 7 : 4; return; }
+  const cv = document.createElement('canvas');
+  if (!cv.transferControlToOffscreen) { modPost(rec, { t: 'screen', err: 'Dein Browser kann keine Mod-Zeichenfläche (OffscreenCanvas fehlt).' }); return; }
+  cv.className = 'mod-screen'; cv.style.zIndex = o.top ? 7 : 4;
+  const s = modScreenSize(); cv.width = s.w; cv.height = s.h;
+  $('modLayer').appendChild(cv);
+  rec.canvas = cv;
+  const off = cv.transferControlToOffscreen();
+  modPost(rec, { t: 'screen', canvas: off, w: s.w, h: s.h, dpr: s.dpr, cw: innerWidth, ch: innerHeight }, [off]);
+}
+function modResize() {
+  const s = modScreenSize();
+  for (const rec of MODRT.workers.values()) if (rec.canvas) modPost(rec, { t: 'resize', w: s.w, h: s.h, dpr: s.dpr, cw: innerWidth, ch: innerHeight });
+  for (const o of MODEL.values()) modLayoutEl(o);
+}
+window.addEventListener('resize', () => { if (MODRT.workers.size) modResize(); });
+
+/* ---------- freie Elemente ---------- */
+function modCssLen(v, def) {
+  if (v === undefined || v === null || v === '') return def;
+  if (typeof v === 'number' && isFinite(v)) return clamp(v, -5000, 5000) + 'px';
+  const s = String(v).trim();
+  return /^-?\d+(\.\d+)?(px|%|vw|vh|vmin|vmax|em|rem)$/.test(s) ? s : def;
+}
+function modCssVal(v) {
+  const s = String(v === undefined || v === null ? '' : v).slice(0, 160);
+  return /url\s*\(|expression|javascript:|@import|image-set|[<>\\]/i.test(s) ? null : s;
+}
+const MOD_IMG_RE = /^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=\s]+$/;
+function modElement(rec, id, def) {
+  const k = rec.m.id + '/' + String(id).slice(0, 40);
+  let o = MODEL.get(k);
+  if (def === null) { if (o) { o.el.remove(); MODEL.delete(k); } return; }
+  def = def || {};
+  if (o && def.update) { Object.assign(o.def, def); def = o.def; }
+  if (!o) {
+    if ([...MODEL.keys()].filter((q) => q.startsWith(rec.m.id + '/')).length >= 64) return;
+    o = { el: null, def, rec, id: String(id).slice(0, 40), kind: '' };
+    MODEL.set(k, o);
+  }
+  o.def = def;
+  const type = ['button', 'text', 'image', 'box', 'bar'].includes(def.type) ? def.type : 'box';
+  if (!o.el || o.kind !== type) {
+    if (o.el) o.el.remove();
+    const el = document.createElement(type === 'button' ? 'button' : 'div');
+    if (type === 'button') el.type = 'button';
+    el.className = 'mod-el mod-' + type;
+    const send = (t, e) => { modPost(rec, { t: 'ev', ev: 'element', d: { id: o.id, type: t, x: e && e.clientX !== undefined ? +(e.clientX / innerWidth).toFixed(4) : null, y: e && e.clientY !== undefined ? +(e.clientY / innerHeight).toFixed(4) : null } }); };
+    el.addEventListener('pointerdown', (e) => { if (!o.def.clickable && type !== 'button') return; e.stopPropagation(); e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } el.classList.add('down'); send('down', e); });
+    el.addEventListener('pointerup', (e) => { if (!o.def.clickable && type !== 'button') return; e.stopPropagation(); e.preventDefault(); el.classList.remove('down'); send('up', e); send('click', e); });
+    el.addEventListener('pointercancel', (e) => { el.classList.remove('down'); send('up', e); });
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+    $('modEls').appendChild(el);
+    o.el = el; o.kind = type;
+  }
+  const el = o.el;
+  el.style.cssText = '';
+  el.innerHTML = '';
+  // Inhalt: Bild (data:-Bild oder Textur), Text, Balken
+  if (def.image !== undefined && def.image !== null) {
+    let img = null;
+    if (typeof def.image === 'string' && MOD_IMG_RE.test(def.image) && def.image.length < 3e6) { img = document.createElement('img'); img.src = def.image; img.draggable = false; }
+    else { const t = modParseTex(def.image, '#ffffff', 0); if (t && !t.tile) { img = document.createElement('canvas'); img.width = t.w; img.height = t.h; img.getContext('2d').drawImage(modTexCanvas(t), 0, 0); img.style.imageRendering = 'pixelated'; } }
+    if (img) { img.className = 'mod-img'; el.appendChild(img); }
+  }
+  if (def.text !== undefined && def.text !== null && def.text !== '') { const sp = document.createElement('span'); sp.textContent = String(def.text).slice(0, 400); el.appendChild(sp); }
+  if (type === 'bar') { const b = document.createElement('i'); b.className = 'mod-barfill'; b.style.width = clamp(+def.value || 0, 0, 1) * 100 + '%'; const c = modCssVal(def.fill); if (c) b.style.background = c; el.appendChild(b); }
+  el.style.width = modCssLen(def.w, '');
+  el.style.height = modCssLen(def.h, '');
+  for (const p in def.style || {}) { if (!MOD_CSS_OK.includes(p)) continue; const v = modCssVal(def.style[p]); if (v !== null) el.style[p] = v; }
+  if (def.pass) el.style.pointerEvents = 'none';
+  else if (type === 'button' || def.clickable) el.style.pointerEvents = 'auto';
+  modLayoutEl(o);
+}
+function modLayoutEl(o) {
+  const d = o.def, el = o.el; if (!el) return;
+  const t = touchUI();
+  const vis = d.visible !== false && (!d.touch || t) && (!d.desktop || !t) && G.state !== 'menu' && G.state !== 'loading';
+  el.hidden = !vis; if (!vis) return;
+  const x = +d.x || 0, y = +d.y || 0;
+  const st = el.style;
+  st.left = st.top = st.right = st.bottom = '';
+  let tr = '';
+  let a = String(d.anchor || 'tl');
+  const refId = MOD_ANCHOR_EL[a];
+  if (refId) {
+    const ref = $(refId), r = ref && !ref.hidden && ref.offsetParent !== null ? ref.getBoundingClientRect() : null;
+    if (r && r.width > 0) {
+      const ew = el.offsetWidth, eh = el.offsetHeight, gap = d.gap === undefined ? 10 : +d.gap || 0;
+      let lx = r.left + x, ly = r.top + y;
+      if (d.side === 'left') { lx = r.left - ew - gap + x; ly = r.top + (r.height - eh) / 2 + y; }
+      else if (d.side === 'right') { lx = r.right + gap + x; ly = r.top + (r.height - eh) / 2 + y; }
+      else if (d.side === 'above') { lx = r.left + (r.width - ew) / 2 + x; ly = r.top - eh - gap + y; }
+      else if (d.side === 'below') { lx = r.left + (r.width - ew) / 2 + x; ly = r.bottom + gap + y; }
+      else if (d.side === 'center') { lx = r.left + (r.width - ew) / 2 + x; ly = r.top + (r.height - eh) / 2 + y; }
+      st.left = lx + 'px'; st.top = ly + 'px';
+      return;
+    }
+    a = d.fallback || 'br';
+  }
+  const X = modCssLen(d.x, '0px'), Y = modCssLen(d.y, '0px');
+  if (a === 'tl') { st.left = X; st.top = Y; }
+  else if (a === 'tr') { st.right = X; st.top = Y; }
+  else if (a === 'bl') { st.left = X; st.bottom = Y; }
+  else if (a === 'br') { st.right = X; st.bottom = Y; }
+  else if (a === 't') { st.left = 'calc(50% + ' + X + ')'; st.top = Y; tr = 'translateX(-50%)'; }
+  else if (a === 'b') { st.left = 'calc(50% + ' + X + ')'; st.bottom = Y; tr = 'translateX(-50%)'; }
+  else if (a === 'l') { st.left = X; st.top = 'calc(50% + ' + Y + ')'; tr = 'translateY(-50%)'; }
+  else if (a === 'r') { st.right = X; st.top = 'calc(50% + ' + Y + ')'; tr = 'translateY(-50%)'; }
+  else { st.left = 'calc(50% + ' + X + ')'; st.top = 'calc(50% + ' + Y + ')'; tr = 'translate(-50%, -50%)'; }
+  const ut = d.style && d.style.transform ? modCssVal(d.style.transform) : '';
+  st.transform = (tr + ' ' + (ut || '')).trim();
+}
+/* own CSS animations (keyframes) of a mod: only safe properties */
+function modKeyframes(rec, name, frames) {
+  if (!MOD_KF) { MOD_KF = document.createElement('style'); document.head.appendChild(MOD_KF); }
+  name = 'm_' + modSlug(rec.m.id) + '_' + String(name).replace(/[^a-z0-9]/gi, '').slice(0, 20);
+  let css = '@keyframes ' + name + ' {';
+  for (const at in frames || {}) {
+    if (!/^(from|to|\d{1,3}%)$/.test(at)) continue;
+    css += at + ' {';
+    for (const p in frames[at]) { if (!MOD_CSS_OK.includes(p)) continue; const v = modCssVal(frames[at][p]); if (v !== null) css += p.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()) + ':' + v + ';'; }
+    css += '}';
+  }
+  css += '}';
+  if (MOD_KF.textContent.length < 200000) MOD_KF.textContent += css + '\n';
+}
+
+/* ---------- Kamera ---------- */
+function modCamera(def) {
+  if (def === null) { Object.assign(MODCAM, { zoom: 1, fov: 0, shake: 0, shakeDecay: 2.4, hand: true, hud: true, cross: true }); modHudVis(); return; }
+  def = def || {};
+  if (def.zoom !== undefined) MODCAM.zoom = clamp(+def.zoom || 1, 0.2, 30);
+  if (def.fov !== undefined) MODCAM.fov = def.fov ? clamp(+def.fov || 70, 5, 160) : 0;
+  if (def.shake !== undefined) MODCAM.shake = Math.max(MODCAM.shake, clamp(+def.shake || 0, 0, 1.5));
+  if (def.shakeTime !== undefined) MODCAM.shakeDecay = 1 / clamp(+def.shakeTime || 0.4, 0.05, 10);
+  if (def.hand !== undefined) MODCAM.hand = !!def.hand;
+  if (def.hud !== undefined) MODCAM.hud = !!def.hud;
+  if (def.crosshair !== undefined) MODCAM.cross = !!def.crosshair;
+  if (def.mode === 'fp' || def.mode === 'tp') setCamMode(def.mode === 'fp' ? 'fp' : 'drone');
+  if (Array.isArray(def.lookAt) && def.lookAt.slice(0, 3).every((v) => isFinite(+v))) {
+    const dx = def.lookAt[0] - PL.x, dy = def.lookAt[1] - (PL.y + 1.62), dz = def.lookAt[2] - PL.z;
+    def.yaw = Math.atan2(-dx, -dz); def.pitch = Math.atan2(dy, Math.hypot(dx, dz));
+  }
+  if (def.yaw !== undefined && isFinite(+def.yaw)) { if (CAMC.mode === 'fp') CAMC.fpYaw = +def.yaw; else CAMC.yaw = +def.yaw; }
+  if (def.pitch !== undefined && isFinite(+def.pitch)) { if (CAMC.mode === 'fp') CAMC.fpPitch = clamp(+def.pitch, -1.5, 1.5); }
+  modHudVis();
+}
+function modHudVis() {
+  for (const id of ['hud', 'hp', 'modHud']) { const e = $(id); if (e) e.classList.toggle('modhide', !MODCAM.hud); }
+  const c = $('cross'); if (c) c.classList.toggle('modhide', !MODCAM.cross);
+}
+/* called by updateCamera, right before the camera is used */
+function modCamApply(dt, eye, target) {
+  if (MODCAM.fov) CAM.fov = MODCAM.fov * Math.PI / 180;
+  if (MODCAM.zoom !== 1) CAM.fov = 2 * Math.atan(Math.tan(CAM.fov / 2) / MODCAM.zoom);
+  if (MODCAM.shake > 0) {
+    const s = MODCAM.shake * MODCAM.shake * 0.3;
+    for (let k = 0; k < 3; k++) { eye[k] += (Math.random() - 0.5) * s; target[k] += (Math.random() - 0.5) * s * 1.6; }
+    MODCAM.shake = Math.max(0, MODCAM.shake - dt * MODCAM.shakeDecay);
+  }
+}
+
+/* ---------- Zielen ---------- */
+function modAimRay(px, py) {
+  if (px !== undefined && px !== null && !(CAMC.mode === 'fp' && (INPUT.locked || touchUI() && SETTINGS.touch === 'cross'))) return screenRay(px, py);
+  const d = [CAM.target[0] - CAM.eye[0], CAM.target[1] - CAM.eye[1], CAM.target[2] - CAM.eye[2]];
+  const l = Math.hypot(d[0], d[1], d[2]) || 1;
+  return { o: CAM.eye.slice(), d: [d[0] / l, d[1] / l, d[2] / l] };
+}
+function modTrace(o, d, max) {
+  max = clamp(+max || 120, 1, 300);
+  const b = raycast(o[0], o[1], o[2], d[0], d[1], d[2], max, (id) => SOLID[id] || KIND[id] === K_PLANT || id === B.WATER);
+  let best = b ? { type: 'block', x: b.x, y: b.y, z: b.z, nx: b.nx, ny: b.ny, nz: b.nz, block: BKEY[b.id] || 'air', dist: +b.t.toFixed(3) } : null;
+  let bt = b ? b.t : max;
+  for (const z of G.zombies) {
+    if (z.state === 'die') continue;
+    const hw = z.hw || 0.35, h = z.h || 1.9;
+    const t = rayAabb(o[0], o[1], o[2], d[0], d[1], d[2], z.x - hw - 0.1, z.y, z.z - hw - 0.1, z.x + hw + 0.1, z.y + h + 0.1, z.z + hw + 0.1);
+    if (t >= 0 && t < bt) { bt = t; best = { type: 'mob', id: z.id, mob: z.md ? z.md.key : z.type, x: +(o[0] + d[0] * t).toFixed(3), y: +(o[1] + d[1] * t).toFixed(3), z: +(o[2] + d[2] * t).toFixed(3), dist: +t.toFixed(3) }; }
+  }
+  return best;
+}
+function modAim(px, py, max) {
+  const r = modAimRay(px, py);
+  return { eye: r.o.map((v) => +v.toFixed(3)), dir: r.d.map((v) => +v.toFixed(4)), x: px !== undefined && px !== null ? +(px / innerWidth).toFixed(4) : 0.5, y: px !== undefined && px !== null ? +(py / innerHeight).toFixed(4) : 0.5, hit: modTrace(r.o, r.d, max) };
+}
+
+/* ---------- Eingaben ---------- */
+/* the game's own handling of clicks and taps; a mod that took attack / use gets them instead */
+function handleActions(dt) {
+  const cap = modInputPre();
+  handleActionsCore(dt);
+  if (cap) INPUT.primaryHeld = cap.ph;
+}
+function modInputPre() {
+  if ((!MODIN.attack && !MODIN.use) || G.spectator || PL.dead || G.sleep) return null;
+  const s = { ph: INPUT.primaryHeld };
+  const ptr = INPUT.hasPointer ? INPUT.pointer : null;
+  if (MODIN.attack) {
+    const rec = MODIN.attack;
+    if (INPUT.tapMode === 'tap') { INPUT.tapMode = null; modPost(rec, { t: 'ev', ev: 'attack', d: Object.assign({ type: 'tap' }, modAim(ptr ? ptr[0] : null, ptr ? ptr[1] : null)) }); }
+    if (INPUT.primaryPressed) modPost(rec, { t: 'ev', ev: 'attack', d: Object.assign({ type: 'down' }, modAim(ptr ? ptr[0] : null, ptr ? ptr[1] : null)) });
+    else if (MODIN.aHeld && !INPUT.primaryHeld) modPost(rec, { t: 'ev', ev: 'attack', d: { type: 'up' } });
+    MODIN.aHeld = INPUT.primaryHeld;
+    INPUT.primaryPressed = false; INPUT.primaryHeld = false;
+  }
+  if (MODIN.use) {
+    if (INPUT.secondaryPressed) modPost(MODIN.use, { t: 'ev', ev: 'useaction', d: Object.assign({ type: 'down' }, modAim(ptr ? ptr[0] : null, ptr ? ptr[1] : null)) });
+    INPUT.secondaryPressed = false;
+  }
+  return s;
+}
+function modCapture(rec, def) {
+  def = def || {};
+  if (def.attack !== undefined) { if (def.attack) MODIN.attack = rec; else if (MODIN.attack === rec) MODIN.attack = null; MODIN.aHeld = false; }
+  if (def.use !== undefined) { if (def.use) MODIN.use = rec; else if (MODIN.use === rec) MODIN.use = null; }
+}
+/* raw input for the mods that listen: every pointer and every key (read only) */
+const MODPTR = { move: null };
+function modPointer(e, type) {
+  if (!MODLISTEN.get('pointer') || !MODLISTEN.get('pointer').size || G.state !== 'playing') return;
+  const d = { type, x: +(e.clientX / innerWidth).toFixed(4), y: +(e.clientY / innerHeight).toFixed(4), button: e.button | 0, touch: e.pointerType === 'touch', id: e.pointerId | 0, locked: !!INPUT.locked, dx: e.movementX | 0, dy: e.movementY | 0 };
+  if (type === 'move') { if (MODPTR.move) { MODPTR.move.dx += d.dx; MODPTR.move.dy += d.dy; MODPTR.move.x = d.x; MODPTR.move.y = d.y; } else MODPTR.move = d; return; }
+  modEmitHF('pointer', d);
+}
+window.addEventListener('pointerdown', (e) => modPointer(e, 'down'), true);
+window.addEventListener('pointerup', (e) => modPointer(e, 'up'), true);
+window.addEventListener('pointermove', (e) => modPointer(e, 'move'), true);
+function modKeyEv(e, type) {
+  if (!MODRT.workers.size || G.state !== 'playing') return;
+  const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+  modEmitHF(type, { code: e.code, key: String(e.key).slice(0, 12), repeat: !!e.repeat, shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey });
+}
+window.addEventListener('keydown', (e) => modKeyEv(e, 'keydown'));
+window.addEventListener('keyup', (e) => modKeyEv(e, 'keyup'));
+
+/* ---------- Geschosse ---------- */
+function modShoot(rec, id, def) {
+  if (MODSHOTS.length >= 300) return;
+  def = def || {};
+  let o, d;
+  if (Array.isArray(def.from) && Array.isArray(def.dir) && def.from.concat(def.dir).slice(0, 6).every((v) => isFinite(+v))) { o = def.from.map(Number); d = def.dir.map(Number); }
+  else { const r = modAimRay(def.screenX !== undefined ? def.screenX * innerWidth : null, def.screenY !== undefined ? def.screenY * innerHeight : null); o = r.o; d = r.d; }
+  const l = Math.hypot(d[0], d[1], d[2]) || 1; d = [d[0] / l, d[1] / l, d[2] / l];
+  if (Math.hypot(o[0] - PL.x, o[2] - PL.z) > 96) return;
+  const sp = clamp(def.speed === undefined ? 70 : +def.speed || 1, 1, 400);
+  const spr = clamp(+def.spread || 0, 0, 0.5);
+  if (spr) { d = [d[0] + (Math.random() - 0.5) * spr, d[1] + (Math.random() - 0.5) * spr, d[2] + (Math.random() - 0.5) * spr]; const l2 = Math.hypot(d[0], d[1], d[2]) || 1; d = [d[0] / l2, d[1] / l2, d[2] / l2]; }
+  MODSHOTS.push({
+    rec, id, x: o[0] + d[0] * 0.5, y: o[1] + d[1] * 0.5, z: o[2] + d[2] * 0.5, vx: d[0] * sp, vy: d[1] * sp, vz: d[2] * sp,
+    g: clamp(+def.gravity || 0, -40, 60), dmg: clamp(def.damage === undefined ? 10 : +def.damage || 0, 0, 5000), left: clamp(def.range === undefined ? 150 : +def.range || 1, 1, 400),
+    size: clamp(def.size === undefined ? 0.07 : +def.size || 0.02, 0.01, 1), col: /^#[0-9a-f]{6}$/i.test(String(def.color || '')) ? hexToRgb(def.color) : [1, 0.85, 0.4],
+    boom: clamp(+def.explode || 0, 0, 4), pierce: clamp(def.pierce === true ? 99 : def.pierce | 0, 0, 99), kb: clamp(def.knockback === undefined ? 1.5 : +def.knockback || 0, 0, 20),
+    breaks: !!def.breakBlocks, trail: def.trail !== false, glow: def.glow !== false, hitSet: new Set(), hurtsPlayer: !!def.hurtsPlayer,
+  });
+}
+function updateModShots(dt) {
+  for (let i = MODSHOTS.length - 1; i >= 0; i--) {
+    const s = MODSHOTS[i];
+    if (MODRT.workers.get(s.rec.m.id) !== s.rec) { MODSHOTS.splice(i, 1); continue; }
+    s.vy -= s.g * dt;
+    const sp = Math.hypot(s.vx, s.vy, s.vz) * dt;
+    const n = Math.max(1, Math.ceil(sp / 0.3));
+    let done = false;
+    for (let k = 0; k < n && !done; k++) {
+      s.x += s.vx * dt / n; s.y += s.vy * dt / n; s.z += s.vz * dt / n; s.left -= sp / n;
+      if (s.left <= 0 || s.y < 0 || s.y > WY + 40) { done = true; modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'none', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } }); break; }
+      const bx = Math.floor(s.x), by = Math.floor(s.y), bz = Math.floor(s.z);
+      const id = chunkForBlock(bx, bz) ? getB(bx, by, bz) : B.AIR;
+      if (SOLID[id]) {
+        done = true;
+        if (s.breaks && id !== B.BEDROCK && !W.prot.has(I(bx, by, bz)) && KIND[id] !== K_OBJ && id !== B.LAVA) { breakBlockAt(bx, by, bz, false); }
+        if (s.boom) modExplode(s.x, s.y, s.z, s.boom);
+        burst(s.x, s.y, s.z, 6, BCOLOR[id] || [0.6, 0.6, 0.6], { speed: 2, up: 1.5, life: 0.5, size: 0.06, spread: 0.3 });
+        modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'block', x: bx, y: by, z: bz, block: BKEY[id] || '', px: +s.x.toFixed(2), py: +s.y.toFixed(2), pz: +s.z.toFixed(2) } });
+        break;
+      }
+      for (const z of G.zombies) {
+        if (z.state === 'die' || s.hitSet.has(z.id)) continue;
+        const hw = (z.hw || 0.35) + s.size;
+        if (s.x > z.x - hw && s.x < z.x + hw && s.z > z.z - hw && s.z < z.z + hw && s.y > z.y - s.size && s.y < z.y + (z.h || 1.9) + s.size) {
+          s.hitSet.add(z.id);
+          const l = Math.hypot(s.vx, s.vz) || 1;
+          damageZombie(z, s.dmg * MODFX.dmg, s.vx / l, s.vz / l, s.kb);
+          if (z.state === 'die') G.stats.zombies++;
+          burst(s.x, s.y, s.z, 8, [[0.75, 0.12, 0.1], [0.5, 0.08, 0.06]], { speed: 2, up: 2, life: 0.6, size: 0.07 });
+          modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'mob', id: z.id, mob: z.md ? z.md.key : z.type, killed: z.state === 'die', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
+          if (s.boom) modExplode(s.x, s.y, s.z, s.boom);
+          if (s.pierce-- <= 0) { done = true; break; }
+        }
+      }
+      if (!done && s.hurtsPlayer && Math.abs(s.x - PL.x) < 0.4 && Math.abs(s.z - PL.z) < 0.4 && s.y > PL.y && s.y < PL.y + 1.8) {
+        hurtPlayer(s.dmg, s.x - s.vx, s.z - s.vz); done = true;
+        modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'player', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
+      }
+    }
+    if (s.trail) spawnPart({ x: s.x, y: s.y, z: s.z, vx: 0, vy: 0, vz: 0, life: 0.14, size: s.size, r: s.col[0], g: s.col[1], b: s.col[2], em: s.glow ? 1 : 0, grav: 0, drag: 0 });
+    if (done) MODSHOTS.splice(i, 1);
+  }
+}
+
+/* ---------- Spieler und Kreaturen direkt steuern ---------- */
+function modSetPlayer(def) {
+  def = def || {};
+  const num = (v) => v !== undefined && v !== null && isFinite(+v);
+  if (num(def.x) && num(def.y) && num(def.z)) {
+    const x = +def.x, y = +def.y, z = +def.z;
+    if (Math.abs(x) < WLIM && Math.abs(z) < WLIM && (dimAt(x, z) || null) === (CURDIM || null)) { PL.x = x; PL.y = clamp(y, 2, WY - 4); PL.z = z; PL.fallTop = PL.fallTopPrev = PL.y; }
+  }
+  if (num(def.vx)) PL.vx = clamp(+def.vx, -80, 80);
+  if (num(def.vy)) { PL.vy = clamp(+def.vy, -80, 80); if (PL.vy > 0) PL.onGround = false; PL.fallTop = PL.fallTopPrev = PL.y; }
+  if (num(def.vz)) PL.vz = clamp(+def.vz, -80, 80);
+  if (num(def.hp) && !PL.dead) PL.hp = clamp(+def.hp, 0, PL.maxHp);
+  if (num(def.yaw)) { if (CAMC.mode === 'fp') CAMC.fpYaw = +def.yaw; else CAMC.yaw = +def.yaw; }
+  if (num(def.pitch) && CAMC.mode === 'fp') CAMC.fpPitch = clamp(+def.pitch, -1.5, 1.5);
+  if (def.flying !== undefined && MODFX.fly) PL.flying = !!def.flying;
+  if (def.select !== undefined && isFinite(+def.select)) UI.select(clamp(def.select | 0, -1, 9));
+}
+function modSetMob(id, def) {
+  const z = G.zombies.find((q) => q.id === (id | 0)); if (!z || z.state === 'die' || Math.hypot(z.x - PL.x, z.z - PL.z) > 96) return;
+  def = def || {};
+  const num = (v) => v !== undefined && v !== null && isFinite(+v);
+  if (num(def.x) && num(def.y) && num(def.z) && Math.hypot(+def.x - PL.x, +def.z - PL.z) < 96 && (dimAt(+def.x, +def.z) || null) === (CURDIM || null)) { z.x = +def.x; z.y = clamp(+def.y, 1, WY - 3); z.z = +def.z; }
+  if (num(def.vx)) z.vx = clamp(+def.vx, -60, 60);
+  if (num(def.vy)) z.vy = clamp(+def.vy, -60, 60);
+  if (num(def.vz)) z.vz = clamp(+def.vz, -60, 60);
+  if (num(def.yaw)) z.yaw = +def.yaw;
+  if (num(def.maxHp)) z.maxHp = clamp(+def.maxHp, 1, 100000);
+  if (num(def.hp)) { const h = clamp(+def.hp, 0, z.maxHp); if (h <= 0) damageZombie(z, z.hp + 1, 0, 0, 0); else z.hp = h; }
+  if (num(def.speed)) z.speed = clamp(+def.speed, 0, 12);
+  if (def.ai !== undefined) z.modCtl = !def.ai;
+  if (def.gravity !== undefined) z.modNoGrav = !def.gravity;
+  if (def.burn) z.burning = clamp(+def.burn || 3, 0.1, 30);
+}
+/* a mob the mod steers itself (ai: false): only physics, the mod moves it */
+function modMobCtl(z, dt) {
+  if (z.hurtT > 0) z.hurtT -= dt;
+  if (!z.modNoGrav) z.vy -= 28 * dt; else z.vy *= Math.exp(-2 * dt);
+  moveBody(z, z.vx * dt, z.vy * dt, z.vz * dt, 1.02);
+  z.stepOffset = damp(z.stepOffset || 0, 0, 10, dt);
+  const hs = Math.hypot(z.vx, z.vz);
+  z.walkAmt = damp(z.walkAmt || 0, clamp(hs / 2.3, 0, 1.2), 8, dt); z.walkPhase = (z.walkPhase || 0) + dt * hs * 2.2;
+  z.vx *= Math.exp(-(z.onGround ? 4 : 0.5) * dt); z.vz *= Math.exp(-(z.onGround ? 4 : 0.5) * dt);
+}
+
+/* ---------- Blöcke in Mengen ---------- */
+function modBlockOk(id) {
+  if (id === undefined) return false;
+  const k = KIND[id];
+  return (id === B.AIR || id === B.WATER || k === K_CUBE || k === K_GLASS || k === K_PLANT) && id !== B.BEDROCK && id !== B.LAVA;
+}
+function modSetOne(x, y, z, id) {
+  if (!inWorld(x, y, z) || y < 1 || y >= WY - 2 || !chunkForBlock(x, z)) return;
+  if (Math.hypot(x - PL.x, z - PL.z) > 96) return;
+  const cur = getB(x, y, z);
+  if (cur === B.BEDROCK || W.prot.has(I(x, y, z)) || KIND[cur] === K_OBJ) return;
+  setBlock(x, y, z, id, null);
+  if (MP.active()) MP.send({ t: 'plc', x, y, z, id });
+}
+function modSetBlocks(rec, list) {
+  if (!Array.isArray(list)) return;
+  for (const e of list.slice(0, 8192)) { if (!Array.isArray(e)) continue; const id = modBlockId(rec.m.id, e[3]); if (modBlockOk(id)) modSetOne(e[0] | 0, e[1] | 0, e[2] | 0, id); }
+}
+function modGetBlocks(a) {
+  let [x0, y0, z0, x1, y1, z1] = a.map((v) => v | 0);
+  if (x1 < x0) [x0, x1] = [x1, x0]; if (y1 < y0) [y0, y1] = [y1, y0]; if (z1 < z0) [z0, z1] = [z1, z0];
+  if ((x1 - x0 + 1) * (y1 - y0 + 1) * (z1 - z0 + 1) > 65536) return null;
+  const out = [];
+  for (let y = y0; y <= y1; y++) for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) { if (!chunkForBlock(x, z) || y < 0 || y >= WY) { out.push(null); continue; } const id = getB(x, y, z); out.push(id === B.AIR ? 'air' : BKEY[id] || null); }
+  return { x: x0, y: y0, z: z0, w: x1 - x0 + 1, h: y1 - y0 + 1, d: z1 - z0 + 1, blocks: out };
+}
+
+/* ---------- eigene Sounds (aus Dateien in der Mod) ---------- */
+async function modLoadSound(rec, name, buf) {
+  if (!(buf instanceof ArrayBuffer) || buf.byteLength > 4e6) return;
+  if (!rec.sounds) rec.sounds = new Map();
+  if (rec.sounds.size >= 48 && !rec.sounds.has(name)) return;
+  const b = await SFX.decode(buf);
+  if (b) rec.sounds.set(String(name).slice(0, 40), b);
+}
+
+/* ---------- jeden Frame ---------- */
+function modFrame(dt) {
+  updateModShots(dt);
+  const lay = $('modLayer');
+  if (lay) lay.hidden = G.state === 'menu' || G.state === 'loading';
+  MODRT.layT = (MODRT.layT || 0) - dt;
+  if (MODRT.layT <= 0 && MODEL.size) { MODRT.layT = 0.4; for (const o of MODEL.values()) modLayoutEl(o); }
+  if (MODPTR.move) { const m = MODPTR.move; MODPTR.move = null; modEmitHF('pointer', m); }
+  const l = MODLISTEN.get('frame');
+  if (l && l.size) {
+    const d = { dt: +dt.toFixed(4), t: +G.playTime.toFixed(3), x: +PL.x.toFixed(3), y: +PL.y.toFixed(3), z: +PL.z.toFixed(3), vx: +PL.vx.toFixed(3), vy: +PL.vy.toFixed(3), vz: +PL.vz.toFixed(3), yaw: +(CAMC.mode === 'fp' ? CAMC.fpYaw : CAMC.yaw).toFixed(4), pitch: +(CAMC.mode === 'fp' ? CAMC.fpPitch : 0).toFixed(4), cam: CAMC.mode === 'fp' ? 'fp' : 'tp', onGround: !!PL.onGround, held: selectedItem() || null, hp: Math.round(PL.hp), w: innerWidth, h: innerHeight, touch: touchUI() };
+    modEmitHF('frame', d);
+  }
+}
+function modApi2End() {
+  for (const rec of MODRT.workers.values()) if (rec.canvas) { rec.canvas.remove(); rec.canvas = null; }
+  if ($('modLayer')) $('modLayer').innerHTML = '';
+  for (const o of MODEL.values()) o.el.remove();
+  MODEL.clear(); MODLISTEN.clear(); MODSHOTS.length = 0;
+  MODIN.attack = MODIN.use = null; MODIN.aHeld = false;
+  modCamera(null);
+  MODRT.tickLen = 0.25;
+  if (MOD_KF) MOD_KF.textContent = '';
+  for (const z of G.zombies) { z.modCtl = false; z.modNoGrav = false; }
 }
 
 /* ---- 19u_dims.js ---- */
