@@ -1237,7 +1237,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="sec-t">Mitglieder</p>
       <button class="btn primary" id="saInvite" type="button">Leute hinzufügen</button>
       <p class="sec-t">Mods</p>
-      <div class="sa-mods"><button class="mods-pill" id="saMods" type="button">Mods</button><span class="hint">Laufen bei allen Spielern auf dem Server. Ändern geht, wenn gerade niemand drauf ist.</span></div>
+      <div class="sa-mods"><button class="mods-pill" id="saMods" type="button">Mods</button><span class="hint">Laufen bei allen Spielern auf dem Server (nicht, solange er eine öffentliche IP hat). Ändern geht, wenn gerade niemand drauf ist.</span></div>
       <p class="sec-t">Server-Welt</p>
       <div class="btnrow"><button class="btn" id="saCopy" type="button">In meine Welten kopieren</button><button class="btn" id="saBackup" type="button">Backup machen</button><button class="btn" id="saExport" type="button">Exportieren</button></div>
       <p class="form-msg" id="saMsg" hidden></p>
@@ -1412,8 +1412,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.17.0';
+const GAME_VERSION = '2.18.0';
 const GAME_NOTES = [
+  ['2.18.0', 'Mods im Mehrspieler: Freunde, die deiner Welt beitreten, laden deine Mods automatisch mit (auf öffentlichen Servern laufen keine Mods). Neue Mod-Befehle: givePlayer, hurtPlayer, teleportPlayer, sendDimension, isHost, broadcast, Ereignisse join, leave, playerkill, message. Mod-Geschosse treffen auch andere Spieler.'],
   ['2.17.0', 'Mods zeigen ihre Downloads (⬇): jeder Spieler zählt einmal, auch wenn er eine Mod mehrmals installiert und löscht.'],
   ['2.16.0', 'Mods auf Servern (bei allen Spielern, der Besitzer wählt sie unter Server → Verwalten → Mods). Die Mods einer Welt samt Daten sind jetzt in Backups, Kopien, Welt-Dateien und beim Hochladen als Server dabei. Die Weltenliste zeigt die Mods jeder Welt. Handy: Kamera, Tasche, Pause und Hotbar reagieren auch, während du mit dem Stick läufst. Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Handy: neben den Knöpfen kann man sich jetzt umschauen; Meldungen in der Mitte sind kleiner (Einstellungen → Meldungen). Fix: Mods-Fenster einer Welt schließen.'],
   ['2.15.0', 'Meine Mods: eigene Mods werden automatisch gespeichert (mit Konto auch in der Cloud), bearbeiten, testen, einreichen, Updates einreichen und löschen. Im Editor ein KI-Prompt zum Kopieren, der immer alle aktuellen Mod-Befehle und deinen Code enthält.'],
@@ -7715,7 +7716,7 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.55);
   UI.hurt(); SFX.hurt();
   if (PL.hp <= 0) {
-    PL.dead = true; PL.deadT = 0; modEmit('death', {});
+    PL.dead = true; PL.deadT = 0; modEmit('death', {}); modPlayerDied();
     dropEverything();
     UI.death(); SFX.death();
   }
@@ -14689,7 +14690,7 @@ const MP = {
     const r = REMOTE[uid] || (REMOTE[uid] = back && this.lastRemote[uid] ? this.lastRemote[uid] : { uid, x: 0, y: -100, z: 0, tx: 0, ty: -100, tz: 0, yaw: 0, tyaw: 0, flags: 0, hp: 100, tool: 0, item: 0, walkPhase: 0, walkAmt: 0, swingT: 1, chopT: 0, seen: false, last: 0 });
     delete this.lastRemote[uid];
     r.name = v.name || 'Spieler'; r.skin = v.skin || 'ranger';
-    if (isNew && !back && (this.ready || this.isHost())) { UI.toast(r.name + ' ist der Welt beigetreten', 'good'); SFX.greet(); }
+    if (isNew && !back && (this.ready || this.isHost())) { UI.toast(r.name + ' ist der Welt beigetreten', 'good'); SFX.greet(); modEmit('join', { name: r.name }); }
     // a new join (also a quick one after leaving) needs the world; a guest that only lost the connection has it
     if (this.isHost() && !v.back) {
       const s = makeSave();
@@ -14710,6 +14711,7 @@ const MP = {
     const gone = () => {
       if (!this.active()) return;
       UI.toast(name + ' hat die Welt verlassen', 'info');
+      modEmit('leave', { name });
       if (this.isHost()) this.ref('p/' + uid).remove().catch(() => { });
     };
     if (this.leaveT[uid]) { clearTimeout(this.leaveT[uid][0]); delete this.leaveT[uid]; }
@@ -15004,7 +15006,8 @@ function applyNetEvent(v) {
     }
     case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
     case 'rules': if (v.fire) W.rules.fire = true; if (typeof v.pvp === 'boolean') { W.rules.pvp = v.pvp; UI.toast('PvP ist jetzt ' + (v.pvp ? 'an: Spieler können sich gegenseitig angreifen.' : 'aus.'), v.pvp ? 'warn' : 'info', 3600, 'pvp'); } if (typeof v.fall === 'boolean') { W.rules.fall = v.fall; UI.toast('Fallschaden ist jetzt ' + (v.fall ? 'an' : 'aus') + '.', 'info', 3000, 'rules'); } break;
-    case 'pvp': if (v.to === NET.uid() && pvpOn() && !PL.dead) { hurtPlayer(+v.dmg || 0, +v.fx, +v.fz); if (PL.dead && v.n) UI.toast(v.n + ' hat dich besiegt.', 'warn', 4200); } break;
+    case 'mmsg': case 'mkill': case 'mgive': case 'mhurt': case 'mtp': case 'mdim': modNetEvent(v); break;
+    case 'pvp': if (v.to === NET.uid() && pvpOn() && !PL.dead) { if (v.n) PL.lastHitBy = { name: v.n, t: G.playTime }; hurtPlayer(+v.dmg || 0, +v.fx, +v.fz); if (PL.dead && v.n) UI.toast(v.n + ' hat dich besiegt.', 'warn', 4200); } break;
     case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
@@ -15212,6 +15215,9 @@ async function playServer(srv, keep) {
   G.state = 'loading';
   $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, 'Verbinde mit dem Server „' + srv.name + '“');
   let info = null;
+  // öffentliche Server (mit IP): dort laufen keine Mods
+  MODRT.srvPublic = false;
+  try { MODRT.srvPublic = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/public').once('value'), 8000)).val() === true; } catch (e) { /* not readable: members only */ }
   try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); }
   catch (e) {
     showMenu();
@@ -16171,6 +16177,12 @@ const mod = {
   loadSound(name, src) { try { const d = dataBytes(src); const buf = d.bytes.buffer; postMessage({ c: 'loadsound', a: [String(name), buf] }, [buf]); } catch (e) { err(e); } },
   playSound(name, vol, rate) { send('playsound', [String(name), vol === undefined ? 0.8 : +vol, rate === undefined ? 1 : +rate]); },
   tickRate(hz) { send('tickrate', [+hz || 4]); },
+  isHost: true,
+  givePlayer(name, item, n) { send('pgive', [String(name), String(item), (n === undefined ? 1 : n) | 0]); },
+  hurtPlayer(name, dmg) { send('phurt', [String(name), +dmg || 0]); },
+  teleportPlayer(name, x, y, z) { send('ptp', [String(name), +x, +y, +z]); },
+  sendDimension(name, id) { send('pdim', [String(name), id === null || id === undefined ? '' : String(id)]); },
+  broadcast(name, data) { send('bcast', [String(name).slice(0, 40), clone(data)]); },
   vibrate(ms) { send('vibrate', [ms | 0]); },
   set(k, v) { send('set', [String(k), v]); },
   toast(t) { send('toast', [String(t).slice(0, 160)]); },
@@ -16237,7 +16249,7 @@ self.onunhandledrejection = (e) => { err(e && e.reason); };
 })();
 self.onmessage = function (e) {
   const m = e.data || {};
-  if (m.t === 'init') { mod.id = String(m.id || 'x'); mod.data = (m.data && typeof m.data === 'object') ? m.data : {}; try { (new Function('mod', m.code))(mod); } catch (e2) { err(e2); } }
+  if (m.t === 'init') { mod.id = String(m.id || 'x'); mod.isHost = m.host !== false; mod.data = (m.data && typeof m.data === 'object') ? m.data : {}; try { (new Function('mod', m.code))(mod); } catch (e2) { err(e2); } }
   else if (m.t === 'res') { const f = QW[m.id]; if (f) { delete QW[m.id]; f(m.v); } }
   else if (m.t === 'screen') {
     if (m.err) { SCR.err = m.err; err(m.err); } else { SCR.canvas = m.canvas; SCR.ctx = m.canvas.getContext('2d'); SCR.w = m.w; SCR.h = m.h; SCR.dpr = m.dpr; SCR.cw = m.cw; SCR.ch = m.ch; }
@@ -16387,9 +16399,11 @@ function modsEnd() {
 /* Mods starten: in einer eigenen Welt oder auf einem Server, nie bei Freunden als Gast */
 function modsAllowed() {
   if (G.spectator) return false;
-  // Server: die Mods des Servers laufen bei jedem Spieler (wer die Welt gerade laufen lässt, bestimmt über die Welt)
-  if (G.server || (MP.isClient() && MP.srv)) return true;
-  return !!WORLDS.current && !MP.isClient();
+  // Server: die Mods des Servers laufen bei jedem Spieler, aber nicht auf öffentlichen Servern (mit IP)
+  if (G.server || MP.srv) return !MODRT.srvPublic;
+  // Gast bei einem Freund: die Mods seiner Welt laufen auch hier (die Welt bestimmt der Freund)
+  if (MP.isClient()) return true;
+  return !!WORLDS.current;
 }
 function modServerMode() { return !!(G.server || (MP.isClient() && MP.srv)); }
 /* the mods of a world, with their code (they are saved with the world: backups, files and servers keep them) */
@@ -16404,13 +16418,16 @@ function modsBegin() {
   if (!modsAllowed()) return;
   const e = WORLDS.current;
   let list;
-  if (modServerMode()) list = modSlimList(W.wmods);
+  if (modServerMode() || MP.isClient()) list = modSlimList(W.wmods);
   else if (e && e.temp) list = (e.mods || []).map((id) => (e.testMod && e.testMod.id === id ? e.testMod : MODS.get(id))).filter(Boolean);
   else { list = worldModsOf(e, { wmods: W.wmods }); W.wmods = list; }
   if (!list.length) return;
   let n = 0;
   for (const m of list) if (startModWorker(m)) n++;
-  const srvTxt = modServerMode() ? ' (Server)' : '';
+  // messages from other players that came before the mods were running (e.g. right when joining)
+  const wait = MODRT.netWait || []; MODRT.netWait = [];
+  if (n) setTimeout(() => { for (const [t, v] of wait) if (performance.now() - t < 15000) modNetEvent(v); }, 800);
+  const srvTxt = modServerMode() ? ' (Server)' : MP.isClient() ? ' (aus der Welt von ' + (MP.hostName || 'deinem Freund') + ')' : '';
   if (n) setTimeout(() => UI.toast(e && e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv' : ' Mods sind aktiv') + srvTxt + '.', 'info', e && e.temp ? 5200 : 2800, 'modsOn'), 600);
 }
 function startModWorker(m) {
@@ -16422,7 +16439,7 @@ function startModWorker(m) {
   MODRT.workers.set(m.id, rec);
   let data = {};
   try { data = W.modData && W.modData[modSlug(m.id)] ? JSON.parse(W.modData[modSlug(m.id)]) : {}; } catch (e) { data = {}; }
-  worker.postMessage({ t: 'init', code: String(m.code || ''), id: modSlug(m.id), data });
+  worker.postMessage({ t: 'init', code: String(m.code || ''), id: modSlug(m.id), data, host: !MP.isClient() });
   worker.postMessage({ t: 'ev', ev: 'start', d: modState() });
   return rec;
 }
@@ -16621,6 +16638,8 @@ function modCmd(rec, msg) {
     case 'save': { let j = ''; try { j = JSON.stringify(a[0] === undefined ? null : a[0]); } catch (e) { break; } if (j.length > 65536) { console.warn('Mod "' + rec.m.name + '": Daten zu groß (max. 64 KB)'); break; } if (!W.modData) W.modData = {}; W.modData[modSlug(rec.m.id)] = j; break; }
     case 'get': rec.worker.postMessage({ t: 'res', id: a[0] | 0, v: modQuery(rec, String(a[1]), Array.isArray(a[2]) ? a[2] : []) }); break;
     case 'listen': modListen(rec, String(a[0])); break;
+    case 'pgive': case 'phurt': case 'ptp': case 'pdim': modPlayerCmd(rec, msg.c, a); break;
+    case 'bcast': { let j = ''; try { j = JSON.stringify(a[1] === undefined ? null : a[1]); } catch (e) { break; } if (j.length > 8000) { console.warn('Mod "' + rec.m.name + '": broadcast zu groß (max. 8 KB)'); break; } modNetSend(rec, { t: 'mmsg', name: String(a[0]).slice(0, 40), data: a[1] === undefined ? null : a[1], n: NET.name || '' }); break; }
     case 'screen': modScreen(rec, a[0] || {}); break;
     case 'element': modElement(rec, String(a[0]), a[1] === null ? null : a[1] || {}); break;
     case 'keyframes': modKeyframes(rec, String(a[0]), a[1] || {}); break;
@@ -16794,6 +16813,11 @@ const MODS = {
       w.postMessage({ t: 'ev', ev: 'button', d: { id: 'x' } });
       w.postMessage({ t: 'ev', ev: 'ui', d: { ui: 'x', button: 'ok', values: {} } });
       w.postMessage({ t: 'ev', ev: 'mobattack', d: { mob: 'x_test_x', id: 1 } });
+      w.postMessage({ t: 'ev', ev: 'join', d: { name: 'Test' } });
+      w.postMessage({ t: 'ev', ev: 'leave', d: { name: 'Test' } });
+      w.postMessage({ t: 'ev', ev: 'playerkill', d: { killer: 'A', victim: 'B', opfer: 'B' } });
+      w.postMessage({ t: 'ev', ev: 'message', d: { from: 'Test', name: 'x', data: null } });
+      w.postMessage({ t: 'ev', ev: 'hit', d: { shot: 1, type: 'player', name: 'Test', x: 0, y: 40, z: 0 } });
       w.postMessage({ t: 'ping' });
       setTimeout(() => { w.terminate(); res(err ? { ok: false, msg: 'Fehler im Code: ' + err } : !pong ? { ok: false, msg: 'Der Code hängt (Endlosschleife?).' } : { ok: true, msg: 'Läuft ohne Fehler (' + n + ' Befehle im Test).' }); }, 800);
     });
@@ -18091,7 +18115,7 @@ function updateModShots(dt) {
   for (let i = MODSHOTS.length - 1; i >= 0; i--) {
     const s = MODSHOTS[i];
     if (MODRT.workers.get(s.rec.m.id) !== s.rec) { MODSHOTS.splice(i, 1); continue; }
-    s.vy -= s.g * dt;
+    s.vy -= s.g * dt; s.age = (s.age || 0) + dt;
     const sp = Math.hypot(s.vx, s.vy, s.vz) * dt;
     const n = Math.max(1, Math.ceil(sp / 0.3));
     let done = false;
@@ -18122,14 +18146,106 @@ function updateModShots(dt) {
           if (s.pierce-- <= 0) { done = true; break; }
         }
       }
-      if (!done && s.hurtsPlayer && Math.abs(s.x - PL.x) < 0.4 && Math.abs(s.z - PL.z) < 0.4 && s.y > PL.y && s.y < PL.y + 1.8) {
+      // players: yourself (not right after the shot leaves) and the others in the world
+      if (!done && s.hurtsPlayer && s.age > 0.25 && !PL.dead && Math.abs(s.x - PL.x) < 0.4 + s.size && Math.abs(s.z - PL.z) < 0.4 + s.size && s.y > PL.y && s.y < PL.y + 1.8) {
+        PL.lastHitBy = { name: NET.name || 'Du', t: G.playTime };
         hurtPlayer(s.dmg, s.x - s.vx, s.z - s.vz); done = true;
-        modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'player', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
+        modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'player', name: NET.name || 'Du', me: true, x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
+      }
+      if (!done && s.hurtsPlayer && MP.active()) {
+        for (const u in REMOTE) {
+          const r = REMOTE[u];
+          if (!r.seen || r.hp <= 0 || r.y < -50 || s.hitSet.has('p' + u)) continue;
+          if (Math.abs(s.x - r.x) < 0.45 + s.size && Math.abs(s.z - r.z) < 0.45 + s.size && s.y > r.y - s.size && s.y < r.y + 1.85 + s.size) {
+            s.hitSet.add('p' + u);
+            modNetSend(s.rec, { t: 'mhurt', to: u, dmg: Math.round(Math.min(s.dmg * MODFX.dmg, 1000) * 10) / 10, fx: Math.round((s.x - s.vx * 0.05) * 100) / 100, fz: Math.round((s.z - s.vz * 0.05) * 100) / 100, n: NET.name || '' });
+            burst(s.x, s.y, s.z, 8, [[0.75, 0.12, 0.1], [0.5, 0.08, 0.06]], { speed: 2, up: 2, life: 0.6, size: 0.07 });
+            modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'player', name: r.name || 'Spieler', x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
+            if (s.pierce-- <= 0) { done = true; break; }
+          }
+        }
       }
     }
     if (s.trail) spawnPart({ x: s.x, y: s.y, z: s.z, vx: 0, vy: 0, vz: 0, life: 0.14, size: s.size, r: s.col[0], g: s.col[1], b: s.col[2], em: s.glow ? 1 : 0, grav: 0, drag: 0 });
     if (done) MODSHOTS.splice(i, 1);
   }
+}
+
+/* ---------- Mehrspieler: andere Spieler, Nachrichten zwischen den Mods ---------- */
+/* a player by name: yourself or somebody in the world */
+function modFindPlayer(name) {
+  const n = String(name || '').trim().toLowerCase();
+  if (!n || n === 'me' || n === 'ich' || n === String(NET.name || '').toLowerCase() || n === 'du') return { me: true, name: NET.name || 'Du' };
+  for (const u in REMOTE) { const r = REMOTE[u]; if (String(r.name || '').toLowerCase() === n) return { uid: u, r, name: r.name }; }
+  return null;
+}
+/* messages of mods to other players go through the world (Firebase): only a few per second */
+function modNetSend(rec, ev) {
+  if (!MP.active()) return false;
+  const now = performance.now();
+  if (!rec.net || now - rec.net.t > 1000) rec.net = { t: now, n: 0 };
+  if (++rec.net.n > 12) { if (!rec.netWarn) { rec.netWarn = true; console.warn('Mod "' + rec.m.name + '": zu viele Nachrichten an andere Spieler (max. 12 pro Sekunde)'); } return false; }
+  ev.mod = rec.m.id;
+  MP.send(ev);
+  return true;
+}
+function modGiveLocal(rec, item, n) {
+  const k = modResolveItem(rec.m.id, String(item)); n = n | 0; if (n < 1) return;
+  if (RES_NAME[k]) { G.inv[k] = (G.inv[k] || 0) + Math.min(n, 999); UI.res(); }
+  else if (TOOL_MAX[k]) addItem(toolKey(k, 1), Math.min(n, 99));
+  else if (ITEMS[k]) addItem(k, ITEMS[k].armor ? Math.min(n, 3) : Math.min(n, 999));
+  UI.hotbar();
+}
+function modTpLocal(x, y, z) {
+  if (![x, y, z].every(isFinite) || Math.abs(x) >= WLIM || Math.abs(z) >= WLIM) return;
+  if ((dimAt(x, z) || null) !== (CURDIM || null)) return;
+  PL.x = x; PL.y = clamp(y, 2, WY - 4); PL.z = z; PL.vx = PL.vy = PL.vz = 0; PL.fallTop = PL.fallTopPrev = PL.y;
+}
+function modDimLocal(modId, id) {
+  if (!id) { if (CURDIM) leaveDim(); return; }
+  const d = DIMS.get(dimKey(modId, String(id))); if (d && d !== CURDIM) enterDim(d);
+}
+function modPlayerCmd(rec, c, a) {
+  const p = modFindPlayer(a[0]); if (!p) return;
+  if (c === 'pgive') { if (p.me) modGiveLocal(rec, a[1], a[2]); else modNetSend(rec, { t: 'mgive', to: p.uid, item: modResolveItem(rec.m.id, String(a[1])), n: clamp(a[2] | 0, 1, 999) }); }
+  else if (c === 'phurt') {
+    const dmg = clamp(+a[1] || 0, 0, 1000); if (!dmg) return;
+    if (p.me) { PL.lastHitBy = { name: NET.name || 'Du', t: G.playTime }; hurtPlayer(dmg, PL.x, PL.z, true); }
+    else modNetSend(rec, { t: 'mhurt', to: p.uid, dmg, fx: Math.round(PL.x * 100) / 100, fz: Math.round(PL.z * 100) / 100, n: NET.name || '' });
+  } else if (c === 'ptp') {
+    const [x, y, z] = [+a[1], +a[2], +a[3]];
+    if (p.me) modTpLocal(x, y, z); else if ([x, y, z].every(isFinite)) modNetSend(rec, { t: 'mtp', to: p.uid, x, y, z });
+  } else if (c === 'pdim') {
+    const id = String(a[1] || '').slice(0, 20);
+    if (p.me) modDimLocal(rec.m.id, id); else modNetSend(rec, { t: 'mdim', to: p.uid, dim: id });
+  }
+}
+/* the same thing from the other side: a mod of another player did something to you */
+function modNetEvent(v) {
+  if (!v || !modsAllowed()) return;
+  const from = (REMOTE[v.u] && REMOTE[v.u].name) || v.n || 'Spieler';
+  const rec = MODRT.workers.get(String(v.mod));
+  // the mods here are not running yet (just joined the world): keep it for a few seconds
+  if (!rec && v.t !== 'mkill' && MODRT.workers.size === 0) { (MODRT.netWait = MODRT.netWait || []).push([performance.now(), v]); if (MODRT.netWait.length > 50) MODRT.netWait.shift(); return; }
+  switch (v.t) {
+    case 'mmsg': if (rec) modPost(rec, { t: 'ev', ev: 'message', d: { from, name: String(v.name || ''), data: v.data === undefined ? null : v.data } }); break;
+    case 'mkill': modEmit('playerkill', { killer: String(v.killer || ''), victim: String(v.victim || ''), opfer: String(v.victim || '') }); break;
+    default:
+      if (v.to !== NET.uid() || !rec) return;   // only from a mod that runs here too
+      if (v.t === 'mgive') modGiveLocal(rec, String(v.item), v.n);
+      else if (v.t === 'mhurt') { if (!PL.dead) { PL.lastHitBy = { name: v.n || from, t: G.playTime }; hurtPlayer(clamp(+v.dmg || 0, 0, 1000), +v.fx, +v.fz); } }
+      else if (v.t === 'mtp') modTpLocal(+v.x, +v.y, +v.z);
+      else if (v.t === 'mdim') modDimLocal(rec.m.id, String(v.dim || ''));
+  }
+}
+/* you died: who did it (a player or a mod of a player, in the last seconds) */
+function modPlayerDied() {
+  const k = PL.lastHitBy && G.playTime - PL.lastHitBy.t < 6 ? PL.lastHitBy.name : null;
+  PL.lastHitBy = null;
+  if (!k || !MODRT.workers.size) return;
+  const d = { killer: k, victim: NET.name || 'Du', opfer: NET.name || 'Du' };
+  modEmit('playerkill', d);
+  if (MP.active()) MP.send({ t: 'mkill', killer: k, victim: d.victim });
 }
 
 /* a guest on a server hits a creature: the host owns it (like a normal attack) */
@@ -18448,11 +18564,27 @@ mod.on('ui', (e) => ...)          // Fenster: {ui, button, values}  (button null
 mod.on('dimension', (e) => ...)   // {id, entered}
 mod.on('night' | 'day' | 'death', (e) => ...)
 
-// ---------- Server ----------
-// Mods laufen auch auf Servern, bei jedem Spieler: Anzeigen, Kamera, Eingaben, Effekte, Inventar sind pro Spieler.
-// Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save)
-// und neue Blöcke/Kreaturen/Dimensionen kommen nur vom Spieler, der den Server gerade laufen lässt.
-// mod.player().server ist true auf einem Server, mod.player().host true beim Spieler, der ihn laufen lässt.`;
+// ---------- Mehrspieler ----------
+// Die Mods einer Welt laufen bei JEDEM Spieler darin: bei Freunden, die deiner Welt beitreten (ihr Spiel lädt
+// die Mods deiner Welt automatisch mit), und auf Servern (nicht auf öffentlichen Servern mit IP).
+// Anzeigen, Kamera, Eingaben, Effekte, Inventar sind pro Spieler. Welt-Befehle (time, weather, spawn, clearMobs,
+// lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save) und neue Blöcke/Kreaturen/Dimensionen
+// wirken nur beim Host (dem Welt-Besitzer bzw. dem, der den Server gerade laufen lässt).
+mod.isHost                              // true, wenn ich der Host bin (Welt-Besitzer / lasse den Server laufen)
+mod.givePlayer('Bob', 'diamond', 3)     // einem bestimmten Spieler Items geben (auch eigene Items)
+mod.hurtPlayer('Bob', 10)               // einem anderen Spieler Schaden machen (PvP, unabhängig von der PvP-Einstellung)
+mod.teleportPlayer('Bob', x, y, z)      // einen Spieler teleportieren (in seiner aktuellen Welt/Dimension)
+mod.sendDimension('Bob', 'sky')         // einen Spieler in eine Mod-Dimension schicken ('' = zurück in die normale Welt)
+  // Name: der Spielername; mein eigener Name (oder 'me') meint mich selbst. Liste: mod.players()
+mod.broadcast('punkte', { bob: 5 })     // Nachricht an diese Mod bei ALLEN anderen Spielern (max. 8 KB)
+mod.on('message', (e) => ...)           // {from, name, data}
+mod.on('join', (e) => ...)              // ein Spieler kommt in die Welt: {name}
+mod.on('leave', (e) => ...)             // ein Spieler geht: {name}
+mod.on('playerkill', (e) => ...)        // ein Spieler wurde von einem Spieler besiegt: {killer, victim, opfer}
+// mod.shoot({ hurtsPlayer: true, ... }) trifft auch andere Spieler; 'hit' liefert dann {type: 'player', name}
+// Alles an andere Spieler (givePlayer, hurtPlayer, teleportPlayer, sendDimension, broadcast, Treffer):
+//   max. 12 Nachrichten pro Sekunde pro Mod.
+// mod.player().server ist true auf einem Server, mod.player().host wie mod.isHost.`;
 
 /* the full prompt for an AI: rules, the idea, the code so far, all commands */
 function buildModPrompt(d) {
@@ -18481,7 +18613,7 @@ function buildModPrompt(d) {
   L.push('- Alles für den Spieler auf Deutsch. Kommentare im Code auf Deutsch.');
   L.push('- Registriere Blöcke, Items, Kreaturen, Erze, Shop und Dimensionen direkt am Anfang. Dinge beim Betreten der Welt kommen in mod.on(\'start\').');
   L.push('- Die Mod soll am PC UND am Handy gut spielbar sein (Knöpfe mit touch: true für das Handy, Tasten für den PC).');
-  L.push('- Mods laufen in eigenen Welten und auf Servern (dort bei jedem Spieler). Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save) wirken auf einem Server nur beim Spieler, der den Server gerade laufen lässt. Bei Freunden als Gast laufen keine Mods.');
+  L.push('- Mehrspieler: Die Mod läuft bei JEDEM Spieler in der Welt (Freunde, die beitreten, und Server; nicht auf öffentlichen Servern). Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save) wirken nur beim Host (mod.isHost). Prüfe mod.isHost, wenn etwas nur einmal pro Welt passieren soll (z. B. Kreaturen spawnen, Punkte zählen), und nutze mod.broadcast / mod.on(\'message\'), damit alle Spieler denselben Stand haben.');
   L.push('- Nutze alle Möglichkeiten, die zur Idee passen. Erfinde KEINE Befehle, die unten nicht stehen.');
   L.push('');
   L.push('==================== DIE KOMPLETTE API ====================');
