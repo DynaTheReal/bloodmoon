@@ -24,6 +24,7 @@
 {
   "rules": {
     "usernames": {
+      ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$name": {
         ".read": "auth != null",
         ".write": "auth != null && !data.exists() && newData.val() === auth.uid",
@@ -44,7 +45,8 @@
         "invites": {
           ".read": "auth != null && auth.uid === $uid",
           "$from": { ".write": "auth != null && (auth.uid === $uid || auth.uid === $from)" }
-        }
+        },
+        "mods": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" }
       }
     },
     "status": {
@@ -53,9 +55,9 @@
     },
     "rooms": {
       "$host": {
-        ".read": "auth != null && (auth.uid === $host || root.child('users/' + $host + '/friends/' + auth.uid).exists())",
+        ".read": "auth != null && (auth.uid === $host || root.child('users/' + $host + '/friends/' + auth.uid).exists() || root.child('usernames/dynathereal').val() === auth.uid)",
         ".write": "auth != null && auth.uid === $host",
-        "players": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "players": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && (root.child('users/' + $host + '/friends/' + auth.uid).exists() || root.child('usernames/dynathereal').val() === auth.uid)" } },
         "p": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "pdata": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "ev": { "$e": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
@@ -81,7 +83,7 @@
       ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$owner": {
         "$wid": {
-          ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)",
+          ".read": "auth != null && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true || root.child('usernames/dynathereal').val() === auth.uid)",
           ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && (auth.uid === $owner || root.child('srvmeta/' + $owner + '/' + $wid + '/members/' + auth.uid).exists() || root.child('srvmeta/' + $owner + '/' + $wid + '/public').val() === true)"
         }
       }
@@ -110,6 +112,18 @@
       ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "cmd": { ".read": true },
       "kick": { "$uid": { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid && !newData.exists()" } }
+    },
+    "mods": {
+      "approved": { ".read": "auth != null", ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid" },
+      "meta": { ".read": "auth != null", ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid" },
+      "pending": {
+        ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+        ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
+        "$id": {
+          ".write": "auth != null && !data.exists() && !root.child('bans/' + auth.uid).exists() && newData.child('authorUid').val() === auth.uid",
+          ".validate": "newData.child('name').isString() && newData.child('code').isString() && newData.child('code').val().length <= 30000"
+        }
+      }
     },
     "support": {
       ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
@@ -465,6 +479,21 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .tabs { display: flex; gap: 6px; padding: 0 18px 10px; flex-wrap: wrap; }
 .tab { border: 1px solid var(--line); background: transparent; border-radius: 99px; padding: 7px 14px; font-size: 13px; font-weight: 800; color: var(--muted); }
 .tab[aria-selected="true"] { background: var(--text); color: var(--ink); border-color: transparent; }
+.shop-tip { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.shop-tip:empty { display: none; }
+.shop-g { margin-bottom: 14px; }
+.shop-g > h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); }
+.shop-g > h4::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08); }
+.shop-g .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.card { position: relative; transition: border-color 0.15s, transform 0.15s, background 0.15s; }
+.card:hover { border-color: rgba(255, 177, 92, 0.35); background: rgba(255, 255, 255, 0.07); }
+.card.can { box-shadow: inset 0 0 0 1px rgba(255, 177, 92, 0.18); }
+.card .tier { position: absolute; top: 8px; right: 10px; font-size: 10px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+.card .tier.t2 { background: rgba(217, 222, 226, 0.18); color: #e8eef2; }
+.card .tier.t3 { background: rgba(95, 227, 230, 0.18); color: #7af0f2; }
+.card .tier.t4 { background: rgba(255, 59, 92, 0.2); color: #ff8aa0; }
+.card .own { font-size: 11.5px; font-weight: 800; color: var(--leaf); }
+.card .own:empty { display: none; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
 .card { display: grid; grid-template-columns: 48px 1fr; gap: 4px 12px; align-items: start; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.06); }
 .card canvas { width: 48px; height: 48px; grid-row: span 2; image-rendering: pixelated; }
@@ -639,6 +668,34 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 }
  .li.mod .li-ico { font-size: 24px; }
 .li.mod .li-main span { white-space: normal; overflow: visible; }
+.sheet.wide { width: min(860px, 100%); }
+.mod-search { position: relative; margin-bottom: 10px; }
+.mod-search svg { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.mod-search .field { width: 100%; padding-left: 36px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.chip { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 800; color: var(--muted); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ember); color: var(--ink); border-color: transparent; }
+.mod-rec { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.mcard { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); scroll-snap-align: start; min-width: 0; }
+.mcard.big { background: linear-gradient(160deg, rgba(255, 177, 92, 0.16), rgba(255, 255, 255, 0.04)); border-color: rgba(255, 177, 92, 0.3); }
+.mcard.on { border-color: rgba(120, 200, 120, 0.45); }
+.mc-top { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.mc-ico { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 25px; background: rgba(255, 255, 255, 0.07); }
+.mc-t { min-width: 0; display: grid; }
+.mc-t b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-by { font-size: 11.5px; color: var(--muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-d { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mc-f { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.mc-cat { font-size: 10.5px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-act { display: flex; gap: 6px; flex: none; }
+.mc-act .btn { padding: 7px 12px; font-size: 12.5px; }
+.btn.icon { padding: 7px 9px !important; min-width: 0; }
+.btn.icon.gold { color: #ffd34d; border-color: rgba(255, 211, 77, 0.5); }
+.mod-form { display: grid; grid-template-columns: 2fr 1fr 1.6fr; gap: 10px; }
+.mod-form .field { width: 100%; }
+.nw-mods { align-items: center; margin: 4px 0 12px; }
+@media (max-width: 560px) { .mod-form { grid-template-columns: 1fr 1fr; } .mod-form > div:first-child { grid-column: 1 / -1; } .mod-rec { grid-auto-columns: 82%; } }
 .mod-code { margin: 0 0 8px; padding: 10px; max-height: 240px; overflow: auto; border-radius: 10px; background: rgba(0, 0, 0, 0.35); font: 600 11.5px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; color: var(--text); }
 .mod-doc { margin-top: 14px; font-size: 13px; color: var(--muted); }
 .mod-doc summary { cursor: pointer; font-weight: 800; color: var(--text); margin-bottom: 8px; }
@@ -664,6 +721,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="hud-tl">
     <div class="clock panel"><canvas id="clockIcon" width="80" height="80"></canvas><div><div class="clock-day" id="clockDay">Tag 1</div><div class="clock-sub" id="clockSub">Nacht in 9:35</div></div></div>
     <div class="moon panel" id="moonChip"><i class="moon-dot"></i><span id="moonTxt">Blood Moon in 10 Nächten</span></div>
+    <div class="mp panel spec" id="specChip" hidden><i class="mp-dot"></i><span>👁 Zuschauer · unsichtbar · T: nächster Spieler</span></div>
     <div class="mp panel" id="mpChip" hidden><i class="mp-dot"></i><span id="mpTxt"></span></div>
     <div class="goal panel" id="goalBox"><span class="goal-k">Ziel</span><span class="goal-t" id="goalTxt"></span><span class="goal-dir" id="goalDir" hidden><svg viewBox="0 0 16 16" id="goalArrow" aria-hidden="true"><path d="M8 1.5 13.5 12 8 9.6 2.5 12Z" fill="currentColor"></path></svg><b id="goalDist"></b></span></div>
     <div class="poison-chip panel" id="poisonChip" hidden><i></i><span id="poisonTxt"></span></div>
@@ -773,13 +831,15 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div>
       <div class="sheet-h"><canvas id="shopFace" width="96" height="96" style="width:48px;height:48px;border-radius:12px"></canvas><div class="grow"><h2 id="shopTitle">Händler</h2><p id="shopLine">Holz gegen Waren. Faire Preise.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" data-tab="survive" aria-selected="true" type="button">Überleben</button>
-        <button class="tab" role="tab" data-tab="build" aria-selected="false" type="button">Bauen</button>
-        <button class="tab" role="tab" data-tab="tools" aria-selected="false" type="button">Werkzeuge</button>
-        <button class="tab" role="tab" data-tab="armor" aria-selected="false" type="button">Rüstung</button>
+        <button class="tab" role="tab" data-tab="survive" aria-selected="true" type="button">🔥 Überleben</button>
+        <button class="tab" role="tab" data-tab="build" aria-selected="false" type="button">🧱 Bauen</button>
+        <button class="tab" role="tab" data-tab="tools" aria-selected="false" type="button">⚒️ Werkzeuge</button>
+        <button class="tab" role="tab" data-tab="weapons" aria-selected="false" type="button">⚔️ Waffen</button>
+        <button class="tab" role="tab" data-tab="armor" aria-selected="false" type="button">🛡️ Rüstung</button>
+        <button class="tab" role="tab" data-tab="mods" aria-selected="false" type="button" hidden id="shopModsTab">🧩 Mods</button>
       </div>
     </div>
-    <div class="sheet-b"><div class="grid" id="shopGrid"></div></div>
+    <div class="sheet-b"><p class="shop-tip" id="shopTip"></p><div id="shopGrid"></div></div>
     <div class="sheet-f"><span>Dein Vorrat</span><div class="wallet"><span><canvas id="walWood" width="40" height="40"></canvas><b id="walWoodN">0</b> Holz</span><span><canvas id="walWool" width="40" height="40"></canvas><b id="walWoolN">0</b> Wolle</span><span hidden><canvas id="walIron" width="40" height="40"></canvas><b id="walIronN">0</b> Eisen</span><span hidden><canvas id="walDia" width="40" height="40"></canvas><b id="walDiaN">0</b> Diamanten</span><span hidden><canvas id="walCry" width="40" height="40"></canvas><b id="walCryN">0</b> Kristalle</span><span hidden><canvas id="walRuby" width="40" height="40"></canvas><b id="walRubyN">0</b> Rubine</span><span hidden><canvas id="walMyth" width="40" height="40"></canvas><b id="walMythN">0</b> Mythril</span></div></div>
   </div>
 </div>
@@ -893,8 +953,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button type="button" data-v="endless" role="radio" aria-checked="true"><b>Normal</b><span>Eine endlose Welt. Weit draußen warten Nebel, der Schattenwald und Kristallfelder.</span></button>
         <button type="button" data-v="island" role="radio" aria-checked="false"><b>Insel</b><span>Eine große Insel im Meer. Alles liegt näher beieinander, kein Nebel.</span></button>
       </div>
-      <p class="sec-t">Mods für die neue Welt</p>
-      <div class="list" id="newWorldMods" style="margin-bottom:12px"></div>
+      <div class="btnrow nw-mods"><button class="btn" id="nwModsBtn" type="button">Mods</button><span class="hint">Mods für die neue Welt an- oder ausschalten</span></div>
       <div class="list" id="worldList"></div>
       <div class="btnrow" style="margin-top:12px"><button class="btn ghost" id="wImport" type="button">Welt importieren</button><input type="file" id="wImportFile" accept=".json,application/json" hidden></div>
     </div>
@@ -913,7 +972,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <p class="form-msg" id="weMsg" hidden></p>
       <p class="sec-t">Mods</p>
       <p class="hint">Gelten nur in dieser Welt, nie auf Servern.</p>
-      <div class="list" id="weMods"></div>
+      <div class="btnrow"><button class="btn" id="weModsBtn" type="button">Mods</button></div>
       <p class="sec-t">Backup</p>
       <p class="hint">Ein Backup ist eine Kopie in deinen Welten. Exportieren lädt die Welt als Datei herunter.</p>
       <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
@@ -924,47 +983,95 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlMods" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modTitle">
-  <div class="sheet panel">
-    <div class="sheet-h"><div class="grow"><h2 id="modTitle">Mods</h2><p>Modifikationen für deine eigenen Welten. Auf Servern laufen sie nicht.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+  <div class="sheet panel wide">
+    <div class="sheet-h"><div class="grow"><h2 id="modTitle">Mods</h2><p>Für deine eigenen Welten. Auf Servern und als Gast laufen sie nicht.</p></div><button class="link" id="modReload" type="button">Neu laden</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="tabs" id="modTabs" role="tablist">
+      <button class="tab" type="button" data-tab="lib" aria-selected="true">Bibliothek</button>
+      <button class="tab" type="button" data-tab="inst" aria-selected="false">Installiert<span id="modInstN"></span></button>
+      <button class="tab" type="button" data-tab="up" aria-selected="false">Mod erstellen</button>
+    </div>
     <div class="sheet-b">
-      <div class="tabs flush" id="modTabs" role="tablist">
-        <button class="tab" type="button" data-tab="lib" aria-selected="true">Bibliothek</button>
-        <button class="tab" type="button" data-tab="up" aria-selected="false">Hochladen</button>
-      </div>
       <div id="modLib">
-        <p class="hint">Installierte Mods wählst du beim Erstellen einer Welt aus, oder später unter Welten → Bearbeiten.</p>
-        <div class="btnrow"><button class="btn ghost" id="modReload" type="button">Neu laden</button></div>
-        <p class="sec-t">Eingebaute Mods</p><div class="list" id="modListB"></div>
-        <p class="sec-t">Community-Mods</p>
+        <div class="mod-search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><input class="field" id="modSearch" type="search" maxlength="40" placeholder="Mods suchen" aria-label="Mods suchen" autocomplete="off" spellcheck="false"></div>
+        <div class="chips" id="modCats"></div>
         <p class="form-msg" id="modLibMsg" hidden></p>
-        <div class="list" id="modListC"></div>
+        <div id="modRecWrap"><p class="sec-t">⭐ Empfohlen</p><div class="mod-rec" id="modRec"></div></div>
+        <p class="sec-t" id="modGridT">Alle Mods</p>
+        <div class="mod-grid" id="modGrid"></div>
+        <div id="modHidden" hidden></div>
+      </div>
+      <div id="modInst" hidden>
+        <p class="hint">Installierte Mods schaltest du für jede Welt einzeln an: beim Erstellen einer Welt unter „Mods“ oder später unter Welten → Bearbeiten → Mods.</p>
+        <div class="mod-grid" id="modInstList"></div>
       </div>
       <div id="modUp" hidden>
-        <p class="hint">Programmiere eine Mod und reich sie ein. DynaTheReal prüft sie, erst danach erscheint sie in der Bibliothek.</p>
+        <p class="hint">Programmiere eine Mod, probier sie in einer Testwelt aus und reich sie ein. DynaTheReal prüft sie, erst danach erscheint sie in der Bibliothek.</p>
         <form id="modUpForm" autocomplete="off">
-          <label class="flabel" for="mdName">Name</label><input class="field" id="mdName" maxlength="30" placeholder="z. B. Super-Sprung">
-          <label class="flabel" for="mdIcon">Symbol (ein Emoji)</label><input class="field" id="mdIcon" maxlength="4" placeholder="🧩">
+          <div class="mod-form">
+            <div><label class="flabel" for="mdName">Name</label><input class="field" id="mdName" maxlength="30" placeholder="z. B. Super-Sprung"></div>
+            <div><label class="flabel" for="mdIcon">Symbol</label><input class="field" id="mdIcon" maxlength="4" placeholder="🧩"></div>
+            <div><label class="flabel" for="mdCat">Kategorie</label><select class="field" id="mdCat"></select></div>
+          </div>
           <label class="flabel" for="mdDesc">Beschreibung</label><input class="field" id="mdDesc" maxlength="140" placeholder="Was macht die Mod?">
           <label class="flabel" for="mdCode">Code (JavaScript)</label>
-          <textarea class="field area" id="mdCode" rows="9" spellcheck="false" maxlength="30000" placeholder="mod.set('jump', 2);&#10;mod.on('kill', () => mod.heal(5));"></textarea>
+          <textarea class="field area" id="mdCode" rows="11" spellcheck="false" maxlength="30000" placeholder="mod.set('jump', 2);&#10;mod.on('kill', () => mod.heal(5));"></textarea>
           <p class="form-msg" id="mdMsg" hidden></p>
-          <div class="btnrow"><button class="btn" id="mdTest" type="button">Testen</button><button class="btn primary" type="submit">Einreichen</button></div>
+          <div class="btnrow"><button class="btn" id="mdTest" type="button">Code prüfen</button><button class="btn" id="mdPlay" type="button">▶ In Testwelt ausprobieren</button><button class="btn primary" type="submit">Einreichen</button></div>
         </form>
         <details class="mod-doc"><summary>Mod-Programmierung: alle Befehle</summary>
-<pre class="mod-code">mod.set('speed', 1.5)     // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500
-mod.set('fly', true)      // fly, godmode, instaBreak, infiniteItems, noFall, noNight, peaceful, nightVision
-mod.give('diamond', 3)    // wood wool iron diamond crystal ruby mythril, planks bricks glass cobble dirt sand gravel door torch campfire bed chest bucket apple crystal_apple
-mod.heal(10)  mod.hurt(5)  mod.toast('Text')
-mod.teleport(x, y, z)  mod.setBlock(x, y, z, 'stone')  // Blocknamen klein: stone, planks, glass, air ...
-mod.time('day')  mod.time('night')  mod.weather('clear'|'cloudy'|'rain'|'storm'|'fog')
-mod.spawn(2)  mod.clearMobs()
+<pre class="mod-code">// Werte (bleiben, solange die Mod läuft)
+mod.set('speed', 1.5)     // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500,
+                          // regen 0-10 (Leben pro Sekunde), dmg 0.25-10 (Schaden mal), zombieSpeed 0.3-3, zombieHp 0.2-10
+mod.set('fly', true)      // fly, godmode, instaBreak, infiniteItems, noFall, noNight, peaceful, nightVision, keepInventory
 
-mod.on('start', () => ...)
-mod.on('tick', (s) => ...)    // alle 0,25 s: s = {x,y,z,hp,maxHp,day,night,phase,blood,t,weather}
-mod.on('break', (e) => ...)   // e = {x,y,z,block}
-mod.on('place', (e) => ...)   // e = {x,y,z,block}
+// Sachen
+mod.give('diamond', 3)    mod.take('diamond', 1)
+                          // wood wool iron diamond crystal ruby mythril, planks bricks glass cobble dirt sand gravel
+                          // door torch campfire bed chest bucket apple crystal_apple, oder eigene Items
+mod.heal(10)  mod.hurt(5)  mod.toast('Text')  mod.sound('upgrade')  // ui buy upgrade chest pop hit thud eat thunder ...
+mod.teleport(x, y, z)
+mod.setBlock(x, y, z, 'stone')                 // Blocknamen klein: stone, planks, glass, air, water ...
+mod.fill(x1, y1, z1, x2, y2, z2, 'glass')      // höchstens 4096 Blöcke
+mod.explode(x, y, z, 3)   mod.lightning(x, z)   mod.particles(x, y, z, '#ff8800', 20)
+mod.time('day')  mod.time('night')  mod.weather('clear'|'cloudy'|'rain'|'storm'|'fog')
+mod.spawn(2)  mod.spawn(1, 'wolf')  mod.clearMobs()
+
+// Eigene Items
+mod.item('wand', { name: 'Zauberstab', icon: '🪄', color: '#8ef0c0', desc: 'Text',
+                   use: true,        // Rechtsklick löst 'use' aus
+                   food: 20,         // essbar: so viele Leben
+                   damage: 30,       // als Waffe
+                   place: 'glass' }) // baut diesen Block
+mod.shop('wand', { wood: 4, crystal: 1 }, 1)   // beim Händler im Reiter „Mods“
+
+// Eigene Dimensionen
+mod.dimension('sky', { name: 'Himmel', style: 'islands',   // land, flat, islands, cave, void
+  sky: '#c9a2ff', horizon: '#ffd6f0', fog: '#f0d8ff', fogDist: 160, light: 'day',   // day, dusk, night, dark
+  top: 'grass', ground: 'dirt', fill: 'stone', sea: 'water',   // water, lava, none
+  height: 90, hills: 12, trees: 'cherry', treeDensity: 0.5,     // oak birch pine cherry dark autumn mushroom none
+  ores: { diamond: 2, ruby: 1, crystal: 1 }, gravity: 0.7, mobs: false })
+mod.portal('sky', x, y, z, 'glass')    // ein Portal (Rahmen aus diesem Block)
+mod.enterDimension('sky')  mod.leaveDimension()
+
+// Ereignisse
+mod.on('start', (s) => ...)
+mod.on('tick', (s) => ...)      // alle 0,25 s: s = {x,y,z,hp,maxHp,day,night,phase,blood,t,weather,dim,held,sneak}
+mod.on('break', (e) => ...)     // e = {x,y,z,block}
+mod.on('place', (e) => ...)     // e = {x,y,z,block}
+mod.on('use', (e) => ...)       // e = {item,x,y,z,px,py,pz} (x,y,z: der Block, auf den du zeigst, oder null)
+mod.on('dimension', (e) => ...) // e = {id, entered}
 mod.on('kill' | 'night' | 'day' | 'death', (e) => ...)</pre></details>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlModPick" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mpTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="mpTitle">Mods für diese Welt</h2><p><span id="mpN">keine an</span> · nur in dieser Welt, nie auf Servern</p></div><button class="x" id="mpClose" aria-label="Fertig" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div class="list" id="mpList"></div>
+      <div class="btnrow" style="margin-top:12px"><button class="btn ghost" id="mpLib" type="button">Mehr Mods in der Bibliothek</button><button class="btn primary" id="mpDone" type="button">Fertig</button></div>
     </div>
   </div>
 </div>
@@ -992,6 +1099,9 @@ mod.on('kill' | 'night' | 'day' | 'death', (e) => ...)</pre></details>
       <p class="sec-t">An alle</p>
       <form class="newworld" id="admSayForm" autocomplete="off"><input class="field" id="admSay" maxlength="300" placeholder="Nachricht an alle Spieler" aria-label="Nachricht an alle"><button class="btn primary" type="submit">Senden</button></form>
       <button class="btn danger" id="admRestart" type="button" style="margin-top:8px">Spiel bei allen neu starten</button>
+      <p class="sec-t">Spieler suchen</p>
+      <form class="newworld" id="admFindForm" autocomplete="off"><input class="field" id="admFind" maxlength="16" placeholder="Name (oder ein Teil davon)" aria-label="Spieler suchen" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Suchen</button></form>
+      <div class="list" id="admFound" style="margin-top:8px"></div>
       <p class="sec-t">Online (<span id="admOnlineN">0</span>)</p>
       <div class="list" id="admOnline"></div>
       <p class="sec-t">Mods zur Prüfung (<span id="admModsN">0</span>)</p>
@@ -1073,6 +1183,7 @@ mod.on('kill' | 'night' | 'day' | 'death', (e) => ...)</pre></details>
         <p class="form-msg" id="srvMsg" hidden></p>
         <p class="sec-t">Deine Server</p><div class="list" id="srvMine"></div>
         <p class="sec-t">Server deiner Freunde</p><div class="list" id="srvFriends"></div>
+        <div id="srvAllWrap" hidden><div class="btnrow" style="margin-top:12px"><button class="btn" id="srvAllBtn" type="button">🌍 Alle Server der Welt (nur du)</button></div><div class="list" id="srvAll" style="margin-top:8px" hidden></div></div>
         <p class="hint" style="margin-top:12px">Hochladen macht eine Kopie, deine eigene Welt bleibt. Wer zuerst reinkommt, lässt die Welt laufen; geht er, übernimmt ein anderer. Ist niemand drin, wartet die Welt. Beitreten dürfen Freunde, die der Besitzer hinzugefügt hat.</p>
       </div>
     </div>
@@ -1190,8 +1301,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.11.0';
+const GAME_VERSION = '2.12.0';
 const GAME_NOTES = [
+  ['2.12.0', 'Mods 2.0: neues Mod-Menü (Empfohlen, Suche, Kategorien), Mods-Knopf beim Erstellen einer Welt, Testwelt im Editor, eigene Dimensionen, Items und Shop-Waren aus Mods. Admin: Spieler suchen, unsichtbar zuschauen, alle Server. Werkzeuge stapelbar, strukturierter Shop, Rubinschwert besiegt Zombies mit einem Schlag, Zombies klettern nicht mehr und bauen langsamer, bessere Baum-Sounds und Laufanimationen, Eimer holt die Wasserquelle'],
   ['2.11.0', 'Tiefere Welt (176 Blöcke), neue Weltgenerierung mit mehr Biomen, neue Höhlen mit kleinen Eingängen, Tiefenschiefer, Eis- und Moos-Höhlen, Lavafälle, Mineschächte, Einfrier-Fix'],
   ['2.10.0', 'Mods (Bibliothek, Hochladen, Prüfung durch DynaTheReal), Schleichen mit Strg, Wasser fließt nach 1 Sekunde, Eimer in der Hand, Fixes'],
   ['2.9.2', 'Schutz vor Kopien: das Spiel startet nur auf der echten Website (und in Claude), abschaltbar mit SITE_LOCK im Code'],
@@ -4149,7 +4261,7 @@ function resetWorld(seed, mode, gen) {
   SEA = W.gen >= 3 ? 106 : 30;
   RING_OUT = W.gen >= 3 ? 560 : 375;
   VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); DIMS.clear();
+  W.gen3.clear(); WORM_CACHE.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -5526,7 +5638,7 @@ const DROP_LIFE = 15;
 function sendDrop(d) { if (MP.active() && d) MP.send({ t: 'drop', id: d.nid, k: d.kind, n: d.n, l: d.life ? 1 : 0, p: [+d.x.toFixed(2), +d.y.toFixed(2), +d.z.toFixed(2), +d.vx.toFixed(2), +d.vy.toFixed(2), +d.vz.toFixed(2)] }); }
 function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if (k >= 0) DROPS.splice(k, 1); }
 function keptDrops() { return DROPS.filter((d) => d.keep && !d.life).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
-function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
+function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]] || TOOL_MAX[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
 const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
 const DROP_GLOW = { diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
@@ -5678,6 +5790,10 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     const c = toolColor(level);
     box(0.17, 0.2, 0.035, 0, 0.62, 0, c);
     box(0.1, 0.06, 0.04, 0, 0.75, 0, [c[0] * 1.08, c[1] * 1.08, c[2] * 1.08]);
+  } else if (tool === 'modItem') {
+    const c = (item && DROP_COLOR[item]) || [0.7, 0.55, 1];
+    box(0.2, 0.2, 0.2, 0, 0.12, 0, c, 0.45);
+    box(0.12, 0.12, 0.22, 0, 0.12, 0, [Math.min(1, c[0] * 1.3), Math.min(1, c[1] * 1.3), Math.min(1, c[2] * 1.3)], 0.7);
   } else if (tool === 'shears') {
     box(0.05, 0.3, 0.04, -0.03, 0.22, 0, COL.iron);
     box(0.05, 0.3, 0.04, 0.03, 0.22, 0, COL.iron);
@@ -5718,7 +5834,8 @@ function drawTool(Bt, ms, tool, level, sky, item) {
 function drawItemModel(Bt, ms, k, n, sky) {
   const box = (w, h, d, x, y, z, c, em = 0) => Bt.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, sky);
   const it = ITEMS[k] || {};
-  if (it.tool) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, it.tool, Math.max(1, n || 1), sky); ms.pop(); return; }
+  if (it.tool) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, it.tool, it.level || Math.max(1, n || 1), sky); ms.pop(); return; }
+  if (TOOL_MAX[k]) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, k, Math.max(1, n || 1), sky); ms.pop(); return; }
   if (it.armor) { drawArmorPiece(box, it.armor, Math.max(1, n || 1)); return; }
   if (k === 'torch') { ms.push().t(0, -0.28, 0); drawTool(Bt, ms, 'torch', 0, sky); ms.pop(); return; }
   if (k === 'apple' || k === 'crystal_apple') {
@@ -6535,7 +6652,7 @@ function resHint(cost) {
 function itemName(k) {
   if (RES_NAME[k]) return RES_NAME[k];
   const it = ITEMS[k]; if (!it) return '';
-  if (it.tool) { const n = TOOL_LEVEL_NAMES[it.tool]; return n[G.tools[it.tool]] || n[n.length - 1]; }
+  if (it.tool) { const n = TOOL_LEVEL_NAMES[it.tool]; return n[it.level || 1] || n[n.length - 1]; }
   if (it.armor) return ARMOR_NAMES[it.armor][Math.max(1, G.tools[it.armor] | 0)];
   return it.name;
 }
@@ -6543,16 +6660,27 @@ const TOOL_KEYS = ['axe', 'sword', 'pickaxe', 'shovel', 'shears'];
 /* shovels dig these faster (stone level, iron, diamond) */
 const SHOVEL_SPEED = [1, 2.2, 3.2, 4.6];
 const SOFT = new Set([B.GRASS, B.DIRT, B.SAND, B.GRAVEL, B.SNOW, B.PATH, B.MYCEL, B.DARK_GRASS]);
-/* the tool in the hand right now (null: hand, block, torch …) */
-function heldToolKind() { const k = selectedItem(); return k && ITEMS[k] && ITEMS[k].tool && G.tools[ITEMS[k].tool] > 0 ? ITEMS[k].tool : null; }
-/* put owned tools into free hotbar slots (purchases, old saves) */
-function ensureTools() {
-  for (const k of TOOL_KEYS) {
-    if (!G.tools[k] || G.hotbar.includes(k)) continue;
-    const free = G.hotbar.indexOf(null);
-    if (free >= 0) G.hotbar[free] = k;
+/* every tool tier is its own item ('sword3' = Diamantschwert): you can have many, they stack */
+const TOOL_MAX = { axe: 4, sword: 4, pickaxe: 3, shovel: 3, shears: 1 };
+for (const t in TOOL_MAX) for (let lv = 1; lv <= TOOL_MAX[t]; lv++) ITEMS[t + lv] = { name: TOOL_LEVEL_NAMES[t][lv], tool: t, level: lv };
+for (const t in TOOL_MAX) delete ITEMS[t];
+function toolKey(t, lv) { return t + clamp(lv | 0 || 1, 1, TOOL_MAX[t] || 1); }
+/* the tool in the hand right now (null: hand, block, torch …) and its tier */
+function heldToolKind() { const k = selectedItem(); return k && ITEMS[k] && ITEMS[k].tool && itemCount(k) > 0 ? ITEMS[k].tool : null; }
+function heldToolLevel() { const k = selectedItem(); return k && ITEMS[k] && ITEMS[k].tool && itemCount(k) > 0 ? ITEMS[k].level || 1 : 0; }
+/* do you have this kind of tool at all (any tier)? the best tier you carry */
+function bestTool(t) { let b = 0; for (let lv = 1; lv <= (TOOL_MAX[t] || 0); lv++) if ((G.inv.items[t + lv] || 0) > 0) b = lv; return b; }
+/* old saves: one tool per kind in G.tools -> items */
+function migrateTools(inv, tools, slots) {
+  if (!tools) return;
+  for (const t in TOOL_MAX) {
+    const lv = tools[t] | 0;
+    if (lv > 0) { const k = toolKey(t, lv); inv.items[k] = Math.max(inv.items[k] || 0, 1); }
+    delete tools[t];
+    for (const arr of slots) if (Array.isArray(arr)) for (let i = 0; i < arr.length; i++) if (arr[i] === t) arr[i] = lv > 0 ? toolKey(t, lv) : null;
   }
 }
+function ensureTools() { }
 const SHOP = [
   { id: 'campfire', tab: 'survive', item: 'campfire', qty: 1, cost: { wood: 5 }, name: 'Lagerfeuer', desc: 'Hält Zombies nachts fern. Pro Welt gibt es nur ein Lagerfeuer, für alle Spieler zusammen. Mit E am Feuer verbesserst du es.' },
   { id: 'torch', tab: 'survive', item: 'torch', qty: 4, cost: { wood: 2 }, name: '4 Fackeln', desc: 'Licht für dein Lager und für Höhlen. In der Hand leuchtet eine Fackel mit.' },
@@ -6573,7 +6701,7 @@ const SHOP = [
   { id: 'pickaxe', tab: 'tools', tool: 'pickaxe', level: 1, cost: { wood: 6 }, name: 'Spitzhacke', desc: 'Baut Stein und Eisenerz ab, wenn du sie in der Hand hast.' },
   { id: 'pickaxe2', tab: 'tools', tool: 'pickaxe', level: 2, cost: { wood: 10, iron: 6 }, name: 'Eisenspitzhacke', desc: 'Gräbt schneller und baut auch Diamanterz ab.' },
   { id: 'pickaxe3', tab: 'tools', tool: 'pickaxe', level: 3, cost: { wood: 16, diamond: 3 }, name: 'Diamantspitzhacke', desc: 'Gräbt am schnellsten und baut Rubin und Mythril ab.' },
-  { id: 'sword4', tab: 'tools', tool: 'sword', level: 4, cost: { wood: 16, ruby: 4 }, name: 'Rubinschwert', desc: '48 Schaden. Glüht rot, auch im Dunkeln.' },
+  { id: 'sword4', tab: 'tools', tool: 'sword', level: 4, cost: { wood: 16, ruby: 4 }, name: 'Rubinschwert', desc: '170 Schaden: ein voll aufgeladener Schlag besiegt jeden Zombie. Glüht rot, auch im Dunkeln.' },
   { id: 'axe4', tab: 'tools', tool: 'axe', level: 4, cost: { wood: 16, ruby: 3 }, name: 'Rubinaxt', desc: 'Nur 3 Schläge pro Baum.' },
   { id: 'shovel1', tab: 'tools', tool: 'shovel', level: 1, cost: { wood: 4 }, name: 'Steinschaufel', desc: 'Gräbt Erde, Gras, Sand, Kies und Schnee gut doppelt so schnell.' },
   { id: 'shovel2', tab: 'tools', tool: 'shovel', level: 2, cost: { wood: 6, iron: 3 }, name: 'Eisenschaufel', desc: 'Gräbt Erde und Sand dreimal so schnell.' },
@@ -6587,14 +6715,17 @@ for (let lv = 1; lv <= 3; lv++) for (const sl of ARMOR_SLOTS) {
     desc: '+' + ARMOR_PTS[sl][lv] + ' Rüstung. Wird sofort angezogen und schützt vor Zombies, Pfeilen und Lava.' });
 }
 const CHOP_HITS = [50, 25, 12, 6, 3];
-const SWORD_DMG = [1, 14, 24, 34, 48];
+const SWORD_DMG = [1, 14, 24, 34, 170];   // the ruby sword: one full swing kills any zombie
 /* what the thing in the hand does in a fight: damage at full charge, knockback, seconds to recharge */
 function weaponStats() {
   const k = heldToolKind();
-  if (k === 'sword') return { dmg: SWORD_DMG[G.tools.sword] || 14, kb: 3.4, charge: 0.6 };
-  if (k === 'axe') return { dmg: 6 + 2 * G.tools.axe, kb: 3.8, charge: 0.9 };
+  const sel = selectedItem();
+  if (sel && ITEMS[sel] && ITEMS[sel].dmg > 0) return { dmg: ITEMS[sel].dmg, kb: 3.2, charge: 0.6 };
+  const lv = heldToolLevel();
+  if (k === 'sword') return { dmg: SWORD_DMG[lv] || 14, kb: 3.4, charge: 0.6 };
+  if (k === 'axe') return { dmg: 6 + 2 * lv, kb: 3.8, charge: 0.9 };
   if (k === 'pickaxe') return { dmg: 4, kb: 2.2, charge: 0.75 };
-  if (k === 'shovel') return { dmg: 3 + G.tools.shovel, kb: 2.4, charge: 0.7 };
+  if (k === 'shovel') return { dmg: 3 + lv, kb: 2.4, charge: 0.7 };
   if (k === 'shears') return { dmg: 2, kb: 0.8, charge: 0.5 };
   return { dmg: 1, kb: 0, charge: 0.45 };   // bare hand (or a block, a torch …): almost nothing
 }
@@ -6671,7 +6802,7 @@ function afterEdit(x0, z0, x1, z1, lightChanged) {
 }
 
 /* ---------- inventory ---------- */
-function itemCount(k) { if (!k) return 0; if (RES_NAME[k]) return G.inv[k] || 0; const it = ITEMS[k]; if (it && it.armor) return 0; if (it && it.tool) return G.tools[it.tool] > 0 ? 1 : 0; return G.inv.items[k] || 0; }
+function itemCount(k) { if (!k) return 0; if (RES_NAME[k]) return G.inv[k] || 0; const it = ITEMS[k]; if (it && it.armor) return 0; return G.inv.items[k] || 0; }
 const BAG_N = 27;
 /* wood and wool can also be built with: they become logs and wool blocks */
 const PLACE_RES = { wood: { name: 'Holz', block: B.OAK_LOG, place: 'block' }, wool: { name: 'Wolle', block: B.WOOL_WHITE, place: 'block' } };
@@ -6684,7 +6815,7 @@ function syncSlots() {
   const seen = new Set();
   const clean = (arr) => { for (let i = 0; i < arr.length; i++) { const k = arr[i]; if (!k || itemCount(k) <= 0 || seen.has(k)) arr[i] = null; else seen.add(k); } };
   clean(G.hotbar); clean(G.bag);
-  const want = [...RES_KEYS, ...Object.keys(G.inv.items), ...TOOL_KEYS];
+  const want = [...RES_KEYS, ...Object.keys(G.inv.items)];
   for (const k of want) {
     if (seen.has(k) || itemCount(k) <= 0 || (!RES_NAME[k] && !ITEMS[k])) continue;
     let s = G.hotbar.indexOf(null);
@@ -6694,10 +6825,11 @@ function syncSlots() {
   }
 }
 function addItem(k, n) {
+  // an old tool drop ('axe' with its tier as the count) becomes the new tool item
+  if (TOOL_MAX[k]) { k = toolKey(k, n); n = 1; }
+  if (!RES_NAME[k] && !ITEMS[k]) return;   // unbekannt (z. B. ein Item aus einer Mod, die hier fehlt)
   // armor from the ground: put on, the better one stays
   if (ITEMS[k] && ITEMS[k].armor) { G.tools[k] = Math.max(G.tools[k] | 0, n || 1); return; }
-  // a tool from the ground: you keep the better one
-  if (ITEMS[k] && ITEMS[k].tool) { const t = ITEMS[k].tool; G.tools[t] = Math.max(G.tools[t] || 0, n || 1); UI.tools && UI.tools(); UI.hotbar(); return; }
   if (RES_NAME[k]) { G.inv[k] = (G.inv[k] || 0) + n; UI.res(); return; }
   G.inv.items[k] = (G.inv.items[k] || 0) + n;
   if (!G.hotbar.includes(k)) { const free = G.hotbar.indexOf(null); if (free >= 0) G.hotbar[free] = k; }
@@ -6720,7 +6852,6 @@ function worldHasFire() {
 }
 /* ---------- shop ---------- */
 function shopState(e) {
-  if (e.tool && G.tools[e.tool] >= e.level) return 'owned';
   if (e.armor && (G.tools[e.armor] | 0) >= e.level) return 'owned';
   // only one campfire in the whole world, ever (for all players together)
   if (e.id === 'campfire' && worldHasFire()) return 'owned';
@@ -6733,9 +6864,10 @@ function buy(id) {
   if (st === 'poor') { UI.toast('Dir fehlt noch: ' + missingText(e.cost) + '.' + resHint(e.cost), 'warn', 4600); SFX.deny(); return; }
   pay(e.cost);
   if (e.tool) {
-    G.tools[e.tool] = Math.max(G.tools[e.tool], e.level);
-    ensureTools();
-    const slot = G.hotbar.indexOf(e.tool);
+    // every purchase is a new tool (also a better one does not replace the old)
+    const k = toolKey(e.tool, e.level);
+    addItem(k, 1);
+    const slot = G.hotbar.indexOf(k);
     const where = slot >= 0 ? ' Liegt auf Platz ' + ((slot + 1) % 10) + ', nimm es zum Benutzen in die Hand.' : ' Liegt im Inventar (I).';
     UI.toast((e.tool === 'shears' ? 'Schere gekauft. Schafe grasen weit draußen.' : e.name + ' gekauft.') + where, 'good', 5200);
     if (e.tool === 'shears' && G.goal === 4) setGoal(5);
@@ -6771,13 +6903,13 @@ function bloodStats(n) {
   const u = Math.max(0, n - 3);
   return {
     breakMul: n <= 1 ? 1 : n === 2 ? 0.75 : Math.max(0.3, 0.5 - 0.05 * u),
-    climb: n >= 2, run: n >= 2,
+    climb: false, run: n >= 2,   // they no longer climb walls (they dig and build instead)
     speedMul: n <= 1 ? 1.05 : n === 2 ? 1.32 : Math.min(1.9, 1.6 + 0.06 * u),
     place: n <= 1 ? 0 : n === 2 ? 4 : Math.min(16, 8 + 2 * u),   // blocks each zombie may put down to get up to you
     hpMul: n >= 3 ? 1.3 + 0.15 * u : 1, countMul: n >= 3 ? 1.4 + 0.2 * u : 1, dmgAdd: n >= 3 ? 4 + 2 * u : 0,
   };
 }
-const BLOOD_SUB = ['', 'Sie brechen durch deine Wände, um zu dir zu kommen.', 'Sie rennen, klettern und stapeln Blöcke.', 'ULTRA: schneller, stärker, mehr. Sie kommen durch alles.'];
+const BLOOD_SUB = ['', 'Sie brechen durch deine Wände, um zu dir zu kommen.', 'Sie rennen und stapeln Blöcke.', 'ULTRA: schneller, stärker, mehr. Sie kommen durch alles.'];
 function startNight() {
   const T = G.time;
   T.phase = 'night'; T.t = 0; T.night++;
@@ -6890,6 +7022,7 @@ function makeSave() {
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
+    dims: dimsForSave(), portals: W.portals || [], dimRet: W.dimReturn || null, mitems: W.modItems || {},
   };
 }
 /* own world: save locally (and to the cloud when logged in); guest: send inventory to the host */
@@ -6897,11 +7030,13 @@ function saveGame(flushCloud) {
   if (G.state === 'menu' || G.state === 'loading') return;
   if (MP.isClient()) { MP.sendPdata(); return; }
   if (G.server) { SERVER.save(flushCloud); return; }
-  if (!WORLDS.current) return;
+  if (!WORLDS.current || WORLDS.current.temp) return;   // eine Testwelt für Mods wird nie gespeichert
   try { WORLDS.save(makeSave(), flushCloud); } catch (e) { console.warn('save failed', e); }
 }
 /* inventory data that went through the database may come back without empty parts */
 function normalizePlayerData(d) {
+  d = Object.assign({}, d); d.inv = normalizeInv(d.inv); d.tools = Object.assign({}, d.tools || {}); d.hotbar = (d.hotbar || []).slice(); d.bag = (d.bag || []).slice();
+  migrateTools(d.inv, d.tools, [d.hotbar, d.bag]);
   const hb = new Array(10).fill(null);
   if (d.hotbar) for (let i = 0; i < 10; i++) { const v = d.hotbar[i]; if (v && (ITEMS[v] || RES_NAME[v])) hb[i] = v; }
   const bag = new Array(BAG_N).fill(null);
@@ -6909,7 +7044,7 @@ function normalizePlayerData(d) {
   return {
     bag,
     inv: normalizeInv(d.inv),
-    tools: Object.assign({ axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 }, d.tools || {}),
+    tools: Object.assign({}, d.tools || {}),
     hotbar: hb, stats: d.stats || null, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
   };
 }
@@ -6951,6 +7086,8 @@ function savePos() {
 function applySave(s, convert) {
   if (s.v === 2 && s.wy !== WY) s = remapSave(s);
   if (Array.isArray(s.g3)) for (const k of s.g3) W.gen3.add(k);
+  // Mods: Dimensionen, Portale und eigene Items gehören zur Welt
+  restoreDims(s.dims); W.portals = Array.isArray(s.portals) ? s.portals.slice(0, 64) : []; W.dimReturn = s.dimRet || null; restoreModItems(s.mitems);
   const v2 = s.v === 2;
   // an old island (or an island the update made endless): the buildings move to the new island
   const fix = !v2 || !!convert;
@@ -6969,7 +7106,8 @@ function applySave(s, convert) {
   }
   Object.assign(G.time, s.time);
   G.playTime = s.playTime || 0;
-  G.inv = normalizeInv(s.inv); G.tools = Object.assign({ axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 }, s.tools || {});
+  G.inv = normalizeInv(s.inv); G.tools = Object.assign({}, s.tools || {});
+  migrateTools(G.inv, G.tools, [s.hotbar, s.bag]);
   G.hotbar = new Array(10).fill(null);
   if (s.hotbar) for (let i = 0; i < 10; i++) { const v = s.hotbar[i]; if (v && (ITEMS[v] || RES_NAME[v])) G.hotbar[i] = v; }
   G.bag = new Array(BAG_N).fill(null);
@@ -7186,10 +7324,8 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
 /* Q: throw the thing in the hand forward (one, or all of it) */
 function dropSelected(all) {
   const k = selectedItem(); if (!k || PL.dead) return false;
-  const tool = ITEMS[k] && ITEMS[k].tool;
-  let n;
-  if (tool) { n = G.tools[tool]; G.tools[tool] = 0; }
-  else { n = all ? itemCount(k) : 1; if (RES_NAME[k]) G.inv[k] -= n; else takeItem(k, n); }
+  const n = all ? itemCount(k) : 1;
+  if (RES_NAME[k]) G.inv[k] -= n; else takeItem(k, n);
   if (!n) return false;
   const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw + Math.PI;
   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
@@ -7208,12 +7344,13 @@ function dropEverything() {
   const cursed = !!G._curse;
   // dying ends the poison (one way or the other)
   if (G.stats && G.stats.inf) { G.stats.inf = null; uiPoison(); }
+  if (MODFX.keepInventory) { setTimeout(() => UI.toast('Mod „Alles behalten“: du behältst alle deine Sachen.', 'good', 4200), 900); saveGame(true); return; }
   if (!cursed && keepFire(PL.x, PL.z)) { setTimeout(() => UI.toast('Dein Lagerfeuer war nah genug: du behältst alle deine Sachen.', 'good', 5200), 900); saveGame(true); return; }
   const all = [];
   for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) { all.push([k, G.inv[k]]); G.inv[k] = 0; }
   for (const k of Object.keys(G.inv.items)) if (G.inv.items[k] > 0) all.push([k, G.inv.items[k]]);
   G.inv.items = {};
-  for (const t of [...TOOL_KEYS, ...ARMOR_SLOTS]) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
+  for (const t of ARMOR_SLOTS) if (G.tools[t] > 0) { all.push([t, G.tools[t]]); G.tools[t] = 0; }
   const cursedSplit = cursed ? curseHalf(all) : null;
   const fall = cursed ? cursedSplit[0] : all;
   fall.forEach(([k, n], j) => {
@@ -7262,6 +7399,7 @@ function sneakClamp(dx, dz) {
   return [dx, dz];
 }
 function updatePlayer(dt) {
+  if (G.spectator) return;   // der Zuschauer fliegt (updateSpectator)
   if (PL.invuln > 0) PL.invuln -= dt;
   if (PL.hurtT > 0) PL.hurtT -= dt;
   if (PL.attackCd > 0) PL.attackCd -= dt;
@@ -7477,7 +7615,7 @@ function deactivateTree(t) {
   freeModel(t.model); t.model = null;
 }
 const ACTIVE_TREES = new Set();
-function chopHitsNeeded() { return CHOP_HITS[heldToolKind() === 'axe' ? G.tools.axe : 0] || 50; }
+function chopHitsNeeded() { return CHOP_HITS[heldToolKind() === 'axe' ? heldToolLevel() : 0] || 50; }
 function updateChopping(dt) {
   const t = findChopTree();
   if (t !== G.chop.tree) { G.chop.tree = t; G.chop.timer = 0.32; }
@@ -7564,7 +7702,7 @@ function fellTree(t, dirX, dirZ, remote, storm) {
   }
   impact = clamp(impact - 0.1, 0.6, 1.5);
   if (model) G.falling.push({ t, model, pivot, axis, dir: [dirX, dirZ], a: 0, v: storm ? 0.6 : 0.12, impact, state: 'fall', time: 0, H, scale: 1, remote: !!remote || !!storm });
-  if ((!remote && !storm) || Math.hypot(t.x - PL.x, t.z - PL.z) < 40) SFX.creak();
+  if ((!remote && !storm) || Math.hypot(t.x - PL.x, t.z - PL.z) < 40) SFX.treeCrack(Math.hypot(t.x - PL.x, t.z - PL.z));
   if (!remote && !storm) { UI.toast('Baum fällt!', 'good'); if (G.goal === 0) setGoal(1); }
 }
 function updateFalling(dt) {
@@ -7574,6 +7712,7 @@ function updateFalling(dt) {
     if (f.state === 'fall') {
       f.v += 3.4 * Math.sin(f.a + 0.06) * dt;
       f.a += f.v * dt;
+      if (!f.whoosh && f.a > f.impact * 0.45) { f.whoosh = true; SFX.whoosh(Math.hypot(f.pivot[0] - PL.x, f.pivot[2] - PL.z), 0.7); }
       if (f.a >= f.impact) {
         f.a = f.impact; f.v = -f.v * 0.16; f.state = 'land'; f.time = 0;
         SFX.thud(Math.hypot(f.pivot[0] - PL.x, f.pivot[2] - PL.z));
@@ -7592,6 +7731,7 @@ function updateFalling(dt) {
       f.a += f.v * dt;
       if (f.time > 0.55) {
         f.state = 'break'; f.time = 0;
+        SFX.woodSplit(Math.hypot(f.pivot[0] - PL.x, f.pivot[2] - PL.z));
         const s = Math.sin(f.a), c = Math.cos(f.a);
         for (let n = 0; n < 5; n++) {
           const d = 0.8 + n * Math.max(0.7, (f.t.h - 0.5) / 5);
@@ -7669,8 +7809,8 @@ function canBreak(id, x, y, z) {
   if (TREEBLOCK[id] && W.treeAt.has(i)) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
   if (id === B.BEDROCK || id === B.SAPLING || id === B.LAVA || id === B.WATER) return false;
   if (id === B.CHEST && !isStoreChest(x, y, z)) { hint('chest', 'Truhen öffnest du mit E.'); return false; }
-  if (!MODFX.instaBreak && NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', G.tools.pickaxe ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
-  if (!MODFX.instaBreak && PICKLV[id] > 1 && G.tools.pickaxe < PICKLV[id]) { hint('pick' + PICKLV[id], PICKLV[id] >= 3 ? BNAME[id] + ' braucht eine Diamantspitzhacke vom Händler.' : 'Diamanterz braucht eine Eisenspitzhacke vom Händler.'); return false; }
+  if (!MODFX.instaBreak && NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', bestTool('pickaxe') ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
+  if (!MODFX.instaBreak && PICKLV[id] > 1 && heldToolLevel() < PICKLV[id]) { hint('pick' + PICKLV[id], PICKLV[id] >= 3 ? BNAME[id] + ' braucht eine Diamantspitzhacke' + (bestTool('pickaxe') >= 3 ? ' in der Hand.' : ' vom Händler.') : 'Diamanterz braucht eine Eisenspitzhacke' + (bestTool('pickaxe') >= 2 ? ' in der Hand.' : ' vom Händler.')); return false; }
   return true;
 }
 function updateBreaking(dt, holding, target) {
@@ -7681,8 +7821,9 @@ function updateBreaking(dt, holding, target) {
   if (!G.breaking || G.breaking.x !== x || G.breaking.y !== y || G.breaking.z !== z) {
     if (!canBreak(id, x, y, z)) { G.breaking = null; return; }
     const ht = heldToolKind();
-    const speed = NEEDPICK[id] && ht === 'pickaxe' ? (G.tools.pickaxe >= 3 ? 3.2 : G.tools.pickaxe >= 2 ? 2.3 : 1.5)
-      : SOFT.has(id) && ht === 'shovel' ? SHOVEL_SPEED[G.tools.shovel] || 1 : 1;
+    const hl = heldToolLevel();
+    const speed = NEEDPICK[id] && ht === 'pickaxe' ? (hl >= 3 ? 3.2 : hl >= 2 ? 2.3 : 1.5)
+      : SOFT.has(id) && ht === 'shovel' ? SHOVEL_SPEED[hl] || 1 : 1;
     // only chests you built can be broken; built logs break like wood
     const hard = id === B.CHEST ? 1.1 : TREEBLOCK[id] && !W.treeAt.has(I(x, y, z)) ? 1.2 : HARD[id];
     G.breaking = { x, y, z, id, p: 0, need: MODFX.instaBreak ? 0.05 : Math.max(0.05, hard / speed), tick: 0 };
@@ -7795,12 +7936,39 @@ function giveInSlot(k, from) {
   UI.hotbar();
 }
 /* an empty bucket fills up at water. The sea, lakes and rivers never run dry */
+/* the source block a stream of water comes from (up the waterfall, then against the flow) */
+function waterSourceOf(x, y, z) {
+  const seen = new Set();
+  let q = [[x, y, z]];
+  for (let step = 0; step < 24 && q.length; step++) {
+    const next = [];
+    for (const [cx, cy, cz] of q) {
+      const L = waterLevel(cx, cy, cz);
+      if (L === null) continue;
+      if (L === 0) return [cx, cy, cz];
+      const key = I(cx, cy, cz); if (seen.has(key)) continue; seen.add(key);
+      // water above feeds this one; at the sides only shallower (closer to the source) water does
+      if (waterLevel(cx, cy + 1, cz) !== null) next.push([cx, cy + 1, cz]);
+      const E = L === FLOW_FALL ? 99 : L;
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const n = waterLevel(cx + dx, cy, cz + dz);
+        if (n !== null && (n === FLOW_FALL ? 0 : n) < E) next.push([cx + dx, cy, cz + dz]);
+      }
+    }
+    q = next;
+  }
+  return null;
+}
 function useBucket(target) {
   if (!target || target.type !== 'block' || target.id !== B.WATER) { hint('bucket', 'Zeig mit dem Eimer auf Wasser und klick.'); return false; }
   if (!target.inReach) { hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
-  const { x, y, z } = target;
-  // only a full water block (a source) fills the bucket; running water does not
-  if (waterLevel(x, y, z) !== 0) { hint('flow', 'Fließendes Wasser kann man nicht aufheben. Zeig auf die Quelle.'); return false; }
+  let { x, y, z } = target;
+  // running or falling water: the bucket takes the source it comes from (like Minecraft, just friendlier)
+  if (waterLevel(x, y, z) !== 0) {
+    const s = waterSourceOf(x, y, z);
+    if (!s) { hint('flow', 'Hier ist keine Wasserquelle in der Nähe. Zeig auf das Wasser, wo es herkommt.'); return false; }
+    [x, y, z] = s;
+  }
   if (!takeItem('bucket', 1)) return false;
   giveInSlot('water_bucket', 'bucket');
   if (y > SEA || W.changes.has(I(x, y, z))) {
@@ -7814,6 +7982,7 @@ function useBucket(target) {
 }
 function placeSelected(target, retry) {
   const item = selectedItem();
+  if (item && ITEMS[item] && ITEMS[item].mod && ITEMS[item].use) return modUseItem(item, target);
   if (FOOD[item]) return eatSelected();
   if (item === 'bucket') return useBucket(target);
   const p = placementFor(target, item);
@@ -7869,7 +8038,7 @@ function interactTargets() {
   const m = G.merchant;
   if (m && m.visible > 0.5 && !isNight()) { const d = Math.hypot(m.x - PL.x, m.z - PL.z); if (d < 3.6) out.push({ kind: 'merchant', d: d - 1, label: 'Mit dem Händler handeln' }); }
   for (const tr of TRADERS.values()) { if (tr.sleep || isNight()) continue; const d = Math.hypot(tr.x - PL.x, tr.z - PL.z); if (d < 3.6) out.push({ kind: 'merchant', d: d - 1, label: 'Mit dem Dorfhändler handeln' }); }
-  for (const s of G.sheep) { const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < 2.6 && Math.abs(s.y - PL.y) < 1.5) out.push({ kind: 'sheep', s, d, label: s.wool ? (heldToolKind() === 'shears' ? 'Schaf scheren' : G.tools.shears ? 'Schaf scheren (Schere in die Hand)' : 'Schaf scheren (Schere nötig)') : 'Wolle wächst nach' }); }
+  for (const s of G.sheep) { const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < 2.6 && Math.abs(s.y - PL.y) < 1.5) out.push({ kind: 'sheep', s, d, label: s.wool ? (heldToolKind() === 'shears' ? 'Schaf scheren' : bestTool('shears') ? 'Schaf scheren (Schere in die Hand)' : 'Schaf scheren (Schere nötig)') : 'Wolle wächst nach' }); }
   const px = Math.floor(PL.x), py = Math.floor(PL.y), pz = Math.floor(PL.z);
   for (let x = px - 2; x <= px + 2; x++) for (let z = pz - 2; z <= pz + 2; z++) for (let y = py - 1; y <= py + 2; y++) {
     const id = getB(x, y, z);
@@ -7931,7 +8100,7 @@ function updateSleep(dt) {
 }
 function shearSheep(s) {
   if (!s.wool) { hint('wool', 'Die Wolle wächst noch nach.'); return; }
-  if (heldToolKind() !== 'shears') { hint('shears', G.tools.shears ? 'Nimm die Schere in die Hand (Hotbar).' : 'Du brauchst eine Schere vom Händler.'); return; }
+  if (heldToolKind() !== 'shears') { hint('shears', bestTool('shears') ? 'Nimm die Schere in die Hand (Hotbar).' : 'Du brauchst eine Schere vom Händler.'); return; }
   s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60;
   s.state = 'flee'; s.t = 0; s.fleeT = 1.6;
   if (MP.isClient()) MP.send({ t: 'shear', id: s.id });
@@ -7957,7 +8126,7 @@ function attackZombie(z, auto) {
   if (w.kb > 0) SFX.swish(c > 0.92 ? 1.2 : 0.7);
   PL.faceYaw = Math.atan2(z.x - PL.x, z.z - PL.z); PL.faceT = 0.3;
   const full = c > 0.92;
-  const dmg = Math.round(w.dmg * (0.2 + 0.8 * c * c) * 10) / 10;
+  const dmg = Math.round(w.dmg * MODFX.dmg * (0.2 + 0.8 * c * c) * 10) / 10;
   const kb = full ? w.kb : w.kb * c * 0.25;
   const dx = z.x - PL.x, dz = z.z - PL.z, d = Math.hypot(dx, dz) || 1;
   burst(z.x, z.y + 1.2, z.z, full ? 8 : 3, [STYLE_ZOMBIE.skin, [0.35, 0.45, 0.3]], { speed: full ? 2.2 : 1.2, up: 2.5, life: 0.7, size: 0.08 });
@@ -7984,7 +8153,7 @@ function attackPlayer(r, auto) {
   if (w.kb > 0) SFX.swish(full ? 1.2 : 0.7);
   PL.faceYaw = Math.atan2(r.x - PL.x, r.z - PL.z); PL.faceT = 0.3;
   // players hit each other softer than zombies (a little over half)
-  const dmg = Math.round(w.dmg * 0.6 * (0.2 + 0.8 * c * c) * 10) / 10;
+  const dmg = Math.min(45, Math.round(w.dmg * 0.6 * (0.2 + 0.8 * c * c) * 10) / 10);
   burst(r.x, r.y + 1.2, r.z, full ? 8 : 3, [[0.75, 0.12, 0.1], [0.5, 0.08, 0.06]], { speed: full ? 2.2 : 1.2, up: 2.5, life: 0.7, size: 0.08 });
   SFX.hit(full ? 1 : 0.45);
   if (full && w.kb > 0 && SETTINGS.camShake) CAMC.shake = Math.min(0.5, CAMC.shake + 0.12);
@@ -8009,11 +8178,11 @@ function spawnZombie(x, y, z) {
   const id = ZID++;
   const seed = id * 7919 + 13;
   const r = mulberry32(seed);
-  const hp = blood ? Math.round(70 * bl.hpMul) : 50;
+  const hp = Math.round((blood ? 70 * bl.hpMul : 50) * MODFX.zombieHp);
   G.zombies.push({
     id, type: 'zombie', x, y, z, vx: 0, vy: 0, vz: 0, hw: 0.32, h: 1.95, onGround: true, stepOffset: 0, yaw: Math.atan2(PL.x - x, PL.z - z),
     hp, maxHp: hp, state: 'rise', t: 0, rise: 0, atkT: 0, atkCd: 0, groanT: 2 + Math.random() * 6,
-    phase: r() * 10, seed, speed: (blood ? 2.75 * bl.speedMul : 2.25) * (0.9 + r() * 0.2), hurtT: 0, barT: 0, side: r() < 0.5 ? -1 : 1, sideT: 0, stuckT: 0,
+    phase: r() * 10, seed, speed: (blood ? 2.75 * bl.speedMul : 2.25) * (0.9 + r() * 0.2) * MODFX.zombieSpeed, hurtT: 0, barT: 0, side: r() < 0.5 ? -1 : 1, sideT: 0, stuckT: 0,
     breakCell: null, breakT: 0, rag: [0.08 + r() * 0.14, 0.16 + r() * 0.1, 0.04 + r() * 0.1, 0.12 + r() * 0.12, 0.06 + r() * 0.16], twitch: 0, stun: 0, burning: 0, target: null,
     walkPhase: 0, walkAmt: 0, lurk: false, climb: 0, run: !!(bl && bl.run),
   });
@@ -8022,6 +8191,15 @@ function spawnZombie(x, y, z) {
 function updateSpawns(dt) {
   if (MP.isClient()) return;
   if (MODFX.peaceful) { if (G.zombies.length) G.zombies = []; return; }
+  // in einer Mod-Dimension: keine normalen Tiere und Nächte, Zombies nur wenn die Dimension es will
+  if (CURDIM) {
+    if (!CURDIM.mobs) return;
+    G.spawnT -= dt;
+    if (G.spawnT > 0 || G.zombies.filter((z) => z.state !== 'die').length >= 10) return;
+    G.spawnT = 4 + Math.random() * 4;
+    const s = findSpawnSpot({ x: PL.x, z: PL.z }, 14, 26, null); if (s) spawnZombie(s[0] + 0.5, s[1], s[2] + 0.5);
+    return;
+  }
   updateWildSpawns(dt);
   if (G.time.phase !== 'night' || (G.sleep && !G.sleep.mp)) return;
   const players = allPlayers();
@@ -8232,7 +8410,7 @@ function updateZombies(dt) {
       const wantUp = !tgt.none && tgt.y > z.y + 1.1 && dist < 7;
       const wallA = zombieWallAhead(z, wx, wz);
       const natural = wallA && !BUILT[wallA.id] && !W.prot.has(I(wallA.x, wallA.y, wallA.z));
-      if (bl && (bl.climb || natural) && (wantUp || z.stuckT > (bl.climb ? 1.3 : 0.8)) && zombieCanClimb(z, wx, wz)) { z.climb = 0.3; }
+      if (bl && bl.climb && natural && (wantUp || z.stuckT > 1.3) && zombieCanClimb(z, wx, wz)) { z.climb = 0.3; }
       else if (z.stuckT > 0.35) {
         const wall = zombieWallAhead(z, wx, wz);
         const need = wall ? zombieBreakTime(wall.id) * (bl ? bl.breakMul : 1) : 0;
@@ -8250,7 +8428,8 @@ function updateZombies(dt) {
     // a zombie right below you builds itself up
     if (z.state === 'walk' && !tgt.none && (z.placed || 0) < placeCap && z.pillar === undefined && z.onGround && tgt.y > z.y + 1.6 && (dist < 2.6 || (blood && z.slotD !== undefined && z.slotD < 0.7 && dist < 4.5))) {
       const px = Math.floor(z.x), py = Math.floor(z.y + 0.05), pz = Math.floor(z.z);
-      if (getB(px, py, pz) === B.AIR && !SOLID[getB(px, py + 2, pz)] && !SOLID[getB(px, py + 3, pz)] && SOLID[getB(px, py - 1, pz)]) { z.pillar = [px, py, pz]; z.vy = 8.4; z.pillarT = 0; }
+      if ((z.pillarWait || 0) > 0) { /* building up takes its time */ }
+      else if (getB(px, py, pz) === B.AIR && !SOLID[getB(px, py + 2, pz)] && !SOLID[getB(px, py + 3, pz)] && SOLID[getB(px, py - 1, pz)]) { z.pillar = [px, py, pz]; z.vy = 8.4; z.pillarT = 0; }
       else if (z.sky || (bl && !z.pathKnown)) {
         // the floor of the sky base is above its head: it breaks in from below
         for (const by of [py + 2, py + 3]) {
@@ -8264,6 +8443,7 @@ function updateZombies(dt) {
         }
       }
     }
+    if (z.pillarWait > 0) z.pillarWait -= dt;
     if (z.pillar) {
       const [px, py, pz] = z.pillar;
       z.pillarT += dt;
@@ -8272,6 +8452,7 @@ function updateZombies(dt) {
         if (MP.active()) MP.send({ t: 'plc', x: px, y: py, z: pz, id: B.COBBLE });
         SFX.place(B.COBBLE);
         z.placed = (z.placed || 0) + 1; z.pillar = undefined;
+        z.pillarWait = 1.4 + Math.random() * 0.8;   // slower than before: a pause after every block
       } else if (z.pillarT > 0.8) z.pillar = undefined;
     }
     if (z.state !== 'break') {
@@ -10034,10 +10215,11 @@ function collectLights(t) {
 function heldTool() {
   const it = selectedItem();
   const tk = heldToolKind();
-  if (PL.chopping > 0) return tk === 'axe' ? ['axe', G.tools.axe, null] : [null, 0, null];
-  if (tk) return [tk, Math.max(1, G.tools[tk]), null];
+  if (PL.chopping > 0) return tk === 'axe' ? ['axe', heldToolLevel(), null] : [null, 0, null];
+  if (tk) return [tk, Math.max(1, heldToolLevel()), null];
   if (it === 'torch') return ['torch', 0, null];
   if (it === 'bucket' || it === 'water_bucket') return ['bucket', it === 'water_bucket' ? 2 : 1, null];
+  if (it && ITEMS[it] && ITEMS[it].mod && ITEMS[it].place !== 'block') return ['modItem', 0, it];
   const pd = it && placeDef(it);
   if (pd && pd.block && (KIND[pd.block] === K_CUBE || KIND[pd.block] === K_GLASS)) return ['block', 0, pd.block];
   return [null, 0, null];
@@ -10051,14 +10233,38 @@ function chopPose(P, p) {
   else if (p < 0.8) lerpPose(P, POSE_R, POSE_W, easeInOut((p - 0.15) / 0.65));
   else lerpPose(P, POSE_W, POSE_I, easeInCubic((p - 0.8) / 0.2));
 }
+/* walking and running: a real stride with counter-swinging arms, the body leaning
+   into a sprint with pumping arms, and a little breathing when standing still */
+function locomotionPose(P, w, ph, t, k, seed) {
+  const s = Math.sin(ph), aw = w * (1 - 0.15 * k);
+  P.legL = s * (0.62 + 0.38 * k) * w; P.legR = -s * (0.62 + 0.38 * k) * w;
+  P.armL = -s * (0.5 + 0.55 * k) * aw - 0.32 * k * w; P.armR = s * (0.5 + 0.55 * k) * aw - 0.32 * k * w;
+  P.armLz = 0.05 * w + 0.12 * k * w; P.armRz = 0.05 * w + 0.12 * k * w;
+  P.bob = Math.abs(s) * (0.045 + 0.04 * k) * w;
+  P.lean = w * (0.06 + 0.24 * k);
+  P.twist = s * (0.08 + 0.06 * k) * w;
+  P.roll = Math.sin(ph) * 0.03 * w;
+  P.headPitch = (P.headPitch || 0) - 0.18 * k * w;    // the head stays up, looking ahead
+  // standing still: breathing and a slight sway of the arms
+  const idle = 1 - Math.min(1, w * 2);
+  P.bob += Math.sin(t * 2.1 + seed) * 0.012 * idle;
+  P.armL += Math.sin(t * 1.6 + seed) * 0.035 * idle; P.armR -= Math.sin(t * 1.6 + seed) * 0.035 * idle;
+  P.armLz += 0.04 * idle; P.armRz += 0.04 * idle;
+}
+/* a soft round shadow under a character on the lowest graphics setting (no real shadows there) */
+function blobShadow(x, y, z) {
+  if (QP().shadow) return;
+  const gy = Math.floor(y + 0.05);
+  if (!SOLID[getB(Math.floor(x), gy - 1, Math.floor(z))]) return;
+  for (const [r, a] of [[0.42, 0.2], [0.3, 0.2], [0.18, 0.18]]) BATCH.trans.aabb(x - r, gy + 0.005, z - r, x + r, gy + 0.02, z + r, 0, 0, 0, 0, a);
+}
 function drawPlayer(t) {
   const sky = skyAt(PL.x, PL.y + 1, PL.z);
   const P = basePose();
   const w = PL.walkAmt, ph = PL.walkPhase;
-  P.legL = Math.sin(ph) * 0.62 * w; P.legR = -Math.sin(ph) * 0.62 * w;
-  P.armL = -Math.sin(ph) * 0.5 * w + Math.sin(t * 1.6) * 0.03; P.armR = Math.sin(ph) * 0.5 * w - Math.sin(t * 1.6) * 0.03;
-  P.bob = Math.abs(Math.sin(ph)) * 0.045 * w;
-  P.lean = w * (PL.sprint ? 0.16 : 0.06) + 0.45 * (PL.sneakK || 0);
+  PL.sprintK = damp(PL.sprintK || 0, PL.sprint && PL.onGround ? 1 : 0, 6, 1 / 60);
+  locomotionPose(P, w, ph, t, PL.sprintK, 0);
+  P.lean += 0.45 * (PL.sneakK || 0);
   P.headYaw = Math.sin(t * 0.37) * 0.12 * (1 - Math.min(1, w));
   if (!PL.onGround && !PL.inWater) { P.legL = -0.55; P.legR = 0.35; P.armL = -0.5; P.armR = -0.35; }
   if (PL.inWater) { P.lean = 0.35; P.legL = Math.sin(t * 6) * 0.4; P.legR = -Math.sin(t * 6) * 0.4; P.armL = -2 + Math.sin(t * 3) * 0.6; P.armR = -2 - Math.sin(t * 3) * 0.6; }
@@ -10072,6 +10278,7 @@ function drawPlayer(t) {
   } else if (tool === 'torch' || tool === 'block' || tool === 'bucket') { P.armR = -0.75 + Math.sin(ph) * 0.15 * w; }
   if (PL.hurtT > 0) { P.tint = 1.5; P.tintG = 0.55; P.tintB = 0.55; }
   P.blink = (t % 4.3) < 0.12; P.walkSway = w * 0.3;
+  if (!PL.dead && PL.onGround) blobShadow(PL.x, PL.y, PL.z);
   _ms.reset().t(PL.x, PL.y + PL.stepOffset, PL.z).ry(PL.yaw);
   if (PL.dead) { const k = easeOutCubic(Math.min(1, PL.deadT / 0.7)); _ms.t(0, 0.12 * k, 0).rx(-Math.PI / 2 * k * 0.98); }
   drawCharacter(BATCH.solid, _ms, SETTINGS.skin, P, sky, t);
@@ -10083,10 +10290,9 @@ function drawRemote(r, t) {
   const P = basePose();
   const w = r.walkAmt, ph = r.walkPhase;
   const f = r.flags;
-  P.legL = Math.sin(ph) * 0.62 * w; P.legR = -Math.sin(ph) * 0.62 * w;
-  P.armL = -Math.sin(ph) * 0.5 * w; P.armR = Math.sin(ph) * 0.5 * w;
-  P.bob = Math.abs(Math.sin(ph)) * 0.045 * w;
-  P.lean = w * ((f & 64) ? 0.16 : 0.06) + ((f & 128) ? 0.45 : 0);
+  r.sprintK = damp(r.sprintK || 0, (f & 64) && (f & 1) ? 1 : 0, 6, 1 / 60);
+  locomotionPose(P, w, ph, t, r.sprintK, r.x * 3.1);
+  P.lean += (f & 128) ? 0.45 : 0;
   if (!(f & 1) && !(f & 32)) { P.legL = -0.55; P.legR = 0.35; P.armL = -0.5; P.armR = -0.35; }
   P.tool = TOOL_NAMES[r.tool] || null; P.toolLevel = r.toolLevel || 1;
   P.item = r.tool === 6 ? r.item : null;
@@ -10095,6 +10301,7 @@ function drawRemote(r, t) {
   if (f & 2) chopPose(P, r.chopT);
   else if (r.swingT < 1) { const k = Math.sin(r.swingT * Math.PI); P.armR = lerp(-0.4, -2.2, k); P.armRz = 0.15 - k * 0.35; P.twist = -k * 0.25; }
   P.blink = ((t + r.x) % 4.7) < 0.12; P.walkSway = w * 0.3;
+  if (!(f & 16) && !(f & 8)) blobShadow(r.x, r.y, r.z);
   _ms.reset().t(r.x, r.y, r.z).ry(r.yaw);
   if (f & 16) _ms.t(0, 0.12, 0).rx(-Math.PI / 2 * 0.98);
   else if (f & 8) _ms.t(0, 0.62, 0).rx(-Math.PI / 2);
@@ -10370,7 +10577,7 @@ function buildDrawLists(t, inMenu) {
     drawAmbientBats(t);
     drawArrows();
     for (const uid in REMOTE) if (REMOTE[uid].seen) drawRemote(REMOTE[uid], t);
-    if (!(CAMC.mode === 'fp' && CAMC.trans >= 0.6) || PL.dead) drawPlayer(t);
+    if ((!(CAMC.mode === 'fp' && CAMC.trans >= 0.6) || PL.dead) && !G.spectator) drawPlayer(t);
     drawDrops(t);
     drawSelection(t);
     drawGhost();
@@ -10596,6 +10803,7 @@ function initInput() {
     if (e.code === 'KeyE' || e.code === 'KeyF') INPUT.interactPressed = true;
     if (e.code === 'KeyI' || e.code === 'Tab') { e.preventDefault(); UI.openInventory(); }
     if (e.code === 'KeyQ') dropSelected(e.ctrlKey || e.shiftKey);
+    if (e.code === 'KeyT' && G.spectator) specJump(null);
     if (e.code === 'KeyR') CAMC.yawPending = (CAMC.yawPending || 0) - Math.PI / 4;
   });
   window.addEventListener('keyup', (e) => INPUT.keys.delete(e.code));
@@ -10993,6 +11201,14 @@ function drawItemIcon(canvasEl, key) {
   const am = /^(helmet|chestplate|leggings|boots)(\d)?$/.exec(key);
   if (am) { drawArmorIcon(ctx, am[1], parseInt(am[2] || String(Math.max(1, G.tools[am[1]] | 0)), 10), S); return; }
   const it = ITEMS[key];
+  if (it && it.mod && it.place !== 'block') {
+    // ein Item aus einer Mod: farbiger Stein mit seinem Emoji
+    const k = S / 64; ctx.save(); ctx.scale(k, k);
+    const g = ctx.createRadialGradient(32, 30, 4, 32, 32, 30); g.addColorStop(0, it.color || '#b48cff'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    ctx.font = '36px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(it.emoji || '✨', 32, 35); ctx.restore(); return;
+  }
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
   if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
   if (key === 'apple' || key === 'crystal_apple') { drawAppleIcon(ctx, key === 'crystal_apple', S); return; }
@@ -11070,16 +11286,15 @@ UI.hotbar = function () {
     const b = hb.children[i];
     const key = G.hotbar[i];
     const cnt = key ? itemCount(key) : 0;
-    const tool = key && ITEMS[key] && ITEMS[key].tool;
-    const icon = tool ? tool + Math.max(1, G.tools[tool]) : key;
+    const icon = key;
     const sig = (icon || '') + ':' + cnt + ':' + TEX.res + ':' + (G.sel === i);
     if (b.dataset.sig === sig) continue;
     b.dataset.sig = sig;
     if ((b.dataset.key || '') !== (icon || '') || b.dataset.res !== String(TEX.res)) { drawItemIcon(b.querySelector('canvas'), icon); b.dataset.key = icon || ''; b.dataset.res = TEX.res; }
-    b.querySelector('.n').textContent = !tool && cnt > 1 ? cnt : '';
+    b.querySelector('.n').textContent = cnt > 1 ? cnt : '';
     b.classList.toggle('empty', !key);
     b.classList.toggle('sel', G.sel === i);
-    b.setAttribute('aria-label', key ? itemName(key) + (tool ? '' : ' (' + cnt + ')') : 'Leerer Platz');
+    b.setAttribute('aria-label', key ? itemName(key) + ' (' + cnt + ')' : 'Leerer Platz');
     b.setAttribute('aria-pressed', G.sel === i ? 'true' : 'false');
   }
   // hide trailing empty slots on phones to save room
@@ -11206,7 +11421,7 @@ UI.frame = function (dt) {
   {
     let tgt = null;
     if (G.goal >= 1 && G.goal <= 2 && G.merchant) tgt = [G.merchant.x, G.merchant.z, 18];
-    else if (G.goal === 5 && G.tools.shears) {
+    else if (G.goal === 5 && bestTool('shears')) {
       let bd = 1e9;
       for (const s of G.sheep) { if (!s.wool) continue; const d = Math.hypot(s.x - PL.x, s.z - PL.z); if (d < bd) { bd = d; tgt = [s.x, s.z, 8]; } }
     }
@@ -11329,33 +11544,73 @@ UI.openShop = function () {
   UI.shopRefresh(true);
   SFX.ui();
 };
+/* the shop: tabs, each split into groups (tools by kind, armor by material …) */
+const SHOP_TIPS = {
+  survive: 'Das Wichtigste für die ersten Nächte.',
+  build: 'Baumaterial und Möbel für dein Lager.',
+  tools: 'Du kannst jedes Werkzeug so oft kaufen, wie du willst. Ein besseres ersetzt das alte nicht, es kommt dazu.',
+  weapons: 'Schwerter stapeln sich im Inventar. Voll aufgeladene Schläge machen den meisten Schaden.',
+  armor: 'Rüstung ziehst du sofort an. Die bessere bleibt.',
+  mods: 'Sachen aus den Mods dieser Welt.',
+};
+function shopGroups(tab) {
+  const list = SHOP.filter((s) => (s.tab === 'tools' && s.tool === 'sword' ? 'weapons' : s.tab) === tab);
+  const g = new Map();
+  const add = (name, e) => { if (!g.has(name)) g.set(name, []); g.get(name).push(e); };
+  for (const e of list) {
+    if (e.tool) add({ axe: 'Äxte', pickaxe: 'Spitzhacken', shovel: 'Schaufeln', shears: 'Sonstiges', sword: 'Schwerter' }[e.tool] || 'Werkzeuge', e);
+    else if (e.armor) add(ARMOR_TIER[e.level] === 'iron' ? 'Eisen' : ARMOR_TIER[e.level] === 'diamond' ? 'Diamant' : 'Mythril', e);
+    else if (tab === 'survive') add(e.item === 'crystal_apple' ? 'Heilung' : 'Lager', e);
+    else add(tab === 'mods' ? 'Aus Mods' : 'Material', e);
+  }
+  for (const v of g.values()) v.sort((a, b) => (a.level || 0) - (b.level || 0));
+  return g;
+}
 UI.shopRefresh = function (rebuild) {
   const grid = $('shopGrid');
+  const hasMods = SHOP.some((s) => s.tab === 'mods');
+  $('shopModsTab').hidden = !hasMods;
+  if (UI.shopTab === 'mods' && !hasMods) UI.shopTab = 'survive';
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === UI.shopTab ? 'true' : 'false'));
-  const list = SHOP.filter((s) => s.tab === UI.shopTab);
-  if (rebuild || grid.dataset.tab !== UI.shopTab || grid.dataset.res !== String(TEX.res)) {
-    grid.dataset.tab = UI.shopTab; grid.dataset.res = TEX.res;
+  $('shopTip').textContent = SHOP_TIPS[UI.shopTab] || '';
+  if (rebuild || grid.dataset.tab !== UI.shopTab || grid.dataset.res !== String(TEX.res) || grid.dataset.n !== String(SHOP.length)) {
+    grid.dataset.tab = UI.shopTab; grid.dataset.res = TEX.res; grid.dataset.n = SHOP.length;
     grid.innerHTML = '';
-    for (const e of list) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = '<canvas width="96" height="96"></canvas><h3></h3><p></p><div class="buyrow"><div class="price"></div><button class="buy" type="button"></button></div>';
-      card.querySelector('h3').textContent = e.name;
-      card.querySelector('p').textContent = e.desc;
-      drawItemIcon(card.querySelector('canvas'), e.item || ((e.tool || e.armor) + e.level));
-      card.querySelector('.buy').addEventListener('click', () => buy(e.id));
-      card.dataset.id = e.id;
-      fillPrice(card.querySelector('.price'), e.cost);
-      grid.appendChild(card);
+    for (const [name, items] of shopGroups(UI.shopTab)) {
+      const sec = document.createElement('div'); sec.className = 'shop-g';
+      const h = document.createElement('h4'); h.textContent = name; sec.appendChild(h);
+      const gr = document.createElement('div'); gr.className = 'grid'; sec.appendChild(gr);
+      for (const e of items) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = '<canvas width="96" height="96"></canvas><h3></h3><p></p><span class="tier" hidden></span><div class="buyrow"><div class="price"></div><span class="own"></span><button class="buy" type="button"></button></div>';
+        card.querySelector('h3').textContent = e.name;
+        card.querySelector('p').textContent = e.desc;
+        if (e.level && (e.tool || e.armor) && e.tool !== 'shears') {
+          const t = card.querySelector('.tier'); t.hidden = false;
+          const mat = e.armor ? ['', 'Eisen', 'Diamant', 'Mythril'][e.level] : ['', 'Stein', 'Eisen', 'Diamant', 'Rubin'][e.level];
+          t.textContent = mat; t.className = 'tier t' + (e.armor ? e.level + 1 : e.level);
+        }
+        drawItemIcon(card.querySelector('canvas'), e.item || (e.tool ? toolKey(e.tool, e.level) : e.armor + e.level));
+        card.querySelector('.buy').addEventListener('click', () => buy(e.id));
+        card.dataset.id = e.id;
+        fillPrice(card.querySelector('.price'), e.cost);
+        gr.appendChild(card);
+      }
+      grid.appendChild(sec);
     }
   }
-  for (const card of grid.children) {
-    const e = SHOP.find((s) => s.id === card.dataset.id);
+  for (const card of grid.querySelectorAll('.card')) {
+    const e = SHOP.find((s) => s.id === card.dataset.id); if (!e) continue;
     const st = shopState(e);
     const b = card.querySelector('.buy');
     b.className = 'buy ' + (st === 'ok' ? '' : st);
     b.textContent = st === 'owned' ? (e.id === 'campfire' ? 'Nur eins erlaubt' : 'Besitzt du') : 'Kaufen';
     b.disabled = st === 'owned';
+    card.classList.toggle('can', st === 'ok');
+    const k = e.item || (e.tool ? toolKey(e.tool, e.level) : null);
+    const n = k ? itemCount(k) : 0;
+    card.querySelector('.own').textContent = k && n > 0 ? 'Du hast ' + n : '';
     for (const s of card.querySelectorAll('.price span')) s.classList.toggle('lack', have(s.dataset.k) < e.cost[s.dataset.k]);
   }
   for (const k of RES_KEYS) $(RES_UI[k][2]).textContent = G.inv[k] || 0;
@@ -11434,12 +11689,11 @@ UI.invRefresh = function () {
     }
     for (let i = 0; i < arr.length; i++) {
       const b = el.children[i], k = arr[i];
-      const tool = k && ITEMS[k] && ITEMS[k].tool;
-      const icon = tool ? tool + Math.max(1, G.tools[tool]) : k;
+      const icon = k;
       if (b.dataset.key !== (icon || '')) { drawItemIcon(b.firstChild, icon); b.dataset.key = icon || ''; }
       const n = itemCount(k);
-      b.querySelector('b').textContent = k && !tool && n > 1 ? n : '';
-      b.title = k ? itemName(k) + (tool ? '' : ' (' + n + ')') : 'Leer';
+      b.querySelector('b').textContent = k && n > 1 ? n : '';
+      b.title = k ? itemName(k) + ' (' + n + ')' : 'Leer';
       b.classList.toggle('held', !!held && held.where === where && held.i === i);
       b.classList.toggle('lifted', !!held && held.where === where && held.i === i);
     }
@@ -11522,11 +11776,10 @@ function invGhost(k) {
   let g = $('invGhost');
   if (!g) { g = document.createElement('div'); g.id = 'invGhost'; g.innerHTML = '<canvas width="64" height="64"></canvas><b></b>'; document.body.appendChild(g); }
   if (!k || $('mdlInv').hidden) { g.hidden = true; return; }
-  const tool = ITEMS[k] && ITEMS[k].tool;
-  const icon = tool ? tool + Math.max(1, G.tools[tool]) : k;
+  const icon = k;
   if (g.dataset.key !== icon) { drawItemIcon(g.firstChild, icon); g.dataset.key = icon; }
   const n = itemCount(k);
-  g.querySelector('b').textContent = !tool && n > 1 ? n : '';
+  g.querySelector('b').textContent = n > 1 ? n : '';
   const p = UI._invPtr || [innerWidth / 2, innerHeight / 2];
   g.style.left = p[0] + 'px'; g.style.top = p[1] + 'px';
   g.hidden = false;
@@ -11599,7 +11852,7 @@ function chestCount(c) {
   return n;
 }
 /* things that can go into a chest: materials and blocks/objects (tools stay with you) */
-function storable(k) { return !!RES_NAME[k] || (!!ITEMS[k] && !ITEMS[k].tool); }
+function storable(k) { return !!RES_NAME[k] || (!!ITEMS[k] && !ITEMS[k].armor); }
 function invHas(k) { return RES_NAME[k] ? (G.inv[k] || 0) : (G.inv.items[k] || 0); }
 
 /* move n of k between the player and the chest at cell i */
@@ -11721,7 +11974,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlConfirm', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -11731,8 +11984,9 @@ UI.closeTop = function () {
   }
   return false;
 };
-UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._friendsFrom = null; UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; };
+UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._modPick = null; UI._friendsFrom = null; UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; };
 UI.closeModal = function (id) {
+  if (id === 'mdlModPick') { closeModPick(); return; }
   $(id).hidden = true;
   if (id === 'mdlInv') { UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; }
   if (id === 'mdlConfirm' && UI._cf) { const r = UI._cf; UI._cf = null; r(false); }
@@ -11883,7 +12137,7 @@ const ICON_DEVICE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" 
 UI.openWorlds = function () {
   UI.worldsRefresh();
   $('mdlWorlds').hidden = false;
-  UI.newMods = []; renderModChecks($('newWorldMods'), UI.newMods);
+  UI.newMods = []; modBtnLabel($('nwModsBtn'), UI.newMods);
   setTimeout(() => { try { $('newWorldName').placeholder = 'Name der neuen Welt, z. B. ' + WORLDS.defaultName(); } catch (e) { /* ignore */ } }, 0);
 };
 UI.worldsRefresh = function () {
@@ -11936,10 +12190,13 @@ UI.openWorldEdit = function (e) {
   $('weSrvHint').textContent = NET.uid() ? 'Lädt eine Kopie hoch. Deine Freunde können dann jederzeit rein, auch wenn du nicht da bist.' : 'Melde dich an, um Welten zu Servern zu machen.';
   $('weServer').disabled = !NET.uid();
   $('weMsg').hidden = true;
-  renderModChecks($('weMods'), e.mods = (e.mods || []).filter((id) => MODS.get(id)), () => { WORLDS.saveIndex(); if (G.loadedWorld === e.id) UI.toast('Gilt ab dem nächsten Start dieser Welt.', 'info', 3000, 'modw'); });
+  e.mods = (e.mods || []).filter((id) => MODS.get(id));
+  modBtnLabel($('weModsBtn'), e.mods);
 };
 function closeWorldEdit() { $('mdlWorldEdit').hidden = true; UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); }
 function bindWorldEditUI() {
+  $('nwModsBtn').addEventListener('click', () => UI.openModPick(UI.newMods, (sel) => modBtnLabel($('nwModsBtn'), sel), ['mdlWorlds']));
+  $('weModsBtn').addEventListener('click', () => { const e = UI._edit; if (!e) return; e.mods = e.mods || []; UI.openModPick(e.mods, (sel) => { modBtnLabel($('weModsBtn'), sel); WORLDS.saveIndex(); if (G.loadedWorld === e.id) UI.toast('Gilt ab dem nächsten Start dieser Welt.', 'info', 3000, 'modw'); }, ['mdlWorldEdit']); });
   $('weClose').addEventListener('click', closeWorldEdit);
   $('weForm').addEventListener('submit', (ev) => {
     ev.preventDefault();
@@ -12161,7 +12418,7 @@ UI.menuRefresh = function () {
 };
 UI.mpChip = function () {
   const el = $('mpChip'); if (!el) return;
-  if (!MP.active()) { el.hidden = true; return; }
+  if (!MP.active() || G.spectator) { el.hidden = true; return; }
   const names = Object.values(REMOTE).map((r) => r.name);
   let txt;
   const waitHost = MP.isClient() && MP.ready && !MP.infoOpen;
@@ -12312,7 +12569,7 @@ function bindUI() {
    Synthesized audio (WebAudio, no files)
    ========================================================================= */
 const SFX = (() => {
-  let ctx = null, master = null, bus = null, amb = null, noise = null;
+  let ctx = null, master = null, bus = null, amb = null, noise = null, verb = null;
   let wind = null, windG = null, drone = null, droneG = null, fireG = null, fireN = null, rainG = null, roarG = null;
   let vol = 0.75;
   const T = () => ctx.currentTime;
@@ -12325,6 +12582,13 @@ const SFX = (() => {
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3.5; comp.attack.value = 0.004; comp.release.value = 0.2;
     master.connect(comp); comp.connect(ctx.destination);
     bus = ctx.createGain(); bus.gain.value = 0.9; bus.connect(master);
+    // a soft outdoor reverb for big, satisfying sounds (falling trees)
+    try {
+      const len = Math.floor(ctx.sampleRate * 1.6), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const dd = ir.getChannelData(ch); for (let i = 0; i < len; i++) dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+      const cv = ctx.createConvolver(); cv.buffer = ir;
+      verb = ctx.createGain(); verb.gain.value = 0.35; verb.connect(cv); cv.connect(master);
+    } catch (e) { verb = null; }
     amb = ctx.createGain(); amb.gain.value = 0.55; amb.connect(master);
     noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -12380,9 +12644,40 @@ const SFX = (() => {
   const api = {
     unlock,
     setVolume(v) { vol = v; if (master) master.gain.setTargetAtTime(v, T(), 0.05); },
-    chop(p) { const pitch = r(0.92, 1.08); hiss('bandpass', 950 * pitch, 2.2, 0.09, 0.5); tone('triangle', 210 * pitch, 120, 0.12, 0.35); tone('sine', 95, 60, 0.16, 0.25); if (p > 0.85) hiss('bandpass', 380, 3, 0.2, 0.12, 0.05); },
+    // a woody "tock": brighter and with more crack the closer the tree is to falling
+    chop(p = 0) {
+      const pitch = r(0.94, 1.06) * (1 + p * 0.18);
+      hiss('bandpass', 1100 * pitch, 3, 0.07, 0.42); hiss('highpass', 3200, 1, 0.03, 0.16 + p * 0.12);
+      tone('triangle', 240 * pitch, 140, 0.11, 0.34); tone('sine', 120 * pitch, 70, 0.18, 0.28);
+      tone('sine', 520 * pitch, 380, 0.06, 0.06);
+      if (verb) tone('sine', 140 * pitch, 80, 0.2, 0.12, 0, verb);
+      if (p > 0.7) { hiss('bandpass', 2400, 4, 0.05, 0.1 + p * 0.1, 0.02); tone('square', 900, 600, 0.03, 0.03 * p, 0.015); }
+    },
+    // the moment the trunk gives way: a sharp crack, splinters, then the long creaking groan
+    treeCrack(d) {
+      const k = near(d, 45);
+      hiss('highpass', 2600, 0.8, 0.09, 0.55 * k); hiss('bandpass', 1400, 2, 0.14, 0.4 * k, 0.01);
+      tone('square', 180, 70, 0.08, 0.12 * k); tone('sine', 90, 50, 0.25, 0.4 * k);
+      for (let i = 0; i < 6; i++) hiss('bandpass', r(1800, 4200), 6, 0.025, 0.12 * k, 0.04 + i * r(0.025, 0.05));
+      tone('sawtooth', 130, 82, 1.5, 0.05 * k, 0.12, bus, 0.35); tone('sawtooth', 175, 118, 1.2, 0.035 * k, 0.3, bus, 0.4);
+      hiss('bandpass', 650, 7, 1.5, 0.07 * k, 0.15, 260, bus, 0.5);
+      if (verb) hiss('bandpass', 1200, 1, 0.3, 0.2 * k, 0, 600, verb);
+    },
+    // the crown sweeping through the air
+    whoosh(d, dur = 0.9) { const k = near(d, 40); hiss('bandpass', 500, 0.9, dur, 0.22 * k, 0, 2200, bus, dur * 0.8); hiss('highpass', 4000, 0.6, dur * 0.8, 0.08 * k, 0.1, null, bus, dur * 0.7); },
     creak() { const t = 0; tone('sawtooth', 120, 80, 1.3, 0.05, t, bus, 0.3); tone('sawtooth', 160, 110, 1.1, 0.035, 0.2, bus, 0.4); hiss('bandpass', 700, 6, 1.4, 0.06, 0.1, 300, bus, 0.5); },
-    thud(d) { const k = near(d, 45); tone('sine', 80, 34, 0.55, 0.7 * k); hiss('lowpass', 500, 0.7, 0.6, 0.5 * k, 0, 120); hiss('bandpass', 2200, 1, 0.5, 0.12 * k, 0.03, 600); },
+    // the trunk hits the ground: a deep boom, the crown rustling, little knocks of bouncing branches
+    thud(d) {
+      const k = near(d, 50);
+      tone('sine', 72, 30, 0.75, 0.8 * k); tone('sine', 140, 60, 0.3, 0.35 * k);
+      hiss('lowpass', 420, 0.7, 0.75, 0.6 * k, 0, 90);
+      hiss('bandpass', 2600, 0.7, 0.9, 0.22 * k, 0.03, 900, bus, 0.03);    // leaves
+      hiss('highpass', 5000, 0.5, 0.6, 0.08 * k, 0.05);
+      for (let i = 0; i < 4; i++) { const f = r(180, 340); tone('triangle', f, f * 0.6, 0.07, 0.14 * k * (1 - i * 0.2), 0.18 + i * r(0.09, 0.16)); }
+      if (verb) { tone('sine', 70, 35, 0.9, 0.5 * k, 0, verb); hiss('lowpass', 700, 0.7, 0.6, 0.35 * k, 0, 150, verb); }
+    },
+    // the logs fall apart into wood: a little row of hollow wooden clacks
+    woodSplit(d) { const k = near(d, 35); for (let i = 0; i < 5; i++) { const f = r(330, 520) * (1 + i * 0.04); tone('triangle', f, f * 0.7, 0.06, 0.14 * k, i * r(0.05, 0.08)); hiss('bandpass', f * 3, 5, 0.03, 0.08 * k, i * 0.06); } },
     pop() { tone('sine', 520, 820, 0.09, 0.18); },
     pickup(n) { const f = 660 * Math.pow(1.06, Math.min(n, 12)); tone('triangle', f, f * 1.5, 0.09, 0.16); tone('sine', f * 2, f * 2.2, 0.06, 0.05, 0.02); },
     place() { hiss('bandpass', 1400, 1.5, 0.05, 0.25); tone('triangle', 260, 180, 0.08, 0.2); },
@@ -12514,7 +12809,7 @@ function resetGameState() {
   G.time = { phase: 'day', t: 70, day: 1, night: 0, blood: false, bloodTonight: false, afterBlood: false };
   G.playTime = 0;
   G.inv = emptyInv();
-  G.tools = { axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 };
+  G.tools = {};
   G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
   G.zombies = []; G.falling = []; G.goal = 0; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
@@ -12552,7 +12847,7 @@ async function loadWorld(seed, save, opts = {}) {
     // a guest keeps its own inventory in the host's world; on a server world everybody does
     const you = opts.you ? normalizePlayerData(opts.you) : null;
     G.inv = you ? you.inv : emptyInv();
-    G.tools = you ? you.tools : { axe: 0, sword: 0, pickaxe: 0, shovel: 0, shears: 0 };
+    G.tools = you ? you.tools : {};
     G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.bag = you ? you.bag : new Array(BAG_N).fill(null); G.sel = -1;
     G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = you && you.stats ? Object.assign({ trees: 0, zombies: 0 }, you.stats) : { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
@@ -12643,8 +12938,10 @@ async function toMenu(fromMp) {
   releaseLock();
   if (MP.isHost()) await MP.closeRoom();
   G.server = null;
-  NET.setActivity({ w: null, h: false });
+  if (!G.spectator) NET.setActivity({ w: null, h: false, r: null });
+  G.spectator = false;
   showMenu();
+  if (WORLDS.current && WORLDS.current.temp) { WORLDS.current = null; G.loadedWorld = null; modAfterTest(); }
 }
 function startPlaying() {
   SFX.unlock();
@@ -12827,6 +13124,7 @@ function primaryOn(h) {
   }
 }
 function handleActions(dt) {
+  if (G.spectator) { G.breaking = null; G.prompt = null; return; }
   if (PL.dead || G.sleep) { G.breaking = null; G.prompt = null; return; }
   updateTouchHold();
   let target = hoverFromPointer();
@@ -13440,7 +13738,7 @@ const NET = {
   setActivity(a) {
     Object.assign(this.activity, a);
     const uid = this.uid(); if (!uid) return;
-    this.db.ref('status/' + uid).update({ on: true, name: this.name, w: this.activity.w || null, h: !!this.activity.h, skin: SETTINGS.skin, at: this.TS() }).catch(() => { });
+    this.db.ref('status/' + uid).update({ on: true, name: this.name, w: this.activity.w || null, h: !!this.activity.h, r: this.activity.r || null, skin: SETTINGS.skin, at: this.TS() }).catch(() => { });
   },
   setSkin(id) {
     const uid = this.uid(); if (!uid) return;
@@ -13563,7 +13861,7 @@ const MP = {
   offAll() { for (const [r, e, cb] of this.refs) r.off(e, cb); this.refs = []; },
   onError(err) { console.warn('mp', err); if (this.isClient()) this.leave(false, 'Die Verbindung zur Welt ist abgebrochen.'); },
   send(ev) {
-    if (!this.active() || !NET.db || (this.isClient() && !this.ready)) return;
+    if (!this.active() || !NET.db || (this.isClient() && !this.ready) || this.spec) return;
     ev.u = NET.uid();
     this.ref('ev').push(ev).catch((e) => this.writeFailed(e));
     // the lasting state of every changed block: even if a message gets lost on the way,
@@ -13614,7 +13912,7 @@ const MP = {
       this.ref('info/open').onDisconnect().set(false);
       this.listen();
       this.watchConn();
-      NET.setActivity({ w: this.worldName(), h: !srv });
+      NET.setActivity({ w: this.worldName(), h: !srv, r: this.base });
     } catch (e) {
       console.warn('room', e);
       this.role = 'solo'; this.base = '';
@@ -13634,9 +13932,10 @@ const MP = {
     if (this.srv && G.server) await SERVER.save(true);
     try { await this.ref('info/open').onDisconnect().cancel(); await this.ref('info').update({ open: false, bye: true }); await this.ref().remove(); } catch (e) { /* ignore */ }
     this.reset();
-    NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false });
+    NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false, r: null });
   },
   reset() {
+    G.spectator = false; this.spec = false;
     this.unwatchConn();
     if (this.closeT) { clearTimeout(this.closeT); this.closeT = null; }
     if (this.warnT) { clearTimeout(this.warnT); this.warnT = null; }
@@ -13738,7 +14037,7 @@ const MP = {
   },
 
   /* ---------- joining ---------- */
-  async join(hostUid, hostName, srv) {
+  async join(hostUid, hostName, srv, spec) {
     if (!NET.uid()) throw new Error('Melde dich zuerst an.');
     if (this.active()) await this.leave(true);
     const me = NET.uid();
@@ -13761,8 +14060,10 @@ const MP = {
     });
     try {
       this.ref('players/' + me).onDisconnect().remove();
-      this.ref('p/' + me).onDisconnect().remove();
-      await this.ref('players/' + me).set({ name: NET.name, skin: SETTINGS.skin, at: NET.TS() });
+      if (!spec) this.ref('p/' + me).onDisconnect().remove();
+      // spec: der Admin schaut unsichtbar zu (kein Spieler, keine Nachrichten, nichts wird gespeichert)
+      this.spec = !!spec; G.spectator = this.spec;
+      await this.ref('players/' + me).set(spec ? { name: NET.name, spec: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, at: NET.TS() });
       const snap = await snapPromise;
       this.ref('snaps/' + me).remove().catch(() => { });
       this.watchConn();
@@ -13782,13 +14083,14 @@ const MP = {
     for (const k of seen) this.applied.set(k, performance.now());
     const eb = this.editBuf; this.editBuf = [];
     for (const [k, v] of eb) this.onEdit(k, v);
-    NET.setActivity({ w: snap.worldName || null, h: false });
+    if (!this.spec) NET.setActivity({ w: snap.worldName || null, h: false, r: this.base });
     UI.mpChip();
   },
   async leave(quiet, reason) {
     if (!this.active() || this.leaving) return;
     this.leaving = true;
     if (this.isHost()) { await this.closeRoom(); this.leaving = false; return; }
+    const wasSpec = this.spec;
     const me = NET.uid();
     try {
       // "bye": the host can tell a real goodbye from a lost connection
@@ -13796,11 +14098,11 @@ const MP = {
       if (!this.roomGone) this.sendPdata(true);
       this.offAll();
       await this.ref('players/' + me).remove();
-      await this.ref('p/' + me).remove();
+      if (!wasSpec) await this.ref('p/' + me).remove();
     } catch (e) { /* ignore */ }
     this.reset();
     this.leaving = false;
-    NET.setActivity({ w: null, h: false });
+    if (!wasSpec) NET.setActivity({ w: null, h: false, r: null });
     if (!quiet) {
       if (document.pointerLockElement) document.exitPointerLock();
       G.zombies = [];
@@ -13867,6 +14169,14 @@ const MP = {
   },
   onJoin(uid, v) {
     if (!v || uid === NET.uid()) return;
+    // ein unsichtbarer Zuschauer (der Admin): bekommt nur die Welt, niemand sieht ihn
+    if (v.spec) {
+      if (this.isHost() && !v.back) {
+        const s = makeSave(); s.you = null; s.worldName = WORLDS.current ? WORLDS.current.name : this.worldName(); s.ks = [...this.applied.keys()];
+        this.ref('snaps/' + uid).set({ d: JSON.stringify(s), at: NET.TS() }).catch((e) => console.warn('snap', e));
+      }
+      return;
+    }
     const isNew = !REMOTE[uid];
     // back after a short connection drop: no messages, no new world snapshot
     const back = !!this.leaveT[uid];
@@ -13945,6 +14255,7 @@ const MP = {
     updateRemotes(dt);
   },
   sendP() {
+    if (this.spec) return;
     const [tool, lvl, item] = heldTool();
     const toolCode = { axe: 1, sword: 2, pickaxe: 3, shears: 4, torch: 5, block: 6, shovel: 7, bucket: 8 }[tool] || 0;
     let f = 0;
@@ -13957,7 +14268,7 @@ const MP = {
     this.ref('p/' + NET.uid()).set(a).catch(() => { });
   },
   sendPdata(bye) {
-    if (!this.isClient() || !this.ready) return;
+    if (!this.isClient() || !this.ready || this.spec) return;
     this.ref('pdata/' + NET.uid()).set({ inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
   },
   sendMobs() {
@@ -14442,6 +14753,7 @@ UI.openServers = function () {
 UI.serversRefresh = async function () {
   const inn = !!NET.uid();
   $('srvOut').hidden = inn; $('srvIn').hidden = !inn;
+  $('srvAllWrap').hidden = !isOwner(); $('srvAll').hidden = true;
   if (!inn) return;
   const sel = $('srvWorld'); sel.innerHTML = '';
   for (const e of WORLDS.visible()) { const o = document.createElement('option'); o.value = e.id; o.textContent = e.name + (entryMode(e) === 'island' ? ' (Insel)' : ''); sel.appendChild(o); }
@@ -14496,7 +14808,31 @@ async function connectIp(name, save) {
   if (save && !FAVS.has(s.ip)) FAVS.toggle(s.ip);
   playServer(s);
 }
+/* nur der Owner: alle Server der ganzen Welt, beitreten ohne Einladung (oder unsichtbar zuschauen) */
+async function renderAllServers() {
+  const el = $('srvAll'); el.hidden = false;
+  el.innerHTML = '<div class="list-empty">Lädt …</div>';
+  let list;
+  try { list = await ADMIN.allServers(); } catch (e) { el.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; return; }
+  let live = {};
+  try { live = await Promise.all(list.map((s) => withTimeout(NET.db.ref(srvRoomPath(s) + '/info/open').once('value'), 8000).then((x) => x.val() === true).catch(() => false))); } catch (e) { live = []; }
+  el.innerHTML = '';
+  if (!list.length) { el.innerHTML = '<div class="list-empty">Es gibt noch keine Server.</div>'; return; }
+  list.forEach((s, i) => {
+    const li = document.createElement('div'); li.className = 'li';
+    li.innerHTML = '<div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
+    li.querySelector('b').textContent = s.name + (live[i] ? ' 🟢' : '');
+    li.querySelector('span').textContent = 'von ' + s.ownerName + (s.ip ? ' · IP ' + s.ip : '') + ' · Tag ' + s.day + (s.updated ? ' · ' + ago(s.updated) : '') + (live[i] ? ' · gerade offen' : '');
+    const act = li.querySelector('.li-act');
+    const b = document.createElement('button'); b.className = 'btn primary'; b.type = 'button'; b.textContent = 'Beitreten';
+    b.addEventListener('click', () => { UI.closeAll(); playServer(s); });
+    act.appendChild(b);
+    if (live[i]) { const v = document.createElement('button'); v.className = 'btn'; v.type = 'button'; v.textContent = '👁 Zuschauen'; v.addEventListener('click', () => spectateRoom(srvRoomPath(s), s.name, null)); act.appendChild(v); }
+    el.appendChild(li);
+  });
+}
 function bindServerUI() {
+  $('srvAllBtn').addEventListener('click', () => { if (isOwner()) renderAllServers(); });
   $('msReload').addEventListener('click', () => UI.menuServers(true));
   $('msIpForm').addEventListener('submit', (ev) => { ev.preventDefault(); connectIp($('msIp').value, false); });
   $('msIpFav').addEventListener('click', async () => {
@@ -14757,6 +15093,20 @@ const ADMIN = {
   async kick(uid) { await withTimeout(NET.db.ref('admin/kick/' + uid).set(NET.TS()), 15000); },
   async say(text) { text = String(text || '').trim().slice(0, 300); if (!text) throw new Error('Schreib zuerst etwas.'); await withTimeout(NET.db.ref('admin/cmd/msg').set({ text, at: NET.TS() }), 15000); },
   async restartAll() { await withTimeout(NET.db.ref('admin/cmd/restart').set(NET.TS()), 15000); },
+  /* Spieler suchen: Name enthält den Text; mit Online-Status, Welt und Sperre */
+  async findPlayers(q) {
+    q = String(q || '').trim().toLowerCase();
+    if (q.length < 1) throw new Error('Gib einen Namen (oder einen Teil) ein.');
+    const [names, st, bans] = await Promise.all([
+      withTimeout(NET.db.ref('usernames').once('value'), 20000).then((s) => s.val() || {}),
+      withTimeout(NET.db.ref('status').once('value'), 20000).then((s) => s.val() || {}).catch(() => ({})),
+      withTimeout(NET.db.ref('bans').once('value'), 20000).then((s) => s.val() || {}).catch(() => ({})),
+    ]);
+    const out = [];
+    for (const n in names) if (n.includes(q)) { const u = names[n]; out.push({ uid: u, lower: n, name: (st[u] && st[u].name) || n, st: st[u] || null, ban: bans[u] || null }); }
+    out.sort((a, b) => (a.lower === q ? -1 : b.lower === q ? 1 : 0) || (!!(b.st && b.st.on) - !!(a.st && a.st.on)) || a.lower.localeCompare(b.lower));
+    return out.slice(0, 30);
+  },
   async allServers() {
     const v = (await withTimeout(NET.db.ref('srvmeta').once('value'), 20000)).val() || {};
     const out = [];
@@ -14796,6 +15146,7 @@ UI.adminRefresh = async function () {
     }
     return li;
   };
+  if ($('admFind').value.trim()) renderFound();
   // online now
   const on = $('admOnline');
   try {
@@ -14807,6 +15158,7 @@ UI.adminRefresh = async function () {
     for (const u of ids) {
       const s = st[u];
       on.appendChild(row(s.name || 'Spieler', s.w ? (s.h ? 'spielt in „' + s.w + '“' : 'in einer Welt') : 'im Menü', [
+        ...(s.r ? [['👁 Zuschauen', '', () => spectateRoom(s.r, s.name || 'Spieler', u)]] : []),
         ['Rauswerfen', '', () => ADMIN.kick(u).then(() => admMsg((s.name || 'Spieler') + ' ist rausgeworfen.', true))],
         ['Sperren', 'danger', () => ADMIN.ban(s.name || '', '').then((n) => admMsg(n + ' ist gesperrt.', true))],
       ]));
@@ -14840,7 +15192,42 @@ UI.adminRefresh = async function () {
     }
   } catch (e) { sl.innerHTML = '<div class="list-empty">' + esc(netMsg(e)) + '</div>'; }
 };
+/* Suchergebnisse mit Aktionen */
+async function renderFound() {
+  const el = $('admFound');
+  el.innerHTML = '<div class="list-empty">Suche …</div>';
+  let list;
+  try { list = await ADMIN.findPlayers($('admFind').value); } catch (e) { el.innerHTML = '<div class="list-empty">' + esc(e && e.message ? e.message : netMsg(e)) + '</div>'; return; }
+  el.innerHTML = '';
+  if (!list.length) { el.innerHTML = '<div class="list-empty">Niemand gefunden.</div>'; return; }
+  for (const p of list) {
+    const on = p.st && p.st.on;
+    const where = !on ? 'offline' + (p.st && p.st.at ? ' · zuletzt ' + ago(p.st.at) : '') : p.st.w ? (p.st.h ? 'spielt in seiner Welt „' + p.st.w + '“' : 'ist in „' + p.st.w + '“') : 'online im Menü';
+    const li = document.createElement('div'); li.className = 'li';
+    li.innerHTML = '<div class="li-ico"><canvas width="64" height="64"></canvas></div><div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
+    drawSkinAvatar(li.querySelector('canvas'), (p.st && p.st.skin) || 'ranger');
+    li.querySelector('b').textContent = p.name + (p.uid === NET.uid() ? ' (du)' : '');
+    li.querySelector('span').textContent = (p.ban ? '🚫 gesperrt' + (p.ban.reason ? ' (' + p.ban.reason + ')' : '') + ' · ' : '') + where;
+    const act = li.querySelector('.li-act');
+    const add = (t, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.type = 'button'; b.textContent = t; b.addEventListener('click', async () => { b.disabled = true; try { await fn(); } catch (e) { admMsg(e && e.message ? e.message : netMsg(e)); } b.disabled = false; }); act.appendChild(b); };
+    if (p.uid !== NET.uid()) {
+      if (on && p.st.r) add('👁 Zuschauen', '', () => spectateRoom(p.st.r, p.name, p.uid));
+      if (on) add('Rauswerfen', '', () => ADMIN.kick(p.uid).then(() => admMsg(p.name + ' ist rausgeworfen.', true)));
+      if (p.ban) add('Entsperren', '', () => ADMIN.unban(p.uid).then(() => { admMsg(p.name + ' ist entsperrt.', true); renderFound(); }));
+      else add('Sperren', 'danger', async () => {
+        $('mdlAdmin').hidden = true;
+        const ok = await UI.confirm({ title: p.name + ' sperren?', text: 'Er kann dann nicht mehr spielen, bis du ihn entsperrst.', yes: 'Sperren' });
+        $('mdlAdmin').hidden = false;
+        if (!ok) return;
+        await ADMIN.ban(p.lower, ''); admMsg(p.name + ' ist gesperrt.', true); renderFound();
+      });
+      add('Name kopieren', 'ghost', async () => { try { await navigator.clipboard.writeText(p.name); admMsg('„' + p.name + '“ kopiert.', true); } catch (e) { admMsg('Kopieren ging nicht.'); } });
+    }
+    el.appendChild(li);
+  }
+}
 function bindAdminUI() {
+  $('admFindForm').addEventListener('submit', (ev) => { ev.preventDefault(); renderFound(); });
   $('invCardYes').addEventListener('click', () => answerInvite(true));
   $('invCardNo').addEventListener('click', () => answerInvite(false));
   $('btnAdmin').addEventListener('click', () => UI.openAdmin());
@@ -15178,39 +15565,64 @@ function bindSupportUI() {
   });
 }
 
-/* ---- 19m_mods.js ---- */
+/* ---- 19t_mods.js ---- */
 /* =========================================================================
    Mods. Jede Mod ist ein kleines Programm, das in einem Web Worker läuft
    (kein Zugriff auf die Seite, das Konto oder das Netz) und dem Spiel nur
-   erlaubte Befehle schicken darf. Mods laufen NUR in eigenen Welten.
+   erlaubte Befehle schicken darf. Mods laufen NUR in eigenen Welten,
+   nie auf Servern und nie als Gast in der Welt von jemand anderem.
    ========================================================================= */
-const MODFX_DEF = { speed: 1, jump: 1, gravity: 1, reach: 1, magnet: 1, maxHp: 100, fly: false, godmode: false, instaBreak: false, infiniteItems: false, noFall: false, noNight: false, peaceful: false, nightVision: false };
+const MODFX_DEF = { speed: 1, jump: 1, gravity: 1, reach: 1, magnet: 1, maxHp: 100, fly: false, godmode: false, instaBreak: false, infiniteItems: false, noFall: false, noNight: false, peaceful: false, nightVision: false, keepInventory: false, regen: 0, dmg: 1, zombieSpeed: 1, zombieHp: 1 };
 const MODFX = Object.assign({}, MODFX_DEF);
-const MODFX_RANGE = { speed: [0.2, 4], jump: [0.5, 3], gravity: [0, 2], reach: [1, 4], magnet: [1, 6], maxHp: [20, 500] };
+const MODFX_RANGE = { speed: [0.2, 4], jump: [0.5, 3], gravity: [0, 2], reach: [1, 4], magnet: [1, 6], maxHp: [20, 500], regen: [0, 10], dmg: [0.25, 10], zombieSpeed: [0.3, 3], zombieHp: [0.2, 10] };
 const BKEY = {}, BID = {};
 for (const k in B) { BKEY[B[k]] = k.toLowerCase(); BID[k.toLowerCase()] = B[k]; }
+
+const MOD_CATS = [['all', 'Alle'], ['move', 'Bewegung'], ['fight', 'Kampf'], ['world', 'Welt & Dimensionen'], ['items', 'Items'], ['easy', 'Hilfen'], ['fun', 'Spaß']];
+const MOD_CAT_NAME = {}; for (const [k, n] of MOD_CATS) MOD_CAT_NAME[k] = n;
 
 const MOD_WORKER_SRC = `'use strict';
 const H = {};
 const send = (c, a) => postMessage({ c: c, a: a });
+const clone = (o) => { try { return JSON.parse(JSON.stringify(o === undefined ? null : o)); } catch (e) { return null; } };
 const mod = {
   on(ev, fn) { if (typeof fn === 'function') (H[ev] = H[ev] || []).push(fn); },
   set(k, v) { send('set', [String(k), v]); },
   toast(t) { send('toast', [String(t).slice(0, 160)]); },
   give(i, n) { send('give', [String(i), (n === undefined ? 1 : n) | 0]); },
+  take(i, n) { send('take', [String(i), (n === undefined ? 1 : n) | 0]); },
   heal(n) { send('heal', [+n || 0]); },
   hurt(n) { send('hurt', [+n || 0]); },
   teleport(x, y, z) { send('tp', [+x, +y, +z]); },
   setBlock(x, y, z, b) { send('block', [x | 0, y | 0, z | 0, String(b)]); },
+  fill(x1, y1, z1, x2, y2, z2, b) { send('fill', [x1 | 0, y1 | 0, z1 | 0, x2 | 0, y2 | 0, z2 | 0, String(b)]); },
   time(p) { send('time', [String(p)]); },
   weather(k) { send('weather', [String(k)]); },
-  spawn(n) { send('spawn', [(n === undefined ? 1 : n) | 0]); },
+  spawn(n, type) { send('spawn', [(n === undefined ? 1 : n) | 0, String(type || 'zombie')]); },
   clearMobs() { send('clear', []); },
+  explode(x, y, z, r) { send('boom', [+x, +y, +z, +r || 2]); },
+  lightning(x, z) { send('bolt', [+x, +z]); },
+  particles(x, y, z, color, n) { send('fx', [+x, +y, +z, String(color || '#ffffff'), (n || 12) | 0]); },
+  sound(name) { send('sound', [String(name)]); },
+  item(id, def) { send('item', [String(id), clone(def) || {}]); },
+  shop(item, cost, qty, name) { send('shop', [String(item), clone(cost) || {}, (qty || 1) | 0, name ? String(name) : '']); },
+  dimension(id, def) { send('dim', [String(id), clone(def) || {}]); },
+  enterDimension(id) { send('enter', [String(id)]); },
+  leaveDimension() { send('leave', []); },
+  portal(dim, x, y, z, frame) { send('portal', [String(dim), x | 0, y | 0, z | 0, String(frame || '')]); },
   log() { send('log', [Array.prototype.join.call(arguments, ' ').slice(0, 200)]); }
 };
-for (const k of ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'Worker', 'SharedWorker', 'BroadcastChannel']) {
-  try { Object.defineProperty(self, k, { value: undefined, configurable: false, writable: false }); } catch (e) { try { self[k] = undefined; } catch (e2) {} }
-}
+(function () {
+  const bad = ['fetch', 'XMLHttpRequest', 'WebSocket', 'WebSocketStream', 'EventSource', 'importScripts', 'indexedDB', 'caches', 'Worker', 'SharedWorker', 'BroadcastChannel', 'WebTransport', 'navigator', 'Request', 'Response'];
+  // auch auf den Prototypen entfernen (sonst käme man über Object.getPrototypeOf(self).fetch doch ins Netz)
+  let o = self;
+  while (o) {
+    for (const k of bad) {
+      try { Object.defineProperty(o, k, { value: undefined, configurable: false, writable: false }); } catch (e) { try { delete o[k]; } catch (e2) {} }
+    }
+    o = Object.getPrototypeOf(o);
+  }
+})();
 self.onmessage = function (e) {
   const m = e.data || {};
   if (m.t === 'init') { try { (new Function('mod', m.code))(mod); } catch (err) { send('error', [String(err && err.message || err)]); } }
@@ -15220,26 +15632,46 @@ self.onmessage = function (e) {
 
 /* ---------- eingebaute Mods ---------- */
 const BUILTIN_MODS = [
-  { id: 'creative', name: 'Creative-Modus', icon: '🎨', author: 'Blood Moon', desc: 'Fliegen (Leertaste doppelt tippen, Strg = runter), unendlich Items und Werkzeuge, alles sofort abbauen, unverwundbar, große Reichweite.',
+  { id: 'creative', name: 'Creative-Modus', icon: '🎨', author: 'Blood Moon', cat: 'easy', rec: true, desc: 'Fliegen (Leertaste doppelt tippen, Strg = runter), unendlich Items und Werkzeuge, alles sofort abbauen, unverwundbar, große Reichweite.',
     code: `mod.set('fly', true); mod.set('godmode', true); mod.set('instaBreak', true); mod.set('infiniteItems', true); mod.set('reach', 2.5);
 mod.on('start', () => mod.toast('Creative-Modus: Leertaste doppelt tippen zum Fliegen'));` },
-  { id: 'turbo', name: 'Turbo-Beine', icon: '⚡', author: 'Blood Moon', desc: 'Du läufst fast doppelt so schnell und springst höher.', code: `mod.set('speed', 1.8); mod.set('jump', 1.35);` },
-  { id: 'moon', name: 'Mondgravitation', icon: '🌙', author: 'Blood Moon', desc: 'Weit springen, langsam fallen, kein Fallschaden.', code: `mod.set('gravity', 0.35); mod.set('noFall', true); mod.set('jump', 1.1);` },
-  { id: 'eternalday', name: 'Ewiger Tag', icon: '☀️', author: 'Blood Moon', desc: 'Es bleibt immer Mittag. Keine Nächte, kein Blood Moon.', code: `mod.set('noNight', true);` },
-  { id: 'peace', name: 'Friedliche Welt', icon: '🕊️', author: 'Blood Moon', desc: 'Keine Zombies, Wölfe oder Fledermäuse.', code: `mod.set('peaceful', true);` },
-  { id: 'vampire', name: 'Lebensraub', icon: '🧛', author: 'Blood Moon', desc: 'Jeder besiegte Gegner heilt dich um 12 Leben.', code: `mod.on('kill', () => { mod.heal(12); });` },
-  { id: 'lucky', name: 'Glücksblöcke', icon: '🍀', author: 'Blood Moon', desc: 'Beim Abbauen von Erde, Stein, Sand usw. fällt manchmal Eisen, ein Diamant, ein Kristall oder ein Apfel.',
-    code: `const ok = ['stone', 'cobble', 'dirt', 'grass', 'sand', 'gravel', 'snow'];
+  { id: 'turbo', name: 'Turbo-Beine', icon: '⚡', author: 'Blood Moon', cat: 'move', desc: 'Du läufst fast doppelt so schnell und springst höher.', code: `mod.set('speed', 1.8); mod.set('jump', 1.35);` },
+  { id: 'moon', name: 'Mondgravitation', icon: '🌙', author: 'Blood Moon', cat: 'move', desc: 'Weit springen, langsam fallen, kein Fallschaden.', code: `mod.set('gravity', 0.35); mod.set('noFall', true); mod.set('jump', 1.1);` },
+  { id: 'eternalday', name: 'Ewiger Tag', icon: '☀️', author: 'Blood Moon', cat: 'easy', desc: 'Es bleibt immer Mittag. Keine Nächte, kein Blood Moon.', code: `mod.set('noNight', true);` },
+  { id: 'peace', name: 'Friedliche Welt', icon: '🕊️', author: 'Blood Moon', cat: 'easy', desc: 'Keine Zombies, Wölfe oder Fledermäuse.', code: `mod.set('peaceful', true);` },
+  { id: 'vampire', name: 'Lebensraub', icon: '🧛', author: 'Blood Moon', cat: 'fight', desc: 'Jeder besiegte Gegner heilt dich um 12 Leben.', code: `mod.on('kill', () => { mod.heal(12); });` },
+  { id: 'lucky', name: 'Glücksblöcke', icon: '🍀', author: 'Blood Moon', cat: 'fun', rec: true, desc: 'Beim Abbauen von Erde, Stein, Sand usw. fällt manchmal Eisen, ein Diamant, ein Kristall oder ein Apfel.',
+    code: `const ok = ['stone', 'cobble', 'dirt', 'grass', 'sand', 'gravel', 'snow', 'deepslate'];
 const loot = ['iron', 'iron', 'iron', 'diamond', 'crystal', 'apple'];
 mod.on('break', (e) => { if (ok.indexOf(e.block) < 0 || Math.random() > 0.06) return; const it = loot[Math.floor(Math.random() * loot.length)]; mod.give(it, 1); mod.toast('Glücksblock! +1 ' + it); });` },
-  { id: 'nightvision', name: 'Nachtsicht', icon: '👁️', author: 'Blood Moon', desc: 'Nachts und in Höhlen ist es hell genug zum Sehen.', code: `mod.set('nightVision', true);` },
-  { id: 'magnet', name: 'Item-Magnet', icon: '🧲', author: 'Blood Moon', desc: 'Drops fliegen schon aus 16 Blöcken Entfernung zu dir.', code: `mod.set('magnet', 5);` },
-  { id: 'titan', name: 'Titan', icon: '🛡️', author: 'Blood Moon', desc: 'Doppelte Leben und schnelle Regeneration.', code: `mod.set('maxHp', 200); mod.on('tick', (s) => { if (s.hp < s.maxHp) mod.heal(0.6); });` },
-  { id: 'apocalypse', name: 'Zombie-Apokalypse', icon: '🧟', author: 'Blood Moon', desc: 'Zombies kommen auch am Tag. Für Mutige.', code: `mod.on('tick', () => { if (Math.random() < 0.08) mod.spawn(1); });` },
+  { id: 'nightvision', name: 'Nachtsicht', icon: '👁️', author: 'Blood Moon', cat: 'easy', desc: 'Nachts und in Höhlen ist es hell genug zum Sehen.', code: `mod.set('nightVision', true);` },
+  { id: 'magnet', name: 'Item-Magnet', icon: '🧲', author: 'Blood Moon', cat: 'easy', desc: 'Drops fliegen schon aus 16 Blöcken Entfernung zu dir.', code: `mod.set('magnet', 5);` },
+  { id: 'titan', name: 'Titan', icon: '🛡️', author: 'Blood Moon', cat: 'fight', desc: 'Doppelte Leben und schnelle Regeneration.', code: `mod.set('maxHp', 200); mod.set('regen', 2.4);` },
+  { id: 'apocalypse', name: 'Zombie-Apokalypse', icon: '🧟', author: 'Blood Moon', cat: 'fight', desc: 'Zombies kommen auch am Tag. Für Mutige.', code: `mod.on('tick', () => { if (Math.random() < 0.08) mod.spawn(1); });` },
+  { id: 'keep', name: 'Alles behalten', icon: '🎒', author: 'Blood Moon', cat: 'easy', desc: 'Wenn du stirbst, behältst du alle Sachen.', code: `mod.set('keepInventory', true);` },
+  { id: 'strong', name: 'Superkraft', icon: '💪', author: 'Blood Moon', cat: 'fight', desc: 'Dreifacher Schaden mit jeder Waffe.', code: `mod.set('dmg', 3);` },
+  { id: 'skylands', name: 'Himmelsinseln', icon: '☁️', author: 'Blood Moon', cat: 'world', rec: true,
+    desc: 'Eine eigene Dimension aus schwebenden Inseln mit Kirschbäumen über einem lila Himmel. Ein Portal steht neben dir, wenn du die Welt startest.',
+    code: `mod.dimension('sky', { name: 'Himmelsinseln', style: 'islands', sky: '#c9a2ff', horizon: '#ffd6f0', fog: '#f0d8ff', light: 'day', top: 'grass', ground: 'dirt', fill: 'stone', trees: 'cherry', treeDensity: 0.6, ores: { crystal: 2, diamond: 1 }, gravity: 0.7, height: 120 });
+mod.on('start', (s) => { if (!s.dim) { mod.portal('sky', Math.floor(s.x) + 3, Math.floor(s.y), Math.floor(s.z), 'glass'); mod.toast('Ein Portal zu den Himmelsinseln steht neben dir.'); } });` },
+  { id: 'underworld', name: 'Glutwelt', icon: '🔥', author: 'Blood Moon', cat: 'world',
+    desc: 'Eine heiße Höhlen-Dimension mit Lavaseen, dunklem Gestein und viel Rubin. Mit Zombies.',
+    code: `mod.dimension('glut', { name: 'Glutwelt', style: 'cave', sky: '#2a0505', horizon: '#5a1408', fog: '#3a0a04', light: 'dark', top: 'deepslate', ground: 'deepslate', fill: 'deepslate', sea: 'lava', ores: { ruby: 4, mythril: 1 }, mobs: true, height: 40 });
+mod.on('start', (s) => { if (!s.dim) { mod.portal('glut', Math.floor(s.x) - 3, Math.floor(s.y), Math.floor(s.z), 'bricks'); mod.toast('Ein Portal zur Glutwelt steht neben dir.'); } });` },
+  { id: 'healwand', name: 'Heilstab', icon: '🪄', author: 'Blood Moon', cat: 'items',
+    desc: 'Ein neues Item beim Händler (Reiter Mods): Rechtsklick heilt dich um 30 Leben.',
+    code: `mod.item('wand', { name: 'Heilstab', icon: '🪄', color: '#8ef0c0', desc: 'Heilt dich um 30 Leben', use: true });
+mod.shop('wand', { wood: 4, crystal: 1 }, 1);
+mod.on('use', (e) => { if (e.item === 'wand') { mod.heal(30); mod.particles(e.px, e.py + 1, e.pz, '#8ef0c0', 20); mod.sound('upgrade'); } });` },
+  { id: 'bombs', name: 'Sprengsätze', icon: '💣', author: 'Blood Moon', cat: 'items',
+    desc: 'Bomben beim Händler: Rechtsklick auf einen Block sprengt ein Loch.',
+    code: `mod.item('bomb', { name: 'Bombe', icon: '💣', color: '#3a3a44', desc: 'Sprengt ein Loch' , use: true });
+mod.shop('bomb', { wood: 2, iron: 1 }, 3, '3 Bomben');
+mod.on('use', (e) => { if (e.item === 'bomb' && e.x !== null) { mod.take('bomb', 1); mod.explode(e.x, e.y, e.z, 3); } });` },
 ];
 
 /* ---------- Laufzeit ---------- */
-const MODRT = { workers: new Map(), url: null, tick: 0 };
+const MODRT = { workers: new Map(), url: null, tick: 0, shop: [] };
 function modWorkerURL() { if (!MODRT.url) MODRT.url = URL.createObjectURL(new Blob([MOD_WORKER_SRC], { type: 'text/javascript' })); return MODRT.url; }
 function applyMaxHp() { if (PL.maxHp !== MODFX.maxHp) { PL.maxHp = MODFX.maxHp; PL.hp = Math.min(PL.hp, PL.maxHp); } }
 function modsEnd() {
@@ -15248,20 +15680,24 @@ function modsEnd() {
   Object.assign(MODFX, MODFX_DEF);
   PL.flying = false;
   applyMaxHp();
+  // Mod-Einträge im Händler-Shop
+  for (const e of MODRT.shop) { const i = SHOP.indexOf(e); if (i >= 0) SHOP.splice(i, 1); }
+  MODRT.shop.length = 0;
 }
 /* Mods starten: nur in einer eigenen Welt, nie auf Servern oder bei Freunden als Gast */
+function modsAllowed() { return !!WORLDS.current && !G.server && !MP.isClient(); }
 function modsBegin() {
   modsEnd();
   const e = WORLDS.current;
-  if (!e || G.server || MP.isClient() || !Array.isArray(e.mods) || !e.mods.length) return;
+  if (!modsAllowed() || !Array.isArray(e.mods) || !e.mods.length) return;
   let n = 0;
-  for (const id of e.mods) { const m = MODS.get(id); if (m && MODS.isInstalled(id) && startModWorker(m)) n++; }
-  if (n) setTimeout(() => UI.toast(n + (n === 1 ? ' Mod ist aktiv.' : ' Mods sind aktiv.'), 'info', 2800, 'modsOn'), 600);
+  for (const id of e.mods) { const m = e.temp && e.testMod && e.testMod.id === id ? e.testMod : MODS.get(id); if (m && (e.temp || MODS.isInstalled(id)) && startModWorker(m)) n++; }
+  if (n) setTimeout(() => UI.toast(e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv.' : ' Mods sind aktiv.'), 'info', e.temp ? 5200 : 2800, 'modsOn'), 600);
 }
 function startModWorker(m) {
   let worker;
   try { worker = new Worker(modWorkerURL()); } catch (err) { UI.toast('Mods laufen hier nicht: ' + (err && err.message), 'warn', 5000); return null; }
-  const rec = { m, worker, n: 0, t: performance.now() };
+  const rec = { m, worker, n: 0, t: performance.now(), errs: 0 };
   worker.onmessage = (ev) => modCmd(rec, ev.data);
   worker.onerror = (ev) => console.warn('Mod "' + m.name + '":', ev.message);
   MODRT.workers.set(m.id, rec);
@@ -15271,7 +15707,7 @@ function startModWorker(m) {
 }
 function modState() {
   const T = G.time;
-  return { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), hp: Math.round(PL.hp), maxHp: PL.maxHp, day: T.day, night: T.night, phase: T.phase, blood: !!T.blood, t: Math.round(T.t), weather: WEATHER.kind };
+  return { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), hp: Math.round(PL.hp), maxHp: PL.maxHp, day: T.day, night: T.night, phase: T.phase, blood: !!T.blood, t: Math.round(T.t), weather: WEATHER.kind, dim: CURDIM ? CURDIM.id : null, held: selectedItem() || null, sneak: !!PL.sneak };
 }
 function modEmit(ev, d) {
   if (!MODRT.workers.size) return;
@@ -15282,20 +15718,80 @@ function setFx(k, v) {
   const r = MODFX_RANGE[k];
   if (r) { v = +v; if (!isFinite(v)) return; MODFX[k] = clamp(v, r[0], r[1]); } else MODFX[k] = !!v;
 }
+/* ---------- eigene Items von Mods ---------- */
+function modSlug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16) || 'x'; }
+function modItemKey(modId, id) { return 'x_' + modSlug(modId) + '_' + modSlug(id); }
+/* ein Name aus einer Mod: zuerst ihre eigenen Items, dann die normalen */
+function modResolveItem(modId, k) { const mk = modItemKey(modId, k); return ITEMS[mk] ? mk : k; }
+function registerModItem(modId, id, def) {
+  const key = modItemKey(modId, id);
+  const col = /^#[0-9a-f]{6}$/i.test(String(def.color || '')) ? def.color : '#b48cff';
+  const d = {
+    name: String(def.name || id).slice(0, 30), emoji: String(def.icon || '✨').slice(0, 4), color: col, desc: String(def.desc || '').slice(0, 120),
+    food: clamp(+def.food || 0, 0, 200), dmg: clamp(+def.damage || 0, 0, 200), use: !!def.use, block: BID[String(def.place || '').toLowerCase()],
+  };
+  if (d.block !== undefined && !(KIND[d.block] === K_CUBE || KIND[d.block] === K_GLASS) || d.block === B.BEDROCK) d.block = undefined;
+  ITEMS[key] = { name: d.name, mod: modId, emoji: d.emoji, color: d.color, desc: d.desc, dmg: d.dmg, use: d.use };
+  if (d.block !== undefined) { ITEMS[key].block = d.block; ITEMS[key].place = 'block'; }
+  if (d.food > 0) FOOD[key] = { hp: d.food };
+  DROP_COLOR[key] = hexToRgb(d.color);
+  if (!W.modItems) W.modItems = {};
+  W.modItems[key] = Object.assign({ modId }, d);
+  return key;
+}
+/* gespeicherte Mod-Items wieder bekannt machen (auch wenn die Mod gerade aus ist) */
+function restoreModItems(list) {
+  W.modItems = {};
+  for (const key in list || {}) {
+    const d = list[key]; if (!d || !/^x_[a-z0-9]+_[a-z0-9]+$/.test(key)) continue;
+    const id = key.split('_')[2];
+    registerModItem(d.modId || key.split('_')[1], id, { name: d.name, icon: d.emoji, color: d.color, desc: d.desc, food: d.food, damage: d.dmg, use: d.use, place: d.block !== undefined ? BKEY[d.block] : '' });
+  }
+}
+function modAddShop(rec, item, cost, qty, name) {
+  const k = modResolveItem(rec.m.id, item);
+  if (!ITEMS[k] && !RES_NAME[k]) return;
+  const c = {};
+  for (const r in cost || {}) { const n = clamp(cost[r] | 0, 0, 999); if (n > 0 && (RES_NAME[r] || ITEMS[r])) c[r] = n; }
+  if (!Object.keys(c).length) c.wood = 1;
+  const id = 'mod_' + modSlug(rec.m.id) + '_' + modSlug(k);
+  if (SHOP.some((e) => e.id === id)) return;
+  const e = { id, tab: 'mods', item: k, qty: clamp(qty | 0, 1, 64), cost: c, name: (name || ((qty | 0) > 1 ? qty + ' ' : '') + itemName(k)).slice(0, 40), desc: (ITEMS[k] && ITEMS[k].desc) || 'Aus der Mod „' + rec.m.name + '“.' };
+  SHOP.push(e); MODRT.shop.push(e);
+}
+/* ein Item mit „use“ in der Hand und Rechtsklick */
+function modUseItem(k, target) {
+  const it = ITEMS[k]; if (!it || !it.mod || !it.use) return false;
+  const t = target && target.type === 'block' && target.inReach ? target : null;
+  const own = k.split('_')[2];
+  modEmit('use', { item: own, key: k, x: t ? t.x : null, y: t ? t.y : null, z: t ? t.z : null, px: +PL.x.toFixed(2), py: +PL.y.toFixed(2), pz: +PL.z.toFixed(2) });
+  PL.swingT = 0; PL.swingKind = 'hit';
+  return true;
+}
+const MOD_SOUNDS = ['ui', 'buy', 'upgrade', 'chest', 'pop', 'hit', 'thud', 'eat', 'thunder', 'bloodStart', 'dawn', 'nightfall', 'deny', 'greet', 'poison'];
 /* nur diese Befehle darf eine Mod ausführen, alles geprüft und begrenzt */
 function modCmd(rec, msg) {
   if (!msg || typeof msg.c !== 'string' || !Array.isArray(msg.a) || MODRT.workers.get(rec.m.id) !== rec) return;
   const now = performance.now();
   if (now - rec.t > 1000) { rec.t = now; rec.n = 0; }
-  if (++rec.n > 300 || G.state === 'menu' || G.state === 'loading') return;
+  if (++rec.n > 300 || G.state === 'menu' || G.state === 'loading' || !modsAllowed()) return;
   const a = msg.a;
+  const near = (x, y, z) => Math.hypot(x - PL.x, z - PL.z) <= 80 && Math.abs(y - PL.y) <= 60;
   switch (msg.c) {
     case 'set': setFx(String(a[0]), a[1]); break;
     case 'toast': UI.toast('[' + rec.m.name + '] ' + String(a[0]).slice(0, 160), 'info', 3200, 'mod' + rec.m.id); break;
     case 'give': {
-      const k = String(a[0]); const n = a[1] | 0; if (n < 1) break;
+      const k = modResolveItem(rec.m.id, String(a[0])); const n = a[1] | 0; if (n < 1) break;
       if (RES_NAME[k]) { G.inv[k] = (G.inv[k] || 0) + Math.min(n, 999); UI.res(); }
-      else if (ITEMS[k]) addItem(k, ITEMS[k].tool || ITEMS[k].armor ? Math.min(n, 3) : Math.min(n, 999));
+      else if (TOOL_MAX[k]) addItem(toolKey(k, 1), Math.min(n, 99));
+      else if (ITEMS[k]) addItem(k, ITEMS[k].armor ? Math.min(n, 3) : Math.min(n, 999));
+      UI.hotbar();
+      break;
+    }
+    case 'take': {
+      const k = modResolveItem(rec.m.id, String(a[0])); const n = clamp(a[1] | 0, 1, 999);
+      if (RES_NAME[k]) { G.inv[k] = Math.max(0, (G.inv[k] || 0) - n); UI.res(); } else if (ITEMS[k] && !ITEMS[k].armor) takeItem(k, Math.min(n, itemCount(k)));
+      UI.hotbar();
       break;
     }
     case 'heal': if (!PL.dead) { const n = +a[0]; if (isFinite(n)) PL.hp = clamp(PL.hp + clamp(n, -1000, 1000), 0, PL.maxHp); } break;
@@ -15303,22 +15799,33 @@ function modCmd(rec, msg) {
     case 'tp': {
       const [x, y, z] = a.map(Number);
       if (![x, y, z].every(isFinite) || Math.abs(x) >= WLIM || Math.abs(z) >= WLIM) break;
+      // nicht heimlich in eine Dimension hinein oder aus ihr heraus
+      if ((dimAt(x, z) || null) !== (CURDIM || null)) break;
       PL.x = x; PL.y = clamp(y, 2, WY - 4); PL.z = z; PL.vx = PL.vy = PL.vz = 0; PL.fallTop = PL.fallTopPrev = PL.y;
       break;
     }
-    case 'block': {
-      const x = a[0] | 0, y = a[1] | 0, z = a[2] | 0, id = BID[String(a[3]).toLowerCase()];
-      if (id === undefined || !inWorld(x, y, z) || y < 1 || y >= WY - 2 || !chunkForBlock(x, z)) break;
-      if (Math.hypot(x - PL.x, z - PL.z) > 80 || Math.abs(y - PL.y) > 60) break;
+    case 'block': case 'fill': {
+      const id = BID[String(a[msg.c === 'block' ? 3 : 6]).toLowerCase()];
+      if (id === undefined) break;
       const k = KIND[id];
-      if (id !== B.AIR && !(k === K_CUBE || k === K_GLASS || k === K_PLANT)) break;
-      if (id === B.BEDROCK || id === B.LAVA || getB(x, y, z) === B.BEDROCK) break;
-      setBlock(x, y, z, id, null);
-      if (MP.active()) MP.send({ t: 'plc', x, y, z, id });
+      if (id !== B.AIR && id !== B.WATER && !(k === K_CUBE || k === K_GLASS || k === K_PLANT)) break;
+      if (id === B.BEDROCK || id === B.LAVA) break;
+      let x0 = a[0] | 0, y0 = a[1] | 0, z0 = a[2] | 0, x1 = x0, y1 = y0, z1 = z0;
+      if (msg.c === 'fill') { x1 = a[3] | 0; y1 = a[4] | 0; z1 = a[5] | 0; }
+      if (x1 < x0) [x0, x1] = [x1, x0]; if (y1 < y0) [y0, y1] = [y1, y0]; if (z1 < z0) [z0, z1] = [z1, z0];
+      if ((x1 - x0 + 1) * (y1 - y0 + 1) * (z1 - z0 + 1) > 4096) break;
+      if (!near(x0, y0, z0) || !near(x1, y1, z1)) break;
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) for (let z = z0; z <= z1; z++) {
+        if (!inWorld(x, y, z) || y < 1 || y >= WY - 2 || !chunkForBlock(x, z)) continue;
+        const cur = getB(x, y, z);
+        if (cur === B.BEDROCK || W.prot.has(I(x, y, z)) || KIND[cur] === K_OBJ) continue;
+        setBlock(x, y, z, id, null);
+        if (MP.active()) MP.send({ t: 'plc', x, y, z, id });
+      }
       break;
     }
     case 'time': {
-      if (MP.isClient()) break;
+      if (MP.isClient() || CURDIM) break;
       const T = G.time;
       if (a[0] === 'day' && T.phase === 'night') T.t = (T.blood ? BLOOD_LEN : NIGHT_LEN) - 0.2;
       else if (a[0] === 'night' && T.phase === 'day') T.t = DAY_LEN - 0.2;
@@ -15326,27 +15833,74 @@ function modCmd(rec, msg) {
     }
     case 'weather': if (WEATHER_KINDS.includes(String(a[0]))) setWeather(String(a[0]), 240); break;
     case 'spawn': {
-      const n = clamp(a[0] | 0, 1, 5);
-      if (G.zombies.filter((z) => z.type === 'zombie' && z.state !== 'die').length >= 25) break;
-      for (let i = 0; i < n; i++) { const s = findSpawnSpot({ x: PL.x, z: PL.z }, 12, 24, null); if (s) spawnZombie(s[0] + 0.5, s[1], s[2] + 0.5); }
+      const n = clamp(a[0] | 0, 1, 5), type = String(a[1] || 'zombie');
+      if (G.zombies.filter((z) => z.state !== 'die').length >= 30) break;
+      for (let i = 0; i < n; i++) {
+        const s = findSpawnSpot({ x: PL.x, z: PL.z }, 12, 24, null); if (!s) continue;
+        if (type === 'wolf' && typeof spawnWolf === 'function') spawnWolf(s[0] + 0.5, s[1], s[2] + 0.5);
+        else spawnZombie(s[0] + 0.5, s[1], s[2] + 0.5);
+      }
       break;
     }
     case 'clear': for (const z of G.zombies) if (z.state !== 'die') damageZombie(z, 99999, 0, 0, 0); break;
+    case 'boom': {
+      const [x, y, z, r0] = a.map(Number); if (![x, y, z, r0].every(isFinite) || !near(x, y, z)) break;
+      modExplode(x, y, z, clamp(r0, 1, 4));
+      break;
+    }
+    case 'bolt': { const [x, z] = a.map(Number); if (!isFinite(x) || !isFinite(z) || Math.hypot(x - PL.x, z - PL.z) > 80) break; const t = colTop(Math.floor(x), Math.floor(z)); if (t > 0) strikeAt(x, t + 1, z, Math.random() * 1e6); break; }
+    case 'fx': {
+      const [x, y, z] = a.slice(0, 3).map(Number); if (![x, y, z].every(isFinite) || !near(x, y, z)) break;
+      const c = /^#[0-9a-f]{6}$/i.test(String(a[3])) ? hexToRgb(String(a[3])) : [1, 1, 1];
+      burst(x, y, z, clamp(a[4] | 0, 1, 60), c, { speed: 2, up: 2.5, life: 0.9, size: 0.08, spread: 0.6 });
+      break;
+    }
+    case 'sound': { const n = String(a[0]); if (MOD_SOUNDS.includes(n) && SFX[n]) SFX[n](0); break; }
+    case 'item': if (Object.keys(W.modItems || {}).length < 200) { registerModItem(rec.m.id, String(a[0]), a[1] || {}); UI.hotbar(); } break;
+    case 'shop': modAddShop(rec, String(a[0]), a[1], a[2], String(a[3] || '')); break;
+    case 'dim': registerDim(rec.m.id, String(a[0]), a[1] || {}); break;
+    case 'enter': { const d = DIMS.get(dimKey(rec.m.id, String(a[0]))); if (d) enterDim(d); break; }
+    case 'leave': if (CURDIM) leaveDim(); break;
+    case 'portal': {
+      const d = DIMS.get(dimKey(rec.m.id, String(a[0]))); const [x, y, z] = [a[1] | 0, a[2] | 0, a[3] | 0];
+      if (d && near(x, y, z)) buildPortal(d.key, x, y, z, String(a[4] || ''));
+      break;
+    }
     case 'log': console.log('[Mod ' + rec.m.name + ']', String(a[0])); break;
-    case 'error': console.warn('Mod "' + rec.m.name + '" Fehler:', String(a[0])); break;
+    case 'error': rec.errs++; console.warn('Mod "' + rec.m.name + '" Fehler:', String(a[0])); if (rec.errs === 1 && WORLDS.current && WORLDS.current.temp) UI.toast('Fehler in deiner Mod: ' + String(a[0]).slice(0, 120), 'warn', 6000, 'moderr'); break;
   }
+}
+/* eine Explosion: ein Loch, Schaden an Gegnern in der Nähe */
+function modExplode(x, y, z, r) {
+  const cx = Math.floor(x), cy = Math.floor(y), cz = Math.floor(z), R = Math.ceil(r);
+  for (let dx = -R; dx <= R; dx++) for (let dy = -R; dy <= R; dy++) for (let dz = -R; dz <= R; dz++) {
+    if (dx * dx + dy * dy + dz * dz > r * r + 0.5) continue;
+    const bx = cx + dx, by = cy + dy, bz = cz + dz;
+    if (by < 1 || !chunkForBlock(bx, bz)) continue;
+    const id = getB(bx, by, bz);
+    if (id === B.AIR || id === B.BEDROCK || id === B.WATER || id === B.LAVA || W.prot.has(I(bx, by, bz)) || (KIND[id] === K_OBJ)) continue;
+    setBlock(bx, by, bz, B.AIR);
+    if (MP.active()) MP.send({ t: 'plc', x: bx, y: by, z: bz, id: B.AIR });
+  }
+  burst(x, y, z, 40, [[1, 0.6, 0.2], [0.35, 0.33, 0.32], [1, 0.9, 0.5]], { speed: 6, up: 4, life: 1.1, size: 0.16, spread: 1.2 });
+  SFX.thunder && SFX.thunder(Math.hypot(x - PL.x, z - PL.z) * 0.3);
+  if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.6);
+  for (const zb of G.zombies) { const d = Math.hypot(zb.x - x, zb.y - y, zb.z - z); if (d < r + 2 && zb.state !== 'die') damageZombie(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6); }
+  const dp = Math.hypot(PL.x - x, PL.y + 0.9 - y, PL.z - z);
+  if (dp < r + 1.5) hurtPlayer(Math.round(30 * (1 - dp / (r + 1.5))), x, z);
 }
 function creativeTopUp() {
   let ch = false;
   for (const k of RES_KEYS) if ((G.inv[k] || 0) < 500) { G.inv[k] = 999; ch = true; }
-  for (const k in ITEMS) { const it = ITEMS[k]; if (it.tool || it.armor || k === 'water_bucket') continue; if ((G.inv.items[k] || 0) < 500) { G.inv.items[k] = 999; ch = true; } }
-  const t = G.tools, w = { axe: 4, sword: 4, pickaxe: 3, shovel: 3, shears: 1 };
-  for (const k in w) if ((t[k] | 0) < w[k]) { t[k] = w[k]; ch = true; }
+  for (const k in ITEMS) { const it = ITEMS[k]; if (it.tool || it.armor || it.mod || k === 'water_bucket') continue; if ((G.inv.items[k] || 0) < 500) { G.inv.items[k] = 999; ch = true; } }
+  for (const t in TOOL_MAX) { const k = toolKey(t, TOOL_MAX[t]); if (!(G.inv.items[k] > 0)) { G.inv.items[k] = 1; ch = true; } }
   if (ch) UI.res();
 }
 function updateMods(dt) {
   applyMaxHp();
   if (!MODFX.fly && PL.flying) PL.flying = false;
+  if (MODFX.regen > 0 && !PL.dead && PL.hp < PL.maxHp) PL.hp = Math.min(PL.maxHp, PL.hp + MODFX.regen * dt);
+  updatePortals(dt);
   if (!MODRT.workers.size) return;
   MODRT.tick -= dt;
   if (MODRT.tick > 0) return;
@@ -15366,15 +15920,19 @@ function flyTap() {
 
 /* ---------- Bibliothek, Installation ---------- */
 const MODS = {
-  KEY: 'bloodmoon-mods-installed', PRE: 'bloodmoon-mod-', lib: [], libOk: false,
+  KEY: 'bloodmoon-mods-installed', PRE: 'bloodmoon-mod-', lib: [], libOk: false, meta: {},
   installedIds() { try { return JSON.parse(localStorage.getItem(this.KEY) || '[]').filter((x) => typeof x === 'string'); } catch (e) { return []; } },
   saveIds(l) { try { localStorage.setItem(this.KEY, JSON.stringify(l)); } catch (e) { /* ignore */ } },
   isInstalled(id) { return this.installedIds().includes(id); },
   builtin(id) { return BUILTIN_MODS.find((m) => m.id === id) || null; },
+  hidden(id) { return !!(this.meta[id] && this.meta[id].hidden); },
+  isRec(m) { const x = this.meta[m.id]; return x && x.rec !== undefined ? !!x.rec : !!m.rec; },
   cached(id) { try { return JSON.parse(localStorage.getItem(this.PRE + id) || 'null'); } catch (e) { return null; } },
   get(id) { return this.builtin(id) || this.cached(id) || this.lib.find((m) => m.id === id) || null; },
   installed() { return this.installedIds().map((id) => this.get(id)).filter(Boolean); },
-  slim(m) { return { id: m.id, name: m.name, icon: m.icon || '🧩', desc: m.desc || '', author: m.author || '', code: m.code }; },
+  /* alles, was man in der Bibliothek sieht: eingebaute (außer ausgeblendete) und Community-Mods */
+  all() { return BUILTIN_MODS.filter((m) => !this.hidden(m.id)).map((m) => Object.assign({ builtin: true }, m)).concat(this.lib); },
+  slim(m) { return { id: m.id, name: m.name, icon: m.icon || '🧩', desc: m.desc || '', author: m.author || '', cat: MOD_CAT_NAME[m.cat] && m.cat !== 'all' ? m.cat : 'fun', code: m.code, authorUid: m.authorUid || '' }; },
   install(m) {
     const l = this.installedIds(); if (!l.includes(m.id)) l.push(m.id); this.saveIds(l);
     if (!this.builtin(m.id)) { try { localStorage.setItem(this.PRE + m.id, JSON.stringify(this.slim(m))); } catch (e) { /* ignore */ } }
@@ -15387,12 +15945,16 @@ const MODS = {
   },
   async fetchLibrary() {
     if (!NET.uid()) throw new Error('Melde dich an, um Community-Mods zu sehen.');
-    const v = (await withTimeout(NET.db.ref('mods/approved').once('value'), 15000)).val() || {};
+    const [v, meta] = await Promise.all([
+      withTimeout(NET.db.ref('mods/approved').once('value'), 15000).then((s) => s.val() || {}),
+      withTimeout(NET.db.ref('mods/meta').once('value'), 15000).then((s) => s.val() || {}).catch(() => ({})),
+    ]);
+    this.meta = meta;
     this.lib = Object.keys(v).map((id) => Object.assign({ id }, this.slim(Object.assign({ id }, v[id])), { at: v[id].at || 0 })).filter((m) => m.code && m.name).sort((a, b) => b.at - a.at);
     this.libOk = true;
-    // aus der Bibliothek entfernt: auch hier deinstallieren, andere bekommen ein Update
+    // aus der Bibliothek entfernt (oder vom Owner ausgeblendet): auch hier deinstallieren, andere bekommen ein Update
     for (const id of this.installedIds()) {
-      if (this.builtin(id)) continue;
+      if (this.builtin(id)) { if (this.hidden(id)) this.uninstall(id, true); continue; }
       const m = this.lib.find((q) => q.id === id);
       if (!m) this.uninstall(id, true); else { try { localStorage.setItem(this.PRE + id, JSON.stringify(this.slim(m))); } catch (e) { /* ignore */ } }
     }
@@ -15420,88 +15982,212 @@ const MODS = {
       let err = null, pong = false, n = 0;
       w.onmessage = (ev) => { const m = ev.data || {}; if (m.c === 'error') err = err || m.a[0]; else if (m.c === 'pong') pong = true; else if (m.c) n++; };
       w.onerror = (ev) => { err = err || ev.message; };
-      const demo = { x: 0, y: 40, z: 0, hp: 80, maxHp: 100, day: 1, night: 0, phase: 'day', blood: false, t: 100, weather: 'clear' };
+      const demo = { x: 0, y: 40, z: 0, hp: 80, maxHp: 100, day: 1, night: 0, phase: 'day', blood: false, t: 100, weather: 'clear', dim: null, held: null, sneak: false };
       w.postMessage({ t: 'init', code });
       for (const ev of ['start', 'tick', 'tick']) w.postMessage({ t: 'ev', ev, d: demo });
       w.postMessage({ t: 'ev', ev: 'break', d: { x: 0, y: 40, z: 0, block: 'stone' } });
       w.postMessage({ t: 'ev', ev: 'place', d: { x: 0, y: 40, z: 0, block: 'planks' } });
-      for (const ev of ['kill', 'night', 'day', 'death']) w.postMessage({ t: 'ev', ev, d: {} });
+      w.postMessage({ t: 'ev', ev: 'use', d: { item: 'x', key: 'x', x: 0, y: 40, z: 0, px: 0, py: 40, pz: 0 } });
+      for (const ev of ['kill', 'night', 'day', 'death', 'dimension']) w.postMessage({ t: 'ev', ev, d: {} });
       w.postMessage({ t: 'ping' });
       setTimeout(() => { w.terminate(); res(err ? { ok: false, msg: 'Fehler im Code: ' + err } : !pong ? { ok: false, msg: 'Der Code hängt (Endlosschleife?).' } : { ok: true, msg: 'Läuft ohne Fehler (' + n + ' Befehle im Test).' }); }, 800);
     });
   },
 };
 
-/* ---------- Oberfläche ---------- */
-function modRowEl(m, builtin, onChange) {
-  const li = document.createElement('div'); li.className = 'li mod';
-  li.innerHTML = '<div class="li-ico mod-ico"></div><div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
-  const on = MODS.isInstalled(m.id);
-  li.querySelector('.mod-ico').textContent = m.icon || '🧩';
-  li.querySelector('b').textContent = m.name + (on ? ' ✓' : '');
-  li.querySelector('span').textContent = (m.desc || '') + (builtin ? '' : ' · von ' + (m.author || '?'));
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + (on ? 'ghost' : 'primary'); b.textContent = on ? 'Entfernen' : 'Installieren';
-  b.addEventListener('click', () => {
-    if (on) { MODS.uninstall(m.id); UI.toast(m.name + ' entfernt.', 'info', 2000, 'modi'); }
-    else { MODS.install(m); UI.toast(m.name + ' installiert. Du wählst sie beim Erstellen einer Welt (oder unter Welten → Bearbeiten).', 'good', 4200, 'modi'); }
-    SFX.ui(); onChange();
-  });
-  li.querySelector('.li-act').appendChild(b);
-  return li;
+/* ---------- Oberfläche: Bibliothek ---------- */
+const MODUI = { tab: 'lib', cat: 'all', q: '' };
+function modMatches(m) {
+  if (MODUI.cat !== 'all' && (m.cat || 'fun') !== MODUI.cat) return false;
+  const q = MODUI.q.trim().toLowerCase();
+  if (!q) return true;
+  return [m.name, m.desc, m.author, MOD_CAT_NAME[m.cat] || ''].some((s) => String(s || '').toLowerCase().includes(q));
 }
-UI.openMods = function () {
+function modCardEl(m, big) {
+  const on = MODS.isInstalled(m.id);
+  const el = document.createElement('div'); el.className = 'mcard' + (big ? ' big' : '') + (on ? ' on' : '');
+  el.innerHTML = '<div class="mc-top"><div class="mc-ico"></div><div class="mc-t"><b></b><span class="mc-by"></span></div></div><p class="mc-d"></p><div class="mc-f"><span class="mc-cat"></span><div class="mc-act"></div></div>';
+  el.querySelector('.mc-ico').textContent = m.icon || '🧩';
+  el.querySelector('b').textContent = m.name;
+  el.querySelector('.mc-by').textContent = m.builtin ? 'Blood Moon' : 'von ' + (m.author || '?');
+  el.querySelector('.mc-d').textContent = m.desc || '';
+  el.querySelector('.mc-cat').textContent = MOD_CAT_NAME[m.cat] || 'Spaß';
+  const act = el.querySelector('.mc-act');
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + (on ? 'ghost' : 'primary'); b.textContent = on ? 'Installiert ✓' : 'Installieren';
+  b.title = on ? 'Klicken zum Deinstallieren' : '';
+  b.addEventListener('click', () => {
+    if (on) { MODS.uninstall(m.id); UI.toast(m.name + ' deinstalliert.', 'info', 2000, 'modi'); }
+    else { MODS.install(m); UI.toast(m.name + ' installiert. Du schaltest sie beim Erstellen einer Welt unter „Mods“ an.', 'good', 4200, 'modi'); }
+    SFX.ui(); UI.modsRefresh();
+  });
+  act.appendChild(b);
+  // der Owner: empfehlen, für alle löschen
+  if (isOwner() && NET.uid()) {
+    const rec = document.createElement('button'); rec.type = 'button'; rec.className = 'btn icon' + (MODS.isRec(m) ? ' gold' : ''); rec.textContent = '★';
+    rec.title = MODS.isRec(m) ? 'Nicht mehr empfehlen' : 'Empfehlen';
+    rec.addEventListener('click', async () => {
+      try { await withTimeout(NET.db.ref('mods/meta/' + m.id + '/rec').set(!MODS.isRec(m)), 15000); await MODS.fetchLibrary(); UI.modsRefresh(); }
+      catch (e) { UI.toast(netMsg(e), 'warn', 4000); }
+    });
+    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn icon danger'; del.textContent = '🗑'; del.title = 'Für alle löschen';
+    del.addEventListener('click', async () => {
+      $('mdlMods').hidden = true;
+      const ok = await UI.confirm({ title: '„' + m.name + '“ für alle löschen?', text: m.builtin ? 'Die eingebaute Mod verschwindet für alle Spieler aus der Bibliothek und wird überall deinstalliert. Du kannst sie später wiederherstellen.' : 'Die Mod wird aus der Bibliothek gelöscht und bei allen Spielern deinstalliert.', yes: 'Löschen' });
+      $('mdlMods').hidden = false;
+      if (!ok) return;
+      try {
+        if (m.builtin) await withTimeout(NET.db.ref('mods/meta/' + m.id + '/hidden').set(true), 15000);
+        else await withTimeout(NET.db.ref('mods/approved/' + m.id).remove(), 15000);
+        MODS.uninstall(m.id, true);
+        UI.toast('„' + m.name + '“ ist für alle gelöscht.', 'good', 3600);
+        await MODS.fetchLibrary(); UI.modsRefresh();
+      } catch (e) { UI.toast(netMsg(e), 'warn', 4000); }
+    });
+    act.append(rec, del);
+  }
+  return el;
+}
+UI.openMods = function (tab) {
   UI.closeAll();
   $('mdlMods').hidden = false;
+  modsTab(tab || 'lib');
   UI.modsRefresh();
   modsLoadLib();
 };
+function modsTab(t) {
+  MODUI.tab = t;
+  $('modTabs').querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  $('modLib').hidden = t !== 'lib'; $('modInst').hidden = t !== 'inst'; $('modUp').hidden = t !== 'up';
+}
 UI.modsRefresh = function () {
-  const b = $('modListB'), c = $('modListC');
-  b.innerHTML = ''; c.innerHTML = '';
-  for (const m of BUILTIN_MODS) b.appendChild(modRowEl(m, true, UI.modsRefresh));
-  if (!MODS.lib.length) c.innerHTML = '<div class="list-empty">' + (NET.uid() ? (MODS.libOk ? 'Noch keine Community-Mods. Lade im Reiter „Hochladen“ deine eigene hoch.' : 'Lädt …') : 'Melde dich an, um Community-Mods zu sehen und hochzuladen.') + '</div>';
-  for (const m of MODS.lib) c.appendChild(modRowEl(m, false, UI.modsRefresh));
+  // Kategorien
+  const cats = $('modCats');
+  if (!cats.children.length) for (const [k, n] of MOD_CATS) { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.cat = k; b.textContent = n; cats.appendChild(b); }
+  cats.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cat === MODUI.cat)));
+  const all = MODS.all();
+  // empfohlen (nur ohne Suche und bei „Alle“)
+  const recEl = $('modRec'), recWrap = $('modRecWrap');
+  const recs = all.filter((m) => MODS.isRec(m));
+  recWrap.hidden = !!MODUI.q.trim() || MODUI.cat !== 'all' || !recs.length;
+  recEl.innerHTML = '';
+  for (const m of recs) recEl.appendChild(modCardEl(m, true));
+  // alle passenden
+  const grid = $('modGrid'); grid.innerHTML = '';
+  const list = all.filter(modMatches);
+  $('modGridT').textContent = (MODUI.q.trim() ? 'Suche' : MODUI.cat === 'all' ? 'Alle Mods' : MOD_CAT_NAME[MODUI.cat]) + ' (' + list.length + ')';
+  if (!list.length) grid.innerHTML = '<div class="list-empty">' + (MODUI.q.trim() ? 'Keine Mod passt zu „' + esc(MODUI.q.trim()) + '“.' : 'In dieser Kategorie gibt es noch keine Mods.') + '</div>';
+  for (const m of list) grid.appendChild(modCardEl(m, false));
+  const msg = $('modLibMsg');
+  if (!NET.uid()) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = 'Melde dich an, um auch Community-Mods zu sehen und eigene hochzuladen.'; }
+  else if (!MODS.libOk && !msg.textContent) { msg.hidden = false; msg.className = 'form-msg ok'; msg.textContent = 'Community-Mods laden …'; }
+  // installiert
+  const inst = $('modInstList'); inst.innerHTML = '';
+  const il = MODS.installed();
+  if (!il.length) inst.innerHTML = '<div class="list-empty">Noch nichts installiert. Such dir in der Bibliothek etwas aus.</div>';
+  for (const m of il) inst.appendChild(modCardEl(Object.assign({ builtin: !!MODS.builtin(m.id) }, m), false));
+  $('modInstN').textContent = il.length ? ' (' + il.length + ')' : '';
+  // Owner: ausgeblendete eingebaute Mods wiederherstellen
+  const hid = $('modHidden');
+  const hl = isOwner() ? BUILTIN_MODS.filter((m) => MODS.hidden(m.id)) : [];
+  hid.hidden = !hl.length; hid.innerHTML = '';
+  if (hl.length) {
+    const t = document.createElement('p'); t.className = 'sec-t'; t.textContent = 'Gelöschte eingebaute Mods (nur du siehst das)'; hid.appendChild(t);
+    for (const m of hl) {
+      const li = document.createElement('div'); li.className = 'li mod';
+      li.innerHTML = '<div class="li-ico mod-ico"></div><div class="li-main"><b></b><span>Für alle ausgeblendet</span></div><div class="li-act"><button class="btn" type="button">Wiederherstellen</button></div>';
+      li.querySelector('.mod-ico').textContent = m.icon; li.querySelector('b').textContent = m.name;
+      li.querySelector('button').addEventListener('click', async () => { try { await withTimeout(NET.db.ref('mods/meta/' + m.id + '/hidden').remove(), 15000); await MODS.fetchLibrary(); UI.modsRefresh(); } catch (e) { UI.toast(netMsg(e), 'warn', 4000); } });
+      hid.appendChild(li);
+    }
+  }
 };
 async function modsLoadLib() {
   const msg = $('modLibMsg');
-  if (!NET.uid()) { msg.hidden = true; UI.modsRefresh(); return; }
-  msg.hidden = true;
-  try { await MODS.fetchLibrary(); } catch (e) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = netMsg(e); }
+  if (!NET.uid()) { UI.modsRefresh(); return; }
+  msg.textContent = '';
+  try { await MODS.fetchLibrary(); msg.hidden = true; } catch (e) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = netMsg(e); }
   UI.modsRefresh();
 }
-/* Mod-Auswahl mit Schaltern (neue Welt, Welt bearbeiten) */
-function renderModChecks(el, sel) {
-  const cb = arguments[2];
-  el.innerHTML = '';
+
+/* ---------- Mods für eine Welt auswählen (eigenes Fenster) ---------- */
+UI.openModPick = function (sel, onDone, back) {
+  UI._modPick = { sel, onDone, back };
+  for (const id of back || []) $(id).hidden = true;
+  $('mdlModPick').hidden = false;
+  UI.modPickRefresh();
+};
+UI.modPickRefresh = function () {
+  const P = UI._modPick; if (!P) return;
+  const el = $('mpList'); el.innerHTML = '';
   const inst = MODS.installed();
-  if (!inst.length) { el.innerHTML = '<div class="list-empty">Noch keine Mods installiert. Du findest sie im Hauptmenü unter „Mods“.</div>'; return; }
+  if (!inst.length) el.innerHTML = '<div class="list-empty">Noch keine Mods installiert. Unten findest du die Bibliothek.</div>';
   for (const m of inst) {
     const li = document.createElement('div'); li.className = 'li mod';
     li.innerHTML = '<div class="li-ico mod-ico"></div><div class="li-main"><b></b><span></span></div><div class="li-act"><button class="tgl" role="switch" type="button"></button></div>';
     li.querySelector('.mod-ico').textContent = m.icon || '🧩';
-    li.querySelector('b').textContent = m.name; li.querySelector('span').textContent = m.desc || '';
-    const t = li.querySelector('.tgl'); t.setAttribute('aria-label', m.name); t.setAttribute('aria-checked', String(sel.includes(m.id)));
+    li.querySelector('b').textContent = m.name; li.querySelector('span').textContent = (MOD_CAT_NAME[m.cat] ? MOD_CAT_NAME[m.cat] + ' · ' : '') + (m.desc || '');
+    const t = li.querySelector('.tgl'); t.setAttribute('aria-label', m.name); t.setAttribute('aria-checked', String(P.sel.includes(m.id)));
     t.addEventListener('click', () => {
-      const i = sel.indexOf(m.id); if (i >= 0) sel.splice(i, 1); else sel.push(m.id);
-      t.setAttribute('aria-checked', String(sel.includes(m.id)));
-      if (cb) cb(sel);
+      const i = P.sel.indexOf(m.id); if (i >= 0) P.sel.splice(i, 1); else P.sel.push(m.id);
+      t.setAttribute('aria-checked', String(P.sel.includes(m.id)));
+      $('mpN').textContent = P.sel.length ? P.sel.length + ' an' : 'keine an';
     });
     el.appendChild(li);
   }
+  $('mpN').textContent = P.sel.length ? P.sel.length + ' an' : 'keine an';
+};
+function closeModPick() {
+  const P = UI._modPick; UI._modPick = null;
+  $('mdlModPick').hidden = true;
+  if (P) { for (const id of P.back || []) $(id).hidden = false; if (P.onDone) P.onDone(P.sel); }
 }
+/* der Knopf „Mods (2)“ beim Erstellen einer Welt und beim Bearbeiten */
+function modBtnLabel(el, sel) { el.textContent = 'Mods' + (sel && sel.length ? ' (' + sel.length + ' an)' : ''); }
+
+/* ---------- Testwelt für eine Mod im Editor ---------- */
+async function modTestWorld() {
+  const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
+  const code = $('mdCode').value; if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
+  msg('Prüfe …', true);
+  const r = await MODS.test(code); if (!r.ok) { msg(r.msg); return; }
+  const draft = { id: '__test', name: ($('mdName').value.trim() || 'Meine Mod').slice(0, 30), icon: $('mdIcon').value.trim() || '🧩', desc: $('mdDesc').value.trim(), cat: $('mdCat').value, code };
+  UI._modDraftOpen = true;
+  UI.closeAll();
+  const seed = Math.floor(Math.random() * 1e9);
+  const e = { id: '__modtest', name: 'Mod-Test: ' + draft.name, seed, mode: 'endless', mods: ['__test'], temp: true, testMod: draft, updated: Date.now(), day: 1 };
+  if (busyLoading()) return;
+  if (MP.isClient()) await MP.leave(true);
+  if (MP.isHost()) await MP.closeRoom();
+  G.server = null;
+  WORLDS.current = e;
+  await loadWorld(e.seed, null, { mode: 'endless' });
+  G.loadedWorld = e.id;
+  startPlaying();
+}
+/* zurück im Menü nach einer Testwelt: der Editor ist wieder offen, der Code noch da */
+function modAfterTest() {
+  if (!UI._modDraftOpen) return;
+  UI._modDraftOpen = false;
+  setTimeout(() => { UI.openMods('up'); const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Zurück aus der Testwelt. Du kannst weiter am Code arbeiten oder ihn einreichen.'; }, 200);
+}
+
 function bindModsUI() {
   $('btnMods').addEventListener('click', () => UI.openMods());
+  $('modTabs').addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (!b) return; modsTab(b.dataset.tab); UI.modsRefresh(); });
+  $('modCats').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; MODUI.cat = b.dataset.cat; UI.modsRefresh(); });
+  $('modSearch').addEventListener('input', () => { MODUI.q = $('modSearch').value; UI.modsRefresh(); });
   $('modReload').addEventListener('click', () => modsLoadLib());
-  $('modTabs').addEventListener('click', (e) => {
-    const b = e.target.closest('.tab'); if (!b) return;
-    $('modTabs').querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t === b)));
-    $('modLib').hidden = b.dataset.tab !== 'lib'; $('modUp').hidden = b.dataset.tab !== 'up';
-  });
+  $('mpDone').addEventListener('click', closeModPick);
+  $('mpClose').addEventListener('click', closeModPick);
+  $('mpLib').addEventListener('click', () => { UI._modPick = null; $('mdlModPick').hidden = true; UI.openMods('lib'); });
+  const sel = $('mdCat');
+  if (!sel.children.length) for (const [k, n] of MOD_CATS) { if (k === 'all') continue; const o = document.createElement('option'); o.value = k; o.textContent = n; sel.appendChild(o); }
   const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
   $('mdTest').addEventListener('click', async () => {
     const code = $('mdCode').value; if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
     msg('Teste …', true); const r = await MODS.test(code); msg(r.msg, r.ok);
   });
+  $('mdPlay').addEventListener('click', () => modTestWorld());
   $('modUpForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     if (!NET.uid()) { msg('Melde dich zuerst an.'); return; }
@@ -15511,15 +16197,14 @@ function bindModsUI() {
     if (code.length > 30000) { msg('Der Code ist zu lang (max. 30000 Zeichen).'); return; }
     msg('Teste und sende …', true);
     const t = await MODS.test(code); if (!t.ok) { msg(t.msg); return; }
-    const rec = { name: name.slice(0, 30), icon: ($('mdIcon').value.trim() || '🧩').slice(0, 4), desc: $('mdDesc').value.trim().slice(0, 140), code, author: NET.name, authorUid: NET.uid(), at: NET.TS() };
+    const rec = { name: name.slice(0, 30), icon: ($('mdIcon').value.trim() || '🧩').slice(0, 4), desc: $('mdDesc').value.trim().slice(0, 140), cat: $('mdCat').value, code, author: NET.name, authorUid: NET.uid(), at: NET.TS() };
     try {
-      if (isOwner()) { await withTimeout(NET.db.ref('mods/approved').push().set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); msg('Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true); }
+      if (isOwner()) { await withTimeout(NET.db.ref('mods/approved').push().set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); msg('Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true); modsLoadLib(); }
       else { await withTimeout(NET.db.ref('mods/pending').push(rec), 15000); msg('Eingereicht! DynaTheReal prüft die Mod. Wenn er sie annimmt, erscheint sie in der Bibliothek.', true); }
       $('mdName').value = ''; $('mdIcon').value = ''; $('mdDesc').value = ''; $('mdCode').value = '';
     } catch (e) { msg(netMsg(e)); }
   });
 }
-
 /* ---------- Owner: Prüfung ---------- */
 ADMIN.watchMods = function () {
   if (this.modRef) { this.modRef.off('value', this.modCb); this.modRef = null; }
@@ -15543,7 +16228,7 @@ async function renderAdminMods() {
     li.innerHTML = '<div class="li-ico mod-ico"></div><div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
     li.querySelector('.mod-ico').textContent = m.icon || '🧩';
     li.querySelector('b').textContent = m.name || '?';
-    li.querySelector('span').textContent = 'von ' + (m.author || '?') + (m.desc ? ' · ' + m.desc : '');
+    li.querySelector('span').textContent = 'von ' + (m.author || '?') + (MOD_CAT_NAME[m.cat] ? ' · ' + MOD_CAT_NAME[m.cat] : '') + (m.desc ? ' · ' + m.desc : '');
     const pre = document.createElement('pre'); pre.className = 'mod-code'; pre.hidden = true; pre.textContent = m.code || '';
     const act = li.querySelector('.li-act');
     const see = document.createElement('button'); see.className = 'btn'; see.type = 'button'; see.textContent = 'Code';
@@ -15575,15 +16260,335 @@ async function renderAdminMods() {
 }
 
 
-/* ---- 19w_stubs.js ---- */
-/* Platzhalter für Dimensionen und Zuschauer-Modus. Die echten Funktionen kommen mit Mods 2.0.
-   Bis dahin sind sie leer, damit die Weltgenerierung und das Spiel-Update laufen. */
-const DIMS = new Map();
+/* ---- 19u_dims.js ---- */
+/* =========================================================================
+   Dimensionen aus Mods. Jede Dimension ist ein eigenes, abgeschlossenes
+   Gebiet weit draußen in der Welt (hinter einer Grundgesteinswand), mit
+   eigenem Himmel, Licht, Gelände und eigener Schwerkraft. Hinein kommt man
+   nur durch ein Portal oder einen Mod-Befehl. Nur in eigenen Welten.
+   ========================================================================= */
+const DIMS = new Map();          // key -> Dimension
+const DIM_BY_SLOT = [];
 let CURDIM = null;
-function dimAt() { return null; }
-function applyDimEnv() { CURDIM = null; }
-function updateSpectator() { }
-function generateDimChunk() { }
+const DIM_Z = -26000, DIM_X0 = -24000, DIM_STEP = 3000, DIM_HALF = 480, DIM_SLOTS = 16;
+const DIM_TREES = {
+  oak: [B.OAK_LOG, B.OAK_LEAVES], birch: [B.BIRCH_LOG, B.BIRCH_LEAVES], pine: [B.PINE_LOG, B.PINE_LEAVES], cherry: [B.CHERRY_LOG, B.CHERRY_LEAVES],
+  dark: [B.DARK_LOG, B.DARK_LEAVES], autumn: [B.OAK_LOG, B.AUTUMN_ORANGE], mushroom: [B.SHROOM_STEM, B.SHROOM_CAP],
+};
+const DIM_ORES = { iron: B.IRON_ORE, diamond: B.DIAMOND_ORE, ruby: B.RUBY_ORE, mythril: B.MYTHRIL_ORE };
+function dimKey(modId, id) { return modSlug(modId) + ':' + modSlug(id); }
+function dimCenter(slot) { return [DIM_X0 + slot * DIM_STEP, DIM_Z]; }
+function dimAt(x, z) {
+  if (z < DIM_Z - DIM_HALF - 1 || z > DIM_Z + DIM_HALF + 1) return null;
+  const slot = Math.round((x - DIM_X0) / DIM_STEP);
+  if (slot < 0 || slot >= DIM_SLOTS) return null;
+  const d = DIM_BY_SLOT[slot];
+  if (!d) return null;
+  return Math.abs(x - dimCenter(slot)[0]) <= DIM_HALF + 1 ? d : null;
+}
+const hexOk = (h, def) => (/^#[0-9a-f]{6}$/i.test(String(h || '')) ? String(h) : def);
+const blockOk = (n, def) => { const id = BID[String(n || '').toLowerCase()]; return id !== undefined && (KIND[id] === K_CUBE || KIND[id] === K_GLASS) && id !== B.BEDROCK ? id : def; };
+/* eine Dimension anlegen (oder die gespeicherte wiederverwenden) */
+function registerDim(modId, id, def) {
+  const key = dimKey(modId, id);
+  let d = DIMS.get(key);
+  let slot = d ? d.slot : -1;
+  if (slot < 0) {
+    // ein fester Platz, damit die Dimension beim nächsten Laden wieder da liegt
+    const want = strHash(key) % DIM_SLOTS;
+    for (let k = 0; k < DIM_SLOTS; k++) { const s = (want + k) % DIM_SLOTS; if (!DIM_BY_SLOT[s]) { slot = s; break; } }
+    if (slot < 0) return null;
+  }
+  const styles = ['land', 'flat', 'islands', 'cave', 'void'];
+  const lights = ['day', 'night', 'dusk', 'dark'];
+  const ores = {};
+  for (const k in def.ores || {}) { const v = clamp(+def.ores[k] || 0, 0, 6); if (v > 0 && (DIM_ORES[k] || k === 'crystal')) ores[k] = v; }
+  d = {
+    key, modId, id: String(id).slice(0, 20), slot,
+    name: String(def.name || id).slice(0, 30),
+    style: styles.includes(def.style) ? def.style : 'land',
+    sky: hexOk(def.sky, '#6aa8e8'), horizon: hexOk(def.horizon, hexOk(def.sky, '#bcd8f0')), fog: hexOk(def.fog, hexOk(def.horizon, '#bcd8f0')),
+    fogDist: clamp(+def.fogDist || 160, 20, 400),
+    light: lights.includes(def.light) ? def.light : 'day',
+    top: blockOk(def.top, B.GRASS), ground: blockOk(def.ground, B.DIRT), fill: blockOk(def.fill, B.STONE),
+    sea: def.sea === 'lava' ? B.LAVA : def.sea === 'none' ? 0 : B.WATER,
+    height: clamp(+def.height || 70, 12, WY - 40), hills: clamp(def.hills === undefined ? 12 : +def.hills || 0, 0, 40),
+    trees: DIM_TREES[def.trees] ? def.trees : def.trees === 'none' ? 'none' : 'oak', treeDensity: clamp(def.treeDensity === undefined ? 0.4 : +def.treeDensity || 0, 0, 1),
+    ores, gravity: clamp(+def.gravity || 1, 0.1, 2), mobs: !!def.mobs, plants: def.plants !== false,
+  };
+  d.seaLevel = d.style === 'cave' ? 14 : clamp(+def.seaLevel || d.height - 4, 2, WY - 20);
+  DIMS.set(key, d); DIM_BY_SLOT[slot] = d;
+  return d;
+}
+function dimsForSave() { return [...DIMS.values()].map((d) => Object.assign({}, d)); }
+function restoreDims(list) {
+  DIMS.clear(); DIM_BY_SLOT.length = 0; CURDIM = null;
+  for (const d of list || []) { if (!d || typeof d.key !== 'string' || !(d.slot >= 0 && d.slot < DIM_SLOTS) || DIM_BY_SLOT[d.slot]) continue; DIMS.set(d.key, d); DIM_BY_SLOT[d.slot] = d; }
+}
+/* ---------- Gelände ---------- */
+let DIM_N = null, DIM_NS = -1;
+function dimNoise() { if (!DIM_N || DIM_NS !== W.seed) { DIM_N = { a: makeSimplex(W.seed + 101), b: makeSimplex(W.seed + 102), c: makeSimplex3(W.seed + 103), d: makeSimplex(W.seed + 104) }; DIM_NS = W.seed; } return DIM_N; }
+function generateDimChunk(c, d) {
+  const N = dimNoise(), bl = c.blocks;
+  const [cx0, cz0] = dimCenter(d.slot);
+  const objCells = [];
+  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
+    const x = c.x0 + lx, z = c.z0 + lz, ci = (lx << 4) | lz, base = ci * WY;
+    c.biome[ci] = BIO.PLAINS;
+    c.tint[ci * 3] = c.tint[ci * 3 + 1] = c.tint[ci * 3 + 2] = 128;
+    const ex = Math.abs(x - cx0), ez = Math.abs(z - cz0);
+    // der Rand: eine Wand aus Grundgestein bis ganz nach oben
+    if (ex >= DIM_HALF || ez >= DIM_HALF) { for (let y = 0; y < WY - 2; y++) bl[base + y] = B.BEDROCK; continue; }
+    bl[base] = B.BEDROCK;
+    const sp = Math.hypot(x - cx0, z - cz0);   // Abstand zum Ankunftspunkt
+    const h1 = fbm(N.a, x / 90, z / 90, 4), h2 = fbm(N.b, x / 26, z / 26, 2);
+    const st = d.style;
+    if (st === 'void') continue;
+    if (st === 'islands') {
+      // schwebende Inseln: Linsen aus Stein mit Gras obendrauf
+      for (let y = d.height - 28; y < d.height + 22 && y < WY - 4; y++) {
+        // flache Inseln: oben eben, unten spitz zulaufend
+        const n = N.c(x / 40, y / 22, z / 40) + N.c(x / 13, y / 9, z / 13) * 0.2;
+        const up = y - d.height;
+        const shape = up > 0 ? 1 - up / 5 : 1 + up / 22;
+        if (shape > 0 && n * 0.9 + shape * 0.5 - 0.58 > 0) bl[base + y] = d.fill;
+      }
+    } else if (st === 'cave') {
+      // eine riesige Höhle: Boden, Decke, Säulen, ein See aus Lava oder Wasser
+      const floor = Math.round(d.seaLevel - 3 + h1 * 10 + h2 * 4);
+      const ceil = Math.round(d.height + 26 + fbm(N.d, x / 50, z / 50, 3) * 16);
+      for (let y = 1; y < WY - 3; y++) {
+        if (y <= floor || y >= ceil) bl[base + y] = d.fill;
+        else if (N.c(x / 22, y / 30, z / 22) > 0.55) bl[base + y] = d.fill;   // Säulen und Brücken
+      }
+      for (let y = floor + 1; y <= d.seaLevel; y++) if (bl[base + y] === 0 && d.sea) bl[base + y] = d.sea;
+    } else {
+      const flat = st === 'flat';
+      const top = Math.round(flat ? d.height : d.height + h1 * d.hills + h2 * d.hills * 0.25);
+      for (let y = 1; y <= Math.min(top, WY - 4); y++) bl[base + y] = d.fill;
+      if (d.sea) for (let y = top + 1; y <= d.seaLevel; y++) bl[base + y] = d.sea;
+    }
+    // die oberste Schicht: top auf ground
+    for (let y = WY - 4; y > 1; y--) {
+      if (bl[base + y] !== d.fill || bl[base + y + 1] !== 0) continue;
+      bl[base + y] = d.top;
+      if (bl[base + y - 1] === d.fill) bl[base + y - 1] = d.ground;
+      if (bl[base + y - 2] === d.fill) bl[base + y - 2] = d.ground;
+    }
+    // Erze
+    for (const k in d.ores) {
+      const id = DIM_ORES[k]; if (!id) continue;
+      const p = d.ores[k] * 0.0022;
+      for (let y = 2; y < WY - 4; y++) if (bl[base + y] === d.fill && hashi(x, y, z, 900 + id) < p) bl[base + y] = id;
+    }
+    // Pflanzen, Kristalle
+    for (let y = WY - 5; y > 1; y--) {
+      if (bl[base + y] !== d.top || bl[base + y + 1] !== 0) continue;
+      const r = hashi(x, y, z, 77);
+      if (d.ores.crystal && r < 0.004 * d.ores.crystal) bl[base + y + 1] = B.CRYSTAL;
+      else if (d.plants && d.top === B.GRASS && r < 0.12) bl[base + y + 1] = r < 0.1 ? B.TALLGRASS : r < 0.11 ? B.FLOWER_RED : B.FLOWER_VIOLET;
+      else if (d.style === 'cave' && r < 0.02) bl[base + y + 1] = B.GLOW_SHROOM;
+    }
+    // der Ankunftspunkt: immer eine kleine, sichere Plattform
+    if (sp < 4.5) {
+      const py = dimSpawnY(d);
+      for (let y = py - 2; y <= py; y++) bl[base + y] = y === py ? d.top === B.GRASS ? B.GRASS : d.top : d.ground;
+      for (let y = py + 1; y < py + 6 && y < WY - 2; y++) if (bl[base + y] !== B.BEDROCK) bl[base + y] = 0;
+    }
+  }
+  // Bäume (aus Stamm und Kugel-Krone, ganz einfach)
+  if (d.trees !== 'none' && d.treeDensity > 0) {
+    const [log, leaf] = DIM_TREES[d.trees];
+    for (let lx = 2; lx < CS - 2; lx++) for (let lz = 2; lz < CS - 2; lz++) {
+      const x = c.x0 + lx, z = c.z0 + lz;
+      if (hashi(x, 5, z, 31) > d.treeDensity * 0.022) continue;
+      if (Math.hypot(x - cx0, z - cz0) < 7) continue;
+      const base = ((lx << 4) | lz) * WY;
+      let gy = -1; for (let y = WY - 12; y > 1; y--) if (bl[base + y] === d.top && bl[base + y + 1] === 0) { gy = y; break; }
+      if (gy < 0 || d.top === B.LAVA) continue;
+      const h = 4 + Math.floor(hashi(x, 6, z, 32) * 3);
+      for (let k = 1; k <= h; k++) bl[base + gy + k] = log;
+      const ty = gy + h;
+      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) for (let dy = -1; dy <= 2; dy++) {
+        if (dx * dx + dz * dz + dy * dy > 6) continue;
+        const ax = lx + dx, az = lz + dz; if (ax < 0 || az < 0 || ax >= CS || az >= CS) continue;
+        const i = ((ax << 4) | az) * WY + ty + dy;
+        if (bl[i] === 0) bl[i] = leaf;
+      }
+    }
+  }
+  // Änderungen aus dem Spielstand
+  const edits = W.chEdits.get(c.key);
+  if (edits) for (const i of edits) {
+    cellXYZ(i, _cx3);
+    const id = W.changes.get(i);
+    if (id !== undefined) { bl[LI(_cx3[0] & 15, _cx3[1], _cx3[2] & 15)] = id; if (KIND[id] === K_OBJ) objCells.push(i); }
+    const m = W.metaChanges.get(i);
+    if (m !== undefined) { if (m < 0) W.meta.delete(i); else W.meta.set(i, m); }
+  }
+  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) recomputeTop(c, lx, lz);
+  for (const i of objCells) registerObject(i);
+  const dirty = relight(c.x0, c.z0, c.x0 + CS - 1, c.z0 + CS - 1, c.x0 - 15, c.z0 - 15, c.x0 + CS + 14, c.z0 + CS + 14);
+  c.lit = true;
+  for (let a = c.cx - 1; a <= c.cx + 1; a++) for (let b = c.cz - 1; b <= c.cz + 1; b++) { const n = chunkAt(a, b); if (n) dirtyChunks.add(n); }
+  for (const k of dirty) { const n = CHM.get(k); if (n) dirtyChunks.add(n); }
+  W.explored.add(c.key);
+}
+function dimSpawnY(d) { return d.style === 'cave' ? d.seaLevel + 6 : d.style === 'islands' || d.style === 'void' ? d.height : d.style === 'flat' ? d.height : d.height + 2; }
+
+/* ---------- hinein und hinaus ---------- */
+function enterDim(d) {
+  if (!modsAllowed() || PL.dead) return;
+  if (CURDIM === d) return;
+  if (!CURDIM) W.dimReturn = [+PL.x.toFixed(2), +PL.y.toFixed(2), +PL.z.toFixed(2)];
+  const [x, z] = dimCenter(d.slot);
+  dimTeleport(x + 0.5, dimSpawnY(d) + 1, z + 0.5);
+  UI.toast('Du bist in: ' + d.name, 'good', 3000, 'dim');
+  SFX.upgrade && SFX.upgrade();
+  modEmit('dimension', { id: d.id, key: d.key, entered: true });
+}
+function leaveDim() {
+  const r = W.dimReturn || [W.spawn[0], W.spawn[1], W.spawn[2]];
+  dimTeleport(r[0] + 1.5, r[1] + 0.2, r[2]);
+  W.dimReturn = null;
+  UI.toast('Zurück in der normalen Welt.', 'info', 2600, 'dim');
+  modEmit('dimension', { id: null, entered: false });
+}
+function dimTeleport(x, y, z) {
+  PL.x = x; PL.z = z; PL.y = y; PL.vx = PL.vy = PL.vz = 0; PL.fallTop = PL.fallTopPrev = y; PL.invuln = Math.max(PL.invuln || 0, 2);
+  PL.portalCd = 2.5;
+  CURDIM = dimAt(x, z) || null;
+  try { ensureChunks(x, z, 2, 400); } catch (e) { /* streams in */ }
+  // auf festen Boden stellen
+  const fx = Math.floor(x), fz = Math.floor(z);
+  if (chunkForBlock(fx, fz)) { let yy = Math.floor(y); while (yy < WY - 3 && (SOLID[getB(fx, yy, fz)] || SOLID[getB(fx, yy + 1, fz)])) yy++; PL.y = yy; }
+  G.zombies = G.zombies.filter((zb) => Math.hypot(zb.x - x, zb.z - z) < 120);
+  saveGame();
+}
+/* ---------- Portale ---------- */
+function buildPortal(dimK, x, y, z, frameName) {
+  if (!W.portals) W.portals = [];
+  if (W.portals.some((p) => Math.abs(p.x - x) < 3 && Math.abs(p.z - z) < 3 && Math.abs(p.y - y) < 4)) return;
+  const frame = blockOk(frameName, B.TOWER_BRICK);
+  // auf den Boden stellen
+  let gy = y; if (chunkForBlock(x, z)) { while (gy > 2 && !SOLID[getB(x, gy - 1, z)]) gy--; while (gy < WY - 8 && SOLID[getB(x, gy, z)]) gy++; }
+  // ein Rahmen 4 breit, 5 hoch, innen frei (entlang x)
+  for (let dx = -1; dx <= 2; dx++) for (let dy = -1; dy <= 3; dy++) {
+    const edge = dx === -1 || dx === 2 || dy === -1 || dy === 3;
+    const bx = x + dx, by = gy + dy;
+    if (by < 1 || !chunkForBlock(bx, z) || getB(bx, by, z) === B.BEDROCK) continue;
+    setBlock(bx, by, z, edge ? frame : B.AIR);
+    if (MP.active()) MP.send({ t: 'plc', x: bx, y: by, z, id: edge ? frame : B.AIR });
+  }
+  W.portals.push({ x, y: gy, z, dim: dimK });
+}
+/* im Portal stehen: hinein (oder in der Dimension: zurück) */
+function updatePortals(dt) {
+  if (PL.portalCd > 0) PL.portalCd -= dt;
+  const t = performance.now() / 1000;
+  // in einer Dimension steht am Ankunftspunkt immer ein Rückweg
+  if (CURDIM) {
+    const [cx, cz] = dimCenter(CURDIM.slot), py = dimSpawnY(CURDIM);
+    if (Math.random() < dt * 16) spawnPart({ x: cx + 2.5 + Math.random(), y: py + 1 + Math.random() * 2.4, z: cz + 0.5 + (Math.random() - 0.5) * 0.4, vx: 0, vy: 0.4, vz: 0, life: 1, size: 0.09, r: 0.75, g: 0.5, b: 1, kind: 0, grav: -0.3, drag: 1, em: 1 });
+    if (!(PL.portalCd > 0) && PL.x > cx + 2.2 && PL.x < cx + 3.8 && Math.abs(PL.z - cz - 0.5) < 0.7 && PL.y >= py && PL.y < py + 3) leaveDim();
+  }
+  if (!W.portals || !W.portals.length) return;
+  for (const p of W.portals) {
+    if (Math.abs(p.x - PL.x) > 40 || Math.abs(p.z - PL.z) > 40) continue;
+    if (Math.random() < dt * 22) spawnPart({ x: p.x + Math.random() * 2, y: p.y + Math.random() * 3, z: p.z + 0.5 + (Math.random() - 0.5) * 0.3, vx: 0, vy: 0.3 + Math.sin(t * 3) * 0.1, vz: 0, life: 1.1, size: 0.1, r: 0.7, g: 0.45, b: 1, kind: 0, grav: -0.2, drag: 1, em: 1 });
+    if (PL.portalCd > 0) continue;
+    if (PL.x >= p.x && PL.x < p.x + 2 && PL.z >= p.z && PL.z < p.z + 1 && PL.y >= p.y - 0.2 && PL.y < p.y + 2.5) {
+      const d = DIMS.get(p.dim);
+      if (!d) { hint('portal', 'Dieses Portal führt nirgendwo hin (die Mod ist aus).'); PL.portalCd = 3; continue; }
+      if (CURDIM) continue;
+      enterDim(d);
+    }
+  }
+}
+/* ---------- Himmel und Licht in einer Dimension ---------- */
+function applyDimEnv() {
+  const d = CAM && CAM.eye ? dimAt(CAM.eye[0], CAM.eye[2]) || dimAt(PL.x, PL.z) : dimAt(PL.x, PL.z);
+  CURDIM = d || null;
+  if (!d) return;
+  const day = d.light === 'day' ? 1 : d.light === 'dusk' ? 0.55 : d.light === 'night' ? 0.12 : 0;
+  ENV.blood = 0; ENV.dayF = day;
+  ENV.zen = hexLin(d.sky, 0.25 + 0.75 * Math.max(day, 0.15)); ENV.hor = hexLin(d.horizon, 0.3 + 0.7 * Math.max(day, 0.15));
+  ENV.amb = scale3(mix3(hexLin(d.horizon), [1, 1, 1], 0.5), d.light === 'dark' ? 0.1 : 0.25 + 0.75 * day);
+  ENV.glowCol = hexLin(d.horizon, 0.2 * day);
+  ENV.sunDir = [0.35, 0.82, 0.45]; const l = Math.hypot(...ENV.sunDir); ENV.sunDir = ENV.sunDir.map((v) => v / l);
+  ENV.lightDir = ENV.sunDir.slice(); ENV.glowDir = ENV.sunDir.slice();
+  ENV.lightCol = d.light === 'dark' ? [0, 0, 0] : scale3(mix3([0.6, 0.65, 1.0], [1.0, 0.95, 0.85], day), 0.3 + 1.8 * day);
+  ENV.sunVis = d.light === 'day' ? 1 : 0;
+  ENV.night = 1 - day;
+  ENV.ambMin = d.light === 'dark' ? [0.07, 0.05, 0.045] : [0.04, 0.04, 0.045];
+  ENV.grade[3] = d.light === 'dark' ? 0.4 : (1 - day) * 0.5;
+  ENV.cloudCov = 0; ENV.cloudLit = ENV.zen.slice(); ENV.cloudShade = ENV.zen.slice();   // keine Wolken
+  const fc = hexLin(d.fog, 0.35 + 0.65 * Math.max(day, 0.2));
+  ENV.fogCol[0] = fc[0]; ENV.fogCol[1] = fc[1]; ENV.fogCol[2] = fc[2]; ENV.fogCol[3] = 1;
+  ENV.fogEnd = Math.min(ENV.fogEnd, d.fogDist); ENV.fogDen = Math.max(ENV.fogDen, 1 / (d.fogDist * 1.2));
+  if (MODFX.nightVision) ENV.ambMin = [0.2, 0.2, 0.22];
+}
+
+/* ---- 19w_spectate.js ---- */
+/* =========================================================================
+   Zuschauer-Modus für den Admin (DynaTheReal): in jede Welt hinein, ohne
+   dass jemand ihn sieht. Er fliegt frei herum (durch Wände), kann nichts
+   abbauen, nichts bauen und wird nicht angegriffen. Nichts wird gespeichert.
+   ========================================================================= */
+const SPEC = { target: null, i: 0 };
+/* einer Welt zuschauen: base = rooms/<uid> oder srv/<owner>/<wid>/room */
+async function spectateRoom(base, name, targetUid) {
+  if (!isOwner()) return;
+  if (busyLoading()) return; G.loadT = performance.now();
+  UI.closeAll();
+  if (G.state !== 'menu' && WORLDS.current && !MP.isClient()) saveGame(true);
+  if (MP.isHost()) await MP.closeRoom();
+  releaseLock();
+  G.state = 'loading';
+  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, 'Schaue unsichtbar zu bei ' + name);
+  let data;
+  const m = /^srv\/([^/]+)\/([^/]+)\/room$/.exec(base);
+  const srv = m ? { owner: m[1], wid: m[2], name: name } : null;
+  const host = m ? null : base.replace(/^rooms\//, '');
+  try { const { snap } = await MP.join(host, name, srv, true); data = JSON.parse(snap.d); }
+  catch (e) { G.spectator = false; showMenu(); UI.toast(e && e.message ? e.message : String(e), 'warn', 5600); return; }
+  WORLDS.current = null; G.loadedWorld = null; G.server = null;
+  await loadWorld(data.seed, data, { client: true, host: MP.hostName, you: null });
+  MP.clientReady(data);
+  SPEC.target = targetUid || null;
+  startPlaying();
+  G.spectator = MP.spec;
+  PL.flying = true; PL.invuln = 1e9;
+  UI.toast('Zuschauer-Modus: niemand sieht dich. WASD + Leertaste/Strg fliegen, T springt zum nächsten Spieler, Esc → Hauptmenü zum Verlassen.', 'good', 8000, 'spec');
+  setTimeout(() => specJump(SPEC.target), 1200);
+}
+/* zu einem Spieler springen (oder zum nächsten in der Liste) */
+function specJump(uid) {
+  const ids = Object.keys(REMOTE).filter((u) => REMOTE[u].seen);
+  if (!ids.length) return;
+  let u = uid && REMOTE[uid] ? uid : ids[SPEC.i++ % ids.length];
+  const r = REMOTE[u];
+  PL.x = r.tx + 2; PL.y = r.ty + 3; PL.z = r.tz + 2; PL.vx = PL.vy = PL.vz = 0;
+  UI.toast('Bei ' + (r.name || 'Spieler'), 'info', 1600, 'specj');
+}
+/* frei fliegen, durch alles hindurch */
+function updateSpectator(dt) {
+  const el = $('specChip');
+  if (el) el.hidden = !G.spectator || G.state === 'menu';
+  if (!G.spectator) return;
+  PL.dead = false; PL.hp = PL.maxHp; PL.invuln = 1e9;
+  if (G.state !== 'playing') return;
+  const [dx, dz, amt] = moveInput();
+  const fast = INPUT.down('ShiftLeft') || INPUT.down('ShiftRight');
+  const sp = (fast ? 26 : 11) * (amt > 0 ? 1 : 0);
+  let vy = 0;
+  if (INPUT.down('Space') || INPUT.jump) vy += 1;
+  if (INPUT.down('ControlLeft') || INPUT.down('ControlRight')) vy -= 1;
+  PL.vx = damp(PL.vx, dx * sp, 8, dt); PL.vz = damp(PL.vz, dz * sp, 8, dt); PL.vy = damp(PL.vy, vy * (fast ? 18 : 9), 8, dt);
+  PL.x += PL.vx * dt; PL.y = clamp(PL.y + PL.vy * dt, 1, WY - 2); PL.z += PL.vz * dt;
+  PL.onGround = false; PL.walkAmt = 0;
+  try { ensureChunks(PL.x, PL.z, 3, 4); } catch (e) { /* streams in */ }
+}
 
 /* ---- 99_start.js ---- */
 /* =========================================================================
