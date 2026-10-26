@@ -417,6 +417,12 @@ select.field { appearance: auto; }
 .my-st.pend { background: rgba(255, 196, 92, 0.2); color: #ffd27a; }
 .my-card .my-b { display: flex; gap: 6px; flex: none; }
 .my-card .my-b .btn { padding-inline: 12px; }
+.my-vers { display: grid; gap: 6px; margin: -2px 0 6px 56px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.12); }
+.my-vers .hint { margin: 0 0 4px; font-size: 12px; }
+.my-ver { display: flex; align-items: center; gap: 10px; justify-content: space-between; font-size: 12.5px; }
+.my-ver span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.85; }
+.my-ver .btn { padding: 5px 10px; font-size: 12px; flex: none; }
+@media (max-width: 560px) { .my-vers { margin-left: 0; } }
 .my-empty { padding: 26px 12px; text-align: center; opacity: 0.7; border: 1.5px dashed rgba(255, 255, 255, 0.14); border-radius: 16px; }
 .ed-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .ed-state { font-size: 12px; opacity: 0.65; }
@@ -1412,8 +1418,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.18.0';
+const GAME_VERSION = '2.19.0';
 const GAME_NOTES = [
+  ['2.19.0', 'Mods werden in Welten und auf Servern automatisch auf die neueste Version aktualisiert, sobald die Welt startet. Mod-Backups: unter Meine Mods (⟲) sind die letzten 5 eingereichten Versionen jeder Mod gespeichert und lassen sich zurücksetzen.'],
   ['2.18.0', 'Mods im Mehrspieler: Freunde, die deiner Welt beitreten, laden deine Mods automatisch mit (auf öffentlichen Servern laufen keine Mods). Neue Mod-Befehle: givePlayer, hurtPlayer, teleportPlayer, sendDimension, isHost, broadcast, Ereignisse join, leave, playerkill, message. Mod-Geschosse treffen auch andere Spieler.'],
   ['2.17.0', 'Mods zeigen ihre Downloads (⬇): jeder Spieler zählt einmal, auch wenn er eine Mod mehrmals installiert und löscht.'],
   ['2.16.0', 'Mods auf Servern (bei allen Spielern, der Besitzer wählt sie unter Server → Verwalten → Mods). Die Mods einer Welt samt Daten sind jetzt in Backups, Kopien, Welt-Dateien und beim Hochladen als Server dabei. Die Weltenliste zeigt die Mods jeder Welt. Handy: Kamera, Tasche, Pause und Hotbar reagieren auch, während du mit dem Stick läufst. Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Handy: neben den Knöpfen kann man sich jetzt umschauen; Meldungen in der Mitte sind kleiner (Einstellungen → Meldungen). Fix: Mods-Fenster einer Welt schließen.'],
@@ -16385,6 +16392,7 @@ const MODRT = { workers: new Map(), url: null, tick: 0, shop: [] };
 function modWorkerURL() { if (!MODRT.url) MODRT.url = URL.createObjectURL(new Blob([MOD_WORKER_SRC], { type: 'text/javascript' })); return MODRT.url; }
 function applyMaxHp() { if (PL.maxHp !== MODFX.maxHp) { PL.maxHp = MODFX.maxHp; PL.hp = Math.min(PL.hp, PL.maxHp); } }
 function modsEnd() {
+  MODRT.begin = (MODRT.begin || 0) + 1;   // a start that is still waiting for the library is cancelled
   if (typeof modApi2End === 'function') modApi2End();
   for (const rec of MODRT.workers.values()) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } }
   MODRT.workers.clear();
@@ -16413,14 +16421,42 @@ function worldModsOf(e, save) {
   const emb = (save && Array.isArray(save.wmods)) ? save.wmods : [];
   return modSlimList(ids.map((id) => (MODS.isInstalled(id) && MODS.get(id)) || emb.find((m) => m && m.id === id)).filter(Boolean));
 }
-function modsBegin() {
+/* the newest version of a mod: built-in ones from the game, community ones from the library */
+function modLatest(m) {
+  const b = MODS.builtin(m.id);
+  if (b) return MODS.hidden(m.id) ? m : MODS.slim(b);
+  const l = (MODS.lib || []).find((q) => q.id === m.id);
+  return l ? MODS.slim(l) : m;
+}
+/* the library, if it was not loaded in the last minutes (for the updates) */
+async function modsFreshLib() {
+  if (!NET.uid() || !NET.db) return;
+  if (MODS.libOk && performance.now() - (MODS.libT || 0) < 180000) return;
+  try { await withTimeout(MODS.fetchLibrary(), 6000); MODS.libT = performance.now(); } catch (e) { /* offline: the saved versions */ }
+}
+async function modsBegin() {
   modsEnd();
   if (!modsAllowed()) return;
+  const token = MODRT.begin = (MODRT.begin || 0) + 1;
   const e = WORLDS.current;
+  const host = !MP.isClient();
+  // whoever runs the world (own world or server) updates its mods to the newest version; guests take the host's
+  if (host && !(e && e.temp) && (W.wmods || []).length + ((e && e.mods) || []).length) await modsFreshLib();
+  if (token !== MODRT.begin || !modsAllowed() || G.state === 'menu' || G.state === 'loading') return;
   let list;
-  if (modServerMode() || MP.isClient()) list = modSlimList(W.wmods);
+  if (MP.isClient()) list = modSlimList(W.wmods);
+  else if (modServerMode()) list = modSlimList(W.wmods);
   else if (e && e.temp) list = (e.mods || []).map((id) => (e.testMod && e.testMod.id === id ? e.testMod : MODS.get(id))).filter(Boolean);
-  else { list = worldModsOf(e, { wmods: W.wmods }); W.wmods = list; }
+  else list = worldModsOf(e, { wmods: W.wmods });
+  const updated = [];
+  if (host && !(e && e.temp)) {
+    // compared with what the world had last time (its save)
+    const prev = {}; for (const m of W.wmods || []) if (m && m.id) prev[m.id] = m.code;
+    list = modSlimList(list.map((m) => { const n = modLatest(m); if (prev[n.id] !== undefined && prev[n.id] !== n.code) updated.push(n.name || m.name); return n; }));
+    W.wmods = list;
+    // installed copies follow too
+    for (const m of list) if (MODS.isInstalled(m.id) && !MODS.builtin(m.id)) { try { localStorage.setItem(MODS.PRE + m.id, JSON.stringify(m)); } catch (x) { /* ignore */ } }
+  }
   if (!list.length) return;
   let n = 0;
   for (const m of list) if (startModWorker(m)) n++;
@@ -16429,6 +16465,8 @@ function modsBegin() {
   if (n) setTimeout(() => { for (const [t, v] of wait) if (performance.now() - t < 15000) modNetEvent(v); }, 800);
   const srvTxt = modServerMode() ? ' (Server)' : MP.isClient() ? ' (aus der Welt von ' + (MP.hostName || 'deinem Freund') + ')' : '';
   if (n) setTimeout(() => UI.toast(e && e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv' : ' Mods sind aktiv') + srvTxt + '.', 'info', e && e.temp ? 5200 : 2800, 'modsOn'), 600);
+  if (updated.length) setTimeout(() => UI.toast('Aktualisiert: ' + updated.slice(0, 3).join(', ') + (updated.length > 3 ? ' und ' + (updated.length - 3) + ' mehr' : '') + '.', 'good', 3600, 'modsUpd'), 1400);
+  if (updated.length && G.server && MP.isHost()) SERVER.save(true);
 }
 function startModWorker(m) {
   let worker;
@@ -18711,8 +18749,10 @@ async function myModsRender(pull) {
     box.appendChild(c);
   };
   for (const d of list) {
+    const vs = Array.isArray(d.versions) ? d.versions : [];
     card(d.icon, d.name, myModState(d), 'bearbeitet ' + agoText(d.updated), [
       ['Bearbeiten', 'primary', () => myModEdit(d.id)],
+      ...(vs.length ? [['⟲', 'ghost', () => myModBackups(d.id), 'Mod-Backups: die letzten ' + vs.length + ' Versionen']] : []),
       ['▶', 'ghost', () => { myModEdit(d.id); modTestWorld(); }, 'In der Testwelt ausprobieren'],
       ['🗑', 'ghost danger', () => myModDelete(d.id), 'Löschen'],
     ]);
@@ -18723,6 +18763,45 @@ async function myModsRender(pull) {
       ['🗑', 'ghost danger', () => myModDeletePub(m), 'Aus der Bibliothek löschen'],
     ]);
   }
+}
+/* ---------- Mod-Backups: die letzten 5 eingereichten Versionen, automatisch ---------- */
+const MY_VERSIONS = 5;
+function myModKeepVersion(d) {
+  const v = { at: Date.now(), name: d.name, icon: d.icon, desc: d.desc, cat: d.cat, code: d.code };
+  d.versions = (Array.isArray(d.versions) ? d.versions : []).filter((q) => q && q.code !== v.code);
+  d.versions.unshift(v);
+  d.versions = d.versions.slice(0, MY_VERSIONS);
+}
+function myModBackups(id) {
+  const d = MYMODS.get(id); if (!d) return;
+  const box = $('myModList');
+  const old = box.querySelector('.my-vers'); if (old) { const same = old.dataset.id === id; old.remove(); if (same) return; }
+  const cards = [...box.querySelectorAll('.my-card')];
+  const card = cards[MYMODS.list().findIndex((q) => q.id === id)];
+  const wrap = document.createElement('div'); wrap.className = 'my-vers'; wrap.dataset.id = id;
+  wrap.innerHTML = '<p class="hint">Mod-Backups: jede eingereichte Version wird automatisch aufgehoben (die letzten ' + MY_VERSIONS + '). Zurücksetzen reicht die alte Version wieder ein' + (isOwner() ? ' und sie ist sofort live.' : '; nach der Prüfung bekommen alle sie.') + '</p>';
+  (d.versions || []).forEach((v, i) => {
+    const row = document.createElement('div'); row.className = 'my-ver';
+    const t = document.createElement('span');
+    const dt = new Date(v.at); const p = (n) => String(n).padStart(2, '0');
+    const when = p(dt.getDate()) + '.' + p(dt.getMonth() + 1) + '. ' + p(dt.getHours()) + ':' + p(dt.getMinutes());
+    t.textContent = (i === 0 ? 'Aktuell · ' : '') + when + ' · ' + (v.icon || '🧩') + ' ' + (v.name || '') + ' · ' + (v.code || '').length.toLocaleString('de-DE') + ' Zeichen';
+    row.appendChild(t);
+    if (i > 0) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.textContent = 'Zurücksetzen';
+      b.addEventListener('click', async () => {
+        const ok = await UI.confirm({ title: 'Auf diese Version zurücksetzen?', text: '„' + (v.name || d.name) + '“ vom ' + when + ' wird wieder eingereicht' + (isOwner() ? ' und ist sofort für alle live.' : '. Nach der Prüfung bekommen alle sie.'), yes: 'Zurücksetzen', danger: false });
+        $('mdlMods').hidden = false;
+        if (!ok) return;
+        const cur = MYMODS.get(id); if (!cur) return;
+        myModEdit(id, Object.assign({}, cur, { name: v.name, icon: v.icon, desc: v.desc, cat: v.cat, code: v.code }));
+        await myModSubmit();
+      });
+      row.appendChild(b);
+    }
+    wrap.appendChild(row);
+  });
+  if (card) card.after(wrap); else box.appendChild(wrap);
 }
 /* ---------- Editor ---------- */
 const MY_FIELDS = [['mdName', 'name'], ['mdIcon', 'icon'], ['mdDesc', 'desc'], ['mdCat', 'cat'], ['mdCode', 'code'], ['mdIdea', 'idea']];
@@ -18805,7 +18884,7 @@ async function myModSubmit() {
     if (isOwner()) {
       if (pub) await withTimeout(NET.db.ref('mods/approved/' + d.pub).set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000);
       else { const r = NET.db.ref('mods/approved').push(); await withTimeout(r.set(Object.assign({ approvedAt: NET.TS() }, rec)), 15000); d.pub = r.key; }
-      d.pend = null; MYMODS.put(d); MYMODS.temp = null;
+      d.pend = null; myModKeepVersion(d); MYMODS.put(d); MYMODS.temp = null;
       msg(pub ? 'Update veröffentlicht (du bist der Owner, deshalb ohne Prüfung).' : 'Veröffentlicht. Du bist der Owner, deshalb ohne Prüfung.', true);
       await modsLoadLib();
     } else {
@@ -18813,7 +18892,7 @@ async function myModSubmit() {
       if (pub) rec.replaces = d.pub;
       const r = NET.db.ref('mods/pending').push();
       await withTimeout(r.set(rec), 15000);
-      d.pend = r.key; d.sentAt = Date.now(); d.sentCode = code; MYMODS.put(d);
+      d.pend = r.key; d.sentAt = Date.now(); d.sentCode = code; myModKeepVersion(d); MYMODS.put(d);
       MYMODS.temp = null;
       msg(pub ? 'Update eingereicht! Nach der Prüfung bekommen alle die neue Version.' : 'Eingereicht! DynaTheReal prüft die Mod. Wenn er sie annimmt, erscheint sie in der Bibliothek.', true);
     }
