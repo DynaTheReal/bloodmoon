@@ -121,6 +121,10 @@
         "$id": { ".write": "auth != null && !newData.exists() && data.child('authorUid').val() === auth.uid" }
       },
       "meta": { ".read": "auth != null", ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid" },
+      "dl": {
+        ".read": "auth != null",
+        "$mod": { "$uid": { ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.val() === true" } }
+      },
       "pending": {
         ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
         ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
@@ -793,6 +797,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .mc-by { font-size: 11.5px; color: var(--muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mc-d { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .mc-f { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.mc-dl { flex: none; font-size: 11px; font-weight: 800; color: var(--muted, #9aa); white-space: nowrap; margin-left: 8px; margin-right: auto; }
 .mc-cat { font-size: 10.5px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mc-act { display: flex; gap: 6px; flex: none; }
 .mc-act .btn { padding: 7px 12px; font-size: 12.5px; }
@@ -1407,8 +1412,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.16.0';
+const GAME_VERSION = '2.17.0';
 const GAME_NOTES = [
+  ['2.17.0', 'Mods zeigen ihre Downloads (⬇): jeder Spieler zählt einmal, auch wenn er eine Mod mehrmals installiert und löscht.'],
   ['2.16.0', 'Mods auf Servern (bei allen Spielern, der Besitzer wählt sie unter Server → Verwalten → Mods). Die Mods einer Welt samt Daten sind jetzt in Backups, Kopien, Welt-Dateien und beim Hochladen als Server dabei. Die Weltenliste zeigt die Mods jeder Welt. Handy: Kamera, Tasche, Pause und Hotbar reagieren auch, während du mit dem Stick läufst. Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Meine Mods: eine Mod wird erst beim Einreichen gespeichert (Prompt kopieren speichert nichts). Handy: neben den Knöpfen kann man sich jetzt umschauen; Meldungen in der Mitte sind kleiner (Einstellungen → Meldungen). Fix: Mods-Fenster einer Welt schließen.'],
   ['2.15.0', 'Meine Mods: eigene Mods werden automatisch gespeichert (mit Konto auch in der Cloud), bearbeiten, testen, einreichen, Updates einreichen und löschen. Im Editor ein KI-Prompt zum Kopieren, der immer alle aktuellen Mod-Befehle und deinen Code enthält.'],
   ['2.14.0', 'Mods 4.0: eigene Zeichenfläche (Canvas) über dem Spiel, Bilder aus Dateien, Knöpfe/Bilder/Texte überall (auch neben Springen und Sprinten), Kamera (Zoom, Sichtfeld, echtes Wackeln, Blickrichtung, Hand und Anzeige aus), jede Taste und jeder Klick/Tipp, Angriff übernehmen (Tippen zum Schießen), Geschosse mit Treffern, Spieler und Kreaturen direkt steuern, viele Blöcke auf einmal lesen und setzen, eigene Sounds aus Dateien, Mods bis 200.000 Zeichen.'],
@@ -16708,7 +16714,25 @@ const MODS = {
   /* alles, was man in der Bibliothek sieht: eingebaute (außer ausgeblendete) und Community-Mods */
   all() { return BUILTIN_MODS.filter((m) => !this.hidden(m.id)).map((m) => Object.assign({ builtin: true }, m)).concat(this.lib); },
   slim(m) { return { id: m.id, name: m.name, icon: m.icon || '🧩', desc: m.desc || '', author: m.author || '', cat: MOD_CAT_NAME[m.cat] && m.cat !== 'all' ? m.cat : 'fun', code: m.code, authorUid: m.authorUid || '', draftId: m.draftId || '' }; },
+  /* how many players installed a mod (each player once, uninstalling does not count down) */
+  dl: null,
+  dlCount(id) { return this.dl ? (this.dl[id] || 0) : null; },
+  async fetchDl() {
+    try { const v = (await withTimeout(NET.db.ref('mods/dl').once('value'), 15000)).val() || {}; this.dl = {}; for (const id in v) this.dl[id] = Object.keys(v[id] || {}).length; } catch (e) { /* rules not updated yet: no numbers */ }
+  },
+  countDl(id) {
+    const uid = NET.uid(); if (!uid || !NET.db) return;
+    const key = 'bloodmoon-mod-dl-' + uid;
+    let done = []; try { done = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { done = []; }
+    if (done.includes(id)) return;
+    NET.db.ref('mods/dl/' + id + '/' + uid).once('value').then((s) => {
+      const mark = () => { done.push(id); try { localStorage.setItem(key, JSON.stringify(done)); } catch (e) { /* ignore */ } };
+      if (s.val()) { mark(); return; }
+      return NET.db.ref('mods/dl/' + id + '/' + uid).set(true).then(() => { mark(); if (this.dl) { this.dl[id] = (this.dl[id] || 0) + 1; UI.modsRefresh(); } });
+    }).catch(() => { });
+  },
   install(m) {
+    this.countDl(m.id);
     const l = this.installedIds(); if (!l.includes(m.id)) l.push(m.id); this.saveIds(l);
     if (!this.builtin(m.id)) { try { localStorage.setItem(this.PRE + m.id, JSON.stringify(this.slim(m))); } catch (e) { /* ignore */ } }
     if (NET.uid()) NET.db.ref('users/' + NET.uid() + '/mods/' + m.id).set(true).catch(() => { });
@@ -16720,6 +16744,7 @@ const MODS = {
   },
   async fetchLibrary() {
     if (!NET.uid()) throw new Error('Melde dich an, um Community-Mods zu sehen.');
+    this.fetchDl().then(() => UI.modsRefresh());
     const [v, meta] = await Promise.all([
       withTimeout(NET.db.ref('mods/approved').once('value'), 15000).then((s) => s.val() || {}),
       withTimeout(NET.db.ref('mods/meta').once('value'), 15000).then((s) => s.val() || {}).catch(() => ({})),
@@ -16792,6 +16817,9 @@ function modCardEl(m, big) {
   el.querySelector('.mc-by').textContent = m.builtin ? 'Blood Moon' : 'von ' + (m.author || '?');
   el.querySelector('.mc-d').textContent = m.desc || '';
   el.querySelector('.mc-cat').textContent = MOD_CAT_NAME[m.cat] || 'Spaß';
+  // Downloads: jeder Spieler zählt einmal, auch wenn er die Mod öfter installiert
+  const dn = MODS.dlCount(m.id);
+  if (dn !== null) { const d = document.createElement('span'); d.className = 'mc-dl'; d.title = dn + (dn === 1 ? ' Spieler hat' : ' Spieler haben') + ' die Mod installiert'; d.textContent = '⬇ ' + (dn >= 10000 ? Math.round(dn / 1000) + 'k' : dn >= 1000 ? (dn / 1000).toFixed(1).replace('.', ',') + 'k' : dn); el.querySelector('.mc-cat').after(d); }
   const act = el.querySelector('.mc-act');
   const Wd = MODUI.world;
   if (Wd) {
