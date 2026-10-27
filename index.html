@@ -61,8 +61,8 @@
         "players": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && (root.child('users/' + $host + '/friends/' + auth.uid).exists() || root.child('usernames/dynathereal').val() === auth.uid)" } },
         "p": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
         "pdata": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "ev": { "$e": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
-        "edits": { "$c": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && root.child('users/' + $host + '/friends/' + auth.uid).exists()" } },
+        "ev": { "$e": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && (root.child('users/' + $host + '/friends/' + auth.uid).exists() || root.child('usernames/dynathereal').val() === auth.uid)" } },
+        "edits": { "$c": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && (root.child('users/' + $host + '/friends/' + auth.uid).exists() || root.child('usernames/dynathereal').val() === auth.uid)" } },
         "snaps": { "$p": { ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && auth.uid === $p" } }
       }
     },
@@ -298,6 +298,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
 #zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
 #zoomNote[hidden] { display: none; }
+/* Handy: Textfelder unter 16px zoomen auf dem iPhone beim Antippen die ganze Seite */
+@media (pointer: coarse) { input, textarea, select { font-size: 16px !important; } }
+button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
+#unzoomBtn { position: fixed; right: 12px; bottom: 12px; z-index: 99999; border: 0; border-radius: 99px; padding: 12px 18px; background: rgba(229, 122, 46, 0.95); color: #fff; font: 800 15px/1 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45); }
 #zoomNote button { flex: none; border: 0; border-radius: 8px; padding: 5px 10px; background: rgba(255, 255, 255, 0.14); color: #fff; font: inherit; cursor: pointer; }
 .ms-ip .btn { padding: 8px 10px; font-size: 13px; flex: none; }
 .ms-star { color: #ffd36b; }
@@ -501,6 +505,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .joy-k { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.32); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
 .tbtn { position: absolute; pointer-events: auto; border-radius: 99px; border: 1.5px solid var(--line); background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--text); font-weight: 800; font-size: 13px; touch-action: none; }
 .t-jump { right: calc(var(--safe-r) + 6px); bottom: calc(var(--safe-b) + 92px); width: 84px; height: 84px; }
+.t-down { right: calc(var(--safe-r) + 100px); bottom: calc(var(--safe-b) + 100px); width: 64px; height: 64px; font-size: 11.5px; }
+.cross-mode .t-down { right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 264px); }
 .t-sprint { right: calc(var(--safe-r) + 16px); bottom: calc(var(--safe-b) + 190px); width: 64px; height: 64px; font-size: 11.5px; }
 .t-drop { right: calc(var(--safe-r) + 10px); bottom: calc(var(--safe-b) + 18px); width: 58px; height: 58px; font-size: 10.5px; line-height: 1.1; padding: 0 4px; }
 .t-atk { right: calc(var(--safe-r) + 104px); bottom: calc(var(--safe-b) + 100px); width: 80px; height: 80px; font-size: 11.5px; line-height: 1.15; background: rgba(200, 60, 60, 0.55); }
@@ -846,7 +852,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="hud-tl">
     <div class="clock panel"><canvas id="clockIcon" width="80" height="80"></canvas><div><div class="clock-day" id="clockDay">Tag 1</div><div class="clock-sub" id="clockSub">Nacht in 9:35</div></div></div>
     <div class="moon panel" id="moonChip"><i class="moon-dot"></i><span id="moonTxt">Blood Moon in 10 Nächten</span></div>
-    <div class="mp panel spec" id="specChip" hidden><i class="mp-dot"></i><span>👁 Zuschauer · unsichtbar · T: nächster Spieler</span></div>
+    <div class="mp panel spec" id="specChip" hidden><i class="mp-dot"></i><span>👁 Zuschauer · unsichtbar · Leertaste hoch, C runter · T: nächster Spieler</span></div>
     <div class="mp panel" id="mpChip" hidden><i class="mp-dot"></i><span id="mpTxt"></span></div>
     <div class="goal panel" id="goalBox"><span class="goal-k">Ziel</span><span class="goal-t" id="goalTxt"></span><span class="goal-dir" id="goalDir" hidden><svg viewBox="0 0 16 16" id="goalArrow" aria-hidden="true"><path d="M8 1.5 13.5 12 8 9.6 2.5 12Z" fill="currentColor"></path></svg><b id="goalDist"></b></span></div>
     <div class="poison-chip panel" id="poisonChip" hidden><i></i><span id="poisonTxt"></span></div>
@@ -879,6 +885,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div id="joyBase" class="joy" hidden><div id="joyKnob" class="joy-k"></div></div>
     <button id="tJump" class="tbtn t-jump">Springen</button>
     <button id="tSprint" class="tbtn t-sprint" aria-pressed="false">Sprinten</button>
+    <button id="tDown" class="tbtn t-down" hidden aria-label="Nach unten fliegen">Runter</button>
     <button id="tDrop" class="tbtn t-drop" aria-label="Wegwerfen">Weg&shy;werfen</button>
     <button id="tAtk" class="tbtn t-atk" hidden aria-label="Abbauen und angreifen">Abbauen<br>Angriff</button>
     <button id="tUse" class="tbtn t-use" hidden aria-label="Bauen und benutzen">Bauen<br>Nutzen</button>
@@ -1015,8 +1022,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="ver"><b id="verNow"></b><ul id="verNotes"></ul></div>
       <div id="testBox">
         <p class="sec-t">Testen</p>
-        <p class="hint">Zum Ausprobieren, ohne zehn Nächte zu warten.</p>
-        <div class="btnrow"><button class="btn" id="dbgNight" type="button">Zur Nacht springen</button><button class="btn" id="dbgDay" type="button">Zum Morgen springen</button><button class="btn danger" id="dbgBlood" type="button">Blood Moon heute Nacht</button><button class="btn" id="dbgWood" type="button">+20 Holz, +5 Wolle, Erze</button><button class="btn" id="dbgWeather" type="button">Wetter wechseln</button><button class="btn danger" id="dbgTornado" type="button">Tornado jetzt</button></div>
+        <p class="hint">Admin: zum Ausprobieren, ohne zehn Nächte zu warten. Geht in jeder Welt, auch als Gast, auf Servern und im Zuschauer-Modus.</p>
+        <div class="btnrow"><button class="btn" id="dbgNight" type="button">Zur Nacht springen</button><button class="btn" id="dbgDay" type="button">Zum Morgen springen</button><button class="btn danger" id="dbgBlood" type="button">Blood Moon heute Nacht</button><button class="btn" id="dbgWood" type="button">+20 Holz, +5 Wolle, Erze</button><button class="btn" id="dbgWeather" type="button">Wetter wechseln</button><button class="btn danger" id="dbgTornado" type="button">Tornado jetzt</button><button class="btn" id="dbgClear" type="button">Alle Kreaturen weg</button><button class="btn" id="dbgHeal" type="button">Volle Leben</button></div>
       </div>
     </div>
   </div>
@@ -1418,8 +1425,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.21.0';
+const GAME_VERSION = '2.22.1';
 const GAME_NOTES = [
+  ['2.22.1', 'Meine Mods: angefangene Mods speichern sich automatisch als Entwurf, sobald ein Name, eine Beschreibung oder Code drinsteht (auch wenn du die App einfach schließt). Nur eine Idee für den KI-Prompt speichert weiterhin nichts. Handy: kein zufälliges Ranzoomen mehr beim schnellen Tippen; falls die Seite doch gezoomt ist, bringt ein Knopf „Zoom zurücksetzen“ sie zurück.'],
+  ['2.22.0', 'Zuschauer-Modus: mit C (oder Strg) nach unten fliegen, am Handy mit dem Knopf „Runter“ (auch beim Kreativ-Fliegen). Als Zuschauer kannst du jetzt sofort abbauen, unendlich bauen und angreifen. Admin-Optionen (Nacht, Morgen, Blood Moon, Wetter, Tornado, Kreaturen weg, Volle Leben) gibt es in jeder Welt, auch als Gast, auf Servern und als Zuschauer.'],
   ['2.21.0', 'Neue Weltgenerierung (nur in Chunks, die noch nie generiert wurden): viel mehr Dörfer (etwa alle 600 bis 800 Blöcke), mehr Höhlen (auch ganz unter der Erde), Höhleneingänge als Löcher statt offener Gräben, deutlich weniger und niedrigere Berge. Übergänge zu altem Gelände sind weich.'],
   ['2.20.0', 'Admin: eingereichte Mods vor dem Annehmen in einer Testwelt ausprobieren (▶ Testen). Danach geht es zurück ins Admin-Panel.'],
   ['2.19.0', 'Mods werden in Welten und auf Servern automatisch auf die neueste Version aktualisiert, sobald die Welt startet. Mod-Backups: unter Meine Mods (⟲) sind die letzten 5 eingereichten Versionen jeder Mod gespeichert und lassen sich zurücksetzen.'],
@@ -7926,7 +7935,7 @@ function updatePlayer(dt) {
   PL.vx = damp(PL.vx, tvx, acc, dt); PL.vz = damp(PL.vz, tvz, acc, dt);
   const flyOn = MODFX.fly && PL.flying;
   if (flyOn) {
-    const up = (INPUT.down('Space') || INPUT.jump) ? 1 : 0, dn = ctrl ? 1 : 0;
+    const up = (INPUT.down('Space') || INPUT.jump) ? 1 : 0, dn = ctrl || INPUT.down('KeyC') || INPUT.flyDown ? 1 : 0;
     PL.vy = damp(PL.vy, (up - dn) * (PL.sprint ? 11 : 6.5), 10, dt);
     if (dn && PL.onGround) PL.flying = false;
   } else if (PL.inWater) {
@@ -8303,8 +8312,8 @@ function canBreak(id, x, y, z) {
   if (TREEBLOCK[id] && W.treeAt.has(i)) { hint('tree', 'Stell dich direkt neben den Stamm, dann fällst du den Baum.'); return false; }
   if (id === B.BEDROCK || id === B.SAPLING || id === B.LAVA || id === B.WATER) return false;
   if (id === B.CHEST && !isStoreChest(x, y, z)) { hint('chest', 'Truhen öffnest du mit E.'); return false; }
-  if (!MODFX.instaBreak && NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', bestTool('pickaxe') ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
-  if (!MODFX.instaBreak && PICKLV[id] > 1 && heldToolLevel() < PICKLV[id]) { hint('pick' + PICKLV[id], PICKLV[id] >= 3 ? BNAME[id] + ' braucht eine Diamantspitzhacke' + (bestTool('pickaxe') >= 3 ? ' in der Hand.' : ' vom Händler.') : BNAME[id] + ' braucht eine Eisenspitzhacke' + (bestTool('pickaxe') >= 2 ? ' in der Hand.' : ' vom Händler.')); return false; }
+  if (!MODFX.instaBreak && !G.spectator && NEEDPICK[id] && heldToolKind() !== 'pickaxe') { hint('pick', bestTool('pickaxe') ? 'Nimm die Spitzhacke in die Hand (Hotbar).' : 'Dafür brauchst du eine Spitzhacke vom Händler.'); return false; }
+  if (!MODFX.instaBreak && !G.spectator && PICKLV[id] > 1 && heldToolLevel() < PICKLV[id]) { hint('pick' + PICKLV[id], PICKLV[id] >= 3 ? BNAME[id] + ' braucht eine Diamantspitzhacke' + (bestTool('pickaxe') >= 3 ? ' in der Hand.' : ' vom Händler.') : BNAME[id] + ' braucht eine Eisenspitzhacke' + (bestTool('pickaxe') >= 2 ? ' in der Hand.' : ' vom Händler.')); return false; }
   return true;
 }
 function updateBreaking(dt, holding, target) {
@@ -8321,7 +8330,7 @@ function updateBreaking(dt, holding, target) {
       : SOFT.has(id) && ht === 'shovel' ? SHOVEL_SPEED[hl] || 1 : 1) * (si && si.mod && si.mine ? si.mine : 1);
     // only chests you built can be broken; built logs break like wood
     const hard = id === B.CHEST ? 1.1 : TREEBLOCK[id] && !W.treeAt.has(I(x, y, z)) ? 1.2 : HARD[id];
-    G.breaking = { x, y, z, id, p: 0, need: MODFX.instaBreak ? 0.05 : Math.max(0.05, hard / speed), tick: 0 };
+    G.breaking = { x, y, z, id, p: 0, need: MODFX.instaBreak || G.spectator ? 0.05 : Math.max(0.05, hard / speed), tick: 0 };
   }
   const b = G.breaking;
   b.p += dt; b.tick -= dt;
@@ -11138,7 +11147,7 @@ const INPUT = {
   keys: new Set(),
   pointer: [0, 0], hasPointer: false, lastSource: 'mouse',
   primaryHeld: false, primaryPressed: false, secondaryPressed: false, interactPressed: false,
-  jump: false, sprintToggle: false, sprintBtn: false,
+  jump: false, flyDown: false, sprintToggle: false, sprintBtn: false,
   joy: { active: false, x: 0, y: 0, id: null, ox: 0, oy: 0 },
   touches: new Map(), pinch: null,
   drag: null,            // { btn, moved, started, pdx, pdy } while a mouse button rotates the drone camera
@@ -11148,7 +11157,7 @@ const INPUT = {
   endFrame() { this.primaryPressed = false; this.secondaryPressed = false; this.interactPressed = false; },
   clear() {
     this.keys.clear(); this.primaryHeld = false; this.drag = null;
-    this.joy.active = false; this.joy.x = this.joy.y = 0; this.jump = false; this.touches.clear();
+    this.joy.active = false; this.joy.x = this.joy.y = 0; this.jump = false; this.flyDown = false; this.touches.clear();
     if (typeof UI !== 'undefined' && UI.joy) UI.joy(false);
   },
 };
@@ -11244,13 +11253,46 @@ function initNoZoom() {
   document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 && !(e.target && e.target.id === 'gl')) stop(e); }, { passive: false });
   // a text field zoomed the page in (iPhone/iPad): snap back when it loses focus
   const meta = document.querySelector('meta[name="viewport"]');
-  const unzoom = () => {
-    if (!meta || !window.visualViewport || visualViewport.scale <= 1.01) return;
-    const c = meta.getAttribute('content');
-    meta.setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');
-    setTimeout(() => meta.setAttribute('content', c), 60);
+  const unzoom = (force) => {
+    if (!meta || !window.visualViewport || (visualViewport.scale <= 1.01 && !force)) return;
+    const c = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+    // ein anderer Wert zwingt den Browser, neu zu skalieren; danach wieder der normale
+    meta.setAttribute('content', 'width=device-width, initial-scale=0.99, maximum-scale=0.99, user-scalable=no, viewport-fit=cover');
+    setTimeout(() => { meta.setAttribute('content', c); window.scrollTo(0, 0); }, 80);
     window.scrollTo(0, 0);
   };
+  // schnell zwei-, dreimal tippen zoomt auf dem iPhone die Seite: den zweiten Tipp abfangen
+  // (der Knopf bekommt seinen Klick trotzdem, außer er hat schon beim Berühren reagiert)
+  let lastEnd = 0, startPrevented = false;
+  window.addEventListener('touchstart', (e) => { startPrevented = e.defaultPrevented; }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const now = performance.now(), quick = now - lastEnd < 380; lastEnd = now;
+    if (!quick || e.touches.length || e.changedTouches.length !== 1) return;
+    const t = e.target;
+    if (!t || !t.closest || t.id === 'gl' || t.closest('input, textarea, select, [contenteditable]')) return;
+    if (!e.cancelable || e.defaultPrevented) return;
+    e.preventDefault();
+    if (!startPrevented) { const b = t.closest('button, a, label, [role="button"], .btn, .li, .my-card, .islot'); if (b && !b.disabled) b.click(); }
+  }, { passive: false });
+  // falls doch gezoomt: ein Knopf bringt die Seite zurück (bleibt, bis der Zoom weg ist)
+  const ub = document.createElement('button'); ub.id = 'unzoomBtn'; ub.type = 'button'; ub.hidden = true; ub.textContent = 'Zoom zurücksetzen';
+  ub.addEventListener('click', () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); unzoom(true); });
+  document.body.appendChild(ub);
+  if (window.visualViewport) {
+    const place = () => {
+      const z = visualViewport.scale > 1.05;
+      ub.hidden = !z;
+      if (z) { // in der Ecke des sichtbaren Ausschnitts, gegen den Zoom verkleinert
+        const s = 1 / visualViewport.scale;
+        ub.style.transformOrigin = '100% 100%';
+        ub.style.transform = 'scale(' + s + ')';
+        ub.style.left = 'auto'; ub.style.top = 'auto';
+        ub.style.right = (window.innerWidth - visualViewport.offsetLeft - visualViewport.width + 12 * s) + 'px';
+        ub.style.bottom = (window.innerHeight - visualViewport.offsetTop - visualViewport.height + 12 * s) + 'px';
+      }
+    };
+    visualViewport.addEventListener('resize', place); visualViewport.addEventListener('scroll', place);
+  }
   document.addEventListener('focusout', () => setTimeout(unzoom, 50));
   if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (!document.activeElement || !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) setTimeout(unzoom, 300); });
   // the browser's own zoom (desktop): it can't be undone from inside the page, so tell how
@@ -11403,7 +11445,7 @@ function initInput() {
     if (G.sleep && G.sleep.mp) { leaveBed(); return; }
     const joyAllowed = touchUI();
     // a finger that just misses the jump or sprint button does not dig or place, but it can still look around
-    const near = (t) => ['tJump', 'tSprint', 'tAct', 'tDrop', 'tAtk', 'tUse'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 30 && t.clientX < r.right + 30 && t.clientY > r.top - 30 && t.clientY < r.bottom + 30; });
+    const near = (t) => ['tJump', 'tSprint', 'tDown', 'tAct', 'tDrop', 'tAtk', 'tUse'].some((id) => { const el = $(id); if (!el || el.hidden || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return t.clientX > r.left - 30 && t.clientX < r.right + 30 && t.clientY > r.top - 30 && t.clientY < r.bottom + 30; });
     for (const t of e.changedTouches) {
       if (near(t)) { INPUT.touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, t0: performance.now(), moved: 0, hold: false, look: true }); continue; }
       const left = t.clientX < window.innerWidth * 0.42;
@@ -12607,7 +12649,7 @@ function bindSettingsUI() {
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
     $('setMBS').value = SETTINGS.mbStrength; $('setMBSO').textContent = Math.round(SETTINGS.mbStrength * 100) + '%'; $('mbRow').hidden = !SETTINGS.motionBlur;
     for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
-    $('testBox').hidden = MP.isClient() || !isOwner();
+    $('testBox').hidden = !isOwner();
   };
   UI.settingsRefresh = refresh;
   $('setQuality').addEventListener('click', (e) => {
@@ -12640,26 +12682,16 @@ function bindSettingsUI() {
   }
   // nobody but the owner can use them, even if the box were shown
   $('testBox').addEventListener('click', (e) => { if (!isOwner()) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-  $('dbgNight').addEventListener('click', () => { if (MP.isClient()) return; if (G.time.phase === 'day') { G.time.t = DAY_LEN - 3; UI.toast('Die Nacht beginnt gleich.', 'info'); } });
-  $('dbgDay').addEventListener('click', () => { if (MP.isClient()) return; if (G.time.phase === 'night') { G.time.t = (G.time.blood ? BLOOD_LEN : NIGHT_LEN) - 3; } else G.time.t = 5; UI.toast('Der Morgen kommt.', 'info'); });
-  $('dbgBlood').addEventListener('click', () => {
-    if (MP.isClient()) return;
-    const T = G.time;
-    if (T.phase === 'night') {
-      if (T.blood) return;
-      const d = Math.ceil((T.night + 1) / 10) * 10;
-      T.night = d - 1; T.day = d - 1;
-      startDay();
-    } else {
-      const d = Math.max(10, Math.ceil(T.day / 10) * 10);
-      T.day = d; T.night = d - 1;
-    }
-    T.t = Math.max(T.t, DAY_LEN - BLOOD_WARN - 2);
-    UI.toast('Heute Nacht kommt der Blood Moon.', 'warn');
-  });
+  // in fremden Welten (als Gast, auf Servern, als Zuschauer) schickt der Admin den Befehl an den Host
+  const adm = (cmd) => { if (MP.isClient()) { MP.send({ t: 'adm', cmd }); UI.toast('Admin-Befehl an ' + (MP.hostName || 'den Host') + ' geschickt.', 'info', 1800, 'admc'); } else adminAction(cmd); };
+  $('dbgNight').addEventListener('click', () => adm('night'));
+  $('dbgDay').addEventListener('click', () => adm('day'));
+  $('dbgBlood').addEventListener('click', () => adm('blood'));
   $('dbgWood').addEventListener('click', () => { G.inv.wood += 20; G.inv.wool += 5; G.inv.iron += 10; G.inv.diamond += 3; G.inv.crystal += 3; UI.res(); UI.toast('+20 Holz, +5 Wolle, +10 Eisen, +3 Diamanten, +3 Kristalle', 'good'); });
-  $('dbgWeather').addEventListener('click', () => { if (MP.isClient()) return; const i = (WEATHER_KINDS.indexOf(WEATHER.kind) + 1) % WEATHER_KINDS.length; setWeather(WEATHER_KINDS[i], 300); UI.toast('Wetter: ' + ['Klar', 'Bewölkt', 'Regen', 'Gewitter', 'Nebel'][i], 'info', 1800, 'wx'); });
-  $('dbgTornado').addEventListener('click', () => { if (MP.isClient() || TORNADO.on) return; startStorm(true); UI.toast('Test: Gewitter mit Tornado gestartet.', 'info'); });
+  $('dbgWeather').addEventListener('click', () => adm('weather'));
+  $('dbgTornado').addEventListener('click', () => adm('tornado'));
+  $('dbgClear').addEventListener('click', () => adm('clear'));
+  $('dbgHeal').addEventListener('click', () => { if (!PL.dead) { PL.hp = PL.maxHp; UI.toast('Volle Leben.', 'good', 1500, 'admh'); } });
   refresh();
 }
 UI.openSettings = function (from) {
@@ -13134,7 +13166,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI();
+  bindSettingsUI(); bindFlyDown();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -13705,7 +13737,7 @@ function primaryOn(h) {
   }
 }
 function handleActionsCore(dt) {
-  if (G.spectator) { G.breaking = null; G.prompt = null; return; }
+  if (G.spectator) G.prompt = null;   // der Admin als Zuschauer kann abbauen, bauen, angreifen
   if (PL.dead || G.sleep) { G.breaking = null; G.prompt = null; return; }
   updateTouchHold();
   let target = hoverFromPointer();
@@ -13780,7 +13812,7 @@ function gameUpdate(dt) {
   S('Tipps', () => updateTips(dt));
   S('Gift', () => updateInfection(dt));
   S('Mods', () => updateMods(dt));
-  S('Zuschauer', () => updateSpectator(dt));
+  S('Zuschauer', () => { updateSpectator(dt); syncFlyDown(); });
   S('Fadenkreuz', () => syncCrosshair());
   S('Wasser', () => updateFlow(dt));
   S('Dorfhändler', () => updateTraders(dt));
@@ -14458,7 +14490,7 @@ const MP = {
   offAll() { for (const [r, e, cb] of this.refs) r.off(e, cb); this.refs = []; },
   onError(err) { console.warn('mp', err); if (this.isClient()) this.leave(false, 'Die Verbindung zur Welt ist abgebrochen.'); },
   send(ev) {
-    if (!this.active() || !NET.db || (this.isClient() && !this.ready) || this.spec) return;
+    if (!this.active() || !NET.db || (this.isClient() && !this.ready)) return;
     ev.u = NET.uid();
     this.ref('ev').push(ev).catch((e) => this.writeFailed(e));
     // the lasting state of every changed block: even if a message gets lost on the way,
@@ -15098,6 +15130,7 @@ function applyNetEvent(v) {
     }
     case 'hitZ': if (MP.isHost()) { const z = G.zombies.find((q) => q.id === v.id); if (z) damageZombie(z, v.dmg, v.kx, v.kz, v.kb); } break;
     case 'rules': if (v.fire) W.rules.fire = true; if (typeof v.pvp === 'boolean') { W.rules.pvp = v.pvp; UI.toast('PvP ist jetzt ' + (v.pvp ? 'an: Spieler können sich gegenseitig angreifen.' : 'aus.'), v.pvp ? 'warn' : 'info', 3600, 'pvp'); } if (typeof v.fall === 'boolean') { W.rules.fall = v.fall; UI.toast('Fallschaden ist jetzt ' + (v.fall ? 'an' : 'aus') + '.', 'info', 3000, 'rules'); } break;
+    case 'adm': adminFromNet(v); break;
     case 'mmsg': case 'mkill': case 'mgive': case 'mhurt': case 'mtp': case 'mdim': modNetEvent(v); break;
     case 'pvp': if (v.to === NET.uid() && pvpOn() && !PL.dead) { if (v.n) PL.lastHitBy = { name: v.n, t: G.playTime }; hurtPlayer(+v.dmg || 0, +v.fx, +v.fz); if (PL.dead && v.n) UI.toast(v.n + ' hat dich besiegt.', 'warn', 4200); } break;
     case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
@@ -18911,7 +18944,7 @@ function myModEdit(id, temp) {
 function myModStateLine(d) {
   const st = myModState(d);
   const saved = !!MYMODS.get(d.id);
-  $('mdState').textContent = saved ? st[1] + (MYMODS.dirty ? ' · Änderungen werden beim Einreichen gespeichert' : '') : 'Neu · wird erst beim Einreichen gespeichert';
+  $('mdState').textContent = saved ? st[1] + (d.pub || d.pend ? (MYMODS.dirty ? ' · Entwurf gespeichert, noch nicht eingereicht' : '') : ' · automatisch gespeichert') : 'Neu · wird gespeichert, sobald du einen Namen oder Code eingibst';
   $('mdSubmit').textContent = d.pub ? 'Update einreichen' : 'Einreichen';
 }
 function myModFromForm() {
@@ -18923,22 +18956,30 @@ function myModFromForm() {
 let MY_SAVE_T = null;
 function myModChanged() {
   clearTimeout(MY_SAVE_T);
-  MY_SAVE_T = setTimeout(() => { MYMODS.dirty = true; myModStateLine(myModFromForm()); }, 300);
+  MY_SAVE_T = setTimeout(myModAutoSave, 600);
 }
-/* leave the editor: nothing is stored (only "Einreichen" stores a mod) */
+/* Entwürfe speichern sich von selbst, sobald ein Name, eine Beschreibung oder Code drinsteht.
+   Nur eine Idee für den KI-Prompt speichert nichts. */
+function myModAutoSave() {
+  clearTimeout(MY_SAVE_T); MY_SAVE_T = null;
+  if (!MYMODS.cur) return;
+  const d = myModFromForm(), old = MYMODS.get(d.id);
+  const changed = old ? MY_FIELDS.some(([, k]) => String(old[k] || '') !== String(d[k] || '')) : !!(d.name.trim() || d.code.trim() || d.desc.trim());
+  if (changed) { MYMODS.put(d); MYMODS.temp = null; MYMODS.dirty = true; }
+  myModStateLine(d);
+}
+/* leave the editor: what has a name or code is already saved as a draft */
 function myModLeave() {
-  clearTimeout(MY_SAVE_T);
+  if (MYMODS.cur) myModAutoSave();
   MYMODS.cur = null; MYMODS.temp = null; MYMODS.dirty = false;
 }
-/* unsaved changes: ask before throwing them away */
-async function myModLeaveAsk() {
-  if (!MYMODS.cur) return true;
-  const d = myModFromForm(), old = MYMODS.get(d.id);
-  const changed = old ? MY_FIELDS.some(([, k]) => k !== 'idea' && String(old[k] || '') !== String(d[k] || '')) : !!(d.name.trim() || d.code.trim() || d.desc.trim());
-  if (!changed) return true;
-  const ok = await UI.confirm({ title: 'Änderungen verwerfen?', text: 'Gespeichert wird eine Mod erst, wenn du sie einreichst.', yes: 'Verwerfen' });
-  $('mdlMods').hidden = false;
-  return ok;
+async function myModLeaveAsk() { return true; }
+/* App schließen oder wegwischen: sofort speichern (auch in die Cloud) */
+function myModFlush() {
+  if (!MYMODS.cur) return;
+  myModAutoSave();
+  const id = MYMODS.cur;
+  if (MYMODS.timers[id] && NET.uid() && NET.db) { clearTimeout(MYMODS.timers[id]); delete MYMODS.timers[id]; const d = MYMODS.get(id); if (d) NET.db.ref('users/' + NET.uid() + '/myMods/' + id).set(d).catch(() => { }); }
 }
 async function myModDelete(id) {
   const d = MYMODS.get(id); if (!d) return;
@@ -18997,6 +19038,8 @@ async function myModSubmit() {
 }
 function bindMyMods() {
   $('modApiDoc').textContent = MOD_API_DOC;
+  window.addEventListener('pagehide', myModFlush);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) myModFlush(); });
   $('myNew').addEventListener('click', () => { myModLeave(); myModEdit(null, newMyMod()); $('mdIdea').focus(); });
   $('mdBack').addEventListener('click', async () => { if (!(await myModLeaveAsk())) return; myModLeave(); modsTab('mine'); });
   for (const [el] of MY_FIELDS) $(el).addEventListener(el === 'mdCat' ? 'change' : 'input', myModChanged);
@@ -19283,8 +19326,9 @@ function applyDimEnv() {
 /* ---- 19w_spectate.js ---- */
 /* =========================================================================
    Zuschauer-Modus für den Admin (DynaTheReal): in jede Welt hinein, ohne
-   dass jemand ihn sieht. Er fliegt frei herum (durch Wände), kann nichts
-   abbauen, nichts bauen und wird nicht angegriffen. Nichts wird gespeichert.
+   dass jemand ihn sieht. Er fliegt frei herum (durch Wände), wird nicht
+   angegriffen, kann aber abbauen (sofort), bauen (alles unendlich) und
+   angreifen. Seine Admin-Befehle (Nacht, Tornado …) gehen an den Host.
    ========================================================================= */
 const SPEC = { target: null, i: 0 };
 /* einer Welt zuschauen: base = rooms/<uid> oder srv/<owner>/<wid>/room */
@@ -19310,7 +19354,7 @@ async function spectateRoom(base, name, targetUid) {
   startPlaying();
   G.spectator = MP.spec;
   PL.flying = true; PL.invuln = 1e9;
-  UI.toast('Zuschauer-Modus: niemand sieht dich. WASD + Leertaste/Strg fliegen, T springt zum nächsten Spieler, Esc → Hauptmenü zum Verlassen.', 'good', 8000, 'spec');
+  UI.toast('Zuschauer-Modus: niemand sieht dich. WASD fliegen, Leertaste hoch, C runter, Shift schnell, T nächster Spieler. Abbauen und Bauen geht, Admin-Befehle unter Einstellungen.', 'good', 8000, 'spec');
   setTimeout(() => specJump(SPEC.target), 1200);
 }
 /* zu einem Spieler springen (oder zum nächsten in der Liste) */
@@ -19334,11 +19378,67 @@ function updateSpectator(dt) {
   const sp = (fast ? 26 : 11) * (amt > 0 ? 1 : 0);
   let vy = 0;
   if (INPUT.down('Space') || INPUT.jump) vy += 1;
-  if (INPUT.down('ControlLeft') || INPUT.down('ControlRight')) vy -= 1;
+  if (INPUT.down('ControlLeft') || INPUT.down('ControlRight') || INPUT.down('KeyC') || INPUT.flyDown) vy -= 1;
   PL.vx = damp(PL.vx, dx * sp, 8, dt); PL.vz = damp(PL.vz, dz * sp, 8, dt); PL.vy = damp(PL.vy, vy * (fast ? 18 : 9), 8, dt);
   PL.x += PL.vx * dt; PL.y = clamp(PL.y + PL.vy * dt, 1, WY - 2); PL.z += PL.vz * dt;
   PL.onGround = false; PL.walkAmt = 0;
+  // alles zum Bauen, unendlich
+  SPEC.fillT = (SPEC.fillT || 0) - dt;
+  if (SPEC.fillT <= 0) { SPEC.fillT = 2; creativeTopUp(); }
   try { ensureChunks(PL.x, PL.z, 3, 4); } catch (e) { /* streams in */ }
+}
+
+/* ---- Admin-Befehle in jeder Welt ----
+   In der eigenen Welt wirken sie sofort. Als Gast, auf einem Server oder als
+   Zuschauer schickt der Admin sie an den Host; der Host prüft, dass sie
+   wirklich vom Admin-Konto kommen (uid aus usernames/dynathereal). */
+function adminAction(cmd) {
+  const T = G.time;
+  if (cmd === 'night') {
+    if (T.phase === 'day') { T.t = DAY_LEN - 3; UI.toast('Gleich wird es Nacht…', 'warn'); }
+  } else if (cmd === 'day') {
+    if (T.phase === 'night') T.t = (T.blood ? BLOOD_LEN : NIGHT_LEN) - 3; else T.t = 5;
+    UI.toast('Gleich wird es Morgen.', 'info');
+  } else if (cmd === 'blood') {
+    if (T.phase === 'night') { if (T.blood) return; const d = Math.ceil((T.night + 1) / 10) * 10; T.night = d - 1; T.day = d - 1; startDay(); }
+    else { const d = Math.max(10, Math.ceil(T.day / 10) * 10); T.day = d; T.night = d - 1; }
+    T.t = Math.max(T.t, DAY_LEN - BLOOD_WARN - 2);
+    UI.toast('Heute Nacht ist Blood Moon!', 'bad');
+  } else if (cmd === 'weather') {
+    const i = (WEATHER_KINDS.indexOf(WEATHER.kind) + 1) % WEATHER_KINDS.length;
+    setWeather(WEATHER_KINDS[i], 300); UI.toast('Wetter: ' + WEATHER_KINDS[i], 'info', 1800, 'admw');
+  } else if (cmd === 'tornado') {
+    if (TORNADO.on) { UI.toast('Es tobt schon ein Tornado.', 'info', 1800, 'admt'); return; }
+    startStorm(true); UI.toast('Ein Tornado zieht auf!', 'bad');
+  } else if (cmd === 'clear') {
+    let n = 0; for (const z of G.zombies) if (z.state !== 'die') { damageZombie(z, 99999, 0, 0, 0); n++; }
+    UI.toast(n + ' Kreaturen entfernt.', 'good', 1800, 'admc');
+  }
+}
+const ADM = { uid: null, at: 0 };
+async function adminFromNet(v) {
+  if (MP.isClient() || !v || !v.u || !['night', 'day', 'blood', 'weather', 'tornado', 'clear'].includes(v.cmd)) return;
+  if (!ADM.uid && NET.db && performance.now() - ADM.at > 5000) {
+    ADM.at = performance.now();
+    try { ADM.uid = (await withTimeout(NET.db.ref('usernames/' + OWNER_NAME).once('value'), 15000)).val(); } catch (e) { return; }
+  }
+  if (!ADM.uid || v.u !== ADM.uid) return;
+  adminAction(v.cmd);
+}
+// "Runter"-Knopf am Handy: beim Fliegen (Kreativ) und als Zuschauer
+function bindFlyDown() {
+  const b = $('tDown'); if (!b) return;
+  const on = (e) => { e.preventDefault(); e.stopPropagation(); INPUT.flyDown = true; };
+  const off = (e) => { e.preventDefault(); INPUT.flyDown = false; };
+  b.addEventListener('touchstart', on, { passive: false });
+  b.addEventListener('touchend', off, { passive: false }); b.addEventListener('touchcancel', off, { passive: false });
+  b.addEventListener('mousedown', on); b.addEventListener('mouseup', off); b.addEventListener('mouseleave', off);
+}
+function syncFlyDown() {
+  const b = $('tDown'); if (!b) return;
+  const show = !!(G.spectator || (MODFX.fly && PL.flying));
+  if (b.hidden === show) b.hidden = !show;
+  if (!show) INPUT.flyDown = false;
 }
 
 /* ---- 99_start.js ---- */
