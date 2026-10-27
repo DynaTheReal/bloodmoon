@@ -298,6 +298,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
 #zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
 #zoomNote[hidden] { display: none; }
+#mapView { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+#compassChip { position: fixed; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); z-index: 6; pointer-events: none; padding: 5px 12px; border-radius: 99px; font-size: 13px; font-weight: 800; white-space: nowrap; }
 /* Handy: Textfelder unter 16px zoomen auf dem iPhone beim Antippen die ganze Seite */
 @media (pointer: coarse) { input, textarea, select { font-size: 16px !important; } }
 button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
@@ -381,6 +383,7 @@ select.field { appearance: auto; }
 .inv-it.mat:hover { border-color: rgba(255, 255, 255, 0.07); }
 @keyframes bump { 40% { transform: scale(1.14); } }
 .ibtn { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; color: var(--text); }
+.cre-btn { font-size: 20px; line-height: 1; }
 .ibtn svg { width: 20px; height: 20px; }
 .ibtn:hover { background: var(--glass-hi); }
 .toasts { position: fixed; z-index: 25; top: calc(var(--safe-t) + 4px); left: 50%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; pointer-events: none; width: min(520px, 70vw); }
@@ -867,6 +870,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="res panel" id="resCryBox" title="Leuchtkristalle" hidden><canvas class="res-i" id="icoCry" width="64" height="64"></canvas><b id="resCry">0</b></div>
     </div>
     <div class="btns">
+    <button class="ibtn panel cre-btn" id="btnCreative" hidden aria-label="Kreativ-Menü" title="Kreativ-Menü (K)">🎨</button>
     <button class="ibtn panel" id="btnBag" aria-label="Inventar" title="Inventar (I)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg></button>
     <button class="ibtn panel" id="btnCam" aria-label="Kamera wechseln" title="Kamera wechseln (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
     <button class="ibtn panel" id="btnPause" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"></rect><rect x="14" y="5" width="4" height="14" rx="1.2"></rect></svg></button>
@@ -968,7 +972,6 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button class="tab" role="tab" data-tab="tools" aria-selected="false" type="button">⚒️ Werkzeuge</button>
         <button class="tab" role="tab" data-tab="weapons" aria-selected="false" type="button">⚔️ Waffen</button>
         <button class="tab" role="tab" data-tab="armor" aria-selected="false" type="button">🛡️ Rüstung</button>
-        <button class="tab" role="tab" data-tab="mods" aria-selected="false" type="button" hidden id="shopModsTab">🧩 Mods</button>
       </div>
     </div>
     <div class="sheet-b"><p class="shop-tip" id="shopTip"></p><div id="shopGrid"></div></div>
@@ -1053,6 +1056,24 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="inv-slots hot" id="invHot"></div>
       <div class="btnrow inv-acts"><button class="btn" id="invDrop1" type="button" disabled>1 wegwerfen</button><button class="btn" id="invDropAll" type="button" disabled>Alles davon wegwerfen</button></div>
     </div>
+  </div>
+</div>
+
+<div id="mdlCreative" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="creTitle">
+  <div class="sheet panel">
+    <div>
+      <div class="sheet-h"><div class="grow"><h2 id="creTitle">🎨 Kreativ-Menü</h2><p>Tipp ein Item an, dann landet es in deinem Inventar.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="all" aria-selected="true" type="button">Alles</button>
+        <button class="tab" role="tab" data-tab="block" aria-selected="false" type="button">🧱 Blöcke</button>
+        <button class="tab" role="tab" data-tab="res" aria-selected="false" type="button">💎 Rohstoffe</button>
+        <button class="tab" role="tab" data-tab="tool" aria-selected="false" type="button">⚒️ Werkzeuge</button>
+        <button class="tab" role="tab" data-tab="armor" aria-selected="false" type="button">🛡️ Rüstung</button>
+        <button class="tab" role="tab" data-tab="other" aria-selected="false" type="button">🎒 Sonstiges</button>
+        <button class="tab" role="tab" data-tab="mod" aria-selected="false" type="button">🧩 Mods</button>
+      </div>
+    </div>
+    <div class="sheet-b"><div class="btnrow"><button class="btn ghost" id="creN" type="button" aria-pressed="false">Je 64</button><button class="btn ghost danger" id="creClear" type="button">Inventar leeren</button></div><div id="creGrid"></div></div>
   </div>
 </div>
 
@@ -1425,8 +1446,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.22.1';
+const GAME_VERSION = '2.23.0';
 const GAME_NOTES = [
+  ['2.23.0', 'Karte (Händler: 5 Kristalle + 1 Papier, Papier gibt es in Ruinen): mit beiden Händen gehalten, zeigt 1000 Blöcke um dich herum im Minecraft-Stil. Aufgedeckt wird, wo du langläufst (ca. 100 Blöcke um dich), Dörfer, Ruinen und Türme werden markiert. Kompass (4 Eisen + 1 Rubin): die Nadel zeigt immer zum Spawn. Shop: kein Mods-Reiter mehr, Waren aus Mods werden automatisch einsortiert. Creative-Modus: eigener Knopf 🎨 (Taste K) mit Kreativ-Menü, das Inventar startet leer. Handy: Fix für das plötzliche Ranzoomen der Kamera (ein hängengebliebener Finger galt als Zwei-Finger-Zoom). Server: eine ältere Version der Welt kann eine neuere nicht mehr überschreiben (z. B. wenn zwei Leute den Server gleichzeitig gestartet haben), es wird nie gespeichert, solange die Welt noch lädt, Speicherfehler werden angezeigt, und alle 3 Stunden entsteht automatisch ein Backup (Server → Verwalten).'],
   ['2.22.1', 'Meine Mods: angefangene Mods speichern sich automatisch als Entwurf, sobald ein Name, eine Beschreibung oder Code drinsteht (auch wenn du die App einfach schließt). Nur eine Idee für den KI-Prompt speichert weiterhin nichts. Handy: kein zufälliges Ranzoomen mehr beim schnellen Tippen; falls die Seite doch gezoomt ist, bringt ein Knopf „Zoom zurücksetzen“ sie zurück.'],
   ['2.22.0', 'Zuschauer-Modus: mit C (oder Strg) nach unten fliegen, am Handy mit dem Knopf „Runter“ (auch beim Kreativ-Fliegen). Als Zuschauer kannst du jetzt sofort abbauen, unendlich bauen und angreifen. Admin-Optionen (Nacht, Morgen, Blood Moon, Wetter, Tornado, Kreaturen weg, Volle Leben) gibt es in jeder Welt, auch als Gast, auf Servern und als Zuschauer.'],
   ['2.21.0', 'Neue Weltgenerierung (nur in Chunks, die noch nie generiert wurden): viel mehr Dörfer (etwa alle 600 bis 800 Blöcke), mehr Höhlen (auch ganz unter der Erde), Höhleneingänge als Löcher statt offener Gräben, deutlich weniger und niedrigere Berge. Übergänge zu altem Gelände sind weich.'],
@@ -2970,6 +2992,7 @@ const W = {
   sheepState: new Map(),   // sheep id -> [wool, regrowAt] (shorn sheep)
   chests: new Map(),       // cell -> contents of a chest the player built
   explored: new Set(),     // chunk keys that have been loaded at some point
+  mapSeen: new Set(),      // chunk keys the player walked near (shown on the map)
   genOld: new Set(),       // chunks that existed before the big caves: they keep the old caves
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
@@ -4485,7 +4508,7 @@ function resetWorld(seed, mode, gen) {
   W.seed = seed; W.N = makeWorldNoise(seed);
   W.meta.clear(); W.changes.clear(); W.metaChanges.clear(); W.chEdits.clear();
   W.prot.clear(); W.treeAt.clear(); W.hidden.clear(); W.cleared.clear();
-  W.sheepState.clear(); W.explored.clear(); W.genOld.clear(); W.rules = { fall: true }; W.chests.clear(); W.campLv = 1;
+  W.sheepState.clear(); W.explored.clear(); W.mapSeen.clear(); if (typeof MAPT !== 'undefined') { MAPT.clear(); MAPV.key = ''; MAPV.sx = 1e9; } W.genOld.clear(); W.rules = { fall: true }; W.chests.clear(); W.campLv = 1;
   for (const t of W.trees.values()) if (t.model) freeModel(t.model);
   W.trees.clear(); W.treeStates.clear(); TREES_BY_CHUNK.clear();
   STRUCT_CACHE.clear(); TOWERS.clear(); VILLAGES.clear();
@@ -6313,6 +6336,10 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     box(0.23, 0.03, 0.23, 0, 0.225, 0, [0.62, 0.65, 0.7]);
     box(0.17, 0.012, 0.17, 0, 0.238, 0, full ? [0.3, 0.55, 0.92] : [0.16, 0.17, 0.19], full ? 0.25 : 0);
     box(0.02, 0.1, 0.02, -0.12, 0.28, 0, mt); box(0.02, 0.1, 0.02, 0.12, 0.28, 0, mt); box(0.26, 0.02, 0.02, 0, 0.33, 0, mt);
+  } else if (tool === 'compass') {
+    ms.push().t(0, 0.22, 0.04).rx(1.25).sc(1.5, 1.5, 1.5); drawCompassModel(box, ms, sky); ms.pop();
+  } else if (tool === 'map') {
+    ms.push().t(0, 0.15, 0).rx(1.2); drawMapModel(box); ms.pop();
   } else if (tool === 'block') {
     const c = BCOLOR[item] || [0.7, 0.7, 0.7];
     box(0.24, 0.24, 0.24, 0, 0.12, 0.05, c);
@@ -6328,6 +6355,9 @@ function drawItemModel(Bt, ms, k, n, sky) {
   if (TOOL_MAX[k]) { ms.push().t(0, -0.42, 0).rz(0.35); drawTool(Bt, ms, k, Math.max(1, n || 1), sky); ms.pop(); return; }
   if (it.armor) { drawArmorPiece(box, it.armor, Math.max(1, n || 1)); return; }
   if (k === 'torch') { ms.push().t(0, -0.28, 0); drawTool(Bt, ms, 'torch', 0, sky); ms.pop(); return; }
+  if (k === 'compass') { drawCompassModel(box, ms, sky); return; }
+  if (k === 'map') { drawMapModel(box); return; }
+  if (k === 'paper') { box(0.34, 0.015, 0.42, 0, 0, 0, [0.95, 0.93, 0.86]); return; }
   if (k === 'apple' || k === 'crystal_apple') {
     const cr = k === 'crystal_apple';
     box(0.3, 0.28, 0.3, 0, 0, 0, cr ? [0.37, 0.82, 0.94] : [0.85, 0.18, 0.15], cr ? 0.5 : 0);
@@ -7514,7 +7544,7 @@ function makeSave() {
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
-    ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored],
+    ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored], msn: mapSeenPack(),
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0),
     vis: G.visitors || {},
@@ -7599,6 +7629,7 @@ function applySave(s, convert) {
     W.campLv = clamp(s.camp | 0 || 1, 1, 5);
     for (const id of s.clr || []) W.cleared.add(id);
     for (const k of s.ex || []) W.explored.add(k);
+    mapSeenLoad(s.msn);
     markOldChunks(s);
     W.gen5 = !!s.g5w; W.g5 = new Set(Array.isArray(s.g5) ? s.g5 : []); V5W.clear(); WORM5_CACHE.clear(); STRUCT_CACHE.clear();
     if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
@@ -10131,7 +10162,9 @@ function chestLoot(x, y, z) {
     if (r() < 0.22) loot.diamond = 1;
   } else {
     loot.iron = 3 + Math.floor(r() * 5); loot.diamond = 1 + Math.floor(r() * 2); loot.crystal = 1 + Math.floor(r() * 3);
+    loot.paper = 1 + Math.floor(r() * 3);   // Ruinen: Papier für eine Karte
   }
+  if (y < SEA - 4 && !towerOfChest(x, y, z) && r() < 0.3) loot.paper = 1;
   return loot;
 }
 function lootText(loot) {
@@ -10728,6 +10761,7 @@ function heldTool() {
   if (PL.chopping > 0) return tk === 'axe' ? ['axe', heldToolLevel(), null] : [null, 0, null];
   if (tk) return [tk, Math.max(1, heldToolLevel()), it && ITEMS[it] && ITEMS[it].mod ? it : null];
   if (it === 'torch') return ['torch', 0, null];
+  if (it === 'map' || it === 'compass') return [it, 0, null];
   if (it === 'bucket' || it === 'water_bucket') return ['bucket', it === 'water_bucket' ? 2 : 1, null];
   if (it && ITEMS[it] && ITEMS[it].mod && ITEMS[it].place !== 'block') return ['modItem', 0, it];
   const pd = it && placeDef(it);
@@ -11038,6 +11072,7 @@ function drawViewModel(t) {
   if (key !== VM.key) { VM.key = key; VM.swapT = 0; }
   VM.swapT = Math.min(1, VM.swapT + dt / 0.3);
   const swap = 1 - easeOutBack(VM.swapT);
+  if (tool === 'map') return;   // die Karte halten beide Hände (19x_map.js)
   // landing dip
   if (!VM.ground && PL.onGround) VM.land = clamp(VM.air * 1.3, 0.12, 0.7);
   VM.air = PL.onGround ? 0 : VM.air + dt; VM.ground = PL.onGround;
@@ -11437,7 +11472,17 @@ function initInput() {
 
   // touch
   const opts = { passive: false };
+  /* fingers whose touchend never arrived (system gestures, a modal opening, iOS) stay in the list
+     forever: then every new finger counts as the second one of a pinch and the camera zooms
+     with every move. Everything that is not on the screen any more goes away. */
+  const prune = (e) => {
+    const live = new Set(); for (const t of e.touches) live.add(t.identifier);
+    for (const id of [...INPUT.touches.keys()]) if (!live.has(id)) INPUT.touches.delete(id);
+    if (INPUT.joy.active && !live.has(INPUT.joy.id)) { INPUT.joy.active = false; INPUT.joy.x = INPUT.joy.y = 0; INPUT.sprintToggle = false; UI.joy(false); }
+    if (INPUT.touches.size < 2) INPUT.pinch = null;
+  };
   canvas.addEventListener('touchstart', (e) => {
+    prune(e);
     if (!playing()) return;
     e.preventDefault();
     SFX.unlock();
@@ -11462,6 +11507,7 @@ function initInput() {
   canvas.addEventListener('touchmove', (e) => {
     if (!playing()) return;
     e.preventDefault();
+    prune(e);
     for (const t of e.changedTouches) {
       if (INPUT.joy.active && t.identifier === INPUT.joy.id) {
         let dx = t.clientX - INPUT.joy.ox, dy = t.clientY - INPUT.joy.oy;
@@ -11497,9 +11543,11 @@ function initInput() {
         INPUT.tapMode = 'tap';
       }
     }
-    if (INPUT.touches.size < 2) INPUT.pinch = null;
+    prune(e);
   };
   canvas.addEventListener('touchend', endTouch, opts);
+  // a finger lifted somewhere else (a button, a menu): also clean up
+  document.addEventListener('touchend', prune, { passive: true }); document.addEventListener('touchcancel', prune, { passive: true });
   canvas.addEventListener('touchcancel', endTouch, opts);
 }
 /* long press becomes "hold to break" */
@@ -11762,6 +11810,7 @@ function drawItemIcon(canvasEl, key) {
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
   if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
   if (key === 'apple' || key === 'crystal_apple') { drawAppleIcon(ctx, key === 'crystal_apple', S); return; }
+  if (key === 'paper' || key === 'map' || key === 'compass') { drawExploreIcon(ctx, key, S); return; }
   const m = /^(axe|sword|pickaxe|shovel|shears)(\d)?$/.exec(key);
   if (m) drawToolIcon(ctx, m[1], parseInt(m[2] || '1', 10), S);
 }
@@ -12132,7 +12181,6 @@ const SHOP_TIPS = {
   tools: 'Du kannst jedes Werkzeug so oft kaufen, wie du willst. Ein besseres ersetzt das alte nicht, es kommt dazu.',
   weapons: 'Schwerter stapeln sich im Inventar. Voll aufgeladene Schläge machen den meisten Schaden.',
   armor: 'Rüstung ziehst du sofort an. Die bessere bleibt.',
-  mods: 'Sachen aus den Mods dieser Welt.',
 };
 function shopGroups(tab) {
   const list = SHOP.filter((s) => (s.tab === 'tools' && s.tool === 'sword' ? 'weapons' : s.tab) === tab);
@@ -12141,17 +12189,16 @@ function shopGroups(tab) {
   for (const e of list) {
     if (e.tool) add({ axe: 'Äxte', pickaxe: 'Spitzhacken', shovel: 'Schaufeln', shears: 'Sonstiges', sword: 'Schwerter' }[e.tool] || 'Werkzeuge', e);
     else if (e.armor) add(ARMOR_TIER[e.level] === 'iron' ? 'Eisen' : ARMOR_TIER[e.level] === 'diamond' ? 'Diamant' : 'Mythril', e);
+    else if (e.group) add(e.group, e);
     else if (tab === 'survive') add(e.item === 'crystal_apple' ? 'Heilung' : 'Lager', e);
-    else add(tab === 'mods' ? 'Aus Mods' : 'Material', e);
+    else add('Material', e);
   }
   for (const v of g.values()) v.sort((a, b) => (a.level || 0) - (b.level || 0));
   return g;
 }
 UI.shopRefresh = function (rebuild) {
   const grid = $('shopGrid');
-  const hasMods = SHOP.some((s) => s.tab === 'mods');
-  $('shopModsTab').hidden = !hasMods;
-  if (UI.shopTab === 'mods' && !hasMods) UI.shopTab = 'survive';
+  if (UI.shopTab === 'mods') UI.shopTab = 'survive';
   document.querySelectorAll('#mdlShop .tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === UI.shopTab ? 'true' : 'false'));
   $('shopTip').textContent = SHOP_TIPS[UI.shopTab] || '';
   if (rebuild || grid.dataset.tab !== UI.shopTab || grid.dataset.res !== String(TEX.res) || grid.dataset.n !== String(SHOP.length)) {
@@ -12555,7 +12602,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -12578,7 +12625,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
-  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
+  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
     G.state = 'playing'; INPUT.clear(); updateCursorStyle();
     // first person: the mouse looks around again right away, no extra click needed
     if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); }
@@ -13166,7 +13213,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown();
+  bindSettingsUI(); bindFlyDown(); bindCreative();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -13813,6 +13860,7 @@ function gameUpdate(dt) {
   S('Gift', () => updateInfection(dt));
   S('Mods', () => updateMods(dt));
   S('Zuschauer', () => { updateSpectator(dt); syncFlyDown(); });
+  S('Karte', () => updateMapExplore(dt));
   S('Fadenkreuz', () => syncCrosshair());
   S('Wasser', () => updateFlow(dt));
   S('Dorfhändler', () => updateTraders(dt));
@@ -13890,6 +13938,7 @@ function frame(now) {
   if (simulate) { G.playTime += dt; guard('Spiel', () => gameUpdate(dt)); }
   else if (inMenu) guard('Menü', () => menuUpdate(dt));
   else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
+  guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); });
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
   guard('Umgebung', () => { computeEnv(G.time, SETTINGS.viewDist); applyDimEnv(); });
@@ -15182,25 +15231,67 @@ function srvRoomPath(s) { return srvPath(s) + '/room'; }
 function myPlayerData() {
   return { inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
 }
+/* every save of a server world gets a stamp (who, how long the world has run, when). A host only
+   overwrites the save it loaded itself: when somebody else saved in the meantime (two people ran
+   the world at once, a takeover, a restored backup), the newer world wins and the older one is
+   not written over it. That is what reset server worlds before. */
+function srvRev(pt) { return (NET.uid() || '?') + ':' + Math.round(pt) + ':' + Date.now().toString(36); }
+function srvRevPt(r) { const p = String(r || '').split(':'); return +p[1] || 0; }
 const SERVER = {
-  lastUp: 0, busy: false,
-  /* host of a server world: put the world on the server (every couple of minutes, or now) */
+  lastUp: 0, busy: false, rev: null, seed: null, srvKey: '', failN: 0, conflict: false,
+  /* right after loading a server world (host): remember what was loaded */
+  loaded(srv, save, rev) { this.rev = rev || null; this.seed = save.seed; this.srvKey = srv.owner + '/' + srv.wid; this.conflict = false; this.failN = 0; },
+  /* host of a server world: put the world on the server (every two minutes, or now) */
   async save(now) {
-    const srv = G.server; if (!srv || !NET.uid() || !MP.isHost()) return;
-    if (!now && performance.now() - this.lastUp < 120000) return;
+    const srv = G.server; if (!srv || !NET.uid() || MP.isClient() || G.spectator) return;
+    // only the world that was really loaded from this server, never one that is still loading
+    if (G.state === 'menu' || G.state === 'loading' || this.conflict) return;
+    if (this.srvKey !== srv.owner + '/' + srv.wid || W.seed !== this.seed) return;
+    if (!now && performance.now() - this.lastUp < (this.failN ? 30000 : 120000)) return;
     if (this.busy) return;
     this.busy = true; this.lastUp = performance.now();
     try {
       const s = makeSave();
       s.vis = Object.assign({}, s.vis || {});
       s.vis[NET.uid()] = myPlayerData();
+      // has somebody else saved this server since we loaded it?
+      const remote = (await withTimeout(NET.db.ref(srvPath(srv) + '/rev').once('value'), 15000)).val() || null;
+      if (remote !== this.rev && srvRevPt(remote) > s.playTime) { this.busy = false; this.onConflict(srv); return; }
+      const rev = srvRev(s.playTime);
       const upd = {};
       upd[srvPath(srv) + '/save'] = JSON.stringify(s);
+      upd[srvPath(srv) + '/rev'] = rev;
       upd['srvmeta/' + srv.owner + '/' + srv.wid + '/updated'] = NET.TS();
       upd['srvmeta/' + srv.owner + '/' + srv.wid + '/day'] = G.time.day;
-      await withTimeout(NET.db.ref().update(upd), 30000);
-    } catch (e) { console.warn('server save', e); }
+      await withTimeout(NET.db.ref().update(upd), 45000);
+      this.rev = rev;
+      if (this.failN >= 2) UI.toast('Die Server-Welt ist wieder gespeichert.', 'good', 3000, 'srvsave');
+      this.failN = 0;
+    } catch (e) {
+      console.warn('server save', e);
+      this.failN++;
+      if (this.failN === 2 || this.failN % 10 === 0) UI.toast('Die Server-Welt konnte gerade nicht gespeichert werden (' + netMsg(e) + '). Ich versuche es gleich wieder, bleib bitte noch drin.', 'warn', 6000, 'srvsave');
+    }
     this.busy = false;
+  },
+  /* somebody saved a newer version: do not write over it, load it instead */
+  onConflict(srv) {
+    if (this.conflict) return;
+    this.conflict = true;
+    UI.toast('Auf dem Server liegt eine neuere Version dieser Welt. Sie wird geladen, damit nichts verloren geht.', 'warn', 6000, 'srvsave');
+    setTimeout(() => { if (G.server === srv) playServer(srv, true); }, 400);
+  },
+  /* a safety copy of the server world, by itself every few hours (two slots, the older is replaced) */
+  async autoBackup(srv, raw, save) {
+    try {
+      const b = (await withTimeout(NET.db.ref(srvPath(srv) + '/bak').once('value'), 10000)).val() || {};
+      if (Date.now() - (b.at || 0) < 3 * 3600 * 1000) return;
+      const n = ((b.n | 0) + 1) % 2;
+      const upd = {};
+      upd[srvPath(srv) + '/backups/auto' + n] = { at: Date.now(), day: (save.time && save.time.day) || 1, d: raw, auto: true };
+      upd[srvPath(srv) + '/bak'] = { at: Date.now(), n };
+      await withTimeout(NET.db.ref().update(upd), 60000);
+    } catch (e) { /* next time */ }
   },
   /* upload one of your own worlds as a new server world (a copy: your own world stays as it is) */
   async upload(e) {
@@ -15222,6 +15313,7 @@ const SERVER = {
     const wid = 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     const upd = {};
     upd['srv/' + uid + '/' + wid + '/save'] = JSON.stringify(s);
+    upd['srv/' + uid + '/' + wid + '/rev'] = 'upload:1:' + Date.now().toString(36);
     upd['srvmeta/' + uid + '/' + wid] = { name: e.name, seed: s.seed, mode: s.mode, ownerName: NET.name, created: NET.TS(), updated: NET.TS(), day: (s.time && s.time.day) || 1 };
     await withTimeout(NET.db.ref().update(upd), 60000);
     return wid;
@@ -15366,15 +15458,22 @@ async function playServer(srv, keep) {
       // nobody answered: the old host is gone, so run it yourself
     }
   }
-  let save = null;
-  try { const raw = await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000); save = raw.val() ? JSON.parse(raw.val()) : null; }
+  let save = null, raw = null, rev = null;
+  try {
+    // the stamp first: if the world is saved right now, the stamp and the world still belong together
+    rev = (await withTimeout(NET.db.ref(srvPath(srv) + '/rev').once('value'), 30000)).val() || null;
+    raw = (await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000)).val();
+    save = raw ? JSON.parse(raw) : null;
+  }
   catch (e) { showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
   if (!save) { showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
   WORLDS.current = null; G.loadedWorld = null;
   G.server = srv;
   SERVER.lastUp = performance.now();
+  SERVER.loaded(srv, save, rev);
   const you = mine || (save.vis && save.vis[NET.uid()]) || null;
   await loadWorld(save.seed, save, { mode: save.mode, force: true, server: true, you });
+  SERVER.autoBackup(srv, raw, save);
   // the owner's rules for this server
   try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 8000)).val(); W.rules.fall = f !== false; } catch (e) { /* keep */ }
   try { W.rules.pvp = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').once('value'), 8000)).val() === true; } catch (e) { W.rules.pvp = false; }
@@ -15966,6 +16065,7 @@ const SRVB = {
   async restore(srv, b) {
     const upd = {};
     upd[srvPath(srv) + '/save'] = b.d;
+    upd[srvPath(srv) + '/rev'] = 'restore:999999999:' + Date.now().toString(36);   // whoever still runs the old world must not write over it
     upd['srvmeta/' + srv.owner + '/' + srv.wid + '/updated'] = NET.TS();
     upd['srvmeta/' + srv.owner + '/' + srv.wid + '/day'] = b.day;
     await withTimeout(NET.db.ref().update(upd), 60000);
@@ -16008,7 +16108,7 @@ UI.srvAdminRefresh = async function () {
   for (const b of list) {
     const li = document.createElement('div'); li.className = 'li';
     li.innerHTML = '<div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
-    li.querySelector('b').textContent = 'Backup vom ' + stampText(b.at);
+    li.querySelector('b').textContent = (b.id.startsWith('auto') ? 'Automatisches Backup vom ' : 'Backup vom ') + stampText(b.at);
     li.querySelector('span').textContent = 'Tag ' + b.day;
     const act = li.querySelector('.li-act');
     const res = document.createElement('button'); res.className = 'btn'; res.type = 'button'; res.textContent = 'Zurücksetzen';
@@ -16130,7 +16230,8 @@ function bindBackupUI() {
         if (info && info.open) { saMsg('Gerade spielt jemand auf dem Server. Mods ändern geht nur, wenn er leer ist.'); return; }
         const s = await SRVB.save(srv);
         s.wmods = modSlimList(ids.map((id) => (MODS.isInstalled(id) && MODS.get(id)) || old.find((m) => m.id === id)).filter(Boolean));
-        await withTimeout(NET.db.ref(srvPath(srv) + '/save').set(JSON.stringify(s)), 60000);
+        const u2 = {}; u2[srvPath(srv) + '/save'] = JSON.stringify(s); u2[srvPath(srv) + '/rev'] = 'mods:999999999:' + Date.now().toString(36);
+        await withTimeout(NET.db.ref().update(u2), 60000);
         saMsg(s.wmods.length ? s.wmods.length + (s.wmods.length === 1 ? ' Mod läuft' : ' Mods laufen') + ' jetzt auf dem Server, für alle Spieler.' : 'Auf dem Server laufen jetzt keine Mods.', true);
       } catch (e) { saMsg('Das ging nicht. ' + netMsg(e)); }
     } });
@@ -16327,7 +16428,7 @@ const mod = {
   particles(x, y, z, color, n) { send('fx', [+x, +y, +z, String(color || '#ffffff'), (n || 12) | 0]); },
   sound(name) { send('sound', [String(name)]); },
   item(id, def) { send('item', [String(id), clone(def) || {}]); },
-  shop(item, cost, qty, name) { send('shop', [String(item), clone(cost) || {}, (qty || 1) | 0, name ? String(name) : '']); },
+  shop(item, cost, qty, name, tab) { send('shop', [String(item), clone(cost) || {}, (qty || 1) | 0, name ? String(name) : '', tab ? String(tab) : '']); },
   dimension(id, def) { send('dim', [String(id), clone(def) || {}]); },
   enterDimension(id) { send('enter', [String(id)]); },
   leaveDimension() { send('leave', []); },
@@ -16387,9 +16488,9 @@ self.onmessage = function (e) {
 
 /* ---------- eingebaute Mods ---------- */
 const BUILTIN_MODS = [
-  { id: 'creative', name: 'Creative-Modus', icon: '🎨', author: 'Blood Moon', cat: 'easy', rec: true, desc: 'Fliegen (Leertaste doppelt tippen, Strg = runter), unendlich Items und Werkzeuge, alles sofort abbauen, unverwundbar, große Reichweite.',
-    code: `mod.set('fly', true); mod.set('godmode', true); mod.set('instaBreak', true); mod.set('infiniteItems', true); mod.set('reach', 2.5);
-mod.on('start', () => mod.toast('Creative-Modus: Leertaste doppelt tippen zum Fliegen'));` },
+  { id: 'creative', name: 'Creative-Modus', icon: '🎨', author: 'Blood Moon', cat: 'easy', rec: true, desc: 'Kreativ-Menü (🎨 oben oder K): hol dir jedes Item, das es gibt. Fliegen (Leertaste doppelt tippen, C = runter), alles sofort abbauen, unverwundbar, große Reichweite.',
+    code: `mod.set('fly', true); mod.set('godmode', true); mod.set('instaBreak', true); mod.set('creativeMenu', true); mod.set('reach', 2.5);
+mod.on('start', () => mod.toast('Creative-Modus: 🎨 oben (oder K) öffnet das Kreativ-Menü. Leertaste doppelt tippen zum Fliegen.'));` },
   { id: 'turbo', name: 'Turbo-Beine', icon: '⚡', author: 'Blood Moon', cat: 'move', desc: 'Du läufst fast doppelt so schnell und springst höher.', code: `mod.set('speed', 1.8); mod.set('jump', 1.35);` },
   { id: 'moon', name: 'Mondgravitation', icon: '🌙', author: 'Blood Moon', cat: 'move', desc: 'Weit springen, langsam fallen, kein Fallschaden.', code: `mod.set('gravity', 0.35); mod.set('noFall', true); mod.set('jump', 1.1);` },
   { id: 'eternalday', name: 'Ewiger Tag', icon: '☀️', author: 'Blood Moon', cat: 'easy', desc: 'Es bleibt immer Mittag. Keine Nächte, kein Blood Moon.', code: `mod.set('noNight', true);` },
@@ -16647,7 +16748,19 @@ function restoreModItems(list) {
     registerModItem(d.modId || key.split('_')[1], id, { name: d.name, icon: d.emoji, color: d.color, desc: d.desc, food: d.food, damage: d.dmg, use: d.use, place: d.block !== undefined ? BKEY[d.block] : '', tool: d.tool, level: d.level, speed: d.mine, texture: d.tex });
   }
 }
-function modAddShop(rec, item, cost, qty, name) {
+/* in welchen Reiter des Händlers eine Ware aus einer Mod gehört */
+function modShopTab(k, want) {
+  if (['survive', 'build', 'tools', 'weapons', 'armor'].includes(want)) return want;
+  const it = ITEMS[k] || {};
+  if (it.tool === 'sword' || (it.dmg > 0 && !it.tool)) return 'weapons';
+  if (it.tool) return 'tools';
+  if (it.armor) return 'armor';
+  if (it.place && !it.use && !FOOD[k]) return 'build';
+  if (RES_NAME[k]) return 'build';
+  return 'survive';
+}
+const MOD_SHOP_GROUP = { axe: 'Äxte', pickaxe: 'Spitzhacken', shovel: 'Schaufeln', shears: 'Sonstiges', sword: 'Schwerter' };
+function modAddShop(rec, item, cost, qty, name, tab) {
   const k = modResolveItem(rec.m.id, item);
   if (!ITEMS[k] && !RES_NAME[k]) return;
   const c = {};
@@ -16655,7 +16768,9 @@ function modAddShop(rec, item, cost, qty, name) {
   if (!Object.keys(c).length) c.wood = 1;
   const id = 'mod_' + modSlug(rec.m.id) + '_' + modSlug(k);
   if (SHOP.some((e) => e.id === id)) return;
-  const e = { id, tab: 'mods', item: k, qty: clamp(qty | 0, 1, 64), cost: c, name: (name || ((qty | 0) > 1 ? qty + ' ' : '') + itemName(k)).slice(0, 40), desc: (ITEMS[k] && ITEMS[k].desc) || 'Aus der Mod „' + rec.m.name + '“.' };
+  const t = modShopTab(k, tab), it = ITEMS[k] || {};
+  const group = t === 'tools' || t === 'weapons' ? MOD_SHOP_GROUP[it.tool] || (t === 'weapons' ? 'Schwerter' : 'Werkzeuge') : t === 'survive' ? (FOOD[k] ? 'Heilung' : 'Lager') : t === 'build' ? 'Material' : null;
+  const e = { id, tab: t, group, item: k, qty: clamp(qty | 0, 1, 64), cost: c, name: (name || ((qty | 0) > 1 ? qty + ' ' : '') + itemName(k)).slice(0, 40), desc: (ITEMS[k] && ITEMS[k].desc) || 'Aus der Mod „' + rec.m.name + '“.' };
   SHOP.push(e); MODRT.shop.push(e);
 }
 /* ein Item mit „use“ in der Hand und Rechtsklick */
@@ -16757,7 +16872,7 @@ function modCmd(rec, msg) {
     }
     case 'sound': { const n = String(a[0]); if (MOD_SOUNDS.includes(n) && SFX[n]) SFX[n](0); break; }
     case 'item': if (Object.keys(W.modItems || {}).length < 200) { registerModItem(rec.m.id, String(a[0]), a[1] || {}); UI.hotbar(); } break;
-    case 'shop': modAddShop(rec, String(a[0]), a[1], a[2], String(a[3] || '')); break;
+    case 'shop': modAddShop(rec, String(a[0]), a[1], a[2], String(a[3] || ''), String(a[4] || '')); break;
     case 'dim': registerDim(rec.m.id, String(a[0]), a[1] || {}); break;
     case 'enter': { const d = DIMS.get(dimKey(rec.m.id, String(a[0]))); if (d) enterDim(d); break; }
     case 'leave': if (CURDIM) leaveDim(); break;
@@ -18539,7 +18654,8 @@ const MOD_CODE_MAX = 200000;
 const MOD_API_DOC = `// ---------- Werte (gelten, solange die Mod läuft) ----------
 mod.set('speed', 1.5)   // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500,
                         // regen 0-10 (Leben/Sek.), dmg 0.25-10 (Schaden mal), zombieSpeed 0.3-3, zombieHp 0.2-10
-mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, noFall, noNight, peaceful, nightVision, keepInventory
+mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu, noFall, noNight, peaceful, nightVision, keepInventory
+  // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
 mod.effect('speed', 3, 10)   // einen Wert für 10 Sekunden ändern
 
 // ---------- Spieler, Welt, Meldungen ----------
@@ -18603,7 +18719,12 @@ mod.item('stab', {
   speed: 2,           // Abbautempo mal
   place: 'glass' })   // baut diesen Block (auch eigene)
 mod.shop('stab', { wood: 4, crystal: 1 }, 1, 'Name im Shop')
-  // beim Händler im Reiter „Mods“; Preise auch in eigenen Items
+  // der Shop ordnet es AUTOMATISCH in den passenden Reiter ein (es gibt keinen Mods-Reiter):
+  //   Schwerter/Items mit damage → Waffen, Werkzeuge (tool) → Werkzeuge,
+  //   Blöcke (place) → Bauen, alles andere (Essen, use-Items …) → Überleben
+  // 5. Wert optional, um den Reiter selbst zu wählen: 'survive' 'build' 'tools' 'weapons' 'armor'
+mod.shop('stab', { wood: 4 }, 1, 'Zauberstab', 'weapons')
+  // Preise auch in eigenen Items
 
 // ---------- Eigene Kreaturen (max. 40 gleichzeitig) ----------
 mod.mob('schleim', {
@@ -18777,6 +18898,7 @@ function buildModPrompt(d) {
   L.push('- Eigene Sachen heißen in Ereignissen \'x_<modid>_<id>\'. Vergleiche deshalb mit mod.key(\'id\'), z. B. if (e.block === mod.key(\'lampe\')).');
   L.push('- Max. ca. 1500 Befehle pro Sekunde. Pro Frame nur das Nötigste senden.');
   L.push('- Alles für den Spieler auf Deutsch. Kommentare im Code auf Deutsch.');
+  L.push('- Shop: Waren aus mod.shop werden beim Händler automatisch in den passenden Reiter eingeordnet (Waffen, Werkzeuge, Bauen, Überleben). Gib die Item-Eigenschaften (damage, tool, place, food) richtig an, damit das klappt, oder wähle den Reiter mit dem 5. Wert.');
   L.push('- Registriere Blöcke, Items, Kreaturen, Erze, Shop und Dimensionen direkt am Anfang. Dinge beim Betreten der Welt kommen in mod.on(\'start\').');
   L.push('- Die Mod soll am PC UND am Handy gut spielbar sein (Knöpfe mit touch: true für das Handy, Tasten für den PC).');
   L.push('- Mehrspieler: Die Mod läuft bei JEDEM Spieler in der Welt (Freunde, die beitreten, und Server; nicht auf öffentlichen Servern). Welt-Befehle (time, weather, spawn, clearMobs, lightning, spawnMob, hurtMob, removeMobs, setMob, ore, portal, save) wirken nur beim Host (mod.isHost). Prüfe mod.isHost, wenn etwas nur einmal pro Welt passieren soll (z. B. Kreaturen spawnen, Punkte zählen), und nutze mod.broadcast / mod.on(\'message\'), damit alle Spieler denselben Stand haben.');
@@ -19439,6 +19561,446 @@ function syncFlyDown() {
   const show = !!(G.spectator || (MODFX.fly && PL.flying));
   if (b.hidden === show) b.hidden = !show;
   if (!show) INPUT.flyDown = false;
+}
+
+/* ---- 19x_map.js ---- */
+/* =========================================================================
+   Karte und Kompass.
+   - Papier liegt in den Truhen der Ruinen. Die Karte kostet beim Händler
+     5 Kristalle und 1 Papier, der Kompass 4 Eisen und 1 Rubin.
+   - Wo du langläufst, wird die Gegend aufgedeckt (eine Blase von ca. 100
+     Blöcken um dich herum). Die Karte zeigt 1024 Blöcke um dich herum, im
+     Minecraft-Stil: jede Farbe ein Stück Boden, heller wenn es ansteigt.
+   - Dörfer, Ruinen, Türme und das Lager sind markiert, aber nur dort, wo
+     du schon warst.
+   - In der Hand hältst du die Karte mit beiden Händen vor dir.
+   ========================================================================= */
+ITEMS.paper = { name: 'Papier' };
+ITEMS.map = { name: 'Karte' };
+ITEMS.compass = { name: 'Kompass' };
+DROP_COLOR.paper = [0.93, 0.9, 0.8]; DROP_COLOR.map = [0.86, 0.8, 0.62]; DROP_COLOR.compass = [0.6, 0.62, 0.66];
+SHOP.splice(SHOP.findIndex((e) => e.id === 'bed') + 1, 0,
+  { id: 'map', tab: 'survive', group: 'Erkunden', item: 'map', qty: 1, cost: { crystal: 5, paper: 1 }, name: 'Karte', desc: 'Zeigt die Gegend um dich herum (1000 Blöcke breit). Was du erkundest, wird aufgedeckt, mit Dörfern und Ruinen. Papier findest du in Ruinen.' },
+  { id: 'compass', tab: 'survive', group: 'Erkunden', item: 'compass', qty: 1, cost: { iron: 4, ruby: 1 }, name: 'Kompass', desc: 'Die rote Nadel zeigt immer zum Spawn. So findest du nach Hause.' });
+
+const MAP_BLOCKS = 4, MAP_N = 256;          // 4 Blöcke pro Pixel, 256 Pixel = 1024 Blöcke
+const MAP_REVEAL = 100;                      // so weit um dich herum deckt die Karte auf
+const MAPT = new Map();                      // chunk key -> { c: Farben, h: Höhen, w: Wassertiefe, src }
+const MAPV = { t: 0, img: null, ctx: null, data: null, drawT: 0, key: '', structs: [], sx: 1e9, sz: 1e9, el: null, vctx: null, chip: null };
+
+/* ---------- Farben im Minecraft-Stil ---------- */
+const MAP_COL = [], MAP_TINT = [];
+function mapBlockCol(id) {
+  if (MAP_COL[id]) return MAP_COL[id];
+  const ti = TILES[id * 6 + 2], name = TILE_LIST[ti] || '', a = TILE_AVG[ti] || [0.5, 0.5, 0.5];
+  MAP_TINT[id] = /grass_top|leaves|leaf/.test(name);
+  MAP_COL[id] = [a[0] * 255, a[1] * 255, a[2] * 255];
+  return MAP_COL[id];
+}
+const MAP_BIO_COL = ['#3f76e4', '#dbcf8e', '#6fb050', '#4f8f3a', '#c07a2e', '#e6a0c0', '#3f6e44', '#eef3f6', '#e0cf8a', '#8d8d8d', '#2f4a33', '#8fb8d8', '#7a5a8a', '#82c060', '#4e6a3a'].map(hexToRgb);
+const _mci = {};
+/* ein Stück Karte (ein Chunk = 4 x 4 Pixel): aus den echten Blöcken, sonst aus der Weltgenerierung */
+function mapTile(key, cx, cz) {
+  const c = CHM.get(key);
+  const old = MAPT.get(key);
+  if (old && (old.src === 'c' || !c || !c.ready)) return old;
+  const t = { c: new Uint8Array(48), h: new Int16Array(16), w: new Uint8Array(16), src: c && c.ready ? 'c' : 'g' };
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+    const p = j * 4 + i, lx = i * 4 + 2, lz = j * 4 + 2;
+    let r, g, b, h, wd = 0;
+    if (t.src === 'c') {
+      const col = (lx << 4) | lz, base = col * WY;
+      h = c.top[col];
+      let y = h + 1; while (y < WY && c.blocks[base + y] === B.WATER) y++;
+      wd = y - h - 1;
+      const id = h >= 0 ? c.blocks[base + h] : B.STONE;
+      const bc = mapBlockCol(id);
+      if (MAP_TINT[id]) { const k = col * 3; r = bc[0] * c.tint[k] / 128; g = bc[1] * c.tint[k + 1] / 128; b = bc[2] * c.tint[k + 2] / 128; }
+      else { r = bc[0]; g = bc[1]; b = bc[2]; }
+      if (wd > 0) h = y - 1;
+    } else {
+      colInfo(cx * CS + lx, cz * CS + lz, _mci);
+      h = Math.round(_mci.h);
+      if (h < SEA) { wd = SEA - h; h = SEA; }
+      const bc = MAP_BIO_COL[_mci.b] || MAP_BIO_COL[2];
+      r = bc[0] * 255; g = bc[1] * 255; b = bc[2] * 255;
+    }
+    if (wd > 0) { const f = wd <= 2 ? 1 : wd <= 6 ? 0.86 : 0.72; r = 63 * f; g = 118 * f; b = 228 * f; }
+    t.c[p * 3] = clamp(r, 0, 255); t.c[p * 3 + 1] = clamp(g, 0, 255); t.c[p * 3 + 2] = clamp(b, 0, 255);
+    t.h[p] = h; t.w[p] = Math.min(255, wd);
+  }
+  MAPT.set(key, t);
+  return t;
+}
+
+/* ---------- erkunden: was um dich herum ist, wird aufgedeckt ---------- */
+function updateMapExplore(dt) {
+  if (G.state === 'menu' || G.state === 'loading' || PL.dead) return;
+  MAPV.t -= dt; if (MAPV.t > 0) return;
+  MAPV.t = 0.5;
+  const pcx = Math.floor(PL.x / CS), pcz = Math.floor(PL.z / CS), R = Math.ceil(MAP_REVEAL / CS) + 1;
+  let n = 0;
+  for (let dx = -R; dx <= R; dx++) for (let dz = -R; dz <= R; dz++) {
+    const cx = pcx + dx, cz = pcz + dz;
+    if (Math.hypot(cx * CS + 8 - PL.x, cz * CS + 8 - PL.z) > MAP_REVEAL + 8) continue;
+    const key = ckey(cx, cz);
+    if (!W.mapSeen.has(key)) { W.mapSeen.add(key); n++; }
+    // geladene Chunks in der Nähe: die Karte zeigt, was wirklich dort steht (auch Gebautes)
+    const c = CHM.get(key);
+    if (c && c.ready && (!MAPT.has(key) || MAPT.get(key).src !== 'c' || (MAPV.fresh = (MAPV.fresh || 0) + 1) % 40 === 0)) { MAPT.delete(key); mapTile(key, cx, cz); }
+  }
+  if (n) MAPV.key = '';
+}
+function mapSeenPack() { return [...W.mapSeen].map((k) => k.toString(36)).join(','); }
+function mapSeenLoad(s) { W.mapSeen.clear(); MAPT.clear(); MAPV.key = ''; MAPV.sx = 1e9; if (typeof s === 'string' && s) for (const k of s.split(',')) { const v = parseInt(k, 36); if (isFinite(v)) W.mapSeen.add(v); } }
+
+/* ---------- Strukturen in der Gegend (Dörfer, Ruinen, Türme) ---------- */
+function mapStructs() {
+  if (Math.abs(PL.x - MAPV.sx) < 160 && Math.abs(PL.z - MAPV.sz) < 160) return MAPV.structs;
+  MAPV.sx = PL.x; MAPV.sz = PL.z;
+  const out = [], x = PL.x, z = PL.z, R = 700;
+  const scan = (Gs, fn, ok) => {
+    for (let gx = Math.floor((x - R) / Gs); gx <= Math.floor((x + R) / Gs); gx++) for (let gz = Math.floor((z - R) / Gs); gz <= Math.floor((z + R) / Gs); gz++) {
+      const key = fn.name + ':' + gx + ':' + gz;
+      let s = STRUCT_CACHE.get(key);
+      if (s === undefined) { const t = fn(gx, gz); s = t ? Object.assign(t, { ops: null }) : null; STRUCT_CACHE.set(key, s); }
+      if (s && ok(s)) out.push({ kind: s.kind, x: s.x, z: s.z });
+    }
+  };
+  const dist = (s) => Math.hypot(s.x - CX, s.z - CZ) / (W.mode === 'island' ? ISLAND_S : 1);
+  try {
+    scan(ruinGrid(), ruinAt, (s) => dist(s) > RING_OUT - 20);
+    scan(towerGrid(), towerAt, (s) => dist(s) > RING_IN - 80 && dist(s) < RING_OUT + 80);
+    for (const v of villagesNear(x, z, R)) out.push({ kind: 'village', x: v.x, z: v.z });
+  } catch (e) { /* noch keine Welt */ }
+  out.push({ kind: 'spawn', x: CX, z: CZ });
+  MAPV.structs = out;
+  return out;
+}
+
+/* ---------- das Kartenbild (256 x 256 Pixel) ---------- */
+function mapRender() {
+  if (!MAPV.img) {
+    MAPV.img = document.createElement('canvas'); MAPV.img.width = MAPV.img.height = MAP_N;
+    MAPV.ctx = MAPV.img.getContext('2d'); MAPV.data = MAPV.ctx.createImageData(MAP_N, MAP_N);
+  }
+  const bx0 = Math.floor(PL.x / MAP_BLOCKS) * MAP_BLOCKS - (MAP_N / 2) * MAP_BLOCKS, bz0 = Math.floor(PL.z / MAP_BLOCKS) * MAP_BLOCKS - (MAP_N / 2) * MAP_BLOCKS;
+  const key = bx0 + ':' + bz0 + ':' + W.mapSeen.size + ':' + MAPT.size;
+  if (key === MAPV.key && performance.now() - MAPV.drawT < 2500) return { bx0, bz0 };
+  MAPV.key = key; MAPV.drawT = performance.now();
+  const d = MAPV.data.data;
+  const H = new Int16Array(MAP_N * MAP_N); const known = new Uint8Array(MAP_N * MAP_N);
+  const cx0 = Math.floor(bx0 / CS), cz0 = Math.floor(bz0 / CS), cx1 = Math.floor((bx0 + MAP_N * MAP_BLOCKS - 1) / CS), cz1 = Math.floor((bz0 + MAP_N * MAP_BLOCKS - 1) / CS);
+  let budget = 220;   // neue Stücke aus der Weltgenerierung: höchstens so viele pro Bild
+  for (let cx = cx0; cx <= cx1; cx++) for (let cz = cz0; cz <= cz1; cz++) {
+    const k = ckey(cx, cz);
+    if (!W.mapSeen.has(k)) continue;
+    let t = MAPT.get(k);
+    if (!t) { if (budget-- <= 0) { MAPV.key = ''; continue; } t = mapTile(k, cx, cz); }
+    for (let p = 0; p < 16; p++) {
+      const u = ((cx * CS + (p & 3) * 4) - bx0) / MAP_BLOCKS, v = ((cz * CS + (p >> 2) * 4) - bz0) / MAP_BLOCKS;
+      if (u < 0 || v < 0 || u >= MAP_N || v >= MAP_N) continue;
+      const q = v * MAP_N + u, o = q * 4;
+      d[o] = t.c[p * 3]; d[o + 1] = t.c[p * 3 + 1]; d[o + 2] = t.c[p * 3 + 2]; d[o + 3] = 255;
+      H[q] = t.w[p] ? -1000 - t.w[p] : t.h[p]; known[q] = 1;
+    }
+  }
+  for (let v = 0; v < MAP_N; v++) for (let u = 0; u < MAP_N; u++) {
+    const q = v * MAP_N + u, o = q * 4;
+    if (!known[q]) {
+      // noch nicht erkundet: leeres Papier
+      const n = ((u * 7 + v * 13) ^ (u * v)) & 7;
+      d[o] = 214 + n; d[o + 1] = 196 + n; d[o + 2] = 150 + n; d[o + 3] = 255;
+      continue;
+    }
+    const h = H[q];
+    let f;
+    if (h <= -1000) { const wd = -1000 - h; f = wd <= 2 ? 1 : wd <= 6 ? ((u + v) & 1 ? 0.94 : 1) : (u + v) & 1 ? 0.9 : 0.96; }
+    else {
+      // Minecraft: was nach Norden ansteigt ist heller, was abfällt dunkler
+      const n = v > 0 && known[q - MAP_N] && H[q - MAP_N] > -1000 ? H[q - MAP_N] : h;
+      f = h > n ? 1.08 : h < n ? 0.8 : 0.93;
+    }
+    d[o] = Math.min(255, d[o] * f); d[o + 1] = Math.min(255, d[o + 1] * f); d[o + 2] = Math.min(255, d[o + 2] * f);
+  }
+  MAPV.ctx.putImageData(MAPV.data, 0, 0);
+  return { bx0, bz0 };
+}
+
+/* ---------- die Karte in beiden Händen ---------- */
+function mapHeld() { return selectedItem() === 'map' && itemCount('map') > 0; }
+function compassHeld() { return selectedItem() === 'compass' && itemCount('compass') > 0; }
+function camForward() { const V = CAM.view; const fx = -V[2], fz = -V[10], l = Math.hypot(fx, fz) || 1; return [fx / l, fz / l]; }
+function updateMapView() {
+  if (!MAPV.el) {
+    MAPV.el = document.createElement('canvas'); MAPV.el.id = 'mapView'; MAPV.el.hidden = true;
+    const gl = $('gl'); gl.parentNode.insertBefore(MAPV.el, gl.nextSibling);
+    MAPV.vctx = MAPV.el.getContext('2d');
+    MAPV.chip = document.createElement('div'); MAPV.chip.id = 'compassChip'; MAPV.chip.className = 'panel'; MAPV.chip.hidden = true;
+    gl.parentNode.insertBefore(MAPV.chip, MAPV.el.nextSibling);
+  }
+  const play = G.state === 'playing' && !PL.dead && !G.sleep;
+  const show = play && mapHeld() && MODCAM.hand;
+  if (MAPV.el.hidden === show) MAPV.el.hidden = !show;
+  const cs = play && compassHeld();
+  if (MAPV.chip.hidden === cs) MAPV.chip.hidden = !cs;
+  if (cs) {
+    const dx = CX + 0.5 - PL.x, dz = CZ + 0.5 - PL.z, dist = Math.round(Math.hypot(dx, dz));
+    const t = dist < 6 ? '🧭 Du bist am Spawn' : '🧭 Spawn · ' + dist + ' m';
+    if (MAPV.chip.textContent !== t) MAPV.chip.textContent = t;
+  }
+  if (show) drawMapView();
+}
+function drawMapView() {
+  const el = MAPV.el, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const Wd = window.innerWidth, Ht = window.innerHeight;
+  if (el.width !== Math.round(Wd * dpr) || el.height !== Math.round(Ht * dpr)) { el.width = Math.round(Wd * dpr); el.height = Math.round(Ht * dpr); }
+  const ctx = MAPV.vctx;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, el.width, el.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const fp = CAMC.mode === 'fp';
+  const bottom = touchUI() ? 96 : 84;   // über der Hotbar
+  const S = Math.min(Wd * 0.8, (Ht - bottom) * (fp ? 0.84 : 0.66), 640);
+  // laufen: die Karte wippt mit, beim Umsehen schwingt sie ein wenig nach
+  const w = PL.onGround ? PL.walkAmt : 0, ph = PL.walkPhase || 0, calm = SETTINGS.camShake ? 1 : 0.4;
+  const bobX = Math.sin(ph) * S * 0.012 * w * calm, bobY = Math.abs(Math.cos(ph)) * S * 0.018 * w * calm;
+  const cx = Wd / 2 + bobX - (VM.swayX || 0) * S * 0.25, cy = Ht - bottom - S * 0.5 + S * 0.04 + bobY + (VM.swayY || 0) * S * 0.2 + (1 - easeOutBack(Math.min(1, VM.swapT || 1))) * S * 0.5;
+  const tilt = Math.sin(ph) * 0.008 * w * calm;
+  const { bx0, bz0 } = mapRender();
+  ctx.save();
+  ctx.translate(cx, cy); ctx.rotate(tilt);
+  // das Papier
+  const P = S / 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(-P + S * 0.012, -P + S * 0.02, S, S);
+  ctx.fillStyle = '#c9b07a'; ctx.fillRect(-P, -P, S, S);
+  ctx.fillStyle = '#e9dbb2'; ctx.fillRect(-P + S * 0.02, -P + S * 0.02, S * 0.96, S * 0.96);
+  const M = S * 0.07, inner = S - 2 * M;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(MAPV.img, -P + M, -P + M, inner, inner);
+  ctx.strokeStyle = 'rgba(90,64,30,0.55)'; ctx.lineWidth = Math.max(1, S * 0.006); ctx.strokeRect(-P + M, -P + M, inner, inner);
+  // Markierungen: nur dort, wo du schon warst
+  const px = S / MAP_N * (inner / S);
+  const toMap = (x, z) => [-P + M + (x - bx0) / MAP_BLOCKS * px, -P + M + (z - bz0) / MAP_BLOCKS * px];
+  const ms = Math.max(9, S * 0.032);
+  for (const s of mapStructs()) {
+    if (!W.mapSeen.has(ckey(Math.floor(s.x / CS), Math.floor(s.z / CS)))) continue;
+    const [mx, my] = toMap(s.x, s.z);
+    if (mx < -P + M + ms * 0.5 || my < -P + M + ms * 0.5 || mx > P - M - ms * 0.5 || my > P - M - ms * 0.5) continue;
+    drawMapMarker(ctx, s.kind, mx, my, ms);
+  }
+  // du: ein weißer Pfeil in Blickrichtung
+  const [fx, fz] = camForward();
+  const [ux, uy] = toMap(PL.x, PL.z);
+  ctx.save(); ctx.translate(ux, uy); ctx.rotate(Math.atan2(fz, fx) + Math.PI / 2);
+  const a = ms * 0.75;
+  ctx.beginPath(); ctx.moveTo(0, -a); ctx.lineTo(a * 0.62, a * 0.75); ctx.lineTo(0, a * 0.35); ctx.lineTo(-a * 0.62, a * 0.75); ctx.closePath();
+  ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.lineWidth = Math.max(1.5, a * 0.18); ctx.strokeStyle = '#2a2018'; ctx.stroke();
+  ctx.restore();
+  // Maßstab unten
+  ctx.fillStyle = 'rgba(70,50,25,0.85)'; ctx.font = '800 ' + Math.round(Math.max(10, S * 0.026)) + 'px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.fillText('1000 Blöcke', P - M, -P + M * 0.5);
+  ctx.textAlign = 'left'; ctx.fillText('N ↑', -P + M, -P + M * 0.5);
+  ctx.restore();
+  // die Hände, die die Karte halten (Ego-Perspektive)
+  if (fp) for (const side of [-1, 1]) drawMapArm(ctx, side, cx + side * P * 0.86, cy + P * 0.62, S, tilt);
+}
+function rgbCss(c, f = 1) { return 'rgb(' + Math.round(Math.min(1, c[0] * f) * 255) + ',' + Math.round(Math.min(1, c[1] * f) * 255) + ',' + Math.round(Math.min(1, c[2] * f) * 255) + ')'; }
+function drawMapArm(ctx, side, hx, hy, S, tilt) {
+  const C = (skinOf(SETTINGS.skin) || {}).c || {};
+  const ac = G.tools.chestplate | 0;
+  const sleeve = ac ? ARMOR_COL[ac][0] : C.sleeve || STYLE_PLAYER.sleeve, skin = C.hand || C.skin || STYLE_PLAYER.skin;
+  const aw = S * 0.17, len = S * 0.95;
+  ctx.save();
+  ctx.translate(hx, hy); ctx.rotate(tilt + side * -0.42);
+  // Unterarm (Ärmel) von unten ins Bild, die Hand greift den Rand der Karte
+  ctx.fillStyle = rgbCss(sleeve, 0.78); ctx.fillRect(-aw / 2 + side * aw * 0.08, aw * 0.6, aw, len);
+  ctx.fillStyle = rgbCss(sleeve); ctx.fillRect(-aw / 2, aw * 0.6, aw, len);
+  ctx.fillStyle = rgbCss(sleeve, 0.86); ctx.fillRect(side > 0 ? aw * 0.32 : -aw / 2, aw * 0.6, aw * 0.18, len);
+  ctx.fillStyle = rgbCss(skin, 0.9); ctx.fillRect(-aw / 2, -aw * 0.15, aw, aw * 0.8);
+  ctx.fillStyle = rgbCss(skin); ctx.fillRect(-aw / 2, -aw * 0.5, aw, aw * 0.85);
+  ctx.fillStyle = rgbCss(skin, 0.82); ctx.fillRect(side > 0 ? aw * 0.3 : -aw / 2, -aw * 0.5, aw * 0.2, aw * 1.15);
+  ctx.restore();
+}
+function drawMapMarker(ctx, kind, x, y, s) {
+  ctx.save(); ctx.translate(Math.round(x), Math.round(y));
+  const o = (c) => { ctx.strokeStyle = c || '#2a2018'; ctx.lineWidth = Math.max(1.2, s * 0.12); ctx.stroke(); };
+  if (kind === 'village') {
+    ctx.beginPath(); ctx.rect(-s * 0.42, -s * 0.05, s * 0.84, s * 0.5); ctx.fillStyle = '#e8d6a8'; ctx.fill(); o();
+    ctx.beginPath(); ctx.moveTo(-s * 0.58, -s * 0.02); ctx.lineTo(0, -s * 0.52); ctx.lineTo(s * 0.58, -s * 0.02); ctx.closePath(); ctx.fillStyle = '#b5482e'; ctx.fill(); o();
+  } else if (kind === 'ruin') {
+    ctx.fillStyle = '#8f8a80';
+    for (const [dx, h] of [[-0.36, 0.7], [0, 0.42], [0.36, 0.9]]) { ctx.beginPath(); ctx.rect(s * (dx - 0.13), s * (0.45 - h), s * 0.26, s * h); ctx.fill(); o(); }
+  } else if (kind === 'tower') {
+    ctx.beginPath(); ctx.rect(-s * 0.24, -s * 0.5, s * 0.48, s * 0.98); ctx.fillStyle = '#5d6170'; ctx.fill(); o();
+    ctx.fillStyle = '#5d6170'; ctx.beginPath(); ctx.rect(-s * 0.36, -s * 0.62, s * 0.72, s * 0.2); ctx.fill(); o();
+  } else if (kind === 'spawn') {
+    ctx.beginPath(); ctx.moveTo(0, -s * 0.55); ctx.quadraticCurveTo(s * 0.45, -s * 0.05, s * 0.2, s * 0.35); ctx.lineTo(-s * 0.2, s * 0.35); ctx.quadraticCurveTo(-s * 0.45, -s * 0.05, 0, -s * 0.55); ctx.fillStyle = '#ff9a2e'; ctx.fill(); o('#5a2a10');
+    ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(0, s * 0.12, s * 0.15, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ---------- Kompass: die Nadel zeigt zum Spawn, in jeder Lage ---------- */
+function compassNeedle(m) {
+  // die Achsen des Kompasses in der Welt (aus seiner Matrix), dann die Richtung zum Spawn darin
+  const tx = CX + 0.5 - (m[12] || PL.x), tz = CZ + 0.5 - (m[14] || PL.z);
+  const ax = m[0] * tx + m[2] * tz, az = m[8] * tx + m[10] * tz;
+  const lx = ax / (m[0] * m[0] + m[1] * m[1] + m[2] * m[2] || 1), lz = az / (m[8] * m[8] + m[9] * m[9] + m[10] * m[10] || 1);
+  if (Math.hypot(tx, tz) < 3) return performance.now() * 0.004;   // am Spawn dreht sie sich
+  return Math.atan2(lx, lz);
+}
+function drawCompassModel(box, ms, sky) {
+  box(0.26, 0.05, 0.26, 0, 0, 0, [0.55, 0.57, 0.6]);
+  box(0.2, 0.012, 0.2, 0, 0.03, 0, [0.9, 0.88, 0.82]);
+  box(0.03, 0.014, 0.03, 0, 0.042, 0, [0.25, 0.25, 0.28]);
+  ms.push().ry(compassNeedle(ms.m));
+  box(0.028, 0.012, 0.09, 0, 0.045, 0.05, [0.92, 0.16, 0.14], 0.25);
+  box(0.028, 0.012, 0.09, 0, 0.045, -0.05, [0.96, 0.96, 0.96]);
+  ms.pop();
+}
+function drawMapModel(box) {
+  box(0.4, 0.015, 0.4, 0, 0, 0, [0.79, 0.69, 0.48]);
+  box(0.34, 0.016, 0.34, 0, 0.004, 0, [0.42, 0.62, 0.36]);
+  box(0.12, 0.017, 0.16, 0.07, 0.006, -0.05, [0.3, 0.48, 0.85]);
+  box(0.03, 0.018, 0.03, -0.06, 0.008, 0.06, [0.85, 0.2, 0.15]);
+}
+
+/* ---------- Bilder fürs Inventar und den Shop ---------- */
+function drawExploreIcon(ctx, key, S) {
+  const k = S / 64; ctx.save(); ctx.scale(k, k); ctx.imageSmoothingEnabled = false;
+  const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+  if (key === 'paper') {
+    ctx.translate(32, 32); ctx.rotate(-0.12); ctx.translate(-32, -32);
+    px(14, 9, 36, 46, '#c9bf9f'); px(12, 8, 36, 46, '#f3eedf');
+    for (let y = 16; y < 50; y += 6) px(17, y, 26, 2, '#cfc6ab');
+    px(44, 8, 4, 4, '#ddd5bb');
+  } else if (key === 'map') {
+    px(8, 8, 48, 48, '#a88a54'); px(10, 10, 44, 44, '#e9dbb2');
+    px(14, 14, 36, 36, '#6fb050');
+    px(14, 14, 14, 10, '#4f8f3a'); px(30, 30, 20, 20, '#3f76e4'); px(34, 26, 12, 6, '#3f76e4');
+    px(14, 40, 12, 10, '#dbcf8e'); px(20, 20, 6, 6, '#8d8d8d');
+    px(23, 28, 2, 8, '#b5482e'); px(20, 31, 8, 2, '#b5482e');
+  } else if (key === 'compass') {
+    ctx.beginPath(); ctx.arc(32, 33, 23, 0, Math.PI * 2); ctx.fillStyle = '#6f737b'; ctx.fill();
+    ctx.beginPath(); ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.fillStyle = '#9ca1a9'; ctx.fill();
+    ctx.beginPath(); ctx.arc(32, 32, 17, 0, Math.PI * 2); ctx.fillStyle = '#efe9db'; ctx.fill();
+    ctx.translate(32, 32); ctx.rotate(0.6);
+    ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(4, 0); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fillStyle = '#e0302a'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, 15); ctx.lineTo(4, 0); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fillStyle = '#5b5f68'; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#2a2a30'; ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ---- 19y_creative.js ---- */
+/* =========================================================================
+   Kreativ-Menü (nur mit einer Mod, die mod.set('creativeMenu', true) setzt,
+   z. B. der eingebauten Creative-Modus-Mod): oben ein eigener Knopf, dort
+   holst du dir jedes Item. Das Inventar startet leer, nichts füllt sich
+   von selbst auf.
+   ========================================================================= */
+MODFX_DEF.creativeMenu = false;
+if (MODFX.creativeMenu === undefined) MODFX.creativeMenu = false;
+const CRE = { n: 64, tab: 'all' };
+
+function creativeOn() { return !!MODFX.creativeMenu && !G.spectator; }
+function syncCreativeBtn() {
+  const b = $('btnCreative'); if (!b) return;
+  const show = creativeOn() && G.state !== 'menu' && G.state !== 'loading';
+  if (b.hidden === show) b.hidden = !show;
+  if (!creativeOn() && !$('mdlCreative').hidden) UI.closeModal('mdlCreative');
+}
+/* alles, was es gibt: Rohstoffe, Blöcke, Werkzeuge, Rüstung, Sonstiges, Sachen aus Mods */
+function creativeCatalog() {
+  const sec = { res: [], block: [], tool: [], armor: [], other: [], mod: [] };
+  for (const k of RES_KEYS) sec.res.push(k);
+  for (const k in ITEMS) {
+    const it = ITEMS[k];
+    if (it.armor) continue;
+    if (it.mod) { sec.mod.push(k); continue; }
+    if (it.tool) { if (/\d$/.test(k)) sec.tool.push(k); continue; }
+    if (it.place === 'block') sec.block.push(k); else sec.other.push(k);
+  }
+  for (let lv = 1; lv <= 3; lv++) for (const sl of ARMOR_SLOTS) sec.armor.push(sl + lv);
+  sec.tool.sort((a, b) => (ITEMS[a].tool < ITEMS[b].tool ? -1 : ITEMS[a].tool > ITEMS[b].tool ? 1 : (ITEMS[a].level || 0) - (ITEMS[b].level || 0)));
+  return sec;
+}
+const CRE_SECS = [['res', 'Rohstoffe'], ['block', 'Blöcke'], ['tool', 'Werkzeuge und Waffen'], ['armor', 'Rüstung (wird angezogen)'], ['other', 'Sonstiges'], ['mod', 'Aus Mods']];
+function creativeName(k) {
+  const am = /^(helmet|chestplate|leggings|boots)(\d)$/.exec(k);
+  if (am) return ARMOR_NAMES[am[1]][+am[2]];
+  return itemName(k) || k;
+}
+function creativeGive(k) {
+  const am = /^(helmet|chestplate|leggings|boots)(\d)$/.exec(k);
+  if (am) { G.tools[am[1]] = +am[2]; UI.tools(); UI.toast(creativeName(k) + ' angezogen.', 'good', 1400, 'cre'); SFX.ui(); return; }
+  const it = ITEMS[k] || {};
+  const n = it.tool ? 1 : CRE.n;
+  addItem(k, n);
+  syncSlots(); UI.res(); UI.hotbar(); SFX.pop ? SFX.pop() : SFX.ui();
+  UI.toast('+' + n + ' ' + creativeName(k), 'good', 1200, 'cre');
+  UI.creativeRefresh(false);
+}
+UI.openCreative = function () {
+  if (!creativeOn() || G.state !== 'playing') return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  G.state = 'inv';
+  $('mdlCreative').hidden = false;
+  UI.creativeRefresh(true);
+  SFX.ui();
+};
+UI.creativeRefresh = function (rebuild) {
+  const box = $('creGrid');
+  document.querySelectorAll('#mdlCreative .tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === CRE.tab ? 'true' : 'false'));
+  $('creN').textContent = CRE.n === 64 ? 'Je 64' : 'Je 1';
+  $('creN').setAttribute('aria-pressed', String(CRE.n === 1));
+  if (rebuild || box.dataset.tab !== CRE.tab || box.dataset.n !== String(Object.keys(ITEMS).length)) {
+    box.dataset.tab = CRE.tab; box.dataset.n = Object.keys(ITEMS).length;
+    box.innerHTML = '';
+    const cat = creativeCatalog();
+    for (const [id, title] of CRE_SECS) {
+      if (CRE.tab !== 'all' && CRE.tab !== id) continue;
+      if (!cat[id].length) continue;
+      const h = document.createElement('p'); h.className = 'sec-t'; h.textContent = title; box.appendChild(h);
+      const g = document.createElement('div'); g.className = 'inv-grid cre-grid'; box.appendChild(g);
+      for (const k of cat[id]) {
+        const b = document.createElement('button'); b.className = 'inv-it'; b.type = 'button'; b.dataset.k = k;
+        b.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
+        drawItemIcon(b.firstChild, k);
+        b.querySelector('span').textContent = creativeName(k);
+        b.title = 'Nehmen';
+        b.addEventListener('click', () => creativeGive(k));
+        g.appendChild(b);
+      }
+    }
+  }
+  for (const b of box.querySelectorAll('.inv-it')) {
+    const k = b.dataset.k, am = /^(helmet|chestplate|leggings|boots)(\d)$/.exec(k);
+    const n = am ? ((G.tools[am[1]] | 0) === +am[2] ? '✓' : '') : itemCount(k);
+    b.querySelector('b').textContent = n ? n : '';
+  }
+};
+function creativeClear() {
+  for (const k of RES_KEYS) G.inv[k] = 0;
+  G.inv.items = {};
+  G.hotbar = G.hotbar.map(() => null); G.bag = (G.bag || []).map(() => null);
+  syncSlots(); UI.res(); UI.hotbar(); UI.tools();
+  UI.creativeRefresh(false);
+  UI.toast('Inventar geleert.', 'info', 1400, 'cre');
+}
+function bindCreative() {
+  const b = $('btnCreative'); if (!b) return;
+  fastTap(b, () => { if (G.state === 'playing') UI.openCreative(); });
+  document.querySelectorAll('#mdlCreative .tab').forEach((t) => t.addEventListener('click', () => { CRE.tab = t.dataset.tab; UI.creativeRefresh(true); }));
+  $('creN').addEventListener('click', () => { CRE.n = CRE.n === 64 ? 1 : 64; UI.creativeRefresh(false); });
+  $('creClear').addEventListener('click', creativeClear);
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyK' || e.repeat || !creativeOn()) return;
+    const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if (!$('mdlCreative').hidden) { UI.closeModal('mdlCreative'); return; }
+    if (G.state === 'playing') UI.openCreative();
+  });
 }
 
 /* ---- 99_start.js ---- */
