@@ -437,6 +437,31 @@ select.field { appearance: auto; }
 
 /* Sprachchat, Wegpunkte, Weltkarte */
 .vo-btn { font-size: 19px; line-height: 1; position: relative; }
+.vo-btn svg { width: 21px; height: 21px; }
+.vo-btn[data-st="mute"], .vo-btn[data-st="deaf"] { color: #ff8a80; }
+.vo-btn .sl { stroke: #ff5a5a; }
+.vo-how { display: grid; gap: 10px; margin: 4px 0 12px; }
+.vo-how > div { display: flex; gap: 10px; align-items: flex-start; }
+.vo-how p { margin: 0; font-size: 14px; line-height: 1.4; }
+.vo-ic { font-size: 22px; line-height: 1; flex: 0 0 auto; }
+.vo-q { font-size: 17px; font-weight: 800; text-align: center; margin: 14px 0 6px; }
+.vo-yn { justify-content: center; }
+.vo-yn .btn { min-width: 120px; }
+.tag .tvo { text-decoration: none; display: flex; gap: 4px; min-height: 0; }
+.tag .tvo:empty { display: none; }
+.vi { display: inline-flex; align-items: center; gap: 2px; height: 24px; padding: 0 6px; border-radius: 99px; background: rgba(8, 12, 13, 0.62); color: #fff; }
+.vi svg { width: 15px; height: 15px; }
+.vi .sl { stroke: #ff5a5a; }
+.vi.vt { background: rgba(32, 150, 70, 0.92); box-shadow: 0 0 10px rgba(90, 230, 120, 0.6); }
+.vi.vm, .vi.vd { color: #ffb4ae; }
+.vi.vx { background: rgba(190, 40, 40, 0.88); padding: 0 5px; }
+.vi.vx svg { width: 13px; height: 13px; stroke-width: 3; }
+.vi.vidle { color: rgba(255, 255, 255, 0.55); }
+.wv { display: inline-flex; align-items: center; gap: 2px; height: 14px; margin-left: 1px; }
+.wv em { transform-origin: 50% 50%; }
+.wv em { display: block; width: 3px; height: 100%; border-radius: 2px; background: #d8ffe0; animation: wv 0.5s ease-in-out infinite alternate; }
+.wv em:nth-child(2) { animation-delay: 0.15s; } .wv em:nth-child(3) { animation-delay: 0.3s; } .wv em:nth-child(4) { animation-delay: 0.08s; }
+@keyframes wv { from { transform: scaleY(0.25); } to { transform: scaleY(1); } }
 .vo-btn[data-st="live"] { background: rgba(60, 170, 90, 0.55); box-shadow: 0 0 0 calc(var(--lv, 0) * 7px) rgba(90, 230, 120, 0.35); transition: box-shadow 0.08s; }
 .vo-btn[data-st="off"] { opacity: 0.6; }
 .vo-lead { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
@@ -942,9 +967,6 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .mp.off .mp-dot { background: #f0a43a; box-shadow: 0 0 8px #f0a43a; animation: hpPulse 0.9s infinite alternate; }
 .tag { margin-left: -60px; width: 120px; display: grid; justify-items: center; gap: 3px; transform-origin: 50% 100%; }
 .tag b { max-width: 120px; padding: 2px 8px; border-radius: 7px; background: rgba(8, 12, 13, 0.58); font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tag .tmic { text-decoration: none; font-size: 18px; line-height: 1; padding: 3px 5px; border-radius: 99px; background: rgba(40, 170, 80, 0.85); box-shadow: 0 0 0 3px rgba(90, 230, 120, 0.35); visibility: hidden; transform: scale(0.4); transition: transform 0.12s, visibility 0.12s; }
-.tag.talk .tmic { visibility: visible; transform: scale(1); animation: tmicPulse 0.7s ease-in-out infinite alternate; }
-@keyframes tmicPulse { to { box-shadow: 0 0 0 7px rgba(90, 230, 120, 0.12); } }
 .tag i { display: block; width: 46px; height: 5px; border-radius: 99px; background: rgba(8, 12, 13, 0.6); overflow: hidden; }
 .tag i::after { content: ""; display: block; height: 100%; width: var(--hp, 100%); background: var(--leaf); border-radius: 99px; }
 #gl.nocursor { cursor: none; }
@@ -1064,7 +1086,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="res panel" id="resCryBox" title="Leuchtkristalle" hidden><canvas class="res-i" id="icoCry" width="64" height="64"></canvas><b id="resCry">0</b></div>
     </div>
     <div class="modbtns">
-    <button class="ibtn panel vo-btn" id="btnVoice" hidden aria-label="Sprachchat" title="Sprachchat">🔇</button>
+    <button class="ibtn panel vo-btn" id="btnVoice" hidden aria-label="Sprachchat" title="Sprachchat"></button>
+    <button class="ibtn panel vo-btn" id="btnDeaf" hidden aria-label="Die anderen stumm schalten" title="Die anderen stumm schalten"></button>
     <button class="ibtn panel cre-btn" id="btnWp" hidden aria-label="Wegpunkte" title="Wegpunkte (P)">📍</button>
     <button class="ibtn panel cre-btn" id="btnWmap" hidden aria-label="Weltkarte" title="Weltkarte (M)">🗺️</button>
     <button class="ibtn panel cre-btn" id="btnCreative" hidden aria-label="Kreativ-Menü" title="Kreativ-Menü (K)">🎨</button>
@@ -1694,17 +1717,22 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="sheet-h"><div class="grow"><h2 id="voTitle">🎙️ Sprachchat</h2></div></div>
     <div class="sheet-b">
       <div id="voConsent">
-        <p class="vo-lead">Bevor du sprechen kannst, lies bitte kurz, was mit deiner Stimme passiert:</p>
+        <p class="vo-lead">Mit dem Sprachchat redest du mit deinen Freunden, die in derselben Welt sind, wie bei einem Anruf.</p>
+        <div class="vo-how">
+          <div><span class="vo-ic">🎤</span><p><b>Dein Mikrofon ist gleich an.</b> Mit <kbd>H</kbd> (am Handy der Mikrofon-Knopf oben rechts) schaltest du dich stumm und wieder an.</p></div>
+          <div><span class="vo-ic">🔊</span><p><b>Die anderen hörst du sofort.</b> Mit <kbd>J</kbd> (am Handy der Lautsprecher-Knopf) schaltest du sie stumm. Sie hören dich dann trotzdem, wenn dein Mikrofon an ist.</p></div>
+          <div><span class="vo-ic">👀</span><p><b>Über den Namen</b> siehst du, wer gerade redet, wer stumm ist und wer keinen Sprachchat hat (✕).</p></div>
+        </div>
+        <p class="sec-t">Datenschutz, kurz erklärt</p>
         <ul class="vo-list">
-          <li><b>Nur live, nichts gespeichert.</b> Deine Stimme geht verschlüsselt direkt zu den Geräten der Spieler, die in derselben Welt sind. Sie wird nicht aufgenommen und nirgends gespeichert, auch nicht von Blood Moon.</li>
-          <li><b>Du entscheidest.</b> Dein Mikrofon ist am Anfang aus. Erst wenn du H drückst (am Handy 🔇 oben antippen), hören dich die anderen. Nochmal drücken schaltet es wieder aus.</li>
-          <li><b>Verbindungsdaten.</b> Damit sich die Geräte finden, werden technische Daten über die Spiel-Datenbank (Google Firebase) und einen Verbindungsdienst von Google (STUN) ausgetauscht. Dabei sehen die anderen Spieler technisch deine IP-Adresse.</li>
-          <li><b>Fair bleiben.</b> Gespräche anderer heimlich aufzunehmen ist verboten. Wer andere beleidigt oder belästigt, kann gesperrt werden.</li>
-          <li><b>Unter 16?</b> Dann frag vorher deine Eltern, ob du den Sprachchat benutzen darfst.</li>
-          <li><b>Jederzeit zurücknehmen.</b> In den Sprachchat-Einstellungen (Pause → 🎙️ Sprachchat) ziehst du die Zustimmung zurück, oder du deinstallierst die Mod.</li>
+          <li>Deine Stimme geht nur live und verschlüsselt zu den Spielern in derselben Welt. Nichts wird aufgenommen oder gespeichert, auch nicht von Blood Moon.</li>
+          <li>Damit sich die Geräte finden, gehen technische Daten über die Spiel-Datenbank (Google Firebase) und einen Verbindungsdienst von Google (STUN). Die anderen Spieler sehen dabei technisch deine IP-Adresse.</li>
+          <li>Andere heimlich aufzunehmen ist verboten. Wer andere beleidigt oder belästigt, kann gesperrt werden.</li>
+          <li>Unter 16? Dann frag vorher deine Eltern.</li>
+          <li>Du kannst es jederzeit wieder ausschalten: Pause → 🎙️ Sprachchat → „Sprachchat ausschalten“.</li>
         </ul>
-        <label class="vo-agree"><input type="checkbox" id="voAgree"> <span>Ich habe das gelesen und bin einverstanden.</span></label>
-        <div class="btnrow vo-btns"><button class="btn ghost" id="voDecline" type="button">Ablehnen</button><button class="btn primary" id="voAccept" type="button" disabled>Zustimmen</button></div>
+        <p class="vo-q">Willst du den Sprachchat benutzen?</p>
+        <div class="btnrow vo-btns vo-yn"><button class="btn ghost" id="voDecline" type="button">Nein</button><button class="btn primary" id="voAccept" type="button">Ja, los!</button></div>
       </div>
       <div id="voSetup" hidden>
         <div class="rows">
@@ -1715,9 +1743,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         </div>
         <p class="sec-t">Mitspieler</p>
         <div id="voPeers" class="vo-peers"></div>
-        <p class="vo-keys"><kbd>H</kbd> Mikrofon an und aus · am Handy der Knopf 🔇 oben. Es startet immer aus.</p>
-        <label class="vo-agree"><input type="checkbox" id="voSkip"> <span>Beim Start nicht mehr zeigen (später: Pause → 🎙️ Sprachchat)</span></label>
-        <div class="btnrow vo-btns"><button class="btn ghost danger" id="voRevoke" type="button">Zustimmung zurückziehen</button><button class="btn primary" id="voDone" type="button">Fertig</button></div>
+        <p class="vo-keys"><kbd>H</kbd> dich stumm schalten · <kbd>J</kbd> die anderen stumm schalten · am Handy die zwei Knöpfe oben rechts. Dieses Fenster findest du wieder unter Pause → 🎙️ Sprachchat.</p>
+        <div class="btnrow vo-btns"><button class="btn ghost danger" id="voRevoke" type="button">Sprachchat ausschalten</button><button class="btn primary" id="voDone" type="button">Fertig</button></div>
       </div>
     </div>
   </div>
@@ -1778,8 +1805,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.29.1';
+const GAME_VERSION = '2.30.0';
 const GAME_NOTES = [
+  ['2.30.0', 'Sprachchat: zwei Knöpfe oben, das Mikrofon (H) schaltet dich stumm, der Lautsprecher (J) schaltet die anderen stumm (du kannst trotzdem reden). Mikrofon und Ton sind am Anfang an und bleiben so, wie du sie zuletzt hattest. Neuer Start: „Willkommen beim Sprachchat!“ mit kurzer Erklärung und Ja oder Nein. Das Einrichten und die Erklärung kommen nur beim ersten Mal. Über jedem Namen siehst du, ob jemand gerade redet (Mikrofon mit Schallwellen), stumm ist, die anderen stumm geschaltet hat oder keinen Sprachchat hat (✕).'],
   ['2.29.1', 'Sprachchat: geht jetzt auch auf Servern zuverlässig (die Verbindung wartet, bis die Welt fertig geladen ist, und fragt bei Bedarf nochmal), auch auf öffentlichen Servern mit IP (dort laufen nur Sprachchat, Wegpunkte und Weltkarte). Wer gerade spricht, hat ein grünes Mikrofon über dem Namen. Mikrofon- und Lautsprecher-Auswahl: Knopf „Mikrofon erlauben“, danach stehen alle Geräte mit Namen in der Liste.'],
   ['2.29.0', 'Drei neue Mods von Blood Moon. Sprachchat: mit Freunden in derselben Welt sprechen, H (am Handy der Knopf 🔇/🎤) schaltet das Mikrofon an und aus, vorher Datenschutz zustimmen, beim Start Mikrofon und Lautsprecher wählen, wer weiter weg ist, ist leiser, nichts wird aufgenommen. Wegpunkte: P öffnet das Menü, Wegpunkt am Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Weltkarte: M öffnet die ganze Welt als Vollbild mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, zoomen und verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt. Die Kartenfarben passen jetzt besser zu den echten Blöcken.'],
   ['2.28.0', 'Skins: Skin-Editor wie bei Minecraft (eigenen Skin pixeln, 3D-Figur, zwei Schichten zum Ein- und Ausblenden, Pinsel, Radierer, Pipette, Füllen, Spiegeln, Farbkreis und Standardfarben, PNG laden und speichern). Andere Spieler sehen deinen eigenen Skin. Schöneres Skin-Menü mit „Dein eigener Skin“ und Drehen der Figur. Figuren (Skins, Händler, Zombies) wirken fester und klarer, nicht mehr wie aus Pappe oder Filz.'],
@@ -13144,11 +13172,11 @@ UI.frame = function (dt) {
     const r = REMOTE[uid];
     if (!r.seen || !projectToScreen(CAM.vp, r.x, r.y + 2.45, r.z, vw, vh, _scr)) continue;
     let el = nt.children[ni];
-    if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<s class="tmic" aria-label="spricht">🎤</s><b></b><i></i>'; nt.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<s class="tvo"></s><b></b><i></i>'; nt.appendChild(el); }
     el.hidden = false;
-    // spricht gerade (Sprachchat): ein Mikrofon über dem Namen
-    const talk = voiceSpeaking(uid);
-    if (el.classList.contains('talk') !== talk) el.classList.toggle('talk', talk);
+    // Sprachchat über dem Namen: redet (mit Schallwellen), stumm, hört nicht, ✕ = kein Sprachchat
+    const vk = voiceTagKey(uid);
+    if (el.dataset.vk !== vk) { el.dataset.vk = vk; el.firstChild.innerHTML = voiceTagHtml(vk); }
     const tagTxt = r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
     if (el.children[1].textContent !== tagTxt) el.children[1].textContent = tagTxt;
     if ((r.flags & 8) && !r._slept && G.time.phase === 'night') UI.toast(r.name + ' liegt im Bett und schläft.' + (G.sleep ? '' : ' Leg dich auch hin, dann ist die Nacht vorbei.'), 'info', 4200, 'sleep' + uid);
@@ -13687,7 +13715,7 @@ UI.pause = function (on) {
 /* Tasten der eingebauten Mods, wenn sie gerade laufen */
 function modKeysHelp(k, touch) {
   let s = '';
-  if (MODFX.voiceChat) s += touch ? k(['🔇'], 'Mikrofon an und aus') : k(['H'], 'Mikrofon an und aus (Sprachchat)');
+  if (MODFX.voiceChat) s += touch ? k(['🎤'], 'Dich stumm schalten') + k(['🔊'], 'Die anderen stumm schalten') : k(['H'], 'Dich stumm schalten (Sprachchat)') + k(['J'], 'Die anderen stumm schalten');
   if (MODFX.waypoints) s += touch ? k(['📍'], 'Wegpunkte') : k(['P'], 'Wegpunkte');
   if (MODFX.worldMap) s += touch ? k(['🗺️'], 'Weltkarte') : k(['M'], 'Weltkarte');
   return s;
@@ -22291,9 +22319,12 @@ function bindWorldMap() {
      und bei jedem, der die Mod in einer Welt zum ersten Mal erlebt).
    - Beim Start der Welt: Mikrofon und Lautsprecher wählen (beides steht
      auf „Automatisch“).
-   - H (oder der Knopf 🎤 oben) schaltet das Mikrofon an und aus, kein
-     Push-to-Talk. Es startet immer stumm. Stumm heißt: das Mikrofon ist
-     wirklich aus, nicht nur leise.
+   - Zwei Knöpfe oben: Mikrofon (H) schaltet dich stumm oder wieder an,
+     Lautsprecher (J) schaltet die anderen stumm (nur den Sprachchat).
+     Beides ist am Anfang an und bleibt so, wie du es zuletzt hattest.
+     Stumm heißt: das Mikrofon ist wirklich aus, nicht nur leise.
+   - Über jedem Namen: redet gerade (Mikrofon mit Schallwellen), ist stumm,
+     hört die anderen nicht, oder ✕ = hat keinen Sprachchat.
    - Die Stimme geht live und verschlüsselt direkt von Gerät zu Gerät
      (WebRTC). Nichts wird aufgenommen oder gespeichert. Für den Aufbau
      der Verbindung gehen zwei kurze Nachrichten über die Welt (ev/vo).
@@ -22305,8 +22336,8 @@ if (MODFX.voiceChat === undefined) MODFX.voiceChat = false;
 const VOICE_OK_KEY = 'bloodmoon-voice-ok', VOICE_CFG_KEY = 'bloodmoon-voice';
 const VOICE_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
 const VOICE = {
-  begun: false, on: false, muted: true, declined: false, stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Map(),
-  cfg: { mic: '', spk: '', vol: 1, range: 'near', skip: false }, t: 0, lvlT: 0, base: '', test: null, gestureWait: false, busy: false,
+  begun: false, on: false, muted: true, deaf: false, declined: false, rst: new Map(), stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Map(),
+  cfg: { mic: '', spk: '', vol: 1, range: 'near', done: false, muted: false, deaf: false }, t: 0, lvlT: 0, base: '', test: null, gestureWait: false, busy: false,
 };
 function voiceLoadCfg() { try { Object.assign(VOICE.cfg, JSON.parse(localStorage.getItem(VOICE_CFG_KEY) || '{}')); } catch (e) { /* ignore */ } VOICE.cfg.vol = clamp(+VOICE.cfg.vol || 0, 0, 1); }
 function voiceSaveCfg() { try { localStorage.setItem(VOICE_CFG_KEY, JSON.stringify(VOICE.cfg)); } catch (e) { /* ignore */ } }
@@ -22319,7 +22350,7 @@ function voiceWanted() { return !!MODFX.voiceChat && !G.spectator && G.state !==
 function voiceAskConsent() {
   return new Promise((res) => {
     voiceView('consent');
-    $('voAgree').checked = false; $('voAccept').disabled = true;
+    $('mdlVoice').querySelector('.sheet-b').scrollTop = 0;
     VOICE._consent = res;
     voiceShow();
   });
@@ -22343,7 +22374,7 @@ async function modInstallAsk(m, done) {
 }
 
 /* ---------- das Fenster (Zustimmung oder Einstellungen) ---------- */
-function voiceView(v) { $('voConsent').hidden = v !== 'consent'; $('voSetup').hidden = v !== 'setup'; $('voTitle').textContent = v === 'consent' ? '🎙️ Sprachchat: Datenschutz' : '🎙️ Sprachchat'; }
+function voiceView(v) { $('voConsent').hidden = v !== 'consent'; $('voSetup').hidden = v !== 'setup'; $('voTitle').textContent = v === 'consent' ? '🎙️ Willkommen beim Sprachchat!' : '🎙️ Sprachchat einrichten'; }
 function voiceShow() {
   if (document.pointerLockElement) document.exitPointerLock();
   INPUT.clear();
@@ -22359,7 +22390,6 @@ function voiceHide() {
 UI.openVoiceSetup = async function () {
   if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat) { VOICE.declined = false; VOICE.begun = false; } return; }
   voiceView('setup');
-  $('voSkip').checked = !!VOICE.cfg.skip;
   $('voVol').value = Math.round(VOICE.cfg.vol * 100);
   $('voRange').value = VOICE.cfg.range;
   voiceShow();
@@ -22455,7 +22485,7 @@ async function voiceTestStart() {
     VOICE.test.raf = requestAnimationFrame(step);
   };
   step();
-  voNote('Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört.' + (VOICE.muted ? ' Im Spiel ist es erst an, wenn du ' + (touchUI() ? '🔇 antippst.' : 'H drückst.') : ''));
+  voNote('Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört.');
 }
 function voiceTestStop() {
   const t = VOICE.test; VOICE.test = null;
@@ -22496,20 +22526,21 @@ async function voiceBegin() {
   if (!voiceConsented()) {
     const ok = await voiceAskConsent();
     if (!voiceWanted()) { voiceHide(); return; }
-    if (!ok) { voiceHide(); VOICE.declined = true; UI.toast('Sprachchat bleibt aus. Über den Knopf 🎙️ kannst du später doch zustimmen.', 'info', 4200, 'vo'); syncVoiceBtn(); return; }
+    if (!ok) { voiceHide(); VOICE.declined = true; UI.toast('Sprachchat bleibt aus. Willst du doch, tipp oben auf den Mikrofon-Knopf.', 'info', 4200, 'vo'); syncVoiceBtn(); return; }
   }
-  VOICE.on = true; VOICE.muted = true; VOICE.sid = Math.random().toString(36).slice(2, 10);
-  VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base;
+  VOICE.on = true; VOICE.muted = true; VOICE.deaf = !!VOICE.cfg.deaf; VOICE.sid = Math.random().toString(36).slice(2, 10);
+  VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.rst.clear(); VOICE.base = MP.base;
   voiceHi(null);
   syncVoiceBtn();
-  if (!VOICE.cfg.skip) UI.openVoiceSetup();
-  else { voiceHide(); UI.toast(voiceReadyMsg(), 'info', 3600, 'vo'); }
+  // nur beim allerersten Mal: Geräte wählen und eine kurze Erklärung; danach geht es gleich los
+  if (!VOICE.cfg.done) UI.openVoiceSetup();
+  else { voiceHide(); if (!VOICE.cfg.muted) voiceSetMute(false, true); }
 }
 function voiceEnd() {
   if (VOICE.on && MP.active()) voiceSend({ k: 'bye' });
   for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid);
   voiceStopMic();
-  VOICE.on = false; VOICE.begun = false; VOICE.muted = true; VOICE.ready.clear(); VOICE.hiTo.clear();
+  VOICE.on = false; VOICE.begun = false; VOICE.muted = true; VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.rst.clear();
   if (!$('mdlVoice').hidden) voiceHide();
   syncVoiceBtn();
 }
@@ -22518,10 +22549,20 @@ function voiceStopMic() {
   if (VOICE.stream) { VOICE.stream.getTracks().forEach((t) => t.stop()); VOICE.stream = null; }
   for (const p of VOICE.peers.values()) { const tr = voiceTrans(p.pc); if (tr) tr.sender.replaceTrack(null).catch(() => { }); }
 }
-async function voiceToggle() {
+function voiceToggle() {
   if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat && !G.spectator) { VOICE.declined = false; VOICE.begun = false; } return; }
-  if (VOICE.busy) return;
-  if (!VOICE.muted) { VOICE.muted = true; voiceStopMic(); syncVoiceBtn(); UI.toast('🔇 Mikrofon aus', 'info', 1400, 'vo'); SFX.ui(); return; }
+  voiceSetMute(!VOICE.muted);
+}
+/* dich selbst stumm schalten (m = true) oder wieder an; quiet: ohne Meldung (beim Start) */
+async function voiceSetMute(m, quiet) {
+  if (!VOICE.on || VOICE.busy) return;
+  if (!quiet) { VOICE.cfg.muted = m; voiceSaveCfg(); }
+  if (m) {
+    VOICE.muted = true; voiceStopMic(); syncVoiceBtn(); voiceStatus();
+    if (!quiet) { UI.toast('🎤 Du bist stumm geschaltet', 'info', 1400, 'vo'); SFX.ui(); }
+    return;
+  }
+  if (!VOICE.muted) return;
   VOICE.busy = true;
   try {
     const s = await voiceGetMic();
@@ -22530,29 +22571,81 @@ async function voiceToggle() {
     VOICE.lv = voiceLevelOf(s);
     const tr = s.getAudioTracks()[0];
     for (const p of VOICE.peers.values()) { const t = voiceTrans(p.pc); if (t) t.sender.replaceTrack(tr).catch(() => { }); }
-    const n = [...VOICE.peers.values()].filter((p) => p.state === 'ok').length;
-    UI.toast('🎤 Mikrofon an' + (n ? ' · ' + n + (n === 1 ? ' Spieler hört' : ' Spieler hören') + ' dich' : MP.active() ? ' · noch niemand verbunden' : ' · du bist allein in der Welt'), 'good', 2000, 'vo');
-    SFX.ui();
+    if (!quiet) {
+      const n = [...VOICE.peers.values()].filter((p) => p.state === 'ok').length;
+      UI.toast('🎤 Mikrofon an' + (n ? ' · ' + n + (n === 1 ? ' Spieler hört' : ' Spieler hören') + ' dich' : ''), 'good', 1800, 'vo');
+      SFX.ui();
+    }
   } catch (e) { UI.toast(voiceMicErr(e), 'warn', 5000, 'vo'); }
-  finally { VOICE.busy = false; syncVoiceBtn(); }
+  finally { VOICE.busy = false; syncVoiceBtn(); voiceStatus(); }
 }
-function voiceReadyMsg() { return '🎙️ Sprachchat bereit. ' + (touchUI() ? 'Tipp auf 🔇 rechts oben, dann hören dich die anderen.' : 'H schaltet dein Mikrofon an.'); }
+/* die anderen stumm schalten (nur den Sprachchat) */
+function voiceSetDeaf(d) {
+  if (!VOICE.on) { voiceToggle(); return; }
+  VOICE.deaf = d; VOICE.cfg.deaf = d; voiceSaveCfg();
+  for (const p of VOICE.peers.values()) p.audio.muted = d;
+  syncVoiceBtn(); voiceStatus();
+  UI.toast(d ? '🔇 Du hörst die anderen nicht mehr' : '🔊 Du hörst die anderen wieder', 'info', 1600, 'vo'); SFX.ui();
+}
+/* den anderen sagen, ob du stumm bist / sie stumm geschaltet hast */
+function voiceStatus() {
+  const k = (VOICE.muted ? 1 : 0) + (VOICE.deaf ? 2 : 0);
+  if (VOICE.stSent === k + ':' + VOICE.sid || !voiceCanSend()) return;
+  VOICE.stSent = k + ':' + VOICE.sid;
+  voiceSend({ k: 'st' });
+}
+function voiceReadyMsg() { return '🎙️ Sprachchat ist an! ' + (touchUI() ? 'Oben rechts: 🎤 schaltet dich stumm, 🔊 schaltet die anderen stumm.' : 'H schaltet dich stumm, J schaltet die anderen stumm.'); }
+const VO_MIC = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>';
+const VO_SPK = '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>';
+const VO_WAVES = '<path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>';
+const VO_SLASH = '<path class="sl" d="M3.5 3.5l17 17"/>', VO_X = '<path class="sl" d="M16 9.5l5 5M21 9.5l-5 5"/>';
+function voSvg(inner) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; }
 function syncVoiceBtn() {
-  const b = $('btnVoice'); if (!b) return;
+  const b = $('btnVoice'), bd = $('btnDeaf'); if (!b) return;
   const show = !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading';
   if (b.hidden === show) b.hidden = !show;
+  const showD = show && VOICE.on;
+  if (bd.hidden === showD) bd.hidden = !showD;
   const st = !VOICE.on ? 'off' : VOICE.muted ? 'mute' : 'live';
   if (b.dataset.st !== st) {
     b.dataset.st = st;
-    b.textContent = st === 'live' ? '🎤' : '🔇';
-    b.title = st === 'off' ? 'Sprachchat (aus)' : st === 'mute' ? 'Mikrofon ist aus – H oder antippen zum Sprechen' : 'Mikrofon ist an – H oder antippen zum Stummschalten';
+    b.innerHTML = voSvg(VO_MIC + (st === 'live' ? '' : VO_SLASH));
+    b.title = st === 'off' ? 'Sprachchat (aus) – antippen zum Einschalten' : st === 'mute' ? 'Du bist stumm – H oder antippen zum Reden' : 'Mikrofon an – H oder antippen zum Stummschalten';
     b.setAttribute('aria-label', b.title);
+  }
+  const sd = VOICE.deaf ? 'deaf' : 'hear';
+  if (bd.dataset.st !== sd) {
+    bd.dataset.st = sd;
+    bd.innerHTML = voSvg(VO_SPK + (VOICE.deaf ? VO_X : VO_WAVES));
+    bd.title = VOICE.deaf ? 'Die anderen sind stumm – J oder antippen zum Hören' : 'Du hörst die anderen – J oder antippen zum Stummschalten';
+    bd.setAttribute('aria-label', bd.title);
   }
   const pb = $('btnPauseVoice'); if (pb) pb.hidden = !show;
 }
+/* was über dem Namen eines anderen steht: '' (nichts), 'x' (kein Sprachchat), sonst t (redet) m (stumm) d (hört nicht) i (still) */
+function voiceTagKey(uid) {
+  if (!VOICE.on) return '';
+  if (VOICE.ready.has(uid)) {
+    const s = VOICE.rst.get(uid) || 0, m = s & 1, d = s & 2;
+    const t = !m && voiceSpeaking(uid);
+    return ((t ? 't' : '') + (m ? 'm' : '') + (d ? 'd' : '')) || 'i';
+  }
+  const h = VOICE.hiTo.get(uid);
+  return h && (h.n >= 2 || performance.now() - h.f > 7000) ? 'x' : '';
+}
+function voiceTagHtml(k) {
+  if (!k) return '';
+  if (k === 'x') return '<span class="vi vx" title="hat keinen Sprachchat">' + voSvg('<path d="M6 6l12 12M18 6L6 18"/>') + '</span>';
+  let h = '';
+  if (k.includes('t')) h += '<span class="vi vt" title="redet">' + voSvg(VO_MIC) + '<span class="wv"><em></em><em></em><em></em><em></em></span></span>';
+  else if (k.includes('m')) h += '<span class="vi vm" title="stumm">' + voSvg(VO_MIC + VO_SLASH) + '</span>';
+  if (k.includes('d')) h += '<span class="vi vd" title="hört die anderen nicht">' + voSvg(VO_SPK + VO_X) + '</span>';
+  if (k === 'i') h += '<span class="vi vidle" title="Sprachchat an">' + voSvg(VO_MIC) + '</span>';
+  return h;
+}
 
 /* ---------- Verbindungen ---------- */
-function voiceSend(o) { if (!MP.active() || !NET.uid()) return; o.t = 'vo'; o.sid = VOICE.sid; MP.send(o); }
+function voiceSend(o) { if (!MP.active() || !NET.uid()) return; o.t = 'vo'; o.sid = VOICE.sid; o.s = (VOICE.muted ? 1 : 0) + (VOICE.deaf ? 2 : 0); MP.send(o); }
 function voiceHi(to, re) { const o = { k: 'hi' }; if (to) o.to = to; if (re) o.re = 1; voiceSend(o); }
 function voiceTrans(pc) { try { return pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio') || pc.getTransceivers()[0] || null; } catch (e) { return null; } }
 function voiceWaitIce(pc, ms) {
@@ -22568,7 +22661,7 @@ function voiceNewPeer(uid) {
   voiceClosePeer(uid, true);
   const pc = new RTCPeerConnection({ iceServers: VOICE_ICE });
   const audio = document.createElement('audio');
-  audio.autoplay = true; audio.setAttribute('playsinline', ''); audio.hidden = true;
+  audio.autoplay = true; audio.setAttribute('playsinline', ''); audio.hidden = true; audio.muted = VOICE.deaf;
   document.body.appendChild(audio);
   const p = { uid, pc, audio, state: 'wait', t: performance.now(), oid: '', tries: (VOICE.peers.get(uid) || {}).tries || 0, speakT: 0 };
   VOICE.peers.set(uid, p);
@@ -22633,13 +22726,15 @@ function voiceOnSignal(v) {
   if (v.to && v.to !== NET.uid()) return;
   if (!REMOTE[v.u]) return;   // nur sichtbare Spieler (nie ein unsichtbarer Zuschauer)
   const uid = v.u;
+  if (v.k !== 'bye') VOICE.rst.set(uid, (v.s | 0) & 3);
+  if (v.k === 'st') VOICE.ready.set(uid, v.sid);
   if (v.k === 'hi') {
     const old = VOICE.ready.get(uid);
     VOICE.ready.set(uid, v.sid);
     // neu gestartet: die alte Verbindung ist tot
     if (old && old !== v.sid && VOICE.peers.has(uid)) voiceClosePeer(uid);
     if (!v.re) voiceHi(uid, true);
-  } else if (v.k === 'bye') { VOICE.ready.delete(uid); voiceClosePeer(uid); }
+  } else if (v.k === 'bye') { VOICE.ready.delete(uid); VOICE.rst.delete(uid); voiceClosePeer(uid); }
   else if (v.k === 'of' && typeof v.sdp === 'string' && v.sdp.length < 20000) { VOICE.ready.set(uid, v.sid); voiceAnswer(v); }
   else if (v.k === 'an' && typeof v.sdp === 'string' && v.sdp.length < 20000) {
     const p = VOICE.peers.get(uid);
@@ -22667,10 +22762,11 @@ function updateVoice(dt) {
   if (VOICE.t <= 0 && voiceCanSend()) {
     VOICE.t = 1;
     const now = performance.now();
+    voiceStatus();
     for (const uid in REMOTE) {
       // „hallo, ich habe Sprachchat“: bis der andere antwortet, alle 6 Sekunden nochmal (höchstens 8-mal)
       const h = VOICE.hiTo.get(uid);
-      if (!h || (!VOICE.ready.has(uid) && now - h.t > 6000 && h.n < 8)) { VOICE.hiTo.set(uid, { t: now, n: h ? h.n + 1 : 1 }); voiceHi(uid); }
+      if (!h || (!VOICE.ready.has(uid) && now - h.t > 6000 && h.n < 8)) { VOICE.hiTo.set(uid, { t: now, n: h ? h.n + 1 : 1, f: h ? h.f : now }); voiceHi(uid); }
       const p = VOICE.peers.get(uid);
       if (!VOICE.ready.has(uid) || me > uid) continue;   // wer die kleinere Nummer hat, ruft an
       if (!p) voiceOffer(uid);
@@ -22717,7 +22813,8 @@ function voicePeerList() {
   if (!MP.active() || !uids.length) { box.textContent = 'Gerade ist niemand sonst in der Welt. Sobald Freunde mit Sprachchat da sind, verbindet ihr euch von selbst.'; return; }
   for (const uid of uids) {
     const p = VOICE.peers.get(uid), r = REMOTE[uid];
-    const st = !VOICE.ready.has(uid) ? ['hat keinen Sprachchat an', 'off'] : !p || p.state === 'wait' ? ['verbindet …', 'wait'] : p.state === 'ok' ? ['verbunden', 'ok'] : ['keine Verbindung (Netzwerk blockiert)', 'fail'];
+    const rs = VOICE.rst.get(uid) || 0, ex = (rs & 1 ? ' · stumm' : '') + (rs & 2 ? ' · hört nicht zu' : '');
+    const st = !VOICE.ready.has(uid) ? ['hat keinen Sprachchat an', 'off'] : !p || p.state === 'wait' ? ['verbindet …', 'wait'] : p.state === 'ok' ? ['verbunden' + ex, 'ok'] : ['keine Verbindung (Netzwerk blockiert)', 'fail'];
     const row = document.createElement('div'); row.className = 'vo-peer ' + st[1];
     row.innerHTML = '<i></i><b></b><span></span>';
     row.querySelector('b').textContent = r.name || 'Spieler'; row.querySelector('span').textContent = st[0];
@@ -22730,14 +22827,20 @@ function bindVoice() {
   fastTap($('btnVoice'), () => { if (G.state === 'playing') voiceToggle(); });
   $('btnVoice').addEventListener('contextmenu', (e) => { e.preventDefault(); if (G.state === 'playing') UI.openVoiceSetup(); });
   $('btnPauseVoice').addEventListener('click', () => { UI.pause(false); setTimeout(() => UI.openVoiceSetup(), 30); });
-  $('voAgree').addEventListener('change', () => { $('voAccept').disabled = !$('voAgree').checked; });
-  $('voAccept').addEventListener('click', () => { if ($('voAgree').checked) voiceConsentAnswer(true); });
+  fastTap($('btnDeaf'), () => { if (G.state === 'playing') voiceSetDeaf(!VOICE.deaf); });
+  $('voAccept').addEventListener('click', () => voiceConsentAnswer(true));
   $('voDecline').addEventListener('click', () => voiceConsentAnswer(false));
-  $('voDone').addEventListener('click', () => { voiceHide(); UI.toast(voiceReadyMsg(), 'info', 3600, 'vo'); });
+  $('voDone').addEventListener('click', () => {
+    const first = !VOICE.cfg.done;
+    VOICE.cfg.done = true; voiceSaveCfg();
+    voiceHide();
+    // die Erklärung nur einmal, beim ersten Einrichten; das Mikrofon ist dann gleich an
+    if (first) { UI.toast(voiceReadyMsg(), 'info', 5200, 'vo'); if (!VOICE.cfg.muted && VOICE.muted) voiceSetMute(false, true); }
+  });
   $('voMic').addEventListener('change', async () => {
     VOICE.cfg.mic = $('voMic').value; voiceSaveCfg();
     // läuft das Mikrofon schon: gleich das neue nehmen
-    if (VOICE.stream && !VOICE.muted) { voiceStopMic(); VOICE.muted = true; await voiceToggle(); }
+    if (VOICE.stream && !VOICE.muted) { voiceStopMic(); VOICE.muted = true; await voiceSetMute(false, true); }
     voiceTestStart();
   });
   $('voAllow').addEventListener('click', async () => { await voiceAllow(); voiceTestStart(); });
@@ -22745,22 +22848,22 @@ function bindVoice() {
   $('voSpk').addEventListener('change', () => { VOICE.cfg.spk = $('voSpk').value; voiceSaveCfg(); for (const p of VOICE.peers.values()) if (p.audio.setSinkId) p.audio.setSinkId(VOICE.cfg.spk).catch(() => { }); });
   $('voVol').addEventListener('input', () => { VOICE.cfg.vol = clamp(+$('voVol').value / 100, 0, 1); voiceSaveCfg(); });
   $('voRange').addEventListener('change', () => { VOICE.cfg.range = $('voRange').value === 'all' ? 'all' : 'near'; voiceSaveCfg(); });
-  $('voSkip').addEventListener('change', () => { VOICE.cfg.skip = $('voSkip').checked; voiceSaveCfg(); });
   $('voRevoke').addEventListener('click', async () => {
-    const ok = await UI.confirm({ title: 'Zustimmung zurückziehen?', text: 'Der Sprachchat geht sofort aus. Wenn du ihn wieder willst, musst du erneut zustimmen.', yes: 'Zurückziehen' });
+    const ok = await UI.confirm({ title: 'Sprachchat ausschalten?', text: 'Der Sprachchat geht sofort aus und deine Zustimmung wird zurückgenommen. Willst du ihn wieder, tippst du auf den Mikrofon-Knopf oben.', yes: 'Ausschalten' });
     $('mdlVoice').hidden = false;
     if (!ok) return;
     try { localStorage.removeItem(VOICE_OK_KEY); } catch (e) { /* ignore */ }
     voiceHide(); voiceEnd(); VOICE.declined = true;
-    UI.toast('Zustimmung zurückgezogen. Der Sprachchat ist aus.', 'info', 3200, 'vo');
+    UI.toast('Der Sprachchat ist aus.', 'info', 3200, 'vo');
   });
   // Browser spielen Ton erst nach einer Berührung oder einem Klick
   const kick = () => { if (!VOICE.gestureWait) return; VOICE.gestureWait = false; for (const p of VOICE.peers.values()) voicePlay(p.audio); };
   window.addEventListener('pointerdown', kick, true); window.addEventListener('keydown', kick, true);
   window.addEventListener('keydown', (e) => {
-    if (e.code !== 'KeyH' || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !MODFX.voiceChat) return;
+    if ((e.code !== 'KeyH' && e.code !== 'KeyJ') || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !MODFX.voiceChat) return;
     const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
-    if (G.state === 'playing') voiceToggle();
+    if (G.state !== 'playing') return;
+    if (e.code === 'KeyH') voiceToggle(); else voiceSetDeaf(!VOICE.deaf);
   });
   // die Seite wird geschlossen: den anderen Bescheid sagen
   window.addEventListener('pagehide', () => { if (VOICE.on) { voiceSend({ k: 'bye' }); voiceStopMic(); } });
