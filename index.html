@@ -448,7 +448,8 @@ select.field { appearance: auto; }
 .vo-dev { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
 .vo-lvl { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .vo-lvl i { display: block; height: 100%; width: 0; background: var(--leaf); border-radius: 99px; transition: width 0.06s; }
-.vo-note { color: var(--muted); font-size: 12px; font-weight: 600; }
+.vo-note { color: var(--muted); font-size: 12.5px; font-weight: 700; }
+.vo-note.err { color: #ffd479; }
 .vo-sel { width: auto; max-width: 190px; }
 .vo-peers { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
 .vo-peer { display: flex; align-items: center; gap: 8px; }
@@ -941,6 +942,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .mp.off .mp-dot { background: #f0a43a; box-shadow: 0 0 8px #f0a43a; animation: hpPulse 0.9s infinite alternate; }
 .tag { margin-left: -60px; width: 120px; display: grid; justify-items: center; gap: 3px; transform-origin: 50% 100%; }
 .tag b { max-width: 120px; padding: 2px 8px; border-radius: 7px; background: rgba(8, 12, 13, 0.58); font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag .tmic { text-decoration: none; font-size: 18px; line-height: 1; padding: 3px 5px; border-radius: 99px; background: rgba(40, 170, 80, 0.85); box-shadow: 0 0 0 3px rgba(90, 230, 120, 0.35); visibility: hidden; transform: scale(0.4); transition: transform 0.12s, visibility 0.12s; }
+.tag.talk .tmic { visibility: visible; transform: scale(1); animation: tmicPulse 0.7s ease-in-out infinite alternate; }
+@keyframes tmicPulse { to { box-shadow: 0 0 0 7px rgba(90, 230, 120, 0.12); } }
 .tag i { display: block; width: 46px; height: 5px; border-radius: 99px; background: rgba(8, 12, 13, 0.6); overflow: hidden; }
 .tag i::after { content: ""; display: block; height: 100%; width: var(--hp, 100%); background: var(--leaf); border-radius: 99px; }
 #gl.nocursor { cursor: none; }
@@ -1704,8 +1708,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
       <div id="voSetup" hidden>
         <div class="rows">
-          <div class="vo-dev"><label class="flabel" for="voMic">🎤 Mikrofon</label><select class="field" id="voMic"></select><div class="vo-lvl"><i id="voLvl"></i></div><small class="vo-note" id="voMicNote"></small></div>
-          <div class="vo-dev"><label class="flabel" for="voSpk">🔊 Lautsprecher</label><select class="field" id="voSpk"></select><small class="vo-note" id="voSpkNote" hidden>Dein Browser spielt immer über den Standard-Lautsprecher ab.</small></div>
+          <div class="vo-dev"><label class="flabel" for="voMic">🎤 Mikrofon</label><select class="field" id="voMic"><option value="">Automatisch (Standard)</option></select><button class="btn primary" id="voAllow" type="button" hidden>🎤 Mikrofon erlauben</button><div class="vo-lvl"><i id="voLvl"></i></div><small class="vo-note" id="voMicNote"></small></div>
+          <div class="vo-dev"><label class="flabel" for="voSpk">🔊 Lautsprecher</label><select class="field" id="voSpk"><option value="">Automatisch (Standard)</option></select><small class="vo-note" id="voSpkNote" hidden>Dein Browser spielt immer über den Standard-Lautsprecher ab.</small></div>
           <div class="row"><label for="voVol">Lautstärke der anderen</label><div class="rng"><input id="voVol" type="range" min="0" max="100" step="5"></div></div>
           <div class="row"><label for="voRange">Hören<small>Nach Entfernung: wer nah ist, ist laut</small></label><select class="field vo-sel" id="voRange"><option value="near">Nach Entfernung</option><option value="all">Überall gleich laut</option></select></div>
         </div>
@@ -1774,8 +1778,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.29.0';
+const GAME_VERSION = '2.29.1';
 const GAME_NOTES = [
+  ['2.29.1', 'Sprachchat: geht jetzt auch auf Servern zuverlässig (die Verbindung wartet, bis die Welt fertig geladen ist, und fragt bei Bedarf nochmal), auch auf öffentlichen Servern mit IP (dort laufen nur Sprachchat, Wegpunkte und Weltkarte). Wer gerade spricht, hat ein grünes Mikrofon über dem Namen. Mikrofon- und Lautsprecher-Auswahl: Knopf „Mikrofon erlauben“, danach stehen alle Geräte mit Namen in der Liste.'],
   ['2.29.0', 'Drei neue Mods von Blood Moon. Sprachchat: mit Freunden in derselben Welt sprechen, H (am Handy der Knopf 🔇/🎤) schaltet das Mikrofon an und aus, vorher Datenschutz zustimmen, beim Start Mikrofon und Lautsprecher wählen, wer weiter weg ist, ist leiser, nichts wird aufgenommen. Wegpunkte: P öffnet das Menü, Wegpunkt am Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Weltkarte: M öffnet die ganze Welt als Vollbild mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, zoomen und verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt. Die Kartenfarben passen jetzt besser zu den echten Blöcken.'],
   ['2.28.0', 'Skins: Skin-Editor wie bei Minecraft (eigenen Skin pixeln, 3D-Figur, zwei Schichten zum Ein- und Ausblenden, Pinsel, Radierer, Pipette, Füllen, Spiegeln, Farbkreis und Standardfarben, PNG laden und speichern). Andere Spieler sehen deinen eigenen Skin. Schöneres Skin-Menü mit „Dein eigener Skin“ und Drehen der Figur. Figuren (Skins, Händler, Zombies) wirken fester und klarer, nicht mehr wie aus Pappe oder Filz.'],
   ['2.27.1', 'Chat: größere Sprechblasen mit abgeschnittenen Ecken, deine blau, die der anderen grün.'],
@@ -13139,10 +13144,13 @@ UI.frame = function (dt) {
     const r = REMOTE[uid];
     if (!r.seen || !projectToScreen(CAM.vp, r.x, r.y + 2.45, r.z, vw, vh, _scr)) continue;
     let el = nt.children[ni];
-    if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<b></b><i></i>'; nt.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<s class="tmic" aria-label="spricht">🎤</s><b></b><i></i>'; nt.appendChild(el); }
     el.hidden = false;
-    const tagTxt = (voiceSpeaking(uid) ? '🔊 ' : '') + r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
-    if (el.firstChild.textContent !== tagTxt) el.firstChild.textContent = tagTxt;
+    // spricht gerade (Sprachchat): ein Mikrofon über dem Namen
+    const talk = voiceSpeaking(uid);
+    if (el.classList.contains('talk') !== talk) el.classList.toggle('talk', talk);
+    const tagTxt = r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
+    if (el.children[1].textContent !== tagTxt) el.children[1].textContent = tagTxt;
     if ((r.flags & 8) && !r._slept && G.time.phase === 'night') UI.toast(r.name + ' liegt im Bett und schläft.' + (G.sleep ? '' : ' Leg dich auch hin, dann ist die Nacht vorbei.'), 'info', 4200, 'sleep' + uid);
     r._slept = !!(r.flags & 8);
     el.style.transform = 'translate(' + _scr[0].toFixed(1) + 'px,' + (_scr[1] - 26).toFixed(1) + 'px) scale(' + clamp(14 / Math.max(1, _scr[2]) + 0.55, 0.6, 1).toFixed(2) + ')';
@@ -18327,6 +18335,8 @@ mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 
     code: `mod.set('worldMap', true);` },
 ];
 
+/* eingebaute Mods, die auch auf öffentlichen Servern laufen (sie ändern nur deine Anzeige) */
+const MOD_PUBLIC_OK = ['voice', 'waypoints', 'worldmap'];
 /* ---------- Laufzeit ---------- */
 const MODRT = { workers: new Map(), url: null, tick: 0, shop: [] };
 function modWorkerURL() { if (!MODRT.url) MODRT.url = URL.createObjectURL(new Blob([MOD_WORKER_SRC], { type: 'text/javascript' })); return MODRT.url; }
@@ -18348,8 +18358,9 @@ function modsEnd() {
 /* Mods starten: in einer eigenen Welt oder auf einem Server, nie bei Freunden als Gast */
 function modsAllowed() {
   if (G.spectator) return false;
-  // Server: die Mods des Servers laufen bei jedem Spieler, aber nicht auf öffentlichen Servern (mit IP)
-  if (G.server || MP.srv) return !MODRT.srvPublic;
+  // Server: die Mods des Servers laufen bei jedem Spieler, auf öffentlichen Servern (mit IP) nur MOD_PUBLIC_OK
+  // (auf öffentlichen nur die sicheren eingebauten: Sprachchat, Wegpunkte, Weltkarte)
+  if (G.server || MP.srv) return true;
   // Gast bei einem Freund: die Mods seiner Welt laufen auch hier (die Welt bestimmt der Freund)
   if (MP.isClient()) return true;
   return !!WORLDS.current;
@@ -18398,6 +18409,8 @@ async function modsBegin() {
     // installed copies follow too
     for (const m of list) if (MODS.isInstalled(m.id) && !MODS.builtin(m.id)) { try { localStorage.setItem(MODS.PRE + m.id, JSON.stringify(m)); } catch (x) { /* ignore */ } }
   }
+  // öffentlicher Server: fremder Mod-Code läuft nicht, nur die eingebauten, die nichts an der Welt ändern
+  if (MODRT.srvPublic && modServerMode()) list = list.filter((m) => MOD_PUBLIC_OK.includes(m.id) && MODS.builtin(m.id)).map((m) => MODS.slim(MODS.builtin(m.id)));
   if (!list.length) return;
   let n = 0;
   for (const m of list) if (startModWorker(m)) n++;
@@ -20289,6 +20302,8 @@ function modPlayerCmd(rec, c, a) {
 /* the same thing from the other side: a mod of another player did something to you */
 function modNetEvent(v) {
   if (!v || !modsAllowed()) return;
+  // öffentlicher Server: nur die eingebauten Anzeige-Mods laufen, Mod-Nachrichten anderer zählen nicht
+  if (MODRT.srvPublic && modServerMode()) return;
   const from = (REMOTE[v.u] && REMOTE[v.u].name) || v.n || 'Spieler';
   const rec = MODRT.workers.get(String(v.mod));
   // the mods here are not running yet (just joined the world): keep it for a few seconds
@@ -22290,7 +22305,7 @@ if (MODFX.voiceChat === undefined) MODFX.voiceChat = false;
 const VOICE_OK_KEY = 'bloodmoon-voice-ok', VOICE_CFG_KEY = 'bloodmoon-voice';
 const VOICE_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
 const VOICE = {
-  begun: false, on: false, muted: true, declined: false, stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Set(),
+  begun: false, on: false, muted: true, declined: false, stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Map(),
   cfg: { mic: '', spk: '', vol: 1, range: 'near', skip: false }, t: 0, lvlT: 0, base: '', test: null, gestureWait: false, busy: false,
 };
 function voiceLoadCfg() { try { Object.assign(VOICE.cfg, JSON.parse(localStorage.getItem(VOICE_CFG_KEY) || '{}')); } catch (e) { /* ignore */ } VOICE.cfg.vol = clamp(+VOICE.cfg.vol || 0, 0, 1); }
@@ -22353,18 +22368,10 @@ UI.openVoiceSetup = async function () {
   await voiceDevices(true);
   voiceTestStart();
 };
-async function voiceDevices(ask) {
-  const ms = $('voMic'), ss = $('voSpk');
-  let list = [];
-  try {
-    list = await navigator.mediaDevices.enumerateDevices();
-    // ohne Erlaubnis gibt es keine Namen: einmal kurz fragen
-    if (ask && !list.some((d) => d.kind === 'audioinput' && d.label)) {
-      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-      s.getTracks().forEach((t) => t.stop());
-      list = await navigator.mediaDevices.enumerateDevices();
-    }
-  } catch (e) { $('voMicNote').textContent = voiceMicErr(e); }
+/* Mikrofone und Lautsprecher in die Listen. Ohne Erlaubnis verrät der Browser keine Geräte:
+   dann zuerst fragen (Knopf „Mikrofon erlauben“), danach stehen alle Geräte mit Namen da. */
+function voNote(t, err) { const n = $('voMicNote'); n.textContent = t || ''; n.classList.toggle('err', !!err); }
+function voiceFill(list) {
   const fill = (sel, kind, cur) => {
     sel.innerHTML = '';
     const a = document.createElement('option'); a.value = ''; a.textContent = 'Automatisch (Standard)'; sel.appendChild(a);
@@ -22374,12 +22381,44 @@ async function voiceDevices(ask) {
       const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || (kind === 'audioinput' ? 'Mikrofon ' : 'Lautsprecher ') + (++n); sel.appendChild(o);
     }
     sel.value = [...sel.options].some((o) => o.value === cur) ? cur : '';
+    return sel.options.length - 1;
   };
-  fill(ms, 'audioinput', VOICE.cfg.mic);
+  const nm = fill($('voMic'), 'audioinput', VOICE.cfg.mic);
   const sinkOk = 'setSinkId' in HTMLMediaElement.prototype;
-  fill(ss, 'audiooutput', VOICE.cfg.spk);
-  ss.disabled = !sinkOk;
-  $('voSpkNote').hidden = sinkOk;
+  const ns = fill($('voSpk'), 'audiooutput', VOICE.cfg.spk);
+  $('voSpk').disabled = !sinkOk;
+  const named = list.some((d) => d.kind === 'audioinput' && d.label);
+  $('voAllow').hidden = named;
+  $('voSpkNote').hidden = sinkOk && (named || ns > 0);
+  $('voSpkNote').textContent = !sinkOk ? 'Dein Browser spielt immer über den Standard-Lautsprecher ab (auswählen geht nur in Chrome und Edge am PC).' : 'Die Lautsprecher erscheinen hier, sobald das Mikrofon erlaubt ist.';
+  return { nm, ns, named };
+}
+async function voiceList() { try { return await navigator.mediaDevices.enumerateDevices(); } catch (e) { return []; } }
+function voiceFrameBlocked() {
+  try { const fp = document.permissionsPolicy || document.featurePolicy; return !!(fp && fp.allowsFeature && !fp.allowsFeature('microphone')); } catch (e) { return false; }
+}
+async function voiceDevices(ask) {
+  // sofort etwas anzeigen, nie eine leere Liste
+  let list = await voiceList();
+  let r = voiceFill(list);
+  if (r.named || !ask) return;
+  if (voiceFrameBlocked()) { voNote('Das Spiel läuft hier in einem Rahmen, der kein Mikrofon erlaubt. Öffne das Spiel direkt (eigener Tab), dann geht es.', true); return; }
+  await voiceAllow();
+}
+/* einmal nach dem Mikrofon fragen; der Strom wird gleich für den Pegel benutzt */
+async function voiceAllow() {
+  voNote('Dein Browser fragt jetzt nach dem Mikrofon: bitte oben „Zulassen“ drücken.', true);
+  $('voAllow').disabled = true;
+  try {
+    const s = await voiceGetMic();
+    if ($('mdlVoice').hidden) { s.getTracks().forEach((t) => t.stop()); return; }
+    voiceFill(await voiceList());
+    voNote('');
+    VOICE.permStream = s;   // voiceTestStart nimmt ihn
+  } catch (e) {
+    voNote(voiceMicErr(e), true);
+    voiceFill(await voiceList());
+  } finally { $('voAllow').disabled = false; }
 }
 function voiceMicErr(e) {
   const n = e && e.name;
@@ -22401,9 +22440,11 @@ async function voiceGetMic() {
 async function voiceTestStart() {
   voiceTestStop();
   const tk = VOICE.testTk = (VOICE.testTk || 0) + 1;
-  $('voMicNote').textContent = '';
+  voNote('');
   let s = VOICE.stream;
-  if (!s) { try { s = await voiceGetMic(); } catch (e) { $('voMicNote').textContent = voiceMicErr(e); return; } }
+  if (!s && VOICE.permStream && VOICE.permStream.getAudioTracks().some((t) => t.readyState === 'live')) s = VOICE.permStream;
+  VOICE.permStream = null;
+  if (!s) { try { s = await voiceGetMic(); } catch (e) { voNote(voiceMicErr(e), true); return; } }
   if (tk !== VOICE.testTk || $('mdlVoice').hidden) { if (s !== VOICE.stream) s.getTracks().forEach((t) => t.stop()); return; }
   const lv = voiceLevelOf(s);
   VOICE.test = { s, own: s !== VOICE.stream, lv };
@@ -22414,7 +22455,7 @@ async function voiceTestStart() {
     VOICE.test.raf = requestAnimationFrame(step);
   };
   step();
-  $('voMicNote').textContent = VOICE.muted ? 'Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört. Im Spiel ist es erst an, wenn du H drückst.' : 'Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört.';
+  voNote('Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört.' + (VOICE.muted ? ' Im Spiel ist es erst an, wenn du ' + (touchUI() ? '🔇 antippst.' : 'H drückst.') : ''));
 }
 function voiceTestStop() {
   const t = VOICE.test; VOICE.test = null;
@@ -22608,29 +22649,35 @@ function voiceOnSignal(v) {
 }
 
 /* ---------- jedes Bild ---------- */
+function voiceCanSend() { return MP.active() && !!NET.uid() && (MP.isHost() || MP.ready); }
 function updateVoice(dt) {
   syncVoiceBtn();
   const want = voiceWanted();
+  // kurz aus (z. B. wenn die Mods neu starten): nicht gleich alles abbauen
+  if (want) VOICE.offT = 0; else VOICE.offT = (VOICE.offT || 0) + dt;
   if (want && !VOICE.begun && !VOICE.declined) voiceBegin();
-  if (!want && (VOICE.begun || VOICE.on)) { voiceEnd(); VOICE.declined = false; }
+  if (!want && (VOICE.begun || VOICE.on) && (VOICE.offT > 2 || G.state === 'menu' || G.spectator)) { voiceEnd(); VOICE.declined = false; }
   if (!MODFX.voiceChat) VOICE.declined = false;
   if (!VOICE.on) return;
   const me = NET.uid();
   // eine andere Welt / kein Multiplayer mehr: alles neu
-  if (VOICE.base !== MP.base) { for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid); VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base; if (MP.active()) voiceHi(null); }
+  if (VOICE.base !== MP.base) { for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid); VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base; }
   VOICE.t -= dt;
-  if (VOICE.t <= 0 && MP.active() && me) {
+  // erst wenn die Welt fertig geladen ist, kommen Nachrichten an (auf Servern dauert das länger)
+  if (VOICE.t <= 0 && voiceCanSend()) {
     VOICE.t = 1;
     const now = performance.now();
     for (const uid in REMOTE) {
-      if (!VOICE.hiTo.has(uid)) { VOICE.hiTo.add(uid); voiceHi(uid); }
+      // „hallo, ich habe Sprachchat“: bis der andere antwortet, alle 6 Sekunden nochmal (höchstens 8-mal)
+      const h = VOICE.hiTo.get(uid);
+      if (!h || (!VOICE.ready.has(uid) && now - h.t > 6000 && h.n < 8)) { VOICE.hiTo.set(uid, { t: now, n: h ? h.n + 1 : 1 }); voiceHi(uid); }
       const p = VOICE.peers.get(uid);
       if (!VOICE.ready.has(uid) || me > uid) continue;   // wer die kleinere Nummer hat, ruft an
       if (!p) voiceOffer(uid);
       else if ((p.state === 'fail' || (p.state === 'wait' && now - p.t > 20000)) && now - (p.failT || p.t) > 6000 && p.tries < 4) voiceOffer(uid);
     }
     for (const uid of [...VOICE.peers.keys()]) if (!REMOTE[uid]) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
-    for (const uid of [...VOICE.hiTo]) if (!REMOTE[uid]) VOICE.hiTo.delete(uid);
+    for (const uid of [...VOICE.hiTo.keys()]) if (!REMOTE[uid]) VOICE.hiTo.delete(uid);
   }
   // wie laut: nach Entfernung, und wer gerade spricht
   const now = performance.now();
@@ -22693,6 +22740,8 @@ function bindVoice() {
     if (VOICE.stream && !VOICE.muted) { voiceStopMic(); VOICE.muted = true; await voiceToggle(); }
     voiceTestStart();
   });
+  $('voAllow').addEventListener('click', async () => { await voiceAllow(); voiceTestStart(); });
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', async () => { if (!$('mdlVoice').hidden && !$('voSetup').hidden) voiceFill(await voiceList()); });
   $('voSpk').addEventListener('change', () => { VOICE.cfg.spk = $('voSpk').value; voiceSaveCfg(); for (const p of VOICE.peers.values()) if (p.audio.setSinkId) p.audio.setSinkId(VOICE.cfg.spk).catch(() => { }); });
   $('voVol').addEventListener('input', () => { VOICE.cfg.vol = clamp(+$('voVol').value / 100, 0, 1); voiceSaveCfg(); });
   $('voRange').addEventListener('change', () => { VOICE.cfg.range = $('voRange').value === 'all' ? 'all' : 'near'; voiceSaveCfg(); });
