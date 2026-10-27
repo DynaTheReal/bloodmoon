@@ -275,6 +275,35 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .fade { position: fixed; inset: 0; background: #020406; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 1.2s ease; display: grid; place-items: center; }
 .fade.on { opacity: 1; }
 .fade span { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.08em; color: var(--muted); }
+/* schlafen: erst fallen die Augen zu, dann ein ruhiger Nachthimmel mit Zzz */
+.fade.sleep { background: transparent; }
+.fade.sleep.on { transition: opacity 0.05s; }
+.fade.sleep::before, .fade.sleep::after { content: ''; position: fixed; inset: 0; opacity: 0; transition: opacity 1.4s; }
+.fade.sleep::before { background: radial-gradient(ellipse at 50% 115%, #23336a 0%, #0b1230 45%, #04060f 80%); }
+.fade.sleep::after { background: radial-gradient(ellipse at 50% 120%, #ffcf86 0%, #f08c5a 30%, #4b4f8f 70%, #1b2348 100%); }
+.fade.sleep.on::before { animation: bgIn 0.6s ease 0.6s forwards; }
+.fade.sleep.morning::after { opacity: 1; }
+@keyframes bgIn { to { opacity: 1; } }
+.fade .lid { position: fixed; left: 0; right: 0; height: 0; background: #020309; transition: height 0.6s ease-in; z-index: 1; }
+.fade .lid.t { top: 0; } .fade .lid.b { bottom: 0; }
+.fade.sleep .lid { height: 51vh; }
+.fade.sleep:not(.on) .lid { height: 0; transition: none; }
+.fade.sleep.on .lid { animation: lidsOpen 0.9s ease-out 1.15s forwards; }
+@keyframes lidsOpen { to { height: 0; } }
+.sleep-c { display: none; position: relative; z-index: 2; text-align: center; }
+.fade.sleep .sleep-c { display: grid; justify-items: center; gap: 8px; animation: sleepIn 1.2s ease 1s both; }
+.fade.sleep span { color: #e8ecff; font-size: clamp(26px, 5vw, 40px); text-shadow: 0 4px 24px rgba(120, 140, 255, 0.4); }
+.fade.sleep small { color: rgba(220, 228, 255, 0.72); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+.fade.sleep.morning span { color: #fff6e2; text-shadow: 0 4px 24px rgba(255, 190, 120, 0.6); }
+.fade.sleep.morning small { color: rgba(255, 244, 225, 0.85); }
+.zzz { position: relative; height: 70px; width: 120px; }
+.zzz i { position: absolute; left: 50%; bottom: 0; font-family: var(--font-display); font-style: normal; color: #b9c6ff; opacity: 0; animation: zzz 2.6s ease-in infinite; }
+.zzz i:nth-child(1) { font-size: 34px; animation-delay: 0s; }
+.zzz i:nth-child(2) { font-size: 26px; animation-delay: 0.85s; }
+.zzz i:nth-child(3) { font-size: 20px; animation-delay: 1.7s; }
+.fade.morning .zzz i { animation: none; opacity: 0; }
+@keyframes zzz { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -64px) scale(1.15) rotate(-12deg); } }
+@keyframes sleepIn { from { opacity: 0; transform: translateY(10px); } }
 
 /* ---------- HUD ---------- */
 .hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; padding-block: var(--safe-t) var(--safe-b); padding-left: var(--safe-l); padding-right: var(--safe-r); }
@@ -1473,7 +1502,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
 <div id="notes" class="notes" aria-live="polite"></div>
-<div id="fade" class="fade" aria-hidden="true"><span id="fadeTxt"></span></div>
+<div id="fade" class="fade" aria-hidden="true"><i class="lid t"></i><i class="lid b"></i><div class="sleep-c"><div class="zzz"><i>Z</i><i>z</i><i>z</i></div><span id="fadeTxt"></span><small id="fadeSub"></small></div></div>
 <script>
 /* ---- 00_lock.js ---- */
 /* =========================================================================
@@ -1508,8 +1537,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.26.0';
+const GAME_VERSION = '2.27.0';
 const GAME_NOTES = [
+  ['2.27.0', 'Schlafen: Zombies zählen nur im Umkreis von 10 Blöcken (auch oben und unten, ein Turm über dir stört nicht mehr). Schlafanimation: die Augen fallen zu, ein Nachthimmel mit Zzz und „Du schläfst …“, am Morgen „Guten Morgen!“. Andere Spieler sehen „💤 schläft“ über dir. Lava mit dem Eimer schöpfen (Lavaeimer) und als Falle ausgießen: Zombies verbrennen darin. Beim ersten Blood Moon kommen noch keine Fledermäuse. Beim Anmelden siehst du jetzt auch, welche Freunde schon online sind. Fix: unendliche Items (alte Creative-Mods, Zuschauer-Modus) sind nur noch geliehen und landen nie mehr im gespeicherten Inventar; liegt noch 999 von allem im Inventar, holt das Spiel auf Servern dein altes Inventar aus dem letzten Backup zurück (oder entfernt die 999er). Der unsichtbare Zuschauer übernimmt nie mehr einen Server und wird beim Wiederverbinden nicht zum normalen Spieler (daher kamen die 999 Items und kein Fallschaden).'],
   ['2.26.0', 'Sozial: der Knopf „Freunde“ heißt jetzt „Sozial“ (im Pausenmenü und im Hauptmenü). Dort chattest du mit deinen Freunden, und auch die Freunde und Freundschaftsanfragen sind dort. Neue Nachrichten kommen im Spiel als Benachrichtigung von oben, antippen öffnet den Chat. Ungelesenes zeigt eine Zahl am Knopf.'],
   ['2.25.0', 'Neue Weltgenerierung (Version 6, nur in Chunks, die noch nie generiert wurden): die Welt besteht aus abwechslungsreichen Gebieten, rund um den Spawn nur schöne Biome, Kirschhügel mit einem See am Fuß, ein Teich nahe am Spawn, viel weniger Berge. Neue Biome: Birkenwald, Savanne, Eisebene mit Eisspitzen und zugefrorenen Seen, Lavendelfeld, Moosgrund. Verlassene Orte: verfallene Hütten (Schattenwald, Wälder), Steinkreise (Wiesen) und Wüstentempel, auf der Karte mit ? markiert. Weniger Türme im Schattenwald. Jede Truhe in Türmen, Ruinen, Minen und verlassenen Orten hat Papier. Die Karte in der Hand ist größer.'],
   ['2.24.2', 'Mods-Animation: der Weltraum kommt früher und es wird schneller dunkel, ein leichtes Rütteln beim Aufstieg, mehr und schnellere Matrix-Zeichen.'],
@@ -6496,7 +6526,7 @@ function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if
 function keptDrops() { return DROPS.filter((d) => d.keep && !d.life).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
 function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]] || TOOL_MAX[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
-const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
+const DROP_COLOR = { chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], lava_bucket: [1.0, 0.45, 0.1], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
 const DROP_GLOW = { diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
 
 /* ---------- placed objects (torch, campfire, bed, door) ---------- */
@@ -6682,7 +6712,7 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     const full = level >= 2, mt = [0.4, 0.42, 0.45];
     box(0.2, 0.22, 0.2, 0, 0.11, 0, COL.iron);
     box(0.23, 0.03, 0.23, 0, 0.225, 0, [0.62, 0.65, 0.7]);
-    box(0.17, 0.012, 0.17, 0, 0.238, 0, full ? [0.3, 0.55, 0.92] : [0.16, 0.17, 0.19], full ? 0.25 : 0);
+    box(0.17, 0.012, 0.17, 0, 0.238, 0, level >= 3 ? [1, 0.48, 0.1] : full ? [0.3, 0.55, 0.92] : [0.16, 0.17, 0.19], level >= 3 ? 1 : full ? 0.25 : 0);
     box(0.02, 0.1, 0.02, -0.12, 0.28, 0, mt); box(0.02, 0.1, 0.02, 0.12, 0.28, 0, mt); box(0.26, 0.02, 0.02, 0, 0.33, 0, mt);
   } else if (tool === 'compass') {
     ms.push().t(0, 0.22, 0.04).rx(1.25).sc(1.5, 1.5, 1.5); drawCompassModel(box, ms, sky); ms.pop();
@@ -6733,9 +6763,10 @@ function drawItemModel(Bt, ms, k, n, sky) {
     box(0.52, 0.04, 0.44, 0, 0.06, 0, dk); box(0.08, 0.1, 0.03, 0, 0.06, 0.23, COL.gold, 0.2);
     return;
   }
-  if (k === 'bucket' || k === 'water_bucket') {
+  if (k === 'bucket' || k === 'water_bucket' || k === 'lava_bucket') {
     box(0.3, 0.32, 0.3, 0, 0, 0, COL.iron); box(0.34, 0.04, 0.34, 0, 0.16, 0, [0.6, 0.63, 0.67]);
     if (k === 'water_bucket') box(0.26, 0.02, 0.26, 0, 0.15, 0, [0.3, 0.55, 0.92], 0.15);
+    else if (k === 'lava_bucket') box(0.26, 0.02, 0.26, 0, 0.15, 0, [1, 0.48, 0.1], 1);
     else box(0.24, 0.02, 0.24, 0, 0.15, 0, [0.25, 0.26, 0.28]);
     box(0.02, 0.16, 0.02, -0.17, 0.25, 0, [0.4, 0.42, 0.45]); box(0.02, 0.16, 0.02, 0.17, 0.25, 0, [0.4, 0.42, 0.45]); box(0.36, 0.02, 0.02, 0, 0.33, 0, [0.4, 0.42, 0.45]);
     return;
@@ -7467,6 +7498,7 @@ const ITEMS = {
   chest: { name: 'Truhe', block: B.CHEST, place: 'chest' },
   bucket: { name: 'Eimer', place: 'bucket' },
   water_bucket: { name: 'Wassereimer', place: 'water' },
+  lava_bucket: { name: 'Lavaeimer', place: 'lava' },
   apple: { name: 'Apfel', food: true },
   crystal_apple: { name: 'Kristallapfel', food: true },
   // tools live in the hotbar and only work while they are held
@@ -7565,7 +7597,7 @@ const SHOP = [
   { id: 'glass', tab: 'build', item: 'glass', qty: 4, cost: { wood: 3 }, name: '4 Glas', desc: 'Fenster lassen Tageslicht ins Haus.' },
   { id: 'door', tab: 'build', item: 'door', qty: 1, cost: { wood: 3 }, name: 'Tür', desc: 'Öffnen und schließen mit E oder einem Klick.' },
   { id: 'chest', tab: 'build', item: 'chest', qty: 1, cost: { wood: 4 }, name: 'Truhe', desc: 'Zum Einlagern von Holz, Wolle, Erzen und Blöcken. Mit E oder einem Klick öffnen.' },
-  { id: 'bucket', tab: 'build', item: 'bucket', qty: 1, cost: { wood: 5 }, name: 'Eimer', desc: 'In die Hand nehmen und auf Wasser klicken: Wassereimer. Damit baust du Brunnen, Teiche und Wassergräben.' },
+  { id: 'bucket', tab: 'build', item: 'bucket', qty: 1, cost: { wood: 5 }, name: 'Eimer', desc: 'In die Hand nehmen und auf Wasser oder Lava klicken. Mit Wasser baust du Brunnen und Gräben, mit Lava Fallen: Zombies verbrennen darin.' },
   { id: 'axe1', tab: 'tools', tool: 'axe', level: 1, cost: { wood: 6 }, name: 'Steinaxt', desc: '25 Schläge pro Baum statt 50.' },
   { id: 'axe2', tab: 'tools', tool: 'axe', level: 2, cost: { wood: 10, iron: 4 }, name: 'Eisenaxt', desc: '12 Schläge pro Baum.' },
   { id: 'axe3', tab: 'tools', tool: 'axe', level: 3, cost: { wood: 16, diamond: 3 }, name: 'Diamantaxt', desc: 'Nur 6 Schläge pro Baum.' },
@@ -7890,7 +7922,7 @@ function makeSave() {
   return {
     v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], g6w: W.gen6 ? 1 : 0, g6: W.gen6 ? [] : [...W.g6], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
-    inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
+    inv: realInv().inv, tools: realInv().tools, hotbar: realInv().hotbar, bag: realInv().bag, sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored], msn: mapSeenPack(),
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
@@ -8797,6 +8829,12 @@ function placementFor(target, item) {
     if (getB(x, y, z) === B.LAVA) return { x, y, z, id: B.COBBLE, meta: null, cool: true };
     return { x, y, z, id: B.WATER, meta: null, delayed: true };
   }
+  if (def.place === 'lava') {
+    // Lava in Wasser: wird zu Bruchstein
+    if (getB(x, y, z) === B.WATER) return { x, y, z, id: B.COBBLE, meta: null, cool: true };
+    if (entityBlocksCell(x, y, z)) return null;
+    return { x, y, z, id: B.LAVA, meta: null };
+  }
   if (def.place === 'door') {
     if (!SOLID[below] || !replaceable(getB(x, y + 1, z)) || entityBlocksCell(x, y, z) || entityBlocksCell(x, y + 1, z)) return null;
     return { x, y, z, id: B.DOOR, meta: yawDir(), two: [0, 1, 0] };
@@ -8844,7 +8882,20 @@ function waterSourceOf(x, y, z) {
   return null;
 }
 function useBucket(target) {
-  if (!target || target.type !== 'block' || target.id !== B.WATER) { hint('bucket', 'Zeig mit dem Eimer auf Wasser und klick.'); return false; }
+  if (target && target.type === 'block' && target.id === B.LAVA) {
+    // Lava schöpfen: daraus werden Fallen für Zombies
+    if (!target.inReach) { hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
+    if (!takeItem('bucket', 1)) return false;
+    giveInSlot('lava_bucket', 'bucket');
+    setBlock(target.x, target.y, target.z, B.AIR);
+    if (MP.active()) MP.send({ t: 'plc', x: target.x, y: target.y, z: target.z, id: B.AIR });
+    burst(target.x + 0.5, target.y + 0.8, target.z + 0.5, 10, [1, 0.5, 0.1], { speed: 1.4, up: 2, life: 0.5, size: 0.08, spread: 0.8 });
+    SFX.place(B.LAVA);
+    PL.swingT = 0; PL.swingKind = 'hit';
+    tipShow && tipShow('lavatrap', 'Ein Lavaeimer! Gieß die Lava in eine Grube vor deinem Lager: Zombies, die hineinlaufen, verbrennen.');
+    return true;
+  }
+  if (!target || target.type !== 'block' || target.id !== B.WATER) { hint('bucket', 'Zeig mit dem Eimer auf Wasser oder Lava und klick.'); return false; }
   if (!target.inReach) { hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
   let { x, y, z } = target;
   // running or falling water: the bucket takes the source it comes from (like Minecraft, just friendlier)
@@ -8878,7 +8929,7 @@ function placeSelected(target, retry) {
   if (!p) { if (item && target && target.type === 'block' && !target.inReach) hint('reach', 'Zu weit weg. Geh näher ran.'); return false; }
   if (RES_NAME[item]) { if ((G.inv[item] || 0) < 1) return false; G.inv[item]--; UI.res(); }
   else if (!takeItem(item, 1)) return false;
-  if (item === 'water_bucket') giveInSlot('bucket', item);
+  if (item === 'water_bucket' || item === 'lava_bucket') giveInSlot('bucket', item);
   G.placeBuf = null;
   if (p.delayed) { setBlock(p.x, p.y, p.z, p.id, p.meta, { flow: true }); flowLater(p.x, p.y, p.z, 1); }
   else setBlock(p.x, p.y, p.z, p.id, p.meta);
@@ -8956,7 +9007,7 @@ function trySleep(x, y, z) {
   if (T.phase === 'night' && T.blood) { UI.toast('Beim Blood Moon kann niemand schlafen.', 'warn'); SFX.deny(); return; }
   if (!(T.phase === 'night' || T.t > DAY_LEN - 60)) { UI.toast('Spawnpunkt gesetzt. Schlafen kannst du nachts.', 'good'); return; }
   if (T.phase === 'day' && T.bloodTonight) { UI.toast('Heute Nacht kommt der Blood Moon. Kein Schlaf!', 'warn'); SFX.deny(); return; }
-  if (G.zombies.some((zb) => zb.state !== 'die' && zb.state !== 'rise' && Math.hypot(zb.x - PL.x, zb.z - PL.z) < 10)) { UI.toast('Du kannst nicht schlafen, Zombies sind in der Nähe.', 'warn'); SFX.deny(); return; }
+  if (G.zombies.some((zb) => zb.state !== 'die' && zb.state !== 'rise' && zb.type !== 'bat' && Math.hypot(zb.x - PL.x, zb.y - PL.y, zb.z - PL.z) < 10)) { UI.toast('Du kannst nicht schlafen, Zombies sind in der Nähe.', 'warn'); SFX.deny(); return; }
   if (MP.active() && MP.hasGuests()) {
     // with friends the night is only skipped once everybody is in bed
     G.sleep = { t: 0, done: false, mp: true };
@@ -8979,6 +9030,7 @@ function updateSleep(dt) {
     if (G.time.phase === 'day') { G.time.t = DAY_LEN; startNight(); }
     startDay();
     PL.hp = PL.maxHp;
+    UI.sleepMorning();
   }
   if (s.t > 3.2) { G.sleep = null; UI.sleep(false); }
 }
@@ -9183,6 +9235,13 @@ function updateZombies(dt) {
     // the ground is not generated here (far from this world's loaded area): wait
     if (!chunkForBlock(Math.floor(z.x), Math.floor(z.z))) continue;
     stormPush(z, dt, false);
+    // Lava (z. B. eine Falle vor dem Lager): Kreaturen verbrennen darin
+    if (getB(Math.floor(z.x), Math.floor(z.y + 0.1), Math.floor(z.z)) === B.LAVA || getB(Math.floor(z.x), Math.floor(z.y + 1), Math.floor(z.z)) === B.LAVA) {
+      z.lavaT = (z.lavaT || 0) - dt;
+      if (Math.random() < dt * 16) spawnPart({ x: z.x + (Math.random() - 0.5) * 0.6, y: z.y + 0.5 + Math.random(), z: z.z + (Math.random() - 0.5) * 0.6, vx: 0, vy: 1.8, vz: 0, life: 0.5, size: 0.12, r: 1, g: 0.5, b: 0.1, kind: 0, grav: -1, drag: 1, em: 1 });
+      if (z.lavaT <= 0) { z.lavaT = 0.5; damageZombie(z, 30, 0, 0, 0); if (z.state === 'die') continue; }
+      if (z.type === 'zombie' && !(z.burning > 0)) z.burning = 2.5;   // einmal in der Lava: er brennt weiter, bis er umfällt
+    } else z.lavaT = 0;
     if (z.type === 'wolf') { updateWolf(z, dt, tgt, dist, fires); continue; }
     if (z.modCtl) { modMobCtl(z, dt); continue; }
     if (z.type === 'modmob') { updateModMob(z, dt, tgt, dist); continue; }
@@ -9474,7 +9533,7 @@ const BATS = [];
 const BAT_COL = hexToRgb('#1f1a22'), BAT_WING = hexToRgb('#2c2430'), BAT_EAR = hexToRgb('#3a2f3c');
 const ZBAT = { skin: hexToRgb('#6d7a5e'), wing: hexToRgb('#3b3a33'), wingD: hexToRgb('#2a2924'), bone: hexToRgb('#d9d2bd'), blood: hexToRgb('#6a1616'), eye: [1.0, 0.12, 0.08] };
 /* the evening before a blood moon */
-function batEvening() { const T = G.time; return T.phase === 'day' && T.bloodTonight && T.t > DAY_LEN - 170; }
+function batEvening() { const T = G.time; return T.phase === 'day' && T.bloodTonight && T.t > DAY_LEN - 170 && bloodNo(T.night + 1) >= 2; }   // beim ersten Blood Moon noch keine Fledermäuse
 /* openings in the ground around a point: open air straight down, well below the land around */
 function caveMouths(px, pz) {
   const out = [];
@@ -9575,7 +9634,7 @@ function spawnZombieBat(p) {
   });
 }
 function updateBatSpawns(dt, players) {
-  if (G.time.phase !== 'night' || !G.time.blood) return;
+  if (G.time.phase !== 'night' || !G.time.blood || bloodNo() < 2) return;
   G._batT = (G._batT || 0) - dt;
   if (G._batT > 0) return;
   G._batT = 2.2;
@@ -11112,7 +11171,7 @@ function heldTool() {
   if (tk) return [tk, Math.max(1, heldToolLevel()), it && ITEMS[it] && ITEMS[it].mod ? it : null];
   if (it === 'torch') return ['torch', 0, null];
   if (it === 'map' || it === 'compass') return [it, 0, null];
-  if (it === 'bucket' || it === 'water_bucket') return ['bucket', it === 'water_bucket' ? 2 : 1, null];
+  if (it === 'bucket' || it === 'water_bucket' || it === 'lava_bucket') return ['bucket', it === 'lava_bucket' ? 3 : it === 'water_bucket' ? 2 : 1, null];
   if (it && ITEMS[it] && ITEMS[it].mod && ITEMS[it].place !== 'block') return ['modItem', 0, it];
   const pd = it && placeDef(it);
   if (pd && pd.block && (KIND[pd.block] === K_CUBE || KIND[pd.block] === K_GLASS)) return ['block', 0, pd.block];
@@ -12088,11 +12147,12 @@ function drawObjIcon(ctx, key, S) {
     ctx.fillStyle = '#5a3820'; ctx.fillRect(6, 27, 52, 4);
     ctx.fillStyle = '#8f949a'; ctx.fillRect(14, 12, 6, 44); ctx.fillRect(44, 12, 6, 44);
     ctx.fillStyle = '#e2b04a'; rrect(ctx, 28, 24, 8, 10, 2); ctx.fill();
-  } else if (key === 'bucket' || key === 'water_bucket') {
+  } else if (key === 'bucket' || key === 'water_bucket' || key === 'lava_bucket') {
     ctx.strokeStyle = '#6d7278'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(32, 22, 17, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
     ctx.fillStyle = '#9aa0a7'; ctx.beginPath(); ctx.moveTo(13, 22); ctx.lineTo(51, 22); ctx.lineTo(46, 56); ctx.lineTo(18, 56); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#c7ccd2'; ctx.fillRect(14, 22, 36, 5);
     ctx.fillStyle = '#7c8289'; ctx.fillRect(16, 40, 32, 3);
+    if (key === 'lava_bucket') { ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.ellipse(32, 23, 17, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffd36a'; ctx.beginPath(); ctx.ellipse(27, 22, 6, 1.4, 0, 0, TAU); ctx.fill(); }
     if (key === 'water_bucket') { ctx.fillStyle = '#4a8fe0'; ctx.beginPath(); ctx.ellipse(32, 23, 17, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#9fd0ff'; ctx.beginPath(); ctx.ellipse(27, 22, 6, 1.4, 0, 0, TAU); ctx.fill(); }
     else { ctx.fillStyle = '#3a3e43'; ctx.beginPath(); ctx.ellipse(32, 23, 17, 4, 0, 0, TAU); ctx.fill(); }
   }
@@ -12158,7 +12218,7 @@ function drawItemIcon(canvasEl, key) {
     ctx.fillText(it.emoji || '✨', 32, 35); ctx.restore(); return;
   }
   if (it && it.place === 'block') { drawIsoBlock(ctx, it.block, S); return; }
-  if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
+  if (['torch', 'campfire', 'bed', 'door', 'chest', 'bucket', 'water_bucket', 'lava_bucket'].includes(key)) { drawObjIcon(ctx, key, S); return; }
   if (key === 'apple' || key === 'crystal_apple') { drawAppleIcon(ctx, key === 'crystal_apple', S); return; }
   if (key === 'paper' || key === 'map' || key === 'compass') { drawExploreIcon(ctx, key, S); return; }
   const m = /^(axe|sword|pickaxe|shovel|shears)(\d)?$/.exec(key);
@@ -12375,9 +12435,17 @@ UI.death = function () {
   $('deathTxt').textContent = G.time.phase === 'night' ? (G.time.blood ? 'Der Blood Moon hat dich erwischt.' : 'Die Zombies haben dich in Nacht ' + G.time.night + ' erwischt.') : 'Du hast es nicht geschafft.';
   setTimeout(() => { if (PL.dead) { $('scrDeath').hidden = false; if (document.pointerLockElement) document.exitPointerLock(); } }, 900);
 };
+/* schlafen: die Augen fallen zu, ein Nachthimmel mit Zzz, „Du schläfst …“; am Morgen „Guten Morgen!“ */
 UI.sleep = function (on, text) {
-  $('fadeTxt').textContent = on ? (text || 'Du schläfst …') : '';
-  $('fade').classList.toggle('on', on);
+  const f = $('fade');
+  if (on) { $('fadeTxt').textContent = text ? 'Du liegst im Bett' : 'Du schläfst …'; $('fadeSub').textContent = text || 'Die Nacht vergeht'; f.classList.remove('morning'); }
+  if (on) { f.classList.add('sleep'); void f.offsetWidth; f.classList.add('on'); }
+  else { f.classList.remove('on'); setTimeout(() => { if (!f.classList.contains('on')) f.classList.remove('morning', 'sleep'); }, 1300); }
+};
+UI.sleepMorning = function () {
+  const f = $('fade'); if (!f.classList.contains('on')) return;
+  f.classList.add('morning');
+  $('fadeTxt').textContent = 'Guten Morgen!'; $('fadeSub').textContent = 'Tag ' + G.time.day + ' · du hast dich ausgeruht';
 };
 
 /* per frame HUD update */
@@ -12494,7 +12562,10 @@ UI.frame = function (dt) {
     let el = nt.children[ni];
     if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<b></b><i></i>'; nt.appendChild(el); }
     el.hidden = false;
-    if (el.firstChild.textContent !== r.name) el.firstChild.textContent = r.name;
+    const tagTxt = r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
+    if (el.firstChild.textContent !== tagTxt) el.firstChild.textContent = tagTxt;
+    if ((r.flags & 8) && !r._slept && G.time.phase === 'night') UI.toast(r.name + ' liegt im Bett und schläft.' + (G.sleep ? '' : ' Leg dich auch hin, dann ist die Nacht vorbei.'), 'info', 4200, 'sleep' + uid);
+    r._slept = !!(r.flags & 8);
     el.style.transform = 'translate(' + _scr[0].toFixed(1) + 'px,' + (_scr[1] - 26).toFixed(1) + 'px) scale(' + clamp(14 / Math.max(1, _scr[2]) + 0.55, 0.6, 1).toFixed(2) + ')';
     el.lastChild.style.setProperty('--hp', clamp(r.hp, 0, 100) + '%');
     ni++;
@@ -13828,6 +13899,7 @@ function resetGameState() {
   G.tools = {};
   G.hotbar = new Array(10).fill(null); G.bag = new Array(BAG_N).fill(null); G.sel = -1;
   G.zombies = []; G.falling = []; G.goal = 0; G.stats = { trees: 0, zombies: 0 }; G.visitors = {};
+  CRE_SHADOW = null;   // geliehene Creative-Items gehören zur alten Welt
   G.bedSpawn = null; G.sleep = null; G.breaking = null; G.hover = null; G.chop = { tree: null, timer: 0.32, phase: 0 }; G.placeBuf = null;
   PL.charge = 1; PL.chargeVis = 0;
   DROPS.length = 0; PARTS.length = 0; ACTIVE_TREES.clear(); ARROWS.length = 0;
@@ -13955,6 +14027,7 @@ async function toMenu(fromMp) {
   if (MP.isHost()) await MP.closeRoom();
   G.server = null;
   if (!G.spectator) NET.setActivity({ w: null, h: false, r: null });
+  if (G.spectator) { creativeEnd(); PL.invuln = 0; PL.flying = false; }
   G.spectator = false;
   showMenu();
   if (WORLDS.current && WORLDS.current.temp) { WORLDS.current = null; G.loadedWorld = null; modAfterTest(); }
@@ -13984,6 +14057,7 @@ function startPlaying() {
   if (CAMC.mode === 'fp' && !touchUI()) requestLock('fp');
   updateCursorStyle();
   modsBegin();
+  setTimeout(creativeLeakCheck, 6000);
   canvas.focus();
   if (G.server && NET.uid() && !MP.active()) MP.openRoom(G.server);
   else if (WORLDS.current && NET.uid() && SETTINGS.allowFriends && !MP.active()) MP.openRoom();
@@ -14799,6 +14873,24 @@ const NET = {
         const prev = this.statuses[fid], v = s.val() || {};
         this.statuses[fid] = v;
         // a friend came online: a short note (not for the first look, and at most every 10 minutes per friend)
+        // gerade angemeldet und der Freund ist schon online: auch eine Meldung (gesammelt, eine für alle)
+        if (!prev && v.on && performance.now() - (this.loginT || 0) < 20000) {
+          this.atLogin = this.atLogin || {};
+          if (!this.atLogin[fid]) {
+            this.atLogin[fid] = v;
+            clearTimeout(this.atLoginT);
+            this.atLoginT = setTimeout(() => {
+              const ids = Object.keys(this.atLogin || {}).filter((f) => this.friends[f] && (this.statuses[f] || {}).on);
+              if (ids.length) {
+                const nm = (f) => (this.friends[f] || {}).name || (this.statuses[f] || {}).name || 'Ein Freund';
+                const st = this.statuses[ids[0]] || {};
+                this.onlineNoteT = this.onlineNoteT || {}; for (const f of ids) this.onlineNoteT[f] = performance.now();
+                if (ids.length === 1) UI.notify('Freund online', nm(ids[0]) + ' ist online', st.w ? 'Spielt in „' + st.w + '“' : '', st.skin, () => CHAT.openSocial('friends'));
+                else UI.notify('Freunde online', nm(ids[0]) + ' und ' + (ids.length - 1) + (ids.length === 2 ? ' weiterer Freund sind' : ' weitere Freunde sind') + ' online', '', st.skin, () => CHAT.openSocial('friends'));
+              }
+            }, 1500);
+          }
+        }
         if (prev && !prev.on && v.on && performance.now() - (this.loginT || 0) > 6000) {
           this.onlineNoteT = this.onlineNoteT || {};
           if (!(this.onlineNoteT[fid] > performance.now() - 600000)) {
@@ -14822,7 +14914,7 @@ const NET = {
     if (this.fRef) { this.fRef.off('value', this.fCb); this.fRef = null; }
     if (this.rRef) { this.rRef.off('value', this.rCb); this.rRef = null; }
     for (const fid in this.statusRefs) { const [r, cb] = this.statusRefs[fid]; r.off('value', cb); }
-    this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {};
+    this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {}; this.atLogin = {};
   },
   stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); CHAT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
   /* srv: { owner, wid, name } of the server this request also invites to */
@@ -14971,6 +15063,7 @@ const MP = {
     NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false, r: null });
   },
   reset() {
+    if (G.spectator) { creativeEnd(); PL.invuln = 0; PL.flying = false; }   // der Zuschauer bekommt sein echtes Inventar zurück, verwundbar wie alle
     G.spectator = false; this.spec = false;
     this.unwatchConn();
     if (this.closeT) { clearTimeout(this.closeT); this.closeT = null; }
@@ -15022,7 +15115,7 @@ const MP = {
     const me = NET.uid();
     this.ref('players/' + me).onDisconnect().remove();
     this.ref('p/' + me).onDisconnect().remove();
-    this.ref('players/' + me).set({ name: NET.name, skin: SETTINGS.skin, back: true, at: NET.TS() }).catch(() => { });
+    this.ref('players/' + me).set(this.spec ? { name: NET.name, spec: true, back: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, back: true, at: NET.TS() }).catch(() => { });
     this.lastP = '';
     this.sendPdata();
   },
@@ -15030,6 +15123,8 @@ const MP = {
     if (this.rejoining) return;
     this.rejoining = true;
     try {
+      // ein Zuschauer wird nie zum normalen Spieler (sonst behält er 999 Items und Unverwundbarkeit)
+      if (this.spec) { await this.leave(false, 'Die Verbindung war weg. Das Zuschauen ist beendet.'); if (G.state !== 'menu') toMenu(true); return; }
       if (this.srv) { const s = this.srv; await this.leave(true); await playServer(s, true); }
       else await joinFriend(this.hostUid, this.hostName, true);
     } finally { this.rejoining = false; }
@@ -15052,10 +15147,12 @@ const MP = {
   takeOver() {
     const srv = this.srv; if (!srv) return;
     const me = NET.uid();
-    const uids = Object.keys(REMOTE).filter((u) => u !== this.hostUid).concat([me]).sort();
+    const uids = Object.keys(REMOTE).filter((u) => u !== this.hostUid).concat(this.spec ? [] : [me]).sort();
     const wait = 600 + uids.indexOf(me) * 3500;
     setTimeout(async () => {
       if (!this.isClient() || this.srv !== srv) return;
+      // der unsichtbare Zuschauer übernimmt nie den Server
+      if (this.spec) { await this.leave(false, 'Der Server ist jetzt leer. Das Zuschauen ist beendet.'); if (G.state !== 'menu') toMenu(true); return; }
       await this.leave(true);
       playServer(srv, true);
     }, wait);
@@ -15306,7 +15403,8 @@ const MP = {
   },
   sendPdata(bye) {
     if (!this.isClient() || !this.ready || this.spec) return;
-    this.ref('pdata/' + NET.uid()).set({ inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
+    const ri = realInv();
+    this.ref('pdata/' + NET.uid()).set({ inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
   },
   sendMobs() {
     const r2 = (v) => Math.round(v * 100) / 100;
@@ -15587,7 +15685,8 @@ const FAVS = {
 function srvRoomPath(s) { return srvPath(s) + '/room'; }
 /* what a player carries: inventory, tools, hotbar, position, health, bed */
 function myPlayerData() {
-  return { inv: G.inv, tools: G.tools, hotbar: G.hotbar.map((k) => k || ''), bag: (G.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
+  const ri = realInv();
+  return { inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
 }
 /* every save of a server world gets a stamp (who, how long the world has run, when). A host only
    overwrites the save it loaded itself: when somebody else saved in the meantime (two people ran
@@ -15782,7 +15881,8 @@ const SERVER = {
    keep = this player was already inside (a takeover): keep the things in the bag */
 async function playServer(srv, keep) {
   if (busyLoading()) return; G.loadT = performance.now();
-  const mine = keep ? myPlayerData() : null;
+  // wer gerade nur zugeschaut hat, nimmt nichts mit
+  const mine = keep && !G.spectator && !MP.spec ? myPlayerData() : null;
   if (!NET.uid()) { UI.toast('Melde dich zuerst an.', 'warn'); return; }
   if (MP.active()) await MP.leave(true);
   if (G.state !== 'menu' && WORLDS.current && !G.server) saveGame(true);
@@ -17171,6 +17271,7 @@ function modsEnd() {
   MODRT.workers.clear();
   if (typeof modUiEnd === 'function') modUiEnd();
   Object.assign(MODFX, MODFX_DEF);
+  if (!G.spectator) creativeEnd();
   PL.flying = false;
   applyMaxHp();
   // Mod-Einträge im Händler-Shop
@@ -17511,7 +17612,70 @@ function modExplode(x, y, z, r) {
   const dp = Math.hypot(PL.x - x, PL.y + 0.9 - y, PL.z - z);
   if (dp < r + 1.5) hurtPlayer(Math.round(30 * (1 - dp / (r + 1.5))), x, z);
 }
+/* Unendliche Items (alte Creative-Mods mit infiniteItems, der Zuschauer-Modus) sind nur geliehen:
+   das echte Inventar wird vorher weggelegt, gespeichert wird immer nur das echte, und am Ende
+   kommt es zurück. Früher blieben die 999 von allem für immer im Inventar (auch auf Servern). */
+let CRE_SHADOW = null;
+function creativeBegin() {
+  if (CRE_SHADOW) return;
+  CRE_SHADOW = JSON.parse(JSON.stringify({ inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [] }));
+}
+function creativeEnd() {
+  if (!CRE_SHADOW) return;
+  const s = CRE_SHADOW; CRE_SHADOW = null;
+  G.inv = s.inv; G.tools = s.tools; G.hotbar = s.hotbar; G.bag = s.bag;
+  syncSlots(); UI.res(); UI.hotbar(); UI.tools();
+}
+/* Reste von früher: 999 von allem im Inventar, obwohl kein Creative-Modus läuft. Einmal fragen, ob weg damit. */
+function invLeaked(inv) {
+  if (!inv) return false;
+  const res = RES_KEYS.filter((k) => (inv[k] || 0) === 999).length;
+  const items = Object.keys(inv.items || {}).filter((k) => inv.items[k] === 999).length;
+  return res >= 5 && items >= 6;
+}
+/* auf einem Server: das letzte Backup, in dem dein Inventar noch normal war */
+async function invFromServerBackup() {
+  const srv = G.server || MP.srv; if (!srv || !NET.uid() || !NET.db) return null;
+  try {
+    const v = (await withTimeout(NET.db.ref(srvPath(srv) + '/backups').once('value'), 30000)).val() || {};
+    const list = Object.values(v).filter((b) => b && b.d).sort((a, b) => (b.at || 0) - (a.at || 0));
+    for (const b of list) {
+      let save; try { save = JSON.parse(b.d); } catch (e) { continue; }
+      const you = save && save.vis && save.vis[NET.uid()];
+      if (you && you.inv && !invLeaked(you.inv)) return { at: b.at || 0, you };
+    }
+  } catch (e) { /* keine Backups lesbar */ }
+  return null;
+}
+/* Reste von früher: 999 von allem im Inventar, obwohl kein Creative-Modus läuft. Einmal fragen, was damit passieren soll. */
+async function creativeLeakCheck() {
+  if (G.state !== 'playing' || MODFX.infiniteItems || G.spectator || CRE_SHADOW || !invLeaked(G.inv)) return;
+  const bak = await invFromServerBackup();
+  if (G.state !== 'playing' || !invLeaked(G.inv)) return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  const when = bak ? new Date(bak.at).toLocaleString('de-DE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  const ok = await UI.confirm(bak
+    ? { title: 'Dein altes Inventar zurückholen?', text: 'In deinem Inventar liegt 999 von fast allem (ein Fehler aus dem Zuschauer- bzw. Creative-Modus, jetzt behoben). Im Server-Backup vom ' + when + ' ist dein altes Inventar noch da. Zurückholen? Die 999er-Sachen sind dann weg.', yes: 'Altes Inventar zurückholen', danger: false }
+    : { title: 'Creative-Items entfernen?', text: 'In deinem Inventar liegt 999 von fast allem (ein Fehler aus dem Zuschauer- bzw. Creative-Modus, jetzt behoben). Sollen diese 999er-Stapel weg? Werkzeuge und alles andere bleiben.', yes: 'Entfernen', danger: false });
+  if (CAMC.mode === 'fp' && !touchUI()) INPUT.lockSoft = true;
+  if (!ok) return;
+  if (bak) {
+    const y = normalizePlayerData(bak.you);
+    G.inv = y.inv; G.tools = y.tools; G.hotbar = y.hotbar; G.bag = y.bag;
+    UI.toast('Dein altes Inventar ist wieder da.', 'good', 3600, 'creleak');
+  } else {
+    for (const k of RES_KEYS) if (G.inv[k] === 999) G.inv[k] = 0;
+    for (const k of Object.keys(G.inv.items || {})) if (G.inv.items[k] === 999) delete G.inv.items[k];
+    UI.toast('Erledigt. Die 999er-Stapel sind weg.', 'good', 3000, 'creleak');
+  }
+  syncSlots(); UI.res(); UI.hotbar(); UI.tools();
+  saveGame(true);
+}
+/* was gespeichert und an den Host geschickt wird: das echte Inventar */
+function realInv() { return CRE_SHADOW || { inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [] }; }
 function creativeTopUp() {
+  creativeBegin();
   let ch = false;
   for (const k of RES_KEYS) if ((G.inv[k] || 0) < 500) { G.inv[k] = 999; ch = true; }
   for (const k in ITEMS) { const it = ITEMS[k]; if (it.tool || it.armor || it.mod || k === 'water_bucket') continue; if ((G.inv.items[k] || 0) < 500) { G.inv.items[k] = 999; ch = true; } }
@@ -17530,7 +17694,7 @@ function updateMods(dt) {
   MODRT.tick -= dt;
   if (MODRT.tick > 0) return;
   MODRT.tick = MODRT.tickLen || 0.25;
-  if (MODFX.infiniteItems) creativeTopUp();
+  if (MODFX.infiniteItems) creativeTopUp(); else if (CRE_SHADOW && !G.spectator) creativeEnd();
   modEmit('tick', modState());
 }
 function flyTap() {
