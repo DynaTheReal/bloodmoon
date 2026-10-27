@@ -714,7 +714,60 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .skin canvas { width: 64px; height: 64px; image-rendering: pixelated; }
 .skin span { color: var(--muted); font-size: 11px; font-weight: 700; }
 .skin:hover { border-color: rgba(255, 255, 255, 0.22); }
-.skin[aria-pressed="true"] { border-color: var(--ember); background: rgba(255, 177, 92, 0.12); }
+.skin[aria-pressed="true"] { border-color: var(--ember); background: rgba(255, 177, 92, 0.12); box-shadow: 0 0 0 3px rgba(255, 177, 92, 0.16); }
+.skin { transition: transform 0.12s, border-color 0.12s; }
+.skin:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.2); }
+.skin canvas { background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.08), transparent 70%); border-radius: 10px; }
+.my-skin { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; padding: 12px; margin-bottom: 4px; border-radius: 14px; border: 1.5px solid rgba(255, 177, 92, 0.35); background: linear-gradient(120deg, rgba(255, 177, 92, 0.14), rgba(255, 255, 255, 0.03) 70%); }
+.my-skin[aria-pressed="true"] { border-color: var(--ember); box-shadow: 0 0 0 3px rgba(255, 177, 92, 0.16); }
+.my-skin canvas { width: 56px; height: 112px; image-rendering: pixelated; }
+.my-skin-t { display: grid; gap: 6px; }
+.my-skin-t b { font-size: 15px; }
+.my-skin-t span { color: var(--muted); font-size: 12px; font-weight: 600; }
+.my-skin-t .btnrow { margin-top: 2px; }
+.skin-sel { display: grid; }
+.skin-sel small { color: var(--muted); font-size: 12px; font-weight: 700; }
+.skins-hint { position: absolute; right: calc(var(--safe-r) + 24px); bottom: calc(var(--safe-b) + 22px); padding: 7px 14px; border-radius: 99px; background: rgba(10, 14, 16, 0.55); color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 800; pointer-events: none; }
+/* Skin-Editor */
+.ske { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; padding: calc(var(--safe-t) + 10px) calc(var(--safe-r) + 10px) calc(var(--safe-b) + 10px) calc(var(--safe-l) + 10px); background: radial-gradient(ellipse at 35% 45%, #2b3a45 0%, #121a20 60%, #080c0f 100%); z-index: 12; }
+.ske-top { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; }
+.ske-title { font-family: var(--font-display); font-weight: 400; font-size: 20px; }
+.ske-acts { margin-left: auto; display: flex; gap: 8px; }
+.ske-acts .btn, .ske-top > .btn { padding: 9px 14px; }
+.ske-main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 10px; min-height: 0; }
+.ske-view { position: relative; min-height: 0; border-radius: 16px; background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.07), transparent 65%); overflow: hidden; }
+.ske-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+.ske-help { position: absolute; left: 12px; bottom: 10px; color: rgba(255, 255, 255, 0.6); font-size: 12px; font-weight: 700; pointer-events: none; line-height: 1.5; }
+.ske-side { overflow-y: auto; padding: 4px 14px 14px; border-radius: 16px; overscroll-behavior: contain; }
+.ske-tools { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.ske-tb, .ske-pb, .ske-lb, .ske-eye { border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.05); color: var(--text); font-weight: 800; }
+.ske-tb { display: grid; justify-items: center; gap: 2px; padding: 8px 2px 6px; font-size: 20px; }
+.ske-tb small { font-size: 10px; color: var(--muted); }
+.ske-tb[aria-pressed="true"], .ske-pb[aria-pressed="true"], .ske-lb[aria-pressed="true"] { border-color: var(--ember); background: rgba(255, 177, 92, 0.16); }
+.ske-layers { display: grid; gap: 6px; }
+.ske-layer { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 6px; }
+.ske-lb { text-align: left; padding: 9px 12px; font-size: 13px; }
+.ske-lb small { display: block; color: var(--muted); font-size: 11px; }
+.ske-eye { font-size: 18px; }
+.ske-eye[aria-pressed="false"] { opacity: 0.6; }
+.ske-color { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: center; }
+#skeWheel { width: 150px; height: 150px; touch-action: none; cursor: crosshair; }
+.ske-cside { display: grid; gap: 8px; }
+.ske-cur { height: 40px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.25); }
+#skeHex { font-family: ui-monospace, Menlo, monospace; text-transform: uppercase; padding: 8px 10px; }
+.ske-val { display: grid; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 800; }
+.ske-sws { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+.ske-sw { aspect-ratio: 1; border-radius: 5px; border: 1.5px solid rgba(255, 255, 255, 0.2); padding: 0; }
+.ske-sw:hover { transform: scale(1.12); }
+.ske-parts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ske-pb { padding: 8px 4px; font-size: 12px; }
+@media (max-width: 760px) {
+  .ske-main { grid-template-columns: 1fr; grid-template-rows: minmax(260px, 1fr) minmax(0, 46vh); }
+  .ske-title { display: none; }
+  .ske-help { font-size: 11px; }
+}
+.ske-help .tui { display: none; }
+@media (pointer: coarse) { .ske-help .pc { display: none; } .ske-help .tui { display: inline; } .ske-help { top: 8px; bottom: auto; } }
 
 /* graphics presets */
 .qual { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 6px; }
@@ -778,10 +831,14 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .chat-view.on .chat-head .fa i { background: var(--leaf); }
 .chat-head .fm b { display: block; font-size: 15px; }
 .chat-head .fm span { color: var(--muted); font-size: 12px; font-weight: 600; }
-.chat-msgs { height: min(46vh, 420px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(255, 255, 255, 0.06); -webkit-user-select: text; user-select: text; }
-.chat-msg { align-self: flex-start; max-width: 78%; padding: 8px 11px 6px; border-radius: 14px 14px 14px 4px; background: rgba(255, 255, 255, 0.09); font-size: 14px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; display: grid; gap: 2px; }
-.chat-msg.me { align-self: flex-end; border-radius: 14px 14px 4px 14px; background: rgba(255, 177, 92, 0.22); border: 1px solid rgba(255, 177, 92, 0.3); }
-.chat-msg small { justify-self: end; color: var(--muted); font-size: 10.5px; font-weight: 700; }
+.chat-msgs { height: min(50vh, 460px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(255, 255, 255, 0.06); -webkit-user-select: text; user-select: text; }
+/* Sprechblasen mit abgeschnittenen Ecken: grün die anderen, blau du */
+.chat-msg { align-self: flex-start; max-width: 80%; padding: 11px 18px 8px 16px; font-size: 15.5px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; display: grid; gap: 3px; color: #0d2414;
+  background: linear-gradient(160deg, #8fe39a, #4fbf6a); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3)); }
+.chat-msg.me { align-self: flex-end; padding: 11px 16px 8px 18px; color: #06172e; background: linear-gradient(160deg, #8cc4ff, #4a8ff0);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+.chat-msg small { color: rgba(0, 0, 0, 0.5) !important; }
+.chat-msg small { justify-self: end; font-size: 11px; font-weight: 800; }
 .chat-day { align-self: center; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin: 6px 0 2px; }
 .chat-empty { margin: auto; color: var(--muted); font-size: 13px; font-weight: 600; text-align: center; }
 .chat-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
@@ -1019,8 +1076,60 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <section id="scrSkins" class="screen skins" hidden>
   <div class="skins-panel panel">
     <div class="sheet-h"><div class="grow"><h2>Skins</h2><p id="skinSub">Wähle, wie du in der Welt aussiehst.</p></div><button class="x" id="skinsClose" type="button" aria-label="Zurück"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="sheet-b"><div class="skin-grid" id="skinGrid"></div></div>
-    <div class="sheet-f"><span id="skinName">Waldläufer</span><button class="btn primary" id="skinsDone" type="button">Fertig</button></div>
+    <div class="sheet-b">
+      <div class="my-skin" id="mySkinCard">
+        <canvas id="mySkinCv" width="64" height="128"></canvas>
+        <div class="my-skin-t"><b>Dein eigener Skin</b><span id="mySkinTxt">Pixel dir deinen eigenen Look, wie in Minecraft. Mit zweiter Schicht für Haare, Jacken und Hüte.</span>
+          <div class="btnrow"><button class="btn primary" id="btnSkinEdit" type="button">✏️ Skin pixeln</button><button class="btn" id="btnSkinWear" type="button" hidden>Tragen</button></div></div>
+      </div>
+      <p class="sec-t">Fertige Skins</p>
+      <div class="skin-grid" id="skinGrid"></div>
+    </div>
+    <div class="sheet-f"><div class="skin-sel"><b id="skinName">Waldläufer</b><small id="skinNote"></small></div><button class="btn primary" id="skinsDone" type="button">Fertig</button></div>
+  </div>
+  <div class="skins-hint" id="skinsHint">↔ Ziehen zum Drehen</div>
+</section>
+
+<section id="scrSkinEdit" class="screen ske" hidden>
+  <div class="ske-top panel">
+    <button class="btn ghost" id="skeCancel" type="button">← Zurück</button>
+    <b class="ske-title">Skin-Editor</b>
+    <div class="ske-acts">
+      <button class="btn ghost" id="skeUndo" type="button" title="Rückgängig (Strg+Z)">↶</button>
+      <button class="btn ghost" id="skeRedo" type="button" title="Wiederholen (Strg+Y)">↷</button>
+      <button class="btn primary" id="skeSave" type="button">Speichern und tragen</button>
+    </div>
+  </div>
+  <div class="ske-main">
+    <div class="ske-view"><canvas id="skeCanvas"></canvas><div class="ske-help"><span class="pc">Linksklick: malen · Rechtsklick halten: drehen · Mausrad: zoomen</span><span class="tui">Auf der Figur malen · daneben ziehen: drehen · zwei Finger: zoomen</span></div></div>
+    <div class="ske-side panel">
+      <p class="sec-t">Werkzeug</p>
+      <div class="ske-tools">
+        <button class="ske-tb" data-tool="pen" type="button" title="Pinsel (B)">🖌️<small>Pinsel</small></button>
+        <button class="ske-tb" data-tool="erase" type="button" title="Radierer (E)">🧽<small>Radierer</small></button>
+        <button class="ske-tb" data-tool="pick" type="button" title="Pipette (I)">💧<small>Pipette</small></button>
+        <button class="ske-tb" data-tool="fill" type="button" title="Füllen (G)">🪣<small>Füllen</small></button>
+        <button class="ske-tb" id="skeMirror" type="button" title="Spiegeln (M)">🪞<small>Spiegeln</small></button>
+      </div>
+      <p class="sec-t">Schichten</p>
+      <div class="ske-layers">
+        <div class="ske-layer"><button class="ske-lb" data-layer="0" type="button">Schicht 1 <small>Körper</small></button><button class="ske-eye" data-vis="0" type="button" title="Ein-/Ausblenden">👁</button></div>
+        <div class="ske-layer"><button class="ske-lb" data-layer="1" type="button">Schicht 2 <small>Haare, Jacke, Hut</small></button><button class="ske-eye" data-vis="1" type="button" title="Ein-/Ausblenden">👁</button></div>
+      </div>
+      <p class="sec-t">Farbe</p>
+      <div class="ske-color">
+        <canvas id="skeWheel" width="150" height="150"></canvas>
+        <div class="ske-cside"><div class="ske-cur" id="skeCur"></div><input class="field" id="skeHex" maxlength="7" spellcheck="false" aria-label="Farbe als Hex"><label class="ske-val">Helligkeit<input type="range" id="skeVal" min="0" max="100" value="100"></label></div>
+      </div>
+      <div class="ske-sws" id="skePal"></div>
+      <p class="sec-t">Zuletzt benutzt</p>
+      <div class="ske-sws" id="skeRecent"></div>
+      <p class="sec-t">Teile zeigen</p>
+      <div class="ske-parts"><button class="ske-pb" data-part="head" type="button">Kopf</button><button class="ske-pb" data-part="body" type="button">Körper</button><button class="ske-pb" data-part="arms" type="button">Arme</button><button class="ske-pb" data-part="legs" type="button">Beine</button></div>
+      <p class="sec-t">Datei</p>
+      <div class="btnrow"><button class="btn ghost" id="skeImportBtn" type="button">PNG laden</button><button class="btn ghost" id="skeExport" type="button">PNG speichern</button><button class="btn ghost" id="skeReset" type="button">Neu anfangen</button></div>
+      <input type="file" id="skeImport" accept="image/png" hidden>
+    </div>
   </div>
 </section>
 
@@ -1537,8 +1646,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.27.0';
+const GAME_VERSION = '2.28.0';
 const GAME_NOTES = [
+  ['2.28.0', 'Skins: Skin-Editor wie bei Minecraft (eigenen Skin pixeln, 3D-Figur, zwei Schichten zum Ein- und Ausblenden, Pinsel, Radierer, Pipette, Füllen, Spiegeln, Farbkreis und Standardfarben, PNG laden und speichern). Andere Spieler sehen deinen eigenen Skin. Schöneres Skin-Menü mit „Dein eigener Skin“ und Drehen der Figur. Figuren (Skins, Händler, Zombies) wirken fester und klarer, nicht mehr wie aus Pappe oder Filz.'],
+  ['2.27.1', 'Chat: größere Sprechblasen mit abgeschnittenen Ecken, deine blau, die der anderen grün.'],
   ['2.27.0', 'Schlafen: Zombies zählen nur im Umkreis von 10 Blöcken (auch oben und unten, ein Turm über dir stört nicht mehr). Schlafanimation: die Augen fallen zu, ein Nachthimmel mit Zzz und „Du schläfst …“, am Morgen „Guten Morgen!“. Andere Spieler sehen „💤 schläft“ über dir. Lava mit dem Eimer schöpfen (Lavaeimer) und als Falle ausgießen: Zombies verbrennen darin. Beim ersten Blood Moon kommen noch keine Fledermäuse. Beim Anmelden siehst du jetzt auch, welche Freunde schon online sind. Fix: unendliche Items (alte Creative-Mods, Zuschauer-Modus) sind nur noch geliehen und landen nie mehr im gespeicherten Inventar; liegt noch 999 von allem im Inventar, holt das Spiel auf Servern dein altes Inventar aus dem letzten Backup zurück (oder entfernt die 999er). Der unsichtbare Zuschauer übernimmt nie mehr einen Server und wird beim Wiederverbinden nicht zum normalen Spieler (daher kamen die 999 Items und kein Fallschaden).'],
   ['2.26.0', 'Sozial: der Knopf „Freunde“ heißt jetzt „Sozial“ (im Pausenmenü und im Hauptmenü). Dort chattest du mit deinen Freunden, und auch die Freunde und Freundschaftsanfragen sind dort. Neue Nachrichten kommen im Spiel als Benachrichtigung von oben, antippen öffnet den Chat. Ungelesenes zeigt eine Zahl am Knopf.'],
   ['2.25.0', 'Neue Weltgenerierung (Version 6, nur in Chunks, die noch nie generiert wurden): die Welt besteht aus abwechslungsreichen Gebieten, rund um den Spawn nur schöne Biome, Kirschhügel mit einem See am Fuß, ein Teich nahe am Spawn, viel weniger Berge. Neue Biome: Birkenwald, Savanne, Eisebene mit Eisspitzen und zugefrorenen Seen, Lavendelfeld, Moosgrund. Verlassene Orte: verfallene Hütten (Schattenwald, Wälder), Steinkreise (Wiesen) und Wüstentempel, auf der Karte mit ? markiert. Weniger Türme im Schattenwald. Jede Truhe in Türmen, Ruinen, Minen und verlassenen Orten hat Papier. Die Karte in der Hand ist größer.'],
@@ -2643,6 +2754,7 @@ flat out vec3 v_n;
 out vec3 v_lp;
 flat out vec4 v_col;
 flat out vec4 v_ext;
+flat out vec3 v_ln;
 void main() {
   mat4 m = mat4(i_m0, i_m1, i_m2, i_m3);
   vec4 wp = m * vec4(a_pos, 1.0);
@@ -2651,6 +2763,7 @@ void main() {
   v_lp = (a_pos + 0.5) * i_ext.xyz - a_nrm * 0.01;
   v_col = i_col;
   v_ext = i_ext;
+  v_ln = a_nrm;
   gl_Position = u_vp * wp;
 }`;
 const FS_CUBOID = `#version 300 es
@@ -2661,15 +2774,25 @@ flat in vec3 v_n;
 in vec3 v_lp;
 flat in vec4 v_col;
 flat in vec4 v_ext;
+flat in vec3 v_ln;
 uniform float u_patDen;
 uniform float u_trans;
 ${GLSL_COMMON}
 out vec4 o;
 void main() {
-  vec3 q = floor(v_lp * u_patDen);
+  // feste Pixel (1/16 Block) mit ganz leichter Farbvariation statt grobem Filz-Rauschen,
+  // dazu dunklere Kanten und ein Hauch Licht von oben: Figuren wirken fest, nicht wie Pappe
+  vec3 q = floor(v_lp * 16.0);
   float h = fract(sin(dot(q, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
   float em = v_col.a;
-  vec3 base = v_col.rgb * (1.0 + (h - 0.5) * 0.1 * (1.0 - step(0.5, em)));
+  vec3 d3 = min(v_lp, v_ext.xyz - v_lp);
+  vec3 la = abs(v_ln);
+  vec2 de = la.x > 0.5 ? d3.yz : la.y > 0.5 ? d3.xz : d3.xy;
+  vec2 ex = la.x > 0.5 ? v_ext.yz : la.y > 0.5 ? v_ext.xz : v_ext.xy;
+  float rim = min(0.028, 0.18 * min(ex.x, ex.y));
+  float edge = smoothstep(0.0, rim, min(de.x, de.y));
+  float shade = mix(0.8, 1.0, edge) * (la.y > 0.5 ? (v_ln.y > 0.0 ? 1.05 : 0.86) : 1.0);
+  vec3 base = v_col.rgb * (1.0 + (h - 0.5) * 0.045 * (1.0 - step(0.5, em))) * mix(1.0, shade, 1.0 - step(0.5, em));
   vec3 alb = pow(base, vec3(2.2));
   vec3 n = v_n;
   if (u_trans > 0.5) {
@@ -2685,6 +2808,70 @@ void main() {
   vec3 L = u_ambMin + u_amb * sky * (0.7 + 0.3 * n.y) + u_sunCol * max(dot(n, u_sunDir), 0.0) * sh * gate;
   L += pointLights(v_wp, n);
   vec3 c = mix(alb * L, alb * 2.6, em);
+  c = applyFog(c, v_wp);
+  o = vec4(tonemap(c), 1.0);
+}`;
+/* Minecraft-Skins: Quader, deren Seiten aus einer 64x64-Skin-Textur kommen (Layout wie Minecraft).
+   i_col = Pixel-Ursprung u, v und Breite, Höhe; i_ext = Tiefe, Ebene im Textur-Array, Himmelslicht */
+const VS_SKIN = `#version 300 es
+precision highp float;
+layout(location = 0) in vec3 a_pos;
+layout(location = 1) in vec3 a_nrm;
+layout(location = 2) in vec4 i_m0;
+layout(location = 3) in vec4 i_m1;
+layout(location = 4) in vec4 i_m2;
+layout(location = 5) in vec4 i_m3;
+layout(location = 6) in vec4 i_col;
+layout(location = 7) in vec4 i_ext;
+uniform mat4 u_vp;
+out vec3 v_wp;
+flat out vec3 v_n;
+out vec3 v_lp;
+flat out vec3 v_ln;
+flat out vec4 v_uv;
+flat out vec4 v_ex;
+void main() {
+  mat4 m = mat4(i_m0, i_m1, i_m2, i_m3);
+  vec4 wp = m * vec4(a_pos, 1.0);
+  v_wp = wp.xyz;
+  v_n = normalize(mat3(m) * a_nrm);
+  v_lp = a_pos + 0.5;
+  v_ln = a_nrm;
+  v_uv = i_col; v_ex = i_ext;
+  gl_Position = u_vp * wp;
+}`;
+const FS_SKIN = `#version 300 es
+precision highp float;
+precision highp sampler2DShadow;
+precision highp sampler2DArray;
+in vec3 v_wp;
+flat in vec3 v_n;
+in vec3 v_lp;
+flat in vec3 v_ln;
+flat in vec4 v_uv;
+flat in vec4 v_ex;
+uniform sampler2DArray u_skin;
+uniform float u_hi;
+${GLSL_COMMON}
+out vec4 o;
+void main() {
+  vec3 p = clamp(v_lp, 0.0, 0.9999);
+  float u0 = v_uv.x, v0 = v_uv.y, w = v_uv.z, h = v_uv.w, d = v_ex.x;
+  vec4 r; vec2 st;
+  if (abs(v_ln.z) > 0.5) { if (v_ln.z > 0.0) { r = vec4(u0 + d, v0 + d, w, h); st = vec2(p.x, 1.0 - p.y); } else { r = vec4(u0 + 2.0 * d + w, v0 + d, w, h); st = vec2(1.0 - p.x, 1.0 - p.y); } }
+  else if (abs(v_ln.x) > 0.5) { if (v_ln.x < 0.0) { r = vec4(u0, v0 + d, d, h); st = vec2(p.z, 1.0 - p.y); } else { r = vec4(u0 + d + w, v0 + d, d, h); st = vec2(1.0 - p.z, 1.0 - p.y); } }
+  else { if (v_ln.y > 0.0) { r = vec4(u0 + d, v0, w, d); st = vec2(p.x, p.z); } else { r = vec4(u0 + d + w, v0, w, d); st = vec2(p.x, 1.0 - p.z); } }
+  ivec2 px = ivec2(floor(r.xy + clamp(st, 0.0, 0.9999) * r.zw));
+  vec4 tx = texelFetch(u_skin, ivec3(px, int(v_ex.y + 0.5)), 0);
+  if (tx.a < 0.5) discard;
+  vec3 alb = pow(tx.rgb, vec3(2.2));
+  vec3 n = v_n;
+  float sky = v_ex.z;
+  float gate = smoothstep(0.22, 0.8, sky);
+  float sh = shadowAt(v_wp, n);
+  vec3 L = u_ambMin + u_amb * sky * (0.7 + 0.3 * n.y) + u_sunCol * max(dot(n, u_sunDir), 0.0) * sh * gate;
+  L += pointLights(v_wp, n);
+  vec3 c = alb * L * (v_ln.y < -0.5 ? 0.88 : 1.0);
   c = applyFog(c, v_wp);
   o = vec4(tonemap(c), 1.0);
 }`;
@@ -2817,6 +3004,7 @@ function compilePrograms(q) {
   PROG.terrain = makeProgram(VS_TERRAIN, FS_TERRAIN, 'terrain');
   PROG.water = makeProgram(VS_TERRAIN, FS_WATER, 'water');
   PROG.cuboid = makeProgram(VS_CUBOID, FS_CUBOID, 'cuboid');
+  PROG.skin = makeProgram(VS_SKIN, FS_SKIN, 'skin');
   PROG.sky = makeProgram(VS_SKY, FS_SKY, 'sky');
   PROG.shTerrain = makeProgram(VS_SHADOW_TERRAIN, FS_DEPTH, 'shadowTerrain');
   PROG.shCuboid = makeProgram(VS_SHADOW_CUBOID, FS_DEPTH, 'shadowCuboid');
@@ -3025,6 +3213,21 @@ class CuboidBatch {
     a[o + 16] = r; a[o + 17] = g; a[o + 18] = b; a[o + 19] = em;
     const sx = Math.hypot(m[0], m[1], m[2]), sy = Math.hypot(m[4], m[5], m[6]), sz = Math.hypot(m[8], m[9], m[10]);
     a[o + 20] = w * sx; a[o + 21] = h * sy; a[o + 22] = d * sz; a[o + 23] = ext;
+    this.n++;
+  }
+  /* a box of a Minecraft skin: world size w,h,d, its pixels start at (u, v), pw x ph x pd pixels, texture layer */
+  skinBox(m, w, h, d, cx, cy, cz, u, v, pw, ph, pd, layer, sky) {
+    if (this.n >= this.max) return;
+    const o = this.n * CUBE_FLOATS, a = this.data;
+    a[o] = m[0] * w; a[o + 1] = m[1] * w; a[o + 2] = m[2] * w; a[o + 3] = 0;
+    a[o + 4] = m[4] * h; a[o + 5] = m[5] * h; a[o + 6] = m[6] * h; a[o + 7] = 0;
+    a[o + 8] = m[8] * d; a[o + 9] = m[9] * d; a[o + 10] = m[10] * d; a[o + 11] = 0;
+    a[o + 12] = m[0] * cx + m[4] * cy + m[8] * cz + m[12];
+    a[o + 13] = m[1] * cx + m[5] * cy + m[9] * cz + m[13];
+    a[o + 14] = m[2] * cx + m[6] * cy + m[10] * cz + m[14];
+    a[o + 15] = 1;
+    a[o + 16] = u; a[o + 17] = v; a[o + 18] = pw; a[o + 19] = ph;
+    a[o + 20] = pd; a[o + 21] = layer; a[o + 22] = sky; a[o + 23] = 0;
     this.n++;
   }
   /* axis aligned box in world space */
@@ -5810,6 +6013,7 @@ function initBatches() {
   BATCH.solid = new CuboidBatch(9000);
   BATCH.trans = new CuboidBatch(5000);
   BATCH.view = new CuboidBatch(600);
+  BATCH.skin = new CuboidBatch(1200);   // Minecraft-Skins (eigene Skins)
 }
 const MODELS_DRAW = []; // {m, model, sky}
 let visibleChunks = [];
@@ -5868,11 +6072,12 @@ function renderShadows(time, focus, viewDistBlocks) {
     gl.bindVertexArray(d.m.ovao);
     gl.drawElements(gl.TRIANGLES, d.m.n, gl.UNSIGNED_INT, 0);
   }
-  if (BATCH.solid.n) {
+  if (BATCH.solid.n || BATCH.skin.n) {
     P = PROG.shCuboid;
     gl.useProgram(P.p);
     gl.uniformMatrix4fv(P.u('u_vp'), false, SH.vp);
     BATCH.solid.draw();
+    BATCH.skin.draw();
   }
   gl.cullFace(gl.BACK);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -5882,7 +6087,7 @@ function sceneTarget() { return POST.on && POST.msFbo ? POST.msFbo : null; }
 function renderFrame(time, focus, opts) {
   const w = canvas.width, h = canvas.height;
   updateCamMatrices(w / h);
-  BATCH.solid.upload(); BATCH.trans.upload(); BATCH.view.upload();
+  BATCH.solid.upload(); BATCH.trans.upload(); BATCH.view.upload(); BATCH.skin.upload();
   packLights(focus[0], focus[1], focus[2], opts.maxLights);
 
   if (opts.shadows) renderShadows(time, focus, opts.viewDist * CS); else SH.on = false;
@@ -5957,6 +6162,13 @@ function renderFrame(time, focus, opts) {
     gl.uniform1f(P.u('u_patDen'), opts.patDen);
     gl.uniform1f(P.u('u_trans'), 0);
     BATCH.solid.draw();
+  }
+  if (BATCH.skin.n && SKIN64.tex) {
+    P = PROG.skin;
+    gl.useProgram(P.p);
+    setScene(P);
+    gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D_ARRAY, SKIN64.tex); gl.uniform1i(P.u('u_skin'), 3);
+    BATCH.skin.draw();
   }
 
   // water + glass (alpha keeps track of how much of the sky is covered, for the light shafts)
@@ -7381,6 +7593,7 @@ function drawSkinHead(box, sk, P, t) {
 
 /* ---------- 2D avatar icon ---------- */
 function drawSkinAvatar(cv, skinId) {
+  if (isCustomSkin(skinId)) { const img = SKIN64.img.get(skinId); if (img) { skinFaceTo(cv, img); return; } skinId = 'ranger'; }
   const ctx = cv.getContext('2d'); const S = cv.width; const k = S / 16;
   const sk = skinOf(skinId), C = sk.c;
   const col = (c) => 'rgb(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ')';
@@ -7425,6 +7638,242 @@ function drawSkinAvatar(cv, skinId) {
   else if (H === 'firehelm') { r(2, 2, 12, 4, C.hat); r(7, 0, 2, 2, C.hatDark); r(6, 3, 4, 2, C.metal); }
   else if (H === 'bandana') { r(3, 4, 10, 2, C.hat); r(3, 6, 10, 1, C.hatDark); r(4, 5, 3, 2, C.visor); r(9, 5, 3, 2, C.visor); r(13, 5, 2, 2, C.hat); }
   else if (H === 'tricorn') { r(3, 4, 10, 2, C.hair); r(1, 2, 14, 2, C.hat); r(3, 0, 10, 2, C.hat); r(1, 3, 14, 1, C.metal); r(9, 8, 3, 2, C.hatDark); }
+}
+
+/* ---- 07sk_skin64.js ---- */
+/* =========================================================================
+   Eigene Skins im Minecraft-Format: 64 x 64 Pixel, zwei Schichten.
+   - Skin-Id 'c:<hash>' = ein eigener Skin. Das Bild liegt auf dem Gerät
+     (localStorage) und im Profil (users/<uid>/profile/skin64), damit es
+     andere Spieler laden können.
+   - Gezeichnet wird er mit Quadern, deren Seiten aus der Textur kommen
+     (BATCH.skin, FS_SKIN), die Form ist die eines normalen Spielers.
+   - Ebene 0 im Textur-Array ist ein Standard-Skin für alles, was (noch)
+     nicht geladen ist.
+   ========================================================================= */
+const SKIN64 = { tex: null, layers: 48, slot: new Map(), next: 1, img: new Map(), loading: new Set(), LKEY: 'bloodmoon-skin64' };
+const SKIN_PX = 0.059;   // ein Pixel des Skins in Blöcken (32 Pixel hoch = 1,89 Blöcke)
+
+/* Minecraft-Layout: [u, v, Breite, Höhe, Tiefe] der Grund-Schicht und der zweiten Schicht */
+const SKIN_PARTS = {
+  head: { base: [0, 0], over: [32, 0], s: [8, 8, 8] },
+  body: { base: [16, 16], over: [16, 32], s: [8, 12, 4] },
+  armR: { base: [40, 16], over: [40, 32], s: [4, 12, 4] },   // rechter Arm der Figur (bei uns x < 0)
+  armL: { base: [32, 48], over: [48, 48], s: [4, 12, 4] },
+  legR: { base: [0, 16], over: [0, 32], s: [4, 12, 4] },
+  legL: { base: [16, 48], over: [0, 48], s: [4, 12, 4] },
+};
+function isCustomSkin(id) { return typeof id === 'string' && id.startsWith('c:'); }
+function skinHash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, '0'); }
+
+/* ---------- Textur-Array ---------- */
+function skin64Init() {
+  if (SKIN64.tex || typeof gl === 'undefined' || !gl) return;
+  SKIN64.tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, SKIN64.tex);
+  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA8, 64, 64, SKIN64.layers, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  skin64Upload(0, skinTemplate('ranger'));
+}
+function skin64Upload(layer, imgData) {
+  if (!SKIN64.tex) return;
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, SKIN64.tex);
+  gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, 64, 64, 1, gl.RGBA, gl.UNSIGNED_BYTE, imgData.data);
+}
+/* die Ebene eines Skins (lädt ihn bei Bedarf), 0 solange er nicht da ist */
+function skin64Layer(id, uid) {
+  skin64Init();
+  if (!isCustomSkin(id)) return 0;
+  let l = SKIN64.slot.get(id);
+  if (l !== undefined) return l;
+  const img = SKIN64.img.get(id);
+  if (img) {
+    if (SKIN64.next >= SKIN64.layers) { SKIN64.slot.clear(); SKIN64.next = 1; }
+    l = SKIN64.next++;
+    SKIN64.slot.set(id, l);
+    skin64Upload(l, img);
+    return l;
+  }
+  if (uid) skin64Fetch(id, uid);
+  return 0;
+}
+/* ein Bild (data:URL) in Pixel umwandeln */
+function skinDecode(url) {
+  return new Promise((res) => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const x = c.getContext('2d');
+      x.drawImage(im, 0, 0);
+      // alte Skins (64 x 32): linker Arm und linkes Bein gespiegelt vom rechten
+      if (im.height === 32) skinLegacyFix(x);
+      res(x.getImageData(0, 0, 64, 64));
+    };
+    im.onerror = () => res(null);
+    im.src = url;
+  });
+}
+function skinLegacyFix(x) {
+  const flip = (sx, sy, w, h, dx, dy) => { const d = x.getImageData(sx, sy, w, h); const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').putImageData(d, 0, 0); x.save(); x.translate(dx + w, dy); x.scale(-1, 1); x.drawImage(c, 0, 0); x.restore(); };
+  for (const [s, d] of [[[0, 16], [16, 48]], [[40, 16], [32, 48]]]) {
+    flip(s[0] + 4, s[1], 4, 4, d[0] + 4, d[1]); flip(s[0] + 8, s[1], 4, 4, d[0] + 8, d[1]);
+    flip(s[0], s[1] + 4, 4, 12, d[0] + 8, d[1] + 4); flip(s[0] + 4, s[1] + 4, 4, 12, d[0] + 4, d[1] + 4);
+    flip(s[0] + 8, s[1] + 4, 4, 12, d[0], d[1] + 4); flip(s[0] + 12, s[1] + 4, 4, 12, d[0] + 12, d[1] + 4);
+  }
+}
+async function skin64Fetch(id, uid) {
+  if (SKIN64.loading.has(id) || !NET.db) return;
+  SKIN64.loading.add(id);
+  try {
+    const url = (await withTimeout(NET.db.ref('users/' + uid + '/profile/skin64').once('value'), 15000)).val();
+    if (url && typeof url === 'string' && url.startsWith('data:image/png') && url.length < 60000) {
+      const img = await skinDecode(url);
+      if (img) SKIN64.img.set(id, img);
+    }
+  } catch (e) { /* später nochmal */ setTimeout(() => SKIN64.loading.delete(id), 30000); return; }
+  SKIN64.loading.delete(id);
+}
+/* der eigene Skin beim Start */
+async function skin64LoadMine() {
+  let url = null; try { url = localStorage.getItem(SKIN64.LKEY); } catch (e) { /* ignore */ }
+  if (!url) return;
+  const img = await skinDecode(url);
+  if (img) { SKIN64.img.set('c:' + skinHash(url), img); SKIN64.mine = url; }
+}
+/* speichern: auf dem Gerät, im Profil, und tragen */
+function skin64Save(url) {
+  const id = 'c:' + skinHash(url);
+  try { localStorage.setItem(SKIN64.LKEY, url); } catch (e) { /* voll */ }
+  SKIN64.mine = url;
+  return skinDecode(url).then((img) => {
+    if (img) { SKIN64.img.set(id, img); SKIN64.slot.delete(id); }
+    const uid = NET.uid && NET.uid();
+    if (uid && NET.db) NET.db.ref('users/' + uid + '/profile/skin64').set(url).catch(() => { });
+    SETTINGS.skin = id; saveSettings();
+    if (uid) NET.setSkin(id);
+    return id;
+  });
+}
+
+/* ---------- Vorlage: ein Minecraft-Skin in den Farben eines eingebauten Skins ---------- */
+function skinTemplate(fromId) {
+  const sk = skinOf(fromId), C = sk.c;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const rnd = mulberry32(1234);
+  const col = (k, f = 1) => { const v = k || [0.5, 0.5, 0.5]; const n = 1 + (rnd() - 0.5) * 0.08; return 'rgb(' + [0, 1, 2].map((i) => Math.round(clamp(v[i] * f * n, 0, 1) * 255)).join(',') + ')'; };
+  const fill = (u, v, w, h, k, f) => { for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) { x.fillStyle = col(k, f); x.fillRect(u + xx, v + yy, 1, 1); } };
+  // alle Seiten eines Teils in einer Farbe, mit leichter Schattierung
+  const part = (u, v, w, h, d, top, side, bottom) => {
+    fill(u + d, v, w, d, top, 1.05); fill(u + d + w, v, w, d, bottom || side, 0.85);
+    fill(u, v + d, d, h, side, 0.92); fill(u + d, v + d, w, h, side, 1); fill(u + d + w, v + d, d, h, side, 0.92); fill(u + 2 * d + w, v + d, w, h, side, 0.95);
+  };
+  // Kopf: Haut, Haare oben, hinten und an den Seiten, Gesicht vorne
+  part(0, 0, 8, 8, 8, C.hair, C.skin);
+  fill(8, 0, 8, 8, C.hair, 1);                  // oben
+  fill(24, 8, 8, 8, C.hair, 0.95);               // hinten
+  fill(0, 8, 8, 3, C.hair, 0.92); fill(16, 8, 8, 3, C.hair, 0.92);
+  fill(8, 8, 8, 2, C.hair, 1);                   // Pony
+  fill(8, 10, 1, 1, C.hair); fill(15, 10, 1, 1, C.hair);
+  x.fillStyle = '#ffffff'; x.fillRect(9, 12, 2, 1); x.fillRect(13, 12, 2, 1);
+  x.fillStyle = col(C.eye); x.fillRect(10, 12, 1, 1); x.fillRect(13, 12, 1, 1);
+  x.fillStyle = col(C.brow); x.fillRect(9, 11, 2, 1); x.fillRect(13, 11, 2, 1);
+  x.fillStyle = col(C.skin, 0.8); x.fillRect(11, 13, 2, 1);
+  x.fillStyle = col(C.mouth); x.fillRect(10, 14, 4, 1);
+  // Körper: Oberteil, Gürtel
+  part(16, 16, 8, 12, 4, C.top, C.top);
+  fill(20, 30, 8, 1, C.belt); fill(16, 30, 4, 1, C.belt); fill(28, 30, 4, 1, C.belt); fill(32, 30, 8, 1, C.belt);
+  fill(23, 20, 2, 8, C.topDark || C.top, 0.95);
+  // Arme: Ärmel, Hände
+  for (const [u, v] of [[40, 16], [32, 48]]) {
+    part(u, v, 4, 12, 4, C.sleeve, C.sleeve);
+    fill(u, v + 4 + 8, 16, 4, C.hand || C.skin, 1); fill(u + 8, v, 4, 4, C.hand || C.skin, 0.85);
+    fill(u, v + 4 + 7, 16, 1, C.cuff || C.sleeve, 1);
+  }
+  // Beine: Hose, Schuhe
+  for (const [u, v] of [[0, 16], [16, 48]]) {
+    part(u, v, 4, 12, 4, C.pants, C.pants);
+    fill(u, v + 4 + 9, 16, 3, C.boots, 1); fill(u + 8, v, 4, 4, C.sole || C.boots, 0.8);
+  }
+  return x.getImageData(0, 0, 64, 64);
+}
+
+/* ---------- 3D: eine Figur mit Minecraft-Skin ---------- */
+function drawSkin64(ms, layer, P, sky, t, tint) {
+  const B = BATCH.skin, S = SKIN_PX;
+  const k = tint === undefined ? 1 : tint;
+  const sk = Math.min(1, sky * k);
+  const part = (name, cx, cy, cz, over) => {
+    const p = SKIN_PARTS[name], s = p.s, uv = over ? p.over : p.base;
+    const inf = over ? (name === 'head' ? 1 : 0.5) : 0;
+    B.skinBox(ms.m, (s[0] + inf) * S, (s[1] + inf) * S, (s[2] + inf) * S, cx, cy, cz, uv[0], uv[1], s[0], s[1], s[2], layer, sk);
+  };
+  const both = (name, cx, cy, cz) => { part(name, cx, cy, cz, false); part(name, cx, cy, cz, true); };
+  const AR = P.armor || NO_ARMOR;
+  const box = (w, h, d, x, y, z, c, em = 0) => BATCH.solid.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em, sky);
+  const LL = 12 * S;
+  ms.push();
+  ms.t(0, P.bob, 0);
+  for (const side of [-1, 1]) {
+    ms.push().t(side * 2 * S, LL, 0).rx(side < 0 ? P.legL : P.legR);
+    both(side < 0 ? 'legR' : 'legL', 0, -6 * S, 0);
+    if (AR.l) { const A = ARMOR_COL[AR.l]; box(4.7 * S, 7.5 * S, 4.7 * S, 0, -3.6 * S, 0, A[0], A[2]); }
+    if (AR.b) { const A = ARMOR_COL[AR.b]; box(4.8 * S, 4.4 * S, 4.8 * S, 0, -10 * S, 0, A[0], A[2]); }
+    ms.pop();
+  }
+  ms.push().t(0, LL, 0).rx(P.lean).ry(P.twist).rz(P.roll || 0);
+  both('body', 0, 6 * S, 0);
+  if (AR.c) { const A = ARMOR_COL[AR.c]; box(9 * S, 10.5 * S, 5 * S, 0, 6.6 * S, 0, A[0], A[2]); }
+  ms.push().t(0, 12 * S, 0).ry(P.headYaw || 0).rx(P.headPitch || 0).rz(P.headRoll || 0);
+  both('head', 0, 4 * S, 0);
+  if (AR.h) { const A = ARMOR_COL[AR.h]; box(9.4 * S, 3 * S, 9.4 * S, 0, 7.4 * S, 0, A[0], A[2]); box(9.4 * S, 4 * S, 1 * S, 0, 5 * S, -4.3 * S, A[0], A[2]); }
+  ms.pop();
+  for (const side of [-1, 1]) {
+    ms.push().t(side * 6 * S, 10 * S, 0).rx(side < 0 ? P.armL : P.armR).rz(side < 0 ? -(P.armLz || 0) : (P.armRz || 0));
+    both(side < 0 ? 'armR' : 'armL', 0, -4 * S, 0);
+    if (AR.c) { const A = ARMOR_COL[AR.c]; box(4.8 * S, 4.6 * S, 4.8 * S, 0, -0.4 * S, 0, A[1], A[2]); }
+    if (side > 0 && P.tool) { ms.push().t(0, -10 * S, 0.02).rx(Math.PI / 2 + (P.toolRx || 0)); drawTool(BATCH.solid, ms, P.tool, P.toolLevel, sky, P.item); ms.pop(); }
+    ms.pop();
+  }
+  ms.pop();
+  ms.pop();
+}
+/* eingebaut oder eigen: die richtige Figur */
+function drawAnyCharacter(Bt, ms, skinId, P, sky, t, uid) {
+  if (isCustomSkin(skinId)) { drawSkin64(ms, skin64Layer(skinId, uid), P, sky, t, P.tint); return; }
+  drawCharacter(Bt, ms, skinId, P, sky, t);
+}
+
+/* Farben für den Arm in der Ego-Ansicht: bei eigenem Skin aus dem Bild (Ärmel oben, Hand unten) */
+function armCols() {
+  if (!isCustomSkin(SETTINGS.skin)) return { sleeve: STYLE_PLAYER.sleeve, hand: STYLE_PLAYER.skin };
+  if (SKIN64.armFor === SETTINGS.skin && SKIN64.arm) return SKIN64.arm;
+  const img = SKIN64.img.get(SETTINGS.skin); if (!img) return { sleeve: STYLE_PLAYER.sleeve, hand: STYLE_PLAYER.skin };
+  const avg = (y0, y1) => { let r = 0, g = 0, b = 0, n = 0; for (let y = y0; y < y1; y++) for (let x = 40; x < 56; x++) { let i = (y * 64 + x) * 4; const oi = ((y + 16) * 64 + x) * 4; if (img.data[oi + 3] > 128) i = oi; if (img.data[i + 3] < 128) continue; r += img.data[i]; g += img.data[i + 1]; b += img.data[i + 2]; n++; } return n ? [r / n / 255, g / n / 255, b / n / 255] : [0.6, 0.5, 0.4]; };
+  SKIN64.arm = { sleeve: avg(20, 27), hand: avg(28, 32) }; SKIN64.armFor = SETTINGS.skin;
+  return SKIN64.arm;
+}
+/* ---------- 2D: Gesicht und ganze Figur von vorne ---------- */
+function skinFaceTo(cv, img) {
+  const ctx = cv.getContext('2d'); const S = cv.width;
+  ctx.clearRect(0, 0, S, S); ctx.imageSmoothingEnabled = false;
+  const c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').putImageData(img, 0, 0);
+  const m = S * 0.1;
+  ctx.drawImage(c, 8, 8, 8, 8, m, m, S - 2 * m, S - 2 * m);
+  ctx.drawImage(c, 40, 8, 8, 8, m * 0.5, m * 0.5, S - m, S - m);
+}
+function skinFrontTo(cv, img) {
+  const ctx = cv.getContext('2d'); const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H); ctx.imageSmoothingEnabled = false;
+  const c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').putImageData(img, 0, 0);
+  const k = Math.floor(Math.min(W / 16, H / 32)), ox = Math.round((W - 16 * k) / 2), oy = Math.round((H - 32 * k) / 2);
+  const d = (sx, sy, w, h, dx, dy) => ctx.drawImage(c, sx, sy, w, h, ox + dx * k, oy + dy * k, w * k, h * k);
+  // Grund-Schicht, dann die zweite Schicht darüber
+  d(8, 8, 8, 8, 4, 0); d(20, 20, 8, 12, 4, 8); d(44, 20, 4, 12, 0, 8); d(36, 52, 4, 12, 12, 8); d(4, 20, 4, 12, 4, 20); d(20, 52, 4, 12, 8, 20);
+  d(40, 8, 8, 8, 4, 0); d(20, 36, 8, 12, 4, 8); d(44, 36, 4, 12, 0, 8); d(52, 52, 4, 12, 12, 8); d(4, 36, 4, 12, 4, 20); d(4, 52, 4, 12, 8, 20);
 }
 
 /* ---- 08_game.js ---- */
@@ -11234,7 +11683,7 @@ function drawPlayer(t) {
   if (!PL.dead && PL.onGround) blobShadow(PL.x, PL.y, PL.z);
   _ms.reset().t(PL.x, PL.y + PL.stepOffset, PL.z).ry(PL.yaw);
   if (PL.dead) { const k = easeOutCubic(Math.min(1, PL.deadT / 0.7)); _ms.t(0, 0.12 * k, 0).rx(-Math.PI / 2 * k * 0.98); }
-  drawCharacter(BATCH.solid, _ms, SETTINGS.skin, P, sky, t);
+  drawAnyCharacter(BATCH.solid, _ms, SETTINGS.skin, P, sky, t, null);
 }
 const TOOL_NAMES = [null, 'axe', 'sword', 'pickaxe', 'shears', 'torch', 'block', 'shovel', 'bucket'];
 /* another player, pose rebuilt from their compact state */
@@ -11258,7 +11707,7 @@ function drawRemote(r, t) {
   _ms.reset().t(r.x, r.y, r.z).ry(r.yaw);
   if (f & 16) _ms.t(0, 0.12, 0).rx(-Math.PI / 2 * 0.98);
   else if (f & 8) _ms.t(0, 0.62, 0).rx(-Math.PI / 2);
-  drawCharacter(BATCH.solid, _ms, r.skin, P, sky, t);
+  drawAnyCharacter(BATCH.solid, _ms, r.skin, P, sky, t, r.uid);
 }
 /* skin preview in the menu: idle animation, slow turn */
 const PREVIEW = { yaw: 0.35, wave: 0, skin: null, pos: [0, 0, 0] };
@@ -11273,8 +11722,8 @@ function drawPreview(t) {
   const wv = (t % 9) < 1.4;
   if (wv) { P.armR = -2.7; P.armRz = 0.25 + Math.sin(t * 11) * 0.3; }
   PREVIEW.yaw += 0.004;
-  _ms.reset().t(p[0], p[1], p[2]).ry(Math.sin(t * 0.25) * 0.55 + 0.2);
-  drawCharacter(BATCH.solid, _ms, PREVIEW.skin || SETTINGS.skin, P, 1, t);
+  _ms.reset().t(p[0], p[1], p[2]).ry(Math.sin(t * 0.25) * 0.55 + 0.2 + (PREVIEW.dragYaw || 0));
+  drawAnyCharacter(BATCH.solid, _ms, PREVIEW.skin || SETTINGS.skin, P, 1, t, null);
 }
 function drawZombie(z, t) {
   const sky = skyAt(z.x, z.y + 1, z.z);
@@ -11502,8 +11951,8 @@ function drawViewModel(t) {
   const box = (wd, hh, d, x, y, z, c, em = 0) => BATCH.view.box(_ms.m, wd, hh, d, x, y, z, c[0], c[1], c[2], em, sky);
   const ac = G.tools.chestplate | 0;
   if (ac) { const A = ARMOR_COL[ac]; box(0.145, 0.145, 0.27, 0, 0, 0.08, A[0], A[2]); box(0.15, 0.15, 0.05, 0, 0, -0.04, A[1], A[2]); }
-  else box(0.13, 0.13, 0.26, 0, 0, 0.08, STYLE_PLAYER.sleeve);
-  box(0.115, 0.115, 0.22, 0, 0, -0.15, STYLE_PLAYER.skin);
+  else box(0.13, 0.13, 0.26, 0, 0, 0.08, armCols().sleeve);
+  box(0.115, 0.115, 0.22, 0, 0, -0.15, armCols().hand);
   if (tool) {
     _ms.push().t(0, 0.03, -0.27).rx(-0.35).sc(0.5, 0.5, 0.5);
     drawTool(BATCH.view, _ms, tool, lvl, sky, item);
@@ -11512,7 +11961,7 @@ function drawViewModel(t) {
 }
 
 function buildDrawLists(t, inMenu) {
-  BATCH.solid.clear(); BATCH.trans.clear(); BATCH.view.clear(); MODELS_DRAW.length = 0;
+  BATCH.solid.clear(); BATCH.trans.clear(); BATCH.view.clear(); BATCH.skin.clear(); MODELS_DRAW.length = 0;
   const vd = SETTINGS.viewDist * CS + 8;
   for (const o of OBJS.values()) {
     if (Math.abs(o.x - CAM.eye[0]) > vd || Math.abs(o.z - CAM.eye[2]) > vd) continue;
@@ -13467,7 +13916,7 @@ UI.openSkins = function () {
       const s = document.createElement('span'); s.textContent = sk.note;
       b.append(cv, n, s);
       b.addEventListener('click', () => {
-        SETTINGS.skin = sk.id; PREVIEW.skin = sk.id; saveSettings();
+        SETTINGS.skin = sk.id; SETTINGS.skinBase = sk.id; PREVIEW.skin = sk.id; saveSettings();
         NET.setSkin(sk.id);
         UI.skinsRefresh(); UI.account();
         SFX.ui();
@@ -13479,7 +13928,17 @@ UI.openSkins = function () {
 };
 UI.skinsRefresh = function () {
   for (const b of $('skinGrid').children) b.setAttribute('aria-pressed', String(b.dataset.id === SETTINGS.skin));
-  $('skinName').textContent = skinOf(SETTINGS.skin).name;
+  const custom = isCustomSkin(SETTINGS.skin);
+  $('skinName').textContent = custom ? 'Dein eigener Skin' : skinOf(SETTINGS.skin).name;
+  $('skinNote').textContent = custom ? 'Selbst gepixelt' : skinOf(SETTINGS.skin).note || '';
+  // die Karte „Dein eigener Skin“: Vorschau von vorne, Pixeln, Tragen
+  const mine = SKIN64.mine ? SKIN64.img.get('c:' + skinHash(SKIN64.mine)) : null;
+  const cv = $('mySkinCv');
+  if (mine) skinFrontTo(cv, mine); else skinFrontTo(cv, skinTemplate(SETTINGS.skinBase || (custom ? 'ranger' : SETTINGS.skin)));
+  $('mySkinCard').setAttribute('aria-pressed', String(custom));
+  $('btnSkinEdit').textContent = mine ? '✏️ Bearbeiten' : '✏️ Skin pixeln';
+  $('btnSkinWear').hidden = !mine || custom;
+  $('mySkinTxt').textContent = custom ? 'Du trägst gerade deinen eigenen Skin.' : mine ? 'Dein gepixelter Skin. Tippe auf „Tragen“, um ihn anzuziehen.' : 'Pixel dir deinen eigenen Look, wie in Minecraft. Mit zweiter Schicht für Haare, Jacken und Hüte.';
 };
 UI.closeSkins = function () {
   $('scrSkins').hidden = true;
@@ -13560,6 +14019,14 @@ function bindUI() {
   $('btnSkins').addEventListener('click', () => UI.openSkins());
   $('btnAccount').addEventListener('click', () => UI.openAccount());
   $('skinsClose').addEventListener('click', () => UI.closeSkins());
+  $('btnSkinEdit').addEventListener('click', () => UI.openSkinEditor());
+  $('btnSkinWear').addEventListener('click', () => { if (!SKIN64.mine) return; skin64Save(SKIN64.mine).then(() => { PREVIEW.skin = SETTINGS.skin; UI.skinsRefresh(); UI.account(); SFX.ui(); }); });
+  bindSkinEditor();
+  // die Figur hinter dem Menü mit dem Finger oder der Maus drehen
+  let sd = null;
+  window.addEventListener('pointerdown', (e) => { if ($('scrSkins').hidden || e.target.closest('.skins-panel')) return; sd = e.clientX; });
+  window.addEventListener('pointermove', (e) => { if (sd === null || $('scrSkins').hidden) return; PREVIEW.dragYaw = (PREVIEW.dragYaw || 0) + (e.clientX - sd) * 0.012; sd = e.clientX; });
+  window.addEventListener('pointerup', () => { sd = null; });
   $('skinsDone').addEventListener('click', () => UI.closeSkins());
   $('cfNo').addEventListener('click', () => answerConfirm(false));
   $('cfYes').addEventListener('click', () => answerConfirm(true));
@@ -14399,7 +14866,7 @@ async function boot(data) {
   if (!gl) { $('scrLoad').hidden = true; $('scrErr').hidden = false; return; }
   try {
     loadSettings();
-    initGL(); initBatches();
+    initGL(); initBatches(); skin64Init(); skin64LoadMine();
     computeTileAverages(1);
     applyQuality(true);
     bindUI(); initInput();
@@ -14773,6 +15240,12 @@ const NET = {
     this.pendingName = null;
     this.name = p.name;
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
+    // ein eigener Skin von einem anderen Gerät: das Bild kommt aus dem Profil
+    else if (isCustomSkin(p.skin) && p.skin !== SETTINGS.skin && typeof p.skin64 === 'string' && p.skin64.startsWith('data:image/png')) {
+      try { localStorage.setItem(SKIN64.LKEY, p.skin64); } catch (e) { /* voll */ }
+      SKIN64.mine = p.skin64; SETTINGS.skin = p.skin; saveSettings();
+      skinDecode(p.skin64).then((img) => { if (img) SKIN64.img.set(p.skin, img); UI.account && UI.account(); });
+    }
     this.startPresence(); this.watchFriends(); SUPPORT.watch(); CHAT.watch();
     this.loginT = performance.now();
     INVITES.watch(); ADMIN.watchMe(); UI.adminButton(); ADMIN.watchMods(); MODS.pull();
@@ -16984,6 +17457,446 @@ function bindChat() {
     if (!(await CHAT.send(t))) inp.value = inp.value || t;
   });
   $('chatIn').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); $('chatIn').blur(); } });
+}
+
+/* ---- 19se_skinedit.js ---- */
+/* =========================================================================
+   Skin-Editor (wie die Minecraft-Skin-Editoren): eine Spielerfigur in 3D,
+   direkt darauf malen. Zwei Schichten (die zweite liegt leicht darüber,
+   z. B. für Haare, Jacken, Hüte), beide ein- und ausblendbar.
+   - PC: Linksklick malt, Rechtsklick halten dreht, Mausrad zoomt
+   - Handy: ein Finger auf der Figur malt, daneben dreht, zwei Finger zoomen
+   - Werkzeuge: Pinsel, Radierer, Pipette, Füllen, Spiegeln
+   - Farben: Farbkreis mit Helligkeit, Standardfarben, zuletzt benutzt, Hex
+   Gespeichert wird ein 64 x 64 PNG im Minecraft-Format (auch Import/Export).
+   ========================================================================= */
+const SKE = {
+  open: false, cv: null, gl: null, prog: null, vbo: null, vao: null, tex: null, n: 0,
+  img: null, layerVis: [true, true], paint: 0, tool: 'pen', col: [0.85, 0.35, 0.25], recent: [],
+  yaw: 0.5, pitch: 0.18, dist: 62, hover: null, parts: { head: true, body: true, arms: true, legs: true },
+  mirror: false, undo: [], redo: [], drag: null, painting: false, raf: 0, dirty: true, texDirty: true, startUrl: null,
+};
+/* die Teile der Figur in Pixeln (Füße bei y = 0, Blick nach +z) */
+const SKE_BOXES = [
+  { part: 'head', name: 'head', c: [0, 28, 0] },
+  { part: 'body', name: 'body', c: [0, 18, 0] },
+  { part: 'arms', name: 'armR', c: [-6, 18, 0] },
+  { part: 'arms', name: 'armL', c: [6, 18, 0] },
+  { part: 'legs', name: 'legR', c: [-2, 6, 0] },
+  { part: 'legs', name: 'legL', c: [2, 6, 0] },
+];
+const SKE_MIRROR = { armR: 'armL', armL: 'armR', legR: 'legL', legL: 'legR', head: 'head', body: 'body' };
+const SKE_PALETTE = ['#ffffff', '#c6c6c6', '#8e8e8e', '#555555', '#2b2b2b', '#000000', '#f0c6a4', '#d79a72', '#a8673f', '#6b4427', '#3b2a1e', '#e8d36a',
+  '#ff4040', '#c02626', '#ff9a2e', '#ffd23a', '#7ed957', '#2f9e44', '#1f6b3a', '#3ad1c7', '#3a8ff0', '#2643a8', '#8a5cff', '#e45fd0'];
+
+/* ---------- Geometrie: welche Seite, welches Pixel (gleich wie im Spiel-Shader) ---------- */
+function skeBoxDims(name, over) {
+  const p = SKIN_PARTS[name], s = p.s, inf = over ? (name === 'head' ? 1 : 0.5) : 0;
+  return [s[0] + inf, s[1] + inf, s[2] + inf];
+}
+/* lokaler Punkt p (0..1) auf der Seite mit Normale nrm -> Pixel im Skin */
+function skeTexel(name, over, nrm, p) {
+  const P = SKIN_PARTS[name], s = P.s, uv = over ? P.over : P.base;
+  const [u0, v0] = uv, w = s[0], h = s[1], d = s[2];
+  let r, st;
+  const cl = (v) => Math.min(0.9999, Math.max(0, v));
+  if (Math.abs(nrm[2]) > 0.5) { if (nrm[2] > 0) { r = [u0 + d, v0 + d, w, h]; st = [p[0], 1 - p[1]]; } else { r = [u0 + 2 * d + w, v0 + d, w, h]; st = [1 - p[0], 1 - p[1]]; } }
+  else if (Math.abs(nrm[0]) > 0.5) { if (nrm[0] < 0) { r = [u0, v0 + d, d, h]; st = [p[2], 1 - p[1]]; } else { r = [u0 + d + w, v0 + d, d, h]; st = [1 - p[2], 1 - p[1]]; } }
+  else if (nrm[1] > 0) { r = [u0 + d, v0, w, d]; st = [p[0], p[2]]; }
+  else { r = [u0 + d + w, v0, w, d]; st = [p[0], 1 - p[2]]; }
+  return { x: Math.floor(r[0] + cl(st[0]) * r[2]), y: Math.floor(r[1] + cl(st[1]) * r[3]), rect: r };
+}
+const SKE_FACES = [
+  [[1, 0, 0], [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]]],
+  [[-1, 0, 0], [[0, 0, 0], [0, 0, 1], [0, 1, 1], [0, 1, 0]]],
+  [[0, 1, 0], [[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]]],
+  [[0, -1, 0], [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]]],
+  [[0, 0, 1], [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]],
+  [[0, 0, -1], [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]]],
+];
+
+/* ---------- WebGL der Vorschau ---------- */
+const SKE_VS = `#version 300 es
+precision highp float;
+layout(location = 0) in vec3 a_pos; layout(location = 1) in vec3 a_nrm; layout(location = 2) in vec2 a_uv;
+uniform mat4 u_vp; out vec3 v_n; out vec2 v_uv;
+void main() { v_n = a_nrm; v_uv = a_uv; gl_Position = u_vp * vec4(a_pos, 1.0); }`;
+const SKE_FS = `#version 300 es
+precision highp float;
+in vec3 v_n; in vec2 v_uv; uniform sampler2D u_tex; uniform vec2 u_hover; uniform vec3 u_light; out vec4 o;
+void main() {
+  vec2 px = floor(v_uv);
+  vec4 t = texelFetch(u_tex, ivec2(clamp(px, vec2(0.0), vec2(63.0))), 0);
+  if (t.a < 0.5) discard;
+  float l = 0.62 + 0.38 * max(dot(normalize(v_n), u_light), 0.0) + (v_n.y > 0.5 ? 0.06 : 0.0) - (v_n.y < -0.5 ? 0.1 : 0.0);
+  vec3 c = t.rgb * l;
+  if (px == u_hover) c = mix(c, vec3(1.0), 0.45);
+  // feines Pixel-Raster
+  vec2 f = fract(v_uv); float g = step(0.94, max(f.x, f.y));
+  c *= 1.0 - g * 0.12;
+  o = vec4(c, 1.0);
+}`;
+function skeInitGL() {
+  if (SKE.gl) return true;
+  const g = SKE.cv.getContext('webgl2', { antialias: true, alpha: true, premultipliedAlpha: false });
+  if (!g) return false;
+  SKE.gl = g;
+  const sh = (type, src) => { const s = g.createShader(type); g.shaderSource(s, src); g.compileShader(s); if (!g.getShaderParameter(s, g.COMPILE_STATUS)) console.warn(g.getShaderInfoLog(s)); return s; };
+  const p = g.createProgram(); g.attachShader(p, sh(g.VERTEX_SHADER, SKE_VS)); g.attachShader(p, sh(g.FRAGMENT_SHADER, SKE_FS)); g.linkProgram(p);
+  SKE.prog = p;
+  SKE.vbo = g.createBuffer(); SKE.vao = g.createVertexArray();
+  g.bindVertexArray(SKE.vao); g.bindBuffer(g.ARRAY_BUFFER, SKE.vbo);
+  g.enableVertexAttribArray(0); g.vertexAttribPointer(0, 3, g.FLOAT, false, 32, 0);
+  g.enableVertexAttribArray(1); g.vertexAttribPointer(1, 3, g.FLOAT, false, 32, 12);
+  g.enableVertexAttribArray(2); g.vertexAttribPointer(2, 2, g.FLOAT, false, 32, 24);
+  g.bindVertexArray(null);
+  SKE.tex = g.createTexture(); g.bindTexture(g.TEXTURE_2D, SKE.tex);
+  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.NEAREST); g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.NEAREST);
+  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA8, 64, 64, 0, g.RGBA, g.UNSIGNED_BYTE, null);
+  return true;
+}
+/* alle sichtbaren Quader als Dreiecke (die zweite Schicht nach der ersten, damit sie darüber liegt) */
+function skeBuild() {
+  const v = [];
+  for (const over of [false, true]) {
+    if (!SKE.layerVis[over ? 1 : 0]) continue;
+    for (const b of SKE_BOXES) {
+      if (!SKE.parts[b.part]) continue;
+      const dm = skeBoxDims(b.name, over);
+      for (const [n, cs] of SKE_FACES) {
+        const pts = cs.map((q) => [b.c[0] + (q[0] - 0.5) * dm[0], b.c[1] + (q[1] - 0.5) * dm[1], b.c[2] + (q[2] - 0.5) * dm[2]]);
+        // Pixel-Koordinaten der vier Ecken (über den Mittelpunkt der Ecke berechnet, exakt an den Rändern)
+        const uvs = cs.map((q) => {
+          const P = SKIN_PARTS[b.name], s = P.s, uv = over ? P.over : P.base, [u0, v0] = uv, w = s[0], h = s[1], d = s[2];
+          let r, st;
+          if (Math.abs(n[2]) > 0.5) { if (n[2] > 0) { r = [u0 + d, v0 + d, w, h]; st = [q[0], 1 - q[1]]; } else { r = [u0 + 2 * d + w, v0 + d, w, h]; st = [1 - q[0], 1 - q[1]]; } }
+          else if (Math.abs(n[0]) > 0.5) { if (n[0] < 0) { r = [u0, v0 + d, d, h]; st = [q[2], 1 - q[1]]; } else { r = [u0 + d + w, v0 + d, d, h]; st = [1 - q[2], 1 - q[1]]; } }
+          else if (n[1] > 0) { r = [u0 + d, v0, w, d]; st = [q[0], q[2]]; }
+          else { r = [u0 + d + w, v0, w, d]; st = [q[0], 1 - q[2]]; }
+          return [r[0] + st[0] * r[2], r[1] + st[1] * r[3]];
+        });
+        for (const k of [0, 1, 2, 0, 2, 3]) v.push(...pts[k], ...n, ...uvs[k]);
+      }
+    }
+  }
+  const g = SKE.gl;
+  g.bindBuffer(g.ARRAY_BUFFER, SKE.vbo); g.bufferData(g.ARRAY_BUFFER, new Float32Array(v), g.DYNAMIC_DRAW);
+  SKE.n = v.length / 8;
+}
+function skeCamera() {
+  const W = SKE.cv.width, H = SKE.cv.height;
+  const tgt = [0, 16, 0];
+  const cp = Math.cos(SKE.pitch), sp = Math.sin(SKE.pitch);
+  const eye = [tgt[0] + Math.sin(SKE.yaw) * cp * SKE.dist, tgt[1] + sp * SKE.dist, tgt[2] + Math.cos(SKE.yaw) * cp * SKE.dist];
+  const view = M4.create(), proj = M4.create(), vp = M4.create();
+  M4.lookAt(view, eye[0], eye[1], eye[2], tgt[0], tgt[1], tgt[2], 0, 1, 0);
+  M4.perspective(proj, 40 * Math.PI / 180, W / Math.max(1, H), 1, 400);
+  M4.mul(vp, proj, view);
+  return { eye, vp, W, H };
+}
+function skeDraw() {
+  const g = SKE.gl; if (!g) return;
+  const cv = SKE.cv, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(cv.clientWidth * dpr)), h = Math.max(1, Math.round(cv.clientHeight * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  if (SKE.texDirty) { g.bindTexture(g.TEXTURE_2D, SKE.tex); g.texSubImage2D(g.TEXTURE_2D, 0, 0, 0, 64, 64, g.RGBA, g.UNSIGNED_BYTE, SKE.img.data); SKE.texDirty = false; }
+  if (SKE.dirty) { skeBuild(); SKE.dirty = false; }
+  const cam = skeCamera();
+  g.viewport(0, 0, w, h);
+  g.clearColor(0, 0, 0, 0); g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
+  g.enable(g.DEPTH_TEST); g.enable(g.CULL_FACE);
+  g.useProgram(SKE.prog);
+  g.uniformMatrix4fv(g.getUniformLocation(SKE.prog, 'u_vp'), false, cam.vp);
+  const hv = SKE.hover;
+  g.uniform2f(g.getUniformLocation(SKE.prog, 'u_hover'), hv ? hv.x : -9, hv ? hv.y : -9);
+  const L = [Math.sin(SKE.yaw + 0.7), 0.6, Math.cos(SKE.yaw + 0.7)], ln = Math.hypot(...L);
+  g.uniform3f(g.getUniformLocation(SKE.prog, 'u_light'), L[0] / ln, L[1] / ln, L[2] / ln);
+  g.activeTexture(g.TEXTURE0); g.bindTexture(g.TEXTURE_2D, SKE.tex); g.uniform1i(g.getUniformLocation(SKE.prog, 'u_tex'), 0);
+  g.bindVertexArray(SKE.vao); g.drawArrays(g.TRIANGLES, 0, SKE.n); g.bindVertexArray(null);
+}
+function skeLoop() {
+  if (!SKE.open) return;
+  skeDraw();
+  SKE.raf = requestAnimationFrame(skeLoop);
+}
+
+/* ---------- Zeigen: welcher Pixel liegt unter der Maus ---------- */
+function skeRay(cx, cy) {
+  const r = SKE.cv.getBoundingClientRect();
+  const nx = ((cx - r.left) / r.width) * 2 - 1, ny = -(((cy - r.top) / r.height) * 2 - 1);
+  const cam = skeCamera();
+  const inv = M4.create(); M4.invert(inv, cam.vp);
+  const un = (z) => { const x = nx, y = ny; const w = inv[3] * x + inv[7] * y + inv[11] * z + inv[15]; return [(inv[0] * x + inv[4] * y + inv[8] * z + inv[12]) / w, (inv[1] * x + inv[5] * y + inv[9] * z + inv[13]) / w, (inv[2] * x + inv[6] * y + inv[10] * z + inv[14]) / w]; };
+  const a = un(-1), b = un(1), d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], l = Math.hypot(...d);
+  return { o: a, d: [d[0] / l, d[1] / l, d[2] / l] };
+}
+function skeHitBox(ray, b, over) {
+  const dm = skeBoxDims(b.name, over);
+  let t0 = -1e9, t1 = 1e9, ax = -1, sg = 0;
+  for (let i = 0; i < 3; i++) {
+    const mn = b.c[i] - dm[i] / 2, mx = b.c[i] + dm[i] / 2;
+    if (Math.abs(ray.d[i]) < 1e-9) { if (ray.o[i] < mn || ray.o[i] > mx) return null; continue; }
+    let ta = (mn - ray.o[i]) / ray.d[i], tb = (mx - ray.o[i]) / ray.d[i], s = -1;
+    if (ta > tb) { const q = ta; ta = tb; tb = q; s = 1; }
+    if (ta > t0) { t0 = ta; ax = i; sg = s; }
+    if (tb < t1) t1 = tb;
+    if (t0 > t1) return null;
+  }
+  if (t1 < 0 || ax < 0) return null;
+  const t = t0;
+  const hp = [ray.o[0] + ray.d[0] * t, ray.o[1] + ray.d[1] * t, ray.o[2] + ray.d[2] * t];
+  const nrm = [0, 0, 0]; nrm[ax] = sg;
+  const p = [0, 1, 2].map((i) => (hp[i] - (b.c[i] - dm[i] / 2)) / dm[i]);
+  return { t, nrm, p, box: b, over };
+}
+function skeAlpha(x, y) { return SKE.img.data[(y * 64 + x) * 4 + 3]; }
+/* der Pixel unter dem Zeiger: beim Malen auf der gewählten Schicht, sonst der oberste sichtbare */
+function skePick(cx, cy, forPaint) {
+  const ray = skeRay(cx, cy);
+  let best = null;
+  for (const over of [true, false]) {
+    if (!SKE.layerVis[over ? 1 : 0]) continue;
+    if (forPaint && SKE.tool !== 'pick' && (over ? 1 : 0) !== SKE.paint) continue;
+    for (const b of SKE_BOXES) {
+      if (!SKE.parts[b.part]) continue;
+      const h = skeHitBox(ray, b, over); if (!h) continue;
+      const tx = skeTexel(b.name, over, h.nrm, h.p);
+      // durch durchsichtige Pixel der zweiten Schicht hindurch (außer man malt auf ihr)
+      if (over && !(forPaint && SKE.paint === 1 && SKE.tool !== 'pick') && skeAlpha(tx.x, tx.y) < 128) continue;
+      if (!best || h.t < best.t - 1e-6) best = Object.assign(h, tx);
+    }
+  }
+  // die zweite Schicht verdeckt die erste nur dort, wo sie Farbe hat
+  return best;
+}
+function skeMirrorOf(h) {
+  const name = SKE_MIRROR[h.box.name];
+  const nrm = [-h.nrm[0], h.nrm[1], h.nrm[2]], p = [1 - h.p[0], h.p[1], h.p[2]];
+  return skeTexel(name, h.over, nrm, p);
+}
+
+/* ---------- Malen ---------- */
+function skeSet(x, y, rgba) { const i = (y * 64 + x) * 4, d = SKE.img.data; d[i] = rgba[0]; d[i + 1] = rgba[1]; d[i + 2] = rgba[2]; d[i + 3] = rgba[3]; }
+function skeGet(x, y) { const i = (y * 64 + x) * 4, d = SKE.img.data; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; }
+function skeCol255() { return [Math.round(SKE.col[0] * 255), Math.round(SKE.col[1] * 255), Math.round(SKE.col[2] * 255), 255]; }
+function skeSnapshot() { SKE.undo.push(new Uint8ClampedArray(SKE.img.data)); if (SKE.undo.length > 60) SKE.undo.shift(); SKE.redo.length = 0; skeUndoBtns(); }
+function skeApply(h, first) {
+  if (!h) return;
+  const targets = [h]; if (SKE.mirror) targets.push(skeMirrorOf(h));
+  if (SKE.tool === 'pick') {
+    const c = skeGet(h.x, h.y); if (c[3] < 128) return;
+    skeSetColor([c[0] / 255, c[1] / 255, c[2] / 255]);
+    SKE.tool = 'pen'; skeToolBtns();
+    return;
+  }
+  if (first) skeSnapshot();
+  for (const q of targets) {
+    if (SKE.tool === 'pen') skeSet(q.x, q.y, skeCol255());
+    // Radierer: auf der zweiten Schicht durchsichtig, auf der ersten zurück zur Vorlage (die erste Schicht hat keine Löcher)
+    else if (SKE.tool === 'erase') { if (SKE.paint === 1) skeSet(q.x, q.y, [0, 0, 0, 0]); else { const i = (q.y * 64 + q.x) * 4, d = SKE.tpl.data; skeSet(q.x, q.y, [d[i], d[i + 1], d[i + 2], 255]); } }
+    else if (SKE.tool === 'fill') skeFill(q.x, q.y, q.rect || h.rect);
+  }
+  if (SKE.tool === 'pen') skeRecent();
+  SKE.texDirty = true;
+}
+/* füllen: alle zusammenhängenden Pixel gleicher Farbe auf derselben Seite */
+function skeFill(x, y, r) {
+  const from = skeGet(x, y), to = skeCol255();
+  if (from.every((v, i) => v === to[i])) return;
+  const st = [[x, y]], seen = new Set();
+  while (st.length) {
+    const [a, b] = st.pop(); const k = a * 64 + b;
+    if (seen.has(k) || a < r[0] || b < r[1] || a >= r[0] + r[2] || b >= r[1] + r[3]) continue;
+    seen.add(k);
+    const c = skeGet(a, b); if (!c.every((v, i) => v === from[i])) continue;
+    skeSet(a, b, to);
+    st.push([a + 1, b], [a - 1, b], [a, b + 1], [a, b - 1]);
+  }
+}
+
+/* ---------- Farben ---------- */
+function rgbToHsv(r, g, b) { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0; if (d) { if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h /= 6; if (h < 0) h += 1; } return [h, mx ? d / mx : 0, mx]; }
+function hsvToRgb(h, s, v) { const i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][((i % 6) + 6) % 6]; }
+function hexOf(c) { return '#' + c.map((v) => Math.round(clamp(v, 0, 1) * 255).toString(16).padStart(2, '0')).join(''); }
+function skeSetColor(c, fromWheel) {
+  SKE.col = c.slice();
+  if (!fromWheel) { const hsv = rgbToHsv(...c); SKE.hsv = hsv; }
+  $('skeCur').style.background = hexOf(c);
+  const hx = $('skeHex'); if (document.activeElement !== hx) hx.value = hexOf(c);
+  $('skeVal').value = Math.round((SKE.hsv ? SKE.hsv[2] : 1) * 100);
+  skeWheelDraw();
+}
+function skeRecent() {
+  const h = hexOf(SKE.col);
+  if (SKE.recent[0] === h) return;
+  SKE.recent = [h, ...SKE.recent.filter((q) => q !== h)].slice(0, 12);
+  skeSwatches($('skeRecent'), SKE.recent);
+}
+function skeSwatches(box, list) {
+  box.innerHTML = '';
+  for (const h of list) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ske-sw'; b.style.background = h; b.title = h;
+    b.addEventListener('click', () => { skeSetColor([1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)); if (SKE.tool === 'erase' || SKE.tool === 'pick') { SKE.tool = 'pen'; skeToolBtns(); } });
+    box.appendChild(b);
+  }
+}
+/* der Farbkreis: Farbton rundherum, Sättigung nach außen; Helligkeit mit dem Regler */
+function skeWheelDraw() {
+  const cv = $('skeWheel'); if (!cv) return;
+  const x = cv.getContext('2d'), S = cv.width, R = S / 2;
+  const v = SKE.hsv ? SKE.hsv[2] : 1;
+  if (SKE._wheelV !== v) {
+    const im = x.createImageData(S, S);
+    for (let py = 0; py < S; py++) for (let pxx = 0; pxx < S; pxx++) {
+      const dx = pxx - R + 0.5, dy = py - R + 0.5, r = Math.hypot(dx, dy) / R;
+      const i = (py * S + pxx) * 4;
+      if (r > 1) { im.data[i + 3] = 0; continue; }
+      const h = (Math.atan2(dy, dx) / (Math.PI * 2) + 1) % 1;
+      const c = hsvToRgb(h, r, v);
+      im.data[i] = c[0] * 255; im.data[i + 1] = c[1] * 255; im.data[i + 2] = c[2] * 255; im.data[i + 3] = r > 0.985 ? 255 * (1 - r) / 0.015 : 255;
+    }
+    SKE._wheel = im; SKE._wheelV = v;
+  }
+  x.putImageData(SKE._wheel, 0, 0);
+  const hsv = SKE.hsv || [0, 0, 1];
+  const a = hsv[0] * Math.PI * 2, rr = hsv[1] * R;
+  x.beginPath(); x.arc(R + Math.cos(a) * rr, R + Math.sin(a) * rr, 6, 0, Math.PI * 2);
+  x.lineWidth = 2.5; x.strokeStyle = v > 0.5 ? '#000' : '#fff'; x.stroke();
+}
+function skeWheelPick(e) {
+  const cv = $('skeWheel'), r = cv.getBoundingClientRect();
+  const dx = (e.clientX - r.left) / r.width * 2 - 1, dy = (e.clientY - r.top) / r.height * 2 - 1;
+  const h = (Math.atan2(dy, dx) / (Math.PI * 2) + 1) % 1, s = Math.min(1, Math.hypot(dx, dy));
+  const v = SKE.hsv ? SKE.hsv[2] : 1;
+  SKE.hsv = [h, s, v < 0.08 ? 1 : v];
+  skeSetColor(hsvToRgb(...SKE.hsv), true);
+  if (SKE.tool === 'erase' || SKE.tool === 'pick') { SKE.tool = 'pen'; skeToolBtns(); }
+}
+
+/* ---------- Bedienung ---------- */
+function skeToolBtns() {
+  document.querySelectorAll('#scrSkinEdit [data-tool]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tool === SKE.tool)));
+  $('skeMirror').setAttribute('aria-pressed', String(SKE.mirror));
+  document.querySelectorAll('#scrSkinEdit [data-layer]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.layer === SKE.paint)));
+  document.querySelectorAll('#scrSkinEdit [data-vis]').forEach((b) => { const on = SKE.layerVis[+b.dataset.vis]; b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '👁' : '🚫'; });
+  document.querySelectorAll('#scrSkinEdit [data-part]').forEach((b) => b.setAttribute('aria-pressed', String(SKE.parts[b.dataset.part])));
+  SKE.cv.style.cursor = SKE.tool === 'pick' ? 'copy' : 'crosshair';
+}
+function skeUndoBtns() { $('skeUndo').disabled = !SKE.undo.length; $('skeRedo').disabled = !SKE.redo.length; }
+function skeUndo() { if (!SKE.undo.length) return; SKE.redo.push(new Uint8ClampedArray(SKE.img.data)); SKE.img.data.set(SKE.undo.pop()); SKE.texDirty = true; skeUndoBtns(); }
+function skeRedo() { if (!SKE.redo.length) return; SKE.undo.push(new Uint8ClampedArray(SKE.img.data)); SKE.img.data.set(SKE.redo.pop()); SKE.texDirty = true; skeUndoBtns(); }
+function skeUrl() { const c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').putImageData(SKE.img, 0, 0); return c.toDataURL('image/png'); }
+
+UI.openSkinEditor = async function () {
+  SKE.cv = $('skeCanvas');
+  $('scrSkins').hidden = true; $('scrSkinEdit').hidden = false;
+  if (!skeInitGL()) { UI.toast('Der Editor braucht WebGL 2.', 'warn'); UI.closeSkinEditor(); return; }
+  let img = null;
+  if (isCustomSkin(SETTINGS.skin) && SKIN64.img.get(SETTINGS.skin)) img = SKIN64.img.get(SETTINGS.skin);
+  else if (SKIN64.mine) img = await skinDecode(SKIN64.mine);
+  if (!img) img = skinTemplate(isCustomSkin(SETTINGS.skin) ? (SETTINGS.skinBase || 'ranger') : SETTINGS.skin);
+  SKE.base = !isCustomSkin(SETTINGS.skin) ? SETTINGS.skin : (SETTINGS.skinBase || 'ranger');
+  SKE.tpl = skinTemplate(SKE.base);
+  SKE.img = new ImageData(new Uint8ClampedArray(img.data), 64, 64);
+  SKE.startUrl = skeUrl();
+  SKE.undo = []; SKE.redo = []; SKE.texDirty = true; SKE.dirty = true; SKE.open = true;
+  if (!SKE.hsv) skeSetColor(SKE.col); else skeSetColor(SKE.col);
+  skeSwatches($('skePal'), SKE_PALETTE); skeSwatches($('skeRecent'), SKE.recent);
+  skeToolBtns(); skeUndoBtns();
+  cancelAnimationFrame(SKE.raf); skeLoop();
+};
+UI.closeSkinEditor = function () {
+  SKE.open = false; cancelAnimationFrame(SKE.raf);
+  $('scrSkinEdit').hidden = true;
+  UI.openSkins();
+};
+async function skeLeave() {
+  if (SKE.img && skeUrl() !== SKE.startUrl) {
+    const ok = await UI.confirm({ title: 'Ohne Speichern schließen?', text: 'Deine Änderungen am Skin gehen verloren.', yes: 'Verwerfen' });
+    if (!ok) return;
+  }
+  UI.closeSkinEditor();
+}
+async function skeSaveWear() {
+  const url = skeUrl();
+  await skin64Save(url);
+  SKE.startUrl = url;
+  PREVIEW.skin = SETTINGS.skin;
+  UI.toast('Dein Skin ist gespeichert, du trägst ihn jetzt.', 'good', 3000, 'ske');
+  UI.account && UI.account();
+  UI.closeSkinEditor();
+}
+function bindSkinEditor() {
+  const cv = $('skeCanvas'); if (!cv) return;
+  SKE.cv = cv;
+  cv.addEventListener('contextmenu', (e) => e.preventDefault());
+  const touches = new Map();
+  cv.addEventListener('pointerdown', (e) => {
+    cv.setPointerCapture(e.pointerId);
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size === 2) { const [a, b] = [...touches.values()]; SKE.drag = { pinch: Math.hypot(a.x - b.x, a.y - b.y), dist: SKE.dist }; SKE.painting = false; return; }
+    const h = e.button === 0 ? skePick(e.clientX, e.clientY, true) : null;
+    // rechte Maustaste, mittlere, oder neben die Figur: drehen
+    if (e.button !== 0 || !h) { SKE.drag = { x: e.clientX, y: e.clientY }; return; }
+    SKE.painting = true; SKE.lastPx = h.x + ',' + h.y;
+    skeApply(h, true);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    const t = touches.get(e.pointerId); if (t) { t.x = e.clientX; t.y = e.clientY; }
+    if (SKE.drag && SKE.drag.pinch && touches.size >= 2) { const [a, b] = [...touches.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); SKE.dist = clamp(SKE.drag.dist * SKE.drag.pinch / Math.max(20, d), 24, 140); return; }
+    if (SKE.drag && !SKE.drag.pinch) {
+      SKE.yaw -= (e.clientX - SKE.drag.x) * 0.01; SKE.pitch = clamp(SKE.pitch + (e.clientY - SKE.drag.y) * 0.008, -1.3, 1.3);
+      SKE.drag.x = e.clientX; SKE.drag.y = e.clientY; return;
+    }
+    const h = skePick(e.clientX, e.clientY, SKE.painting || SKE.tool !== 'pick');
+    SKE.hover = h ? { x: h.x, y: h.y } : null;
+    if (SKE.painting && h && (SKE.tool === 'pen' || SKE.tool === 'erase')) { const k = h.x + ',' + h.y; if (k !== SKE.lastPx) { SKE.lastPx = k; skeApply(h, false); } }
+  });
+  const up = (e) => { touches.delete(e.pointerId); if (touches.size < 2 && SKE.drag && SKE.drag.pinch) SKE.drag = null; if (!touches.size) { SKE.drag = null; SKE.painting = false; } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', () => { SKE.hover = null; });
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); SKE.dist = clamp(SKE.dist * (1 + Math.sign(e.deltaY) * 0.1), 24, 140); }, { passive: false });
+  document.querySelectorAll('#scrSkinEdit [data-tool]').forEach((b) => b.addEventListener('click', () => { SKE.tool = b.dataset.tool; skeToolBtns(); }));
+  document.querySelectorAll('#scrSkinEdit [data-layer]').forEach((b) => b.addEventListener('click', () => { SKE.paint = +b.dataset.layer; if (!SKE.layerVis[SKE.paint]) { SKE.layerVis[SKE.paint] = true; SKE.dirty = true; } skeToolBtns(); }));
+  document.querySelectorAll('#scrSkinEdit [data-vis]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const i = +b.dataset.vis; SKE.layerVis[i] = !SKE.layerVis[i]; SKE.dirty = true; skeToolBtns(); }));
+  document.querySelectorAll('#scrSkinEdit [data-part]').forEach((b) => b.addEventListener('click', () => { const p = b.dataset.part; SKE.parts[p] = !SKE.parts[p]; SKE.dirty = true; skeToolBtns(); }));
+  $('skeMirror').addEventListener('click', () => { SKE.mirror = !SKE.mirror; skeToolBtns(); });
+  $('skeUndo').addEventListener('click', skeUndo); $('skeRedo').addEventListener('click', skeRedo);
+  $('skeCancel').addEventListener('click', skeLeave);
+  $('skeSave').addEventListener('click', skeSaveWear);
+  $('skeReset').addEventListener('click', async () => {
+    const ok = await UI.confirm({ title: 'Neu anfangen?', text: 'Der Skin wird durch eine Vorlage in den Farben deines letzten eingebauten Skins ersetzt.', yes: 'Neu anfangen', danger: false });
+    if (!ok) return;
+    skeSnapshot(); const t = skinTemplate(SKE.base || 'ranger'); SKE.img.data.set(t.data); SKE.texDirty = true;
+  });
+  $('skeExport').addEventListener('click', () => { const a = document.createElement('a'); a.href = skeUrl(); a.download = 'blood-moon-skin.png'; document.body.appendChild(a); a.click(); a.remove(); });
+  $('skeImportBtn').addEventListener('click', () => $('skeImport').click());
+  $('skeImport').addEventListener('change', async () => {
+    const f = $('skeImport').files[0]; $('skeImport').value = ''; if (!f) return;
+    const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+    const img = await skinDecode(url);
+    if (!img) { UI.toast('Das Bild konnte nicht geladen werden. Nimm ein PNG im Minecraft-Format (64 x 64).', 'warn', 4200); return; }
+    skeSnapshot(); SKE.img.data.set(img.data); SKE.texDirty = true;
+    UI.toast('Skin geladen.', 'good', 1800, 'ske');
+  });
+  const wheel = $('skeWheel');
+  let wd = false;
+  wheel.addEventListener('pointerdown', (e) => { wd = true; wheel.setPointerCapture(e.pointerId); skeWheelPick(e); });
+  wheel.addEventListener('pointermove', (e) => { if (wd) skeWheelPick(e); });
+  wheel.addEventListener('pointerup', () => { wd = false; skeRecent(); });
+  $('skeVal').addEventListener('input', () => { const h = SKE.hsv || [0, 0, 1]; SKE.hsv = [h[0], h[1], +$('skeVal').value / 100]; skeSetColor(hsvToRgb(...SKE.hsv), true); });
+  $('skeHex').addEventListener('change', () => { const v = $('skeHex').value.trim().replace(/^#?/, '#'); if (/^#[0-9a-f]{6}$/i.test(v)) { skeSetColor([1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16) / 255)); skeRecent(); } });
+  window.addEventListener('keydown', (e) => {
+    if (!SKE.open) return;
+    const tg = e.target && e.target.tagName; if (tg === 'INPUT') return;
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); if (e.shiftKey) skeRedo(); else skeUndo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); skeRedo(); return; }
+    const map = { KeyB: 'pen', KeyP: 'pen', KeyE: 'erase', KeyI: 'pick', KeyG: 'fill', KeyF: 'fill' };
+    if (map[e.code]) { SKE.tool = map[e.code]; skeToolBtns(); }
+    if (e.code === 'KeyM') { SKE.mirror = !SKE.mirror; skeToolBtns(); }
+    if (e.code === 'Digit1') { SKE.paint = 0; skeToolBtns(); } if (e.code === 'Digit2') { SKE.paint = 1; SKE.layerVis[1] = true; SKE.dirty = true; skeToolBtns(); }
+    if (e.code === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); skeLeave(); }
+  }, true);
 }
 
 /* ---- 19t_mods.js ---- */
