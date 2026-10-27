@@ -134,6 +134,24 @@
         }
       }
     },
+    "chats": {
+      "$cid": {
+        ".read": "auth != null && ($cid.beginsWith(auth.uid + '_') || $cid.endsWith('_' + auth.uid))",
+        "$m": {
+          ".write": "auth != null && !data.exists() && !root.child('bans/' + auth.uid).exists() && ($cid.beginsWith(auth.uid + '_') || $cid.endsWith('_' + auth.uid)) && root.child('users/' + auth.uid + '/friends/' + $cid.replace(auth.uid, '').replace('_', '')).exists() && newData.child('f').val() === auth.uid",
+          ".validate": "newData.child('t').isString() && newData.child('t').val().length <= 300"
+        }
+      }
+    },
+    "chatin": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$m": {
+          ".write": "auth != null && ((auth.uid === $uid && !newData.exists()) || (!data.exists() && newData.child('f').val() === auth.uid && root.child('users/' + $uid + '/friends/' + auth.uid).exists() && !root.child('bans/' + auth.uid).exists()))",
+          ".validate": "!newData.exists() || (newData.child('t').isString() && newData.child('t').val().length <= 300)"
+        }
+      }
+    },
     "support": {
       ".read": "auth != null && root.child('usernames/dynathereal').val() === auth.uid",
       "$uid": {
@@ -713,6 +731,32 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .f-add .field { flex: 1; min-width: 0; padding-left: 38px; }
 .f-n { display: inline-block; min-width: 18px; padding: 1px 7px; margin-left: 4px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); color: var(--muted); font-size: 11px; text-align: center; letter-spacing: 0; }
 .f-list { display: grid; gap: 8px; }
+#socTabs .tab { position: relative; }
+#socTabs .badge { position: static; display: inline-grid; margin-left: 6px; vertical-align: 1px; }
+.chat-row { cursor: pointer; }
+.chat-row:hover { border-color: rgba(255, 255, 255, 0.18); }
+.chat-row .fm span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.chat-row.unread .fm b, .chat-row.unread .fm span { color: var(--text); font-weight: 800; }
+.chat-row .fbtns { display: grid; justify-items: end; gap: 4px; }
+.chat-badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--ember); color: #1d1206; font-weight: 900; font-size: 12px; display: grid; place-items: center; }
+.chat-when { color: var(--muted); font-size: 11px; font-weight: 700; }
+.chat-view { display: grid; gap: 10px; }
+.chat-head { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 10px; }
+.chat-head .btn { padding: 8px 12px; font-size: 16px; }
+.chat-head .fa { position: relative; width: 40px; height: 40px; }
+.chat-head .fa canvas { width: 40px; height: 40px; border-radius: 11px; image-rendering: pixelated; background: rgba(0, 0, 0, 0.2); }
+.chat-head .fa i { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid #142022; background: #6b7773; }
+.chat-view.on .chat-head .fa i { background: var(--leaf); }
+.chat-head .fm b { display: block; font-size: 15px; }
+.chat-head .fm span { color: var(--muted); font-size: 12px; font-weight: 600; }
+.chat-msgs { height: min(46vh, 420px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(255, 255, 255, 0.06); -webkit-user-select: text; user-select: text; }
+.chat-msg { align-self: flex-start; max-width: 78%; padding: 8px 11px 6px; border-radius: 14px 14px 14px 4px; background: rgba(255, 255, 255, 0.09); font-size: 14px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; display: grid; gap: 2px; }
+.chat-msg.me { align-self: flex-end; border-radius: 14px 14px 4px 14px; background: rgba(255, 177, 92, 0.22); border: 1px solid rgba(255, 177, 92, 0.3); }
+.chat-msg small { justify-self: end; color: var(--muted); font-size: 10.5px; font-weight: 700; }
+.chat-day { align-self: center; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin: 6px 0 2px; }
+.chat-empty { margin: auto; color: var(--muted); font-size: 13px; font-weight: 600; text-align: center; }
+.chat-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.note.click { cursor: pointer; }
 .fcard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.06); }
 .fcard.on { background: linear-gradient(90deg, rgba(141, 220, 143, 0.1), rgba(255, 255, 255, 0.04) 60%); border-color: rgba(141, 220, 143, 0.22); }
 .fcard.host { background: linear-gradient(90deg, rgba(255, 177, 92, 0.14), rgba(255, 255, 255, 0.04) 60%); border-color: rgba(255, 177, 92, 0.3); }
@@ -922,7 +966,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="menu-actions">
       <button id="btnPlay" class="btn primary" type="button">Spielen</button>
       <button id="btnWorlds" class="btn" type="button">Welten</button>
-      <button id="btnFriends" class="btn" type="button">Freunde<span class="badge" id="friendBadge" hidden>1</span></button>
+      <button id="btnFriends" class="btn" type="button">Sozial<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
       <button id="btnMods" class="btn" type="button">Mods</button>
       <button id="btnSrvToggle" class="btn tgl-btn" type="button" aria-pressed="true" title="Serverliste ein- oder ausblenden">Server</button>
@@ -1039,7 +1083,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="sheet-b"><div class="stack">
       <button class="btn primary" id="btnResume" type="button">Weiterspielen</button>
       <button class="btn" id="btnInv" type="button">Inventar</button>
-      <button class="btn" id="btnPauseFriends" type="button">Freunde<span class="badge" id="pauseFriendBadge" hidden>1</span></button>
+      <button class="btn" id="btnPauseFriends" type="button">Sozial<span class="badge" id="pauseFriendBadge" hidden>1</span></button>
       <button class="btn" id="btnPauseSettings" type="button">Einstellungen</button>
       <button class="btn" id="btnHelp" type="button">Steuerung</button>
       <button class="btn ghost" id="btnQuit" type="button">Speichern und zum Hauptmenü</button>
@@ -1336,8 +1380,24 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlFriends" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="fTitle">
   <div class="sheet panel">
-    <div class="sheet-h"><div class="grow"><h2 id="fTitle">Freunde</h2><p id="fSub">Spielt zusammen in einer Welt</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div>
+      <div class="sheet-h"><div class="grow"><h2 id="fTitle">Sozial</h2><p id="fSub">Chatte mit deinen Freunden und spielt zusammen</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+      <div class="tabs" role="tablist" id="socTabs">
+        <button class="tab" role="tab" data-tab="chats" aria-selected="true" type="button">💬 Chats<span class="badge" id="socChatsN" hidden>1</span></button>
+        <button class="tab" role="tab" data-tab="friends" aria-selected="false" type="button">👥 Freunde und Anfragen<span class="badge" id="socFriendsN" hidden>1</span></button>
+      </div>
+    </div>
     <div class="sheet-b">
+      <div id="socChats">
+        <div id="chatOut" hidden><p class="hint">Melde dich an, um mit deinen Freunden zu chatten.</p><button class="btn primary" id="chatLogin" type="button">Anmelden</button></div>
+        <div class="f-list" id="chatList"></div>
+        <div id="chatView" class="chat-view" hidden>
+          <div class="chat-head"><button class="btn ghost" id="chatBack" type="button" aria-label="Zurück">←</button><div class="fa"><canvas id="chatAva" width="64" height="64"></canvas><i></i></div><div class="fm"><b id="chatName"></b><span id="chatSt"></span></div></div>
+          <div class="chat-msgs" id="chatMsgs"></div>
+          <form class="chat-form" id="chatForm" autocomplete="off"><input class="field" id="chatIn" maxlength="300" placeholder="Nachricht schreiben …" aria-label="Nachricht"><button class="btn primary" type="submit">Senden</button></form>
+        </div>
+      </div>
+      <div id="socFriends" hidden>
       <div id="fLoggedOut" hidden>
         <p class="hint">Melde dich an, um Freunde hinzuzufügen und gemeinsam zu spielen.</p>
         <button class="btn primary" id="fLogin" type="button">Anmelden</button>
@@ -1356,6 +1416,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <p class="sec-t" id="fOffT">Offline <span class="f-n" id="fOffN"></span></p>
         <div class="f-list" id="friendListOff"></div>
         <div class="row" style="margin-top:12px"><div class="lbl">Freunde dürfen meiner Welt beitreten<small>Nur Freunde, die du hinzugefügt hast</small></div><button class="tgl" id="setAllowFriends" role="switch" aria-label="Freunde dürfen beitreten" type="button"></button></div>
+      </div>
       </div>
     </div>
   </div>
@@ -1447,8 +1508,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.24.2';
+const GAME_VERSION = '2.26.0';
 const GAME_NOTES = [
+  ['2.26.0', 'Sozial: der Knopf „Freunde“ heißt jetzt „Sozial“ (im Pausenmenü und im Hauptmenü). Dort chattest du mit deinen Freunden, und auch die Freunde und Freundschaftsanfragen sind dort. Neue Nachrichten kommen im Spiel als Benachrichtigung von oben, antippen öffnet den Chat. Ungelesenes zeigt eine Zahl am Knopf.'],
+  ['2.25.0', 'Neue Weltgenerierung (Version 6, nur in Chunks, die noch nie generiert wurden): die Welt besteht aus abwechslungsreichen Gebieten, rund um den Spawn nur schöne Biome, Kirschhügel mit einem See am Fuß, ein Teich nahe am Spawn, viel weniger Berge. Neue Biome: Birkenwald, Savanne, Eisebene mit Eisspitzen und zugefrorenen Seen, Lavendelfeld, Moosgrund. Verlassene Orte: verfallene Hütten (Schattenwald, Wälder), Steinkreise (Wiesen) und Wüstentempel, auf der Karte mit ? markiert. Weniger Türme im Schattenwald. Jede Truhe in Türmen, Ruinen, Minen und verlassenen Orten hat Papier. Die Karte in der Hand ist größer.'],
   ['2.24.2', 'Mods-Animation: der Weltraum kommt früher und es wird schneller dunkel, ein leichtes Rütteln beim Aufstieg, mehr und schnellere Matrix-Zeichen.'],
   ['2.24.1', 'Mods-Animation ruhiger: die Kamera steigt von der Seite schräg nach oben, durch eine grüne Schicht mit sanft fallenden Matrix-Zeichen, ohne Wackeln, dann in den Weltraum.'],
   ['2.24.0', 'Mods-Knopf im Hauptmenü: die Kamera fliegt hoch, die Welt wird klein, Matrix-Glitches, dann bist du im Weltraum und das Mod-Fenster geht auf. Beim Schließen geht es wieder hinunter zur Welt.'],
@@ -3001,7 +3064,7 @@ const W = {
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
-  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), gen5: false, g5: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
+  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), gen5: false, g5: new Set(), gen6: false, g6: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
     // gen 3 = neue Weltgenerierung; gen3 = Chunks mit den neuen Höhlen (in alten Welten)
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
   merchantPos: [CX + 0.5, SEA + 6, CZ - 1.6],
@@ -3120,7 +3183,10 @@ function colInfo3(x, z, o) {
   const lx = x * k, lz = z * k;
   const ux = lx + fbm(N.warpx, lx / 240, lz / 240, 2) * 80, uz = lz + fbm(N.warpz, lx / 240 + 9, lz / 240 - 5, 2) * 80;
   const rd = dd + fbm(N.ring, lx / 170, lz / 170, 2) * 40;
-  const ring = smoothstep(RING_IN - 14, RING_IN + 6, rd) * (1 - smoothstep(RING_OUT - 6, RING_OUT + 14, rd));
+  let ring = smoothstep(RING_IN - 14, RING_IN + 6, rd) * (1 - smoothstep(RING_OUT - 6, RING_OUT + 14, rd));
+  // Version 6: der Schattenwald ist kein geschlossener Ring mehr, sondern einzelne düstere Wälder
+  const w6 = v6Weight(x, z);
+  if (w6 > 0 && ring > 0) ring *= lerp(1, smoothstep(-0.04, 0.12, fbm(N.ring, x / 230 + 40, z / 230 - 12, 2)), w6);
   const beyond = smoothstep(RING_OUT, RING_OUT + 40, rd);
   const near = 1 - smoothstep(110, 190, dd);
   const temp = fbm(N.temp, ux / 300 + 11, uz / 300 + 7, 3);
@@ -3180,7 +3246,16 @@ function colInfo3(x, z, o) {
   tr = lerp(tr, 0.78, sw); tg = lerp(tg, 0.92, sw); tb = lerp(tb, 0.6, sw);
   tr = lerp(tr, 0.62, ring); tg = lerp(tg, 0.74, ring); tb = lerp(tb, 0.8, ring);
   o.h = h; o.b = b; o.d = d; o.dd = dd; o.rd = rd; o.ring = ring; o.beyond = beyond; o.river = rMask; o.wet = wet;
-  o.tr = tr; o.tg = tg; o.tb = tb; o.dW = dW;
+  o.tr = tr; o.tg = tg; o.tb = tb; o.dW = dW; o.v6 = false; o.frozen = false;
+  // Welt-Version 6 (04v_gen6.js): in Land, das noch nie generiert wurde
+  if (w6 > 0) {
+    o._hills = hills; o._det = detail; o._mN = mN; o._sea = sea; o._lk = lk;
+    o._lake = smoothstep(0.28, 0.42, lk) * smoothstep(70, 130, dd) * (1 - ring) * (1 - sea);
+    o.river = (1 - smoothstep(0.012, 0.038, rv)) * smoothstep(80, 120, dd) * (1 - sea) * (1 - ring * 0.7);
+    const v = colInfo6(x, z, o);
+    o.h = lerp(h, v.h, w6); o.tr = lerp(tr, v.tr, w6); o.tg = lerp(tg, v.tg, w6); o.tb = lerp(tb, v.tb, w6); o.dW = lerp(dW, v.dW, w6);
+    if (w6 >= 0.5) { o.b = v.b; o.wet = v.wet; o.frozen = v.frozen; o.v6 = true; } else o.river = rMask;
+  }
   return o;
 }
 function colInfoOld(x, z, o) {
@@ -3322,7 +3397,7 @@ function treeCandidate(gx, gz) {
   if (d < 13) return null;
   colInfo(x, z, _ci);
   const b = _ci.b;
-  let dens = TREE_DENS[b];
+  let dens = _ci.v6 && TREE_DENS6[b] !== undefined ? TREE_DENS6[b] : TREE_DENS[b];   // Version 6: eigene Baumdichte (alte Wälder bleiben, wie sie sind)
   if (d < 30 && b === BIO.PLAINS) dens = 0.3;   // a few trees right around the camp
   if (hashi(gx, 3, gz, seed) > dens) return null;
   const top = Math.round(clamp(_ci.h, 2, WY - 14));
@@ -3331,6 +3406,7 @@ function treeCandidate(gx, gz) {
   if (b === BIO.MOUNTAIN && top > SEA + 26) return null;
   if (Math.abs(x - CX) < 9 && z - CZ < 9 && z - CZ > -17) return null; // keep the camp free
   if ((b === BIO.DARK || _ci.rd > RING_OUT) && nearStructure(x, z)) return null;
+  if (lostNear(x, z)) return null;   // keine Bäume in verlassenen Hütten und Steinkreisen
   let type = 'oak';
   const r = hashi(gx, 4, gz, seed);
   if (b === BIO.FOREST) type = r < 0.38 ? 'birch' : 'oak';
@@ -3341,6 +3417,10 @@ function treeCandidate(gx, gz) {
   else if (b === BIO.DARK) type = r < 0.12 ? 'pine' : 'dark';
   else if (b === BIO.CRYSTAL) type = 'birch';
   else if (b === BIO.MEADOW) type = r < 0.6 ? 'birch' : 'oak';
+  else if (b === BIO.BIRCH) type = r < 0.88 ? 'birch' : 'oak';
+  else if (b === BIO.ICE) type = 'pine';
+  else if (b === BIO.LAVENDER) type = r < 0.5 ? 'birch' : 'cherry';
+  else if (b === BIO.LUSH) type = r < 0.25 ? 'birch' : 'oak';
   const y = top + 1;
   return { id: I(x, y, z), x, y, z, type, seed: Math.floor(hashi(gx, 6, gz, seed) * 1e9) };
 }
@@ -3486,6 +3566,8 @@ function towerAt(gx, gz) {
   if (hashi(gx, 34, gz, seed) > 0.72) return null;
   colInfo(x, z, _cs);
   if (_cs.ring < 0.75 || _cs.wet > 0.1) return null;
+  // Version 6: weniger Türme im Schattenwald (nur dort, wo noch nie etwas generiert wurde)
+  if (hashi(gx, 36, gz, seed) > 0.8 && v6Footprint(x, z, 4)) return null;
   return { id: I(x, 0, z), x, z, ground: Math.round(clamp(_cs.h, 2, WY - 30)), kind: 'tower', seed: Math.floor(hashi(gx, 33, gz, seed) * 1e9) };
 }
 function towerOps(t) {
@@ -3769,7 +3851,7 @@ function nearStructure(x, z) {
     }
     return false;
   };
-  return chk(towerGrid(), towerAt, 7) || chk(ruinGrid(), ruinAt, 6) || villagesNear(x, z, 4).length > 0;
+  return chk(towerGrid(), towerAt, 7) || chk(ruinGrid(), ruinAt, 6) || chk(LOST_G, lostAt, 8) || villagesNear(x, z, 4).length > 0;
 }
 /* all structures touching chunk (cx, cz) */
 function structuresFor(cx, cz, v3) {
@@ -3800,6 +3882,7 @@ function structuresFor(cx, cz, v3) {
   if (d > RING_IN - 80 && d < RING_OUT + 80) scan(towerGrid(), towerAt, towerOps, 4);
   if (d > RING_OUT - 20) { scan(ruinGrid(), ruinAt, ruinOps, 4); scan(SHROOM_G, shroomAt, shroomOps, 4); }
   if (v3 && d > 150) scan(MINE_G, mineAt, mineOps, 52);
+  if (d > 140) scan(LOST_G, lostAt, lostOps, 8);
   // villages far out
   for (const v of villagesNear(x0 + 8, z0 + 8, 12)) {
     if (!near(v.x, v.z, VILLAGE_R)) continue;
@@ -3834,6 +3917,7 @@ function generateChunk(cx, cz) {
   if (useV4 && W.cave < 4) W.cave4.add(c.key);
   const useV5 = chunkV5(c.key);
   if (useV5 && !W.gen5) W.g5.add(c.key);
+  if (!W.gen6 && chunkV6(c.key)) W.g6.add(c.key);
   const N = W.N, seed = W.seed;
   const bl = c.blocks;
   const H = new Int16Array(CS * CS);
@@ -3866,13 +3950,15 @@ function generateChunk(cx, cz) {
     else if (b === BIO.MOUNTAIN) {
       surf = top > SEA + 31 + n2 * 4 ? B.SNOW : (slope > 1.3 || top > SEA + 22 ? B.STONE : B.GRASS);
       fill = surf === B.GRASS ? B.DIRT : B.STONE;
-    } else if (b === BIO.SNOWY) surf = B.SNOW;
+    } else if (b === BIO.SNOWY || b === BIO.ICE) surf = B.SNOW;
+    else if (b === BIO.LUSH && fbm(N.det, x / 9, z / 9, 2) > 0.12) surf = B.MOSS;
     else if (b === BIO.DARK) surf = B.DARK_GRASS;
     else if (b === BIO.SHROOM) surf = B.MYCEL;
     if ((surf === B.GRASS || surf === B.DARK_GRASS) && slope > 2.2) { surf = B.STONE; fill = B.STONE; }
     const base = ci * WY;
     for (let y = 0; y <= top; y++) bl[base + y] = y === 0 ? B.BEDROCK : y === top ? surf : y > top - depth ? fill : B.STONE;
     for (let y = top + 1; y <= SEA; y++) bl[base + y] = B.WATER;
+    if (o.frozen && top < SEA) bl[base + SEA] = B.ICE;   // Eisebene und Schneewald: zugefrorene Seen und Flüsse
   }
   if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV5) carveCaves4(c, H, info, true); else if (useV4) carveCaves4(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
   modOresChunk(c);
@@ -3905,7 +3991,7 @@ function generateChunk(cx, cz) {
     if (inThis) {
       // the ground under the trunk must still be there (caves, structures)
       const below = bl[LI(cand.x & 15, cand.y - 1, cand.z & 15)], at = bl[LI(cand.x & 15, cand.y, cand.z & 15)];
-      if ((below !== B.GRASS && below !== B.SNOW && below !== B.DARK_GRASS) || (at !== B.AIR && KIND[at] !== K_PLANT)) { if (t) removeTree(t); continue; }
+      if ((below !== B.GRASS && below !== B.SNOW && below !== B.DARK_GRASS && !(below === B.MOSS && c.biome[((cand.x & 15) << 4) | (cand.z & 15)] === BIO.LUSH)) || (at !== B.AIR && KIND[at] !== K_PLANT)) { if (t) removeTree(t); continue; }
       if (!t) { t = makeTree(cand); W.trees.set(t.id, t); addTreeIndex(t); adoptTreeCells(t, c); }
     } else if (!t) {
       // a neighbour's tree; if its trunk chunk exists it already decided against it
@@ -3937,9 +4023,16 @@ function generateChunk(cx, cz) {
       else if (b === BIO.MEADOW) p = h < 0.12 ? B.TALLGRASS : h < 0.34 ? [B.FLOWER_RED, B.FLOWER_YELLOW, B.FLOWER_VIOLET][Math.floor(h2 * 3)] : 0;
       else if (b === BIO.SWAMP) p = h < 0.09 ? B.TALLGRASS : h < 0.12 ? B.MUSHROOM : 0;
       else if (b === BIO.MOUNTAIN || b === BIO.BEACH) p = h < 0.04 ? B.TALLGRASS : 0;
+      else if (b === BIO.BIRCH) p = h < 0.1 ? B.TALLGRASS : h < 0.13 ? (h2 < 0.5 ? B.FLOWER_YELLOW : B.FLOWER_RED) : 0;
+      else if (b === BIO.SAVANNA) p = h < 0.22 ? B.TALLGRASS : h < 0.226 ? B.DEADBUSH : 0;
+      else if (b === BIO.LAVENDER) p = h < 0.4 ? B.FLOWER_VIOLET : h < 0.46 ? B.TALLGRASS : 0;
+      else if (b === BIO.LUSH) p = h < 0.24 ? B.TALLGRASS : h < 0.27 ? B.MUSHROOM : 0;
     } else if (sid === B.DARK_GRASS) p = h < 0.035 ? B.TALLGRASS : h < 0.046 ? B.GLOW_SHROOM : h < 0.06 ? B.MUSHROOM : 0;
     else if (sid === B.MYCEL) p = h < 0.07 ? B.GLOW_SHROOM : 0;
     else if (sid === B.SAND && b === BIO.DESERT) p = h < 0.012 ? B.DEADBUSH : 0;
+    else if (sid === B.MOSS && b === BIO.LUSH) p = h < 0.18 ? B.TALLGRASS : h < 0.2 ? B.MUSHROOM : 0;
+    // Eisebene: Eisspitzen
+    if (sid === B.SNOW && b === BIO.ICE && h2 > 0.9965) { const hg = 4 + Math.floor(h * 1000) % 7; for (let k = 0; k < hg && py + k < WY - 1; k++) bl[base + py + k] = B.ICE; continue; }
     if (p) bl[base + py] = p;
     // cacti
     if (sid === B.SAND && b === BIO.DESERT && h2 > 0.993) { const hg = 2 + Math.floor(h * 30) % 3; for (let k = 0; k < hg && py + k < WY - 1; k++) bl[base + py + k] = B.CACTUS; }
@@ -4505,7 +4598,7 @@ function resetWorld(seed, mode, gen) {
   SEA = W.gen >= 3 ? 106 : 30;
   RING_OUT = W.gen >= 3 ? 560 : 375;
   VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ W.gen5 = true; W.g5.clear(); V5W.clear(); WORM5_CACHE.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
+  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ W.gen5 = true; W.g5.clear(); V5W.clear(); WORM5_CACHE.clear(); W.gen6 = true; W.g6.clear(); V6W.clear(); V6CELL.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -4584,8 +4677,8 @@ const WORM4_CACHE = new Map(), WORM5_CACHE = new Map();   // 5: Version 5 (2.21)
 const CB = { NONE: 0, PLAIN: 1, DRIP: 2, LUSH: 3, SHROOM: 4, CRYSTAL: 5, ICE: 6, SAND: 7, MAGMA: 8 };
 const _c4 = {};
 function pickCaveBiome(R, far, surf) {
-  const forest = surf === BIO.FOREST || surf === BIO.AUTUMN || surf === BIO.CHERRY || surf === BIO.MEADOW || surf === BIO.SWAMP;
-  const snow = surf === BIO.SNOWY || surf === BIO.TAIGA || surf === BIO.MOUNTAIN;
+  const forest = surf === BIO.FOREST || surf === BIO.AUTUMN || surf === BIO.CHERRY || surf === BIO.MEADOW || surf === BIO.SWAMP || surf === BIO.BIRCH || surf === BIO.LAVENDER || surf === BIO.LUSH || surf === BIO.SAVANNA;
+  const snow = surf === BIO.SNOWY || surf === BIO.TAIGA || surf === BIO.MOUNTAIN || surf === BIO.ICE;
   const r = R();
   if (snow && r < 0.65) return CB.ICE;
   if (surf === BIO.DESERT && r < 0.6) return CB.SAND;
@@ -4829,6 +4922,257 @@ function carveCaves4(c, H, info, v5) {
       if (exp && cb[base + y + 1] === CB.CRYSTAL && RND(x, y, z, 34) < 0.05) bl[base + y] = B.GLASS;
     }
   }
+}
+
+/* ---- 04v_gen6.js ---- */
+/* =========================================================================
+   Welt-Version 6 (2.25): schönere Landschaften.
+   Die Welt besteht aus Gebieten von etwa 300 Blöcken, jedes mit eigenem
+   Biom und eigener Form: Kirschhügel mit einem See am Fuß, Birkenwälder,
+   Lavendelfelder, Savannen, Eisebenen mit Eisspitzen, Moosgründe …
+   Rund um den Spawn nur schöne Biome, weiter draußen alles, nach Klima
+   sortiert (kalte und heiße Gegenden liegen beisammen). Viel weniger Berge.
+   Nur in Chunks, die noch nie generiert wurden (wie Version 5), nicht auf
+   Inseln. An der Grenze zu altem Land wird die Höhe weich übergeblendet.
+   ========================================================================= */
+BIO.BIRCH = 15; BIO.SAVANNA = 16; BIO.ICE = 17; BIO.LAVENDER = 18; BIO.LUSH = 19;
+BIO_NAME.push('Birkenwald', 'Savanne', 'Eisebene', 'Lavendelfeld', 'Moosgrund');
+TREE_DENS.push(0.6, 0.05, 0.03, 0.05, 0.55);
+const TREE_DENS6 = []; TREE_DENS6[BIO.CHERRY] = 0.5; TREE_DENS6[BIO.MEADOW] = 0.08;
+
+function chunkV6(key) { return W.mode !== 'island' && (W.gen6 || W.g6.has(key) || (!W.explored.has(key) && !W.genOld.has(key))); }
+const V6W = new Map();
+function v6Weight(x, z) {
+  if (W.mode === 'island') return 0;
+  if (W.gen6) return 1;
+  const cx = x >> 4, cz = z >> 4, key = ckey(cx, cz);
+  let inf = V6W.get(key);
+  if (inf === undefined) {
+    if (!chunkV6(key)) inf = false;
+    else { inf = []; for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) if ((dx || dz) && !chunkV6(ckey(cx + dx, cz + dz))) inf.push([(cx + dx) * 16, (cz + dz) * 16]); if (!inf.length) inf = null; }
+    V6W.set(key, inf);
+  }
+  if (inf === false) return 0;
+  if (inf === null) return 1;
+  let md = 1e9;
+  for (const [ox, oz] of inf) { const ddx = Math.max(ox - x, 0, x - (ox + 15)), ddz = Math.max(oz - z, 0, z - (oz + 15)); md = Math.min(md, Math.hypot(ddx, ddz)); }
+  return smoothstep(2, 44, md);
+}
+
+/* ---------- die Gebiete ---------- */
+const V6G = 300;
+const V6CELL = new Map();
+const V6_NICE = [BIO.CHERRY, BIO.BIRCH, BIO.FOREST, BIO.MEADOW, BIO.LAVENDER, BIO.AUTUMN, BIO.LUSH, BIO.CHERRY, BIO.PLAINS, BIO.LAVENDER];
+const V6_MILD = [BIO.PLAINS, BIO.FOREST, BIO.BIRCH, BIO.AUTUMN, BIO.CHERRY, BIO.MEADOW, BIO.LAVENDER, BIO.LUSH, BIO.SWAMP, BIO.CHERRY, BIO.FOREST, BIO.PLAINS, BIO.AUTUMN, BIO.LAVENDER];
+const V6_COLD = [BIO.TAIGA, BIO.SNOWY, BIO.ICE, BIO.TAIGA, BIO.BIRCH, BIO.SNOWY];
+const V6_HOT = [BIO.DESERT, BIO.SAVANNA, BIO.SAVANNA, BIO.MEADOW, BIO.PLAINS, BIO.DESERT];
+function v6Cell(gx, gz) {
+  const key = gx * 100003 + gz;
+  let c = V6CELL.get(key);
+  if (c) return c;
+  const seed = W.seed;
+  const px = (gx + 0.18 + hashi(gx, 201, gz, seed) * 0.64) * V6G, pz = (gz + 0.18 + hashi(gx, 202, gz, seed) * 0.64) * V6G;
+  const dc = Math.hypot(px - CX, pz - CZ), r = hashi(gx, 203, gz, seed);
+  let b;
+  if (gx === Math.floor(CX / V6G) && gz === Math.floor(CZ / V6G)) b = BIO.PLAINS;       // der Spawn selbst: offene Wiese mit Blumen
+  else if (dc < 700) b = V6_NICE[Math.floor(r * V6_NICE.length)];
+  else {
+    // Klima in großen Zonen: Kälte und Hitze liegen beisammen
+    const T = fbm(W.N.temp, px / 1500 + 3, pz / 1500 - 7, 2);
+    const pool = T < -0.22 ? V6_COLD : T > 0.24 ? V6_HOT : V6_MILD;
+    b = pool[Math.floor(r * pool.length)];
+    if (dc > RING_OUT + 160 && T > -0.22 && T < 0.24) { const q = hashi(gx, 204, gz, seed); if (q < 0.09) b = BIO.CRYSTAL; else if (q < 0.16) b = BIO.SHROOM; }
+  }
+  c = { px, pz, b, r2: hashi(gx, 205, gz, seed), a: hashi(gx, 206, gz, seed) * TAU };
+  V6CELL.set(key, c);
+  return c;
+}
+const _v6 = { c1: null, c2: null, d1: 0, d2: 0 };
+function v6Region(x, z) {
+  const N = W.N;
+  const wx = x + fbm(N.warpx, x / 310 + 17, z / 310 - 3, 2) * 75, wz = z + fbm(N.warpz, x / 310 - 9, z / 310 + 13, 2) * 75;
+  const gx = Math.floor(wx / V6G), gz = Math.floor(wz / V6G);
+  let d1 = 1e9, d2 = 1e9, c1 = null, c2 = null;
+  for (let a = gx - 1; a <= gx + 1; a++) for (let b = gz - 1; b <= gz + 1; b++) {
+    const c = v6Cell(a, b), d = Math.hypot(c.px - wx, c.pz - wz);
+    if (d < d1) { d2 = d1; c2 = c1; d1 = d; c1 = c; } else if (d < d2) { d2 = d; c2 = c; }
+  }
+  _v6.c1 = c1; _v6.c2 = c2; _v6.d1 = d1; _v6.d2 = d2;
+  return _v6;
+}
+/* die Form eines Bioms an dieser Stelle (ohne Flüsse, Meer, Schattenwald) */
+function v6Height(c, x, z, hills, detail) {
+  const N = W.N;
+  const base = SEA + 5 + detail * 0.7;
+  switch (c.b) {
+    case BIO.PLAINS: return base + hills * 1.6;
+    case BIO.MEADOW: case BIO.LAVENDER: return base + hills * 2.2 + 0.5;
+    case BIO.SAVANNA: return base + hills * 2.4 + smoothstep(0.1, 0.3, fbm(N.vari, x / 90, z / 90, 2)) * 5;   // flache Tafelberge
+    case BIO.FOREST: case BIO.BIRCH: case BIO.AUTUMN: case BIO.LUSH: return base + 1 + hills * 3.8;
+    case BIO.TAIGA: return base + 2 + hills * 5;
+    case BIO.SNOWY: case BIO.ICE: return base + 1 + hills * 2.8;
+    case BIO.DESERT: return SEA + 4 + Math.abs(fbm(N.sand, x / 34, z / 34, 3)) * 7;   // Dünen
+    case BIO.SWAMP: return SEA + 1.2 + fbm(N.sand, x / 20, z / 20, 2) * 2.4;
+    case BIO.CRYSTAL: return base + 1 + hills * 4;
+    case BIO.SHROOM: return base + hills * 3;
+    case BIO.CHERRY: {
+      // ein runder Grashügel mit Kirschbäumen obendrauf, unten ein See
+      const r = Math.hypot(x - c.px, z - c.pz) + fbm(N.det, x / 30, z / 30, 2) * 10;
+      const hill = 26 * (1 - smoothstep(18, 115, r)) + 4 * (1 - smoothstep(0, 40, r)) * fbm(N.hills, x / 25, z / 25, 2);
+      const lx = c.px + Math.cos(c.a) * 140, lz = c.pz + Math.sin(c.a) * 140;
+      const lr = Math.hypot(x - lx, z - lz) + fbm(N.lake, x / 22, z / 22, 2) * 7;
+      const lake = 1 - smoothstep(22, 34, lr);
+      const h = base + hills * 1.8 + hill;
+      return lake > 0 ? lerp(h, SEA - 2.5 - (1 - smoothstep(0, 20, lr)) * 3, lake) : h;
+    }
+    default: return base + hills * 2;
+  }
+}
+const V6_TINT = [];
+V6_TINT[BIO.PLAINS] = [1.0, 1.04, 0.88]; V6_TINT[BIO.MEADOW] = [0.94, 1.07, 0.84]; V6_TINT[BIO.FOREST] = [0.88, 1.02, 0.84]; V6_TINT[BIO.BIRCH] = [1.02, 1.07, 0.78];
+V6_TINT[BIO.AUTUMN] = [1.1, 0.98, 0.72]; V6_TINT[BIO.CHERRY] = [1.0, 1.06, 0.92]; V6_TINT[BIO.TAIGA] = [0.82, 0.94, 0.9]; V6_TINT[BIO.SNOWY] = [0.76, 0.9, 0.94];
+V6_TINT[BIO.ICE] = [0.78, 0.92, 0.98]; V6_TINT[BIO.DESERT] = [1.16, 1.02, 0.62]; V6_TINT[BIO.SAVANNA] = [1.24, 1.05, 0.56]; V6_TINT[BIO.SWAMP] = [0.78, 0.92, 0.6];
+V6_TINT[BIO.LAVENDER] = [0.98, 1.05, 0.96]; V6_TINT[BIO.LUSH] = [0.76, 1.12, 0.7]; V6_TINT[BIO.CRYSTAL] = [0.84, 1.0, 1.12]; V6_TINT[BIO.SHROOM] = [0.9, 0.9, 0.95];
+const _v6o = {};
+/* eine Spalte der Version 6; o kommt schon mit Meer, Flüssen, Seen und dem Schattenwald aus colInfo3 */
+function colInfo6(x, z, o) {
+  const N = W.N;
+  const R = v6Region(x, z), c1 = R.c1, c2 = R.c2;
+  const t = smoothstep(0, 46, (R.d2 - R.d1) * 0.5);    // 1 mitten im Gebiet, 0 an der Grenze
+  const hills = o._hills, detail = o._det, d = o.d, dd = o.dd;
+  const h1 = v6Height(c1, x, z, hills, detail), h2 = v6Height(c2, x, z, hills, detail);
+  let h = lerp((h1 + h2) / 2, h1, t);
+  // sehr selten Berge, und niedriger
+  const mMask = smoothstep(0.46, 0.7, o._mN) * smoothstep(450, 600, dd) * (1 - o.ring) * (1 - o._sea);
+  let ridge = 1 - Math.abs(fbm(N.ridge, x / 95, z / 95, 4)); ridge = ridge * ridge * ridge;
+  h += mMask * ridge * 17;
+  // ein Teich nicht weit vom Spawn
+  const pa = hashi(7, 207, 3, W.seed) * TAU, pr = Math.hypot(x - (CX + Math.cos(pa) * 72), z - (CZ + Math.sin(pa) * 72)) + fbm(N.lake, x / 14, z / 14, 2) * 4;
+  const pond = 1 - smoothstep(9, 15, pr);
+  if (pond > 0) h = lerp(h, SEA - 1.5 - (1 - smoothstep(0, 9, pr)) * 2, pond);
+  const sea = o._sea;
+  if (sea > 0) h = lerp(h, SEA - 6 - fbm(N.det, x / 50, z / 50, 2) * 3, sea);
+  const rMask = o.river * (1 - mMask * 0.9);
+  if (rMask > 0) h = lerp(h, Math.min(h, SEA - 2.3), rMask);
+  const lMask = o._lake * (c1.b === BIO.DESERT ? 0.3 : 1) * (1 - mMask);
+  if (lMask > 0) h = lerp(h, Math.min(h, SEA - 2.5 - smoothstep(0.42, 0.62, o._lk) * 4), lMask);
+  if (o.ring > 0) h = lerp(h, SEA + 8 + hills * 5 + detail * 1.2, o.ring);
+  h = lerp(SEA + 5, h, smoothstep(16, 34, d));
+  const wet = Math.max(sea, rMask, lMask, pond);
+  let b = c1.b;
+  if (h < SEA + 1.4 && wet > 0.2) b = h < SEA - 2.5 ? BIO.OCEAN : BIO.BEACH;
+  else if (o.ring > 0.5) b = BIO.DARK;
+  else if (mMask * ridge > 0.3 && h > SEA + 15) b = BIO.MOUNTAIN;
+  else if (d < 48) b = BIO.PLAINS;
+  else if (b === BIO.CRYSTAL && o.beyond < 0.5) b = BIO.MEADOW;
+  else if (b === BIO.SHROOM && o.beyond < 0.5) b = BIO.FOREST;
+  const ta = V6_TINT[c1.b] || V6_TINT[BIO.PLAINS], tb = V6_TINT[c2.b] || V6_TINT[BIO.PLAINS], k = 0.5 + 0.5 * t;
+  let tr = lerp(tb[0], ta[0], k), tg = lerp(tb[1], ta[1], k), tbb = lerp(tb[2], ta[2], k);
+  tr = lerp(tr, 0.62, o.ring); tg = lerp(tg, 0.74, o.ring); tbb = lerp(tbb, 0.8, o.ring);
+  _v6o.h = h; _v6o.b = b; _v6o.tr = tr; _v6o.tg = tg; _v6o.tb = tbb; _v6o.wet = wet;
+  _v6o.dW = c1.b === BIO.DESERT ? k : c2.b === BIO.DESERT ? 1 - k : 0;
+  _v6o.frozen = (c1.b === BIO.ICE || c1.b === BIO.SNOWY) && t > 0.25 && o.ring < 0.5;
+  return _v6o;
+}
+
+/* ---------- verlassene Orte (nur in Land der Version 6) ----------
+   cabin: eine verfallene Hütte im Schattenwald und in Wäldern
+   circle: ein bemooster Steinkreis auf Wiesen, Lavendel und in der Savanne
+   dtemple: eine halb verschüttete Tempelruine in der Wüste
+   In jedem steht eine Truhe (mit Papier für die Karte). */
+const LOST_G = 92;
+function v6Footprint(x, z, r) {
+  for (let cx = (x - r) >> 4; cx <= (x + r) >> 4; cx++) for (let cz = (z - r) >> 4; cz <= (z + r) >> 4; cz++) if (!chunkV6(ckey(cx, cz))) return false;
+  return true;
+}
+const _lo = {};
+function lostAt(gx, gz) {
+  if (W.mode === 'island' || W.gen < 3) return null;
+  const seed = W.seed;
+  if (hashi(gx, 301, gz, seed) > 0.62) return null;
+  const x = gx * LOST_G + 14 + Math.floor(hashi(gx, 302, gz, seed) * (LOST_G - 28));
+  const z = gz * LOST_G + 14 + Math.floor(hashi(gx, 303, gz, seed) * (LOST_G - 28));
+  if (Math.hypot(x - CX, z - CZ) < 150) return null;
+  colInfo(x, z, _lo);
+  if (_lo.wet > 0.1 || _lo.h <= SEA + 1) return null;
+  const b = _lo.b, r = hashi(gx, 304, gz, seed);
+  let kind = null;
+  if (b === BIO.DARK) kind = 'cabin';
+  else if ([BIO.FOREST, BIO.BIRCH, BIO.AUTUMN, BIO.TAIGA, BIO.LUSH, BIO.SNOWY].includes(b)) kind = r < 0.45 ? 'cabin' : null;
+  else if ([BIO.PLAINS, BIO.MEADOW, BIO.LAVENDER, BIO.SAVANNA, BIO.CHERRY].includes(b)) kind = r < 0.45 ? 'circle' : null;
+  else if (b === BIO.DESERT) kind = r < 0.6 ? 'dtemple' : null;
+  if (!kind) return null;
+  let lo = 1e9, hi = -1e9;
+  for (const [dx, dz] of [[-5, -5], [5, -5], [-5, 5], [5, 5], [0, 0]]) { const hh = colHeight(x + dx, z + dz); lo = Math.min(lo, hh); hi = Math.max(hi, hh); }
+  if (hi - lo > 4) return null;
+  if (!v6Footprint(x, z, 8)) return null;
+  if (villagesNear(x, z, 16).length) return null;
+  const tg = towerGrid(), tw = towerAt(Math.floor(x / tg), Math.floor(z / tg));
+  if (tw && Math.hypot(tw.x - x, tw.z - z) < 16) return null;
+  return { id: 'L' + gx + '_' + gz, x, z, ground: Math.round(clamp(_lo.h, SEA + 2, WY - 20)), kind, seed: Math.floor(hashi(gx, 305, gz, seed) * 1e9) };
+}
+function lostOps(t) {
+  const ops = [], rnd = mulberry32(t.seed), g = t.ground;
+  const put = (x, y, z, id, meta) => ops.push([x, y, z, id, meta === undefined ? null : meta, 0]);
+  const found = (x, z, top) => { const gh = colHeight(x, z); for (let y = Math.min(gh, g) - 2; y <= g; y++) put(x, y, z, top !== undefined && y === g ? top : B.COBBLE); };
+  if (t.kind === 'cabin') {
+    const dark = colBiomeAt(t.x, t.z) === BIO.DARK;
+    const log = dark ? B.DARK_LOG : B.OAK_LOG;
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -2; dz <= 3; dz++) {
+      const x = t.x + dx, z = t.z + dz;
+      found(x, z, B.PLANKS);
+      for (let y = g + 1; y <= g + 5; y++) put(x, y, z, B.AIR);
+      const edge = Math.abs(dx) === 3 || dz === -2 || dz === 3, corner = Math.abs(dx) === 3 && (dz === -2 || dz === 3);
+      if (!edge) continue;
+      const hgt = corner ? 3 : 1 + Math.floor(rnd() * 3);   // verfallen: die Wände sind unterschiedlich hoch
+      for (let y = g + 1; y <= g + hgt; y++) put(x, y, z, corner ? log : rnd() < 0.25 ? B.TOWER_MOSS : rnd() < 0.3 ? B.COBBLE : B.PLANKS);
+    }
+    // halbes Dach
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -2; dz <= 3; dz++) if (rnd() < 0.45) put(t.x + dx, g + 4, t.z + dz, B.PLANKS);
+    // die Tür (ein Loch) und drinnen die Truhe
+    put(t.x, g + 1, t.z - 2, B.AIR); put(t.x, g + 2, t.z - 2, B.AIR);
+    put(t.x + 2, g + 1, t.z + 2, B.CHEST, 0);
+    if (rnd() < 0.6) put(t.x - 2, g + 1, t.z + 2, B.COBBLE);
+  } else if (t.kind === 'circle') {
+    for (let dx = -6; dx <= 6; dx++) for (let dz = -6; dz <= 6; dz++) {
+      const r = Math.hypot(dx, dz); if (r > 6.5) continue;
+      const x = t.x + dx, z = t.z + dz;
+      for (let y = g + 1; y <= g + 6; y++) put(x, y, z, B.AIR);
+      if (r < 2.2) found(x, z, B.COBBLE); else if (r < 6.5 && rnd() < 0.18) found(x, z, B.GRAVEL);
+    }
+    for (let k = 0; k < 8; k++) {
+      const a = k / 8 * TAU, x = t.x + Math.round(Math.cos(a) * 5), z = t.z + Math.round(Math.sin(a) * 5);
+      found(x, z);
+      const hgt = 1 + Math.floor(rnd() * 4);
+      for (let y = g + 1; y <= g + hgt; y++) put(x, y, z, rnd() < 0.45 ? B.TOWER_MOSS : B.COBBLE);
+    }
+    put(t.x, g + 1, t.z, B.CHEST, 0);
+  } else if (t.kind === 'dtemple') {
+    for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) {
+      const x = t.x + dx, z = t.z + dz;
+      found(x, z, B.BRICKS);
+      for (let y = g + 1; y <= g + 7; y++) put(x, y, z, B.AIR);
+      const edge = Math.abs(dx) === 4 || Math.abs(dz) === 4, m = Math.max(Math.abs(dx), Math.abs(dz));
+      if (edge) { const hgt = 2 + Math.floor(rnd() * 3); for (let y = g + 1; y <= g + hgt; y++) put(x, y, z, rnd() < 0.2 ? B.SAND : B.BRICKS); }
+      else if (m <= 1 && rnd() < 0.3) put(x, g + 1, z, B.SAND);    // hereingewehter Sand
+    }
+    for (const [dx, dz] of [[-4, -4], [4, -4], [-4, 4], [4, 4]]) for (let y = g + 1; y <= g + 5; y++) put(t.x + dx, y, t.z + dz, B.COBBLE);
+    put(t.x, g + 1, t.z - 4, B.AIR); put(t.x, g + 2, t.z - 4, B.AIR);
+    put(t.x, g + 1, t.z + 1, B.CHEST, 0);
+  }
+  return ops;
+}
+function colBiomeAt(x, z) { colInfo(x, z, _lo); return _lo.b; }
+function lostNear(x, z) {
+  if (W.mode === 'island' || W.gen < 3) return false;
+  const r = 9;
+  for (let gx = Math.floor((x - r) / LOST_G); gx <= Math.floor((x + r) / LOST_G); gx++) for (let gz = Math.floor((z - r) / LOST_G); gz <= Math.floor((z + r) / LOST_G); gz++) {
+    const key = 'lostAt:' + gx + ':' + gz;
+    let s = STRUCT_CACHE.get(key);
+    if (s === undefined) { const t = lostAt(gx, gz); s = t ? Object.assign(t, { ops: null }) : null; STRUCT_CACHE.set(key, s); }
+    if (s && Math.abs(s.x - x) <= r && Math.abs(s.z - z) <= r) return true;
+  }
+  return false;
 }
 
 /* ---- 05_mesh.js ---- */
@@ -7544,7 +7888,7 @@ function makeSave() {
   const sheep = [];
   for (const [id, st] of W.sheepState) if (!st[0] && st[1] > G.playTime) sheep.push(id, st[1]);
   return {
-    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
+    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], g6w: W.gen6 ? 1 : 0, g6: W.gen6 ? [] : [...W.g6], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
@@ -7636,6 +7980,7 @@ function applySave(s, convert) {
     mapSeenLoad(s.msn);
     markOldChunks(s);
     W.gen5 = !!s.g5w; W.g5 = new Set(Array.isArray(s.g5) ? s.g5 : []); V5W.clear(); WORM5_CACHE.clear(); STRUCT_CACHE.clear();
+    W.gen6 = !!s.g6w; W.g6 = new Set(Array.isArray(s.g6) ? s.g6 : []); V6W.clear(); V6CELL.clear();
     if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
     for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
   }
@@ -10125,7 +10470,7 @@ function onChunkUnloaded(c) {
 }
 
 /* ---------- sheep herds: a few chunks far from the spawn have one ---------- */
-const HERD_BIOMES = new Set([BIO.PLAINS, BIO.FOREST, BIO.AUTUMN, BIO.CHERRY, BIO.TAIGA, BIO.SNOWY, BIO.MOUNTAIN, BIO.CRYSTAL, BIO.MEADOW]);
+const HERD_BIOMES = new Set([BIO.PLAINS, BIO.FOREST, BIO.AUTUMN, BIO.CHERRY, BIO.TAIGA, BIO.SNOWY, BIO.MOUNTAIN, BIO.CRYSTAL, BIO.MEADOW, BIO.BIRCH, BIO.SAVANNA, BIO.LAVENDER, BIO.LUSH]);
 function spawnHerd(c) {
   const seed = W.seed;
   if (hashi(c.cx, 91, c.cz, seed) > 0.075) return;
@@ -10159,6 +10504,7 @@ function chestLoot(x, y, z) {
     loot.iron = 6 + Math.floor(r() * 6); loot.diamond = 1 + Math.floor(r() * 3);
     if (r() < 0.6) loot.crystal = 1 + Math.floor(r() * 2);
     loot.torch = 4;
+    loot.paper = 1 + Math.floor(r() * 2);
   } else if (y < SEA - 4) {
     loot.iron = 2 + Math.floor(r() * 5); loot.torch = 2 + Math.floor(r() * 5);
     if (r() < 0.4) loot.apple = 1;
@@ -10168,7 +10514,7 @@ function chestLoot(x, y, z) {
     loot.iron = 3 + Math.floor(r() * 5); loot.diamond = 1 + Math.floor(r() * 2); loot.crystal = 1 + Math.floor(r() * 3);
     loot.paper = 1 + Math.floor(r() * 3);   // Ruinen: Papier für eine Karte
   }
-  if (y < SEA - 4 && !towerOfChest(x, y, z) && r() < 0.3) loot.paper = 1;
+  if (y < SEA - 4 && !towerOfChest(x, y, z)) loot.paper = 1;   // jede Truhe in verlassenen Orten hat Papier
   return loot;
 }
 function lootText(loot) {
@@ -10315,7 +10661,7 @@ function updateWeather(dt) {
   // snow instead of rain where it is cold
   const ex = Math.floor(CAM.eye[0]), ez = Math.floor(CAM.eye[2]);
   const b = colBiome(ex, ez);
-  Wt.snow = damp(Wt.snow, b === BIO.SNOWY || b === BIO.TAIGA || (b === BIO.MOUNTAIN && CAM.eye[1] > SEA + 28) ? 1 : 0, 0.6, dt);
+  Wt.snow = damp(Wt.snow, b === BIO.SNOWY || b === BIO.TAIGA || b === BIO.ICE || (b === BIO.MOUNTAIN && CAM.eye[1] > SEA + 28) ? 1 : 0, 0.6, dt);
 }
 
 /* ---------- rain and snow ---------- */
@@ -11960,7 +12306,7 @@ function swipeAway(el) {
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 }
 /* a clean card that drops in from the top (a friend came online …), 3 seconds, can be wiped away */
-UI.notify = function (title, text, sub, skin) {
+UI.notify = function (title, text, sub, skin, onClick) {
   const box = $('notes'); if (!box) return;
   const d = document.createElement('div'); d.className = 'note';
   d.innerHTML = '<canvas width="64" height="64"></canvas><div class="nt"><small></small><b></b><span></span></div><i class="ndot"></i>';
@@ -11971,7 +12317,14 @@ UI.notify = function (title, text, sub, skin) {
   while (box.children.length > 3) box.firstChild.remove();
   swipeAway(d);
   SFX.greet && SFX.greet();
-  setTimeout(() => { if (!d.isConnected) return; d.classList.add('out'); setTimeout(() => d.remove(), 380); }, 3000);
+  if (onClick) {
+    // antippen: dorthin, worum es geht (z. B. in den Chat)
+    d.classList.add('click');
+    let sx = 0, sy = 0;
+    d.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+    d.addEventListener('click', (e) => { if (Math.hypot(e.clientX - sx, e.clientY - sy) > 8) return; d.remove(); onClick(); });
+  }
+  setTimeout(() => { if (!d.isConnected) return; d.classList.add('out'); setTimeout(() => d.remove(), 380); }, onClick ? 5000 : 3000);
 };
 UI.banner = function (title, sub, kind) {
   const wrap = $('bannerWrap');
@@ -12628,8 +12981,9 @@ UI.closeModal = function (id) {
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
+  if (id === 'mdlFriends') CHAT.close();
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
-  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
+  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
     G.state = 'playing'; INPUT.clear(); updateCursorStyle();
     // first person: the mouse looks around again right away, no extra click needed
     if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); }
@@ -12928,16 +13282,12 @@ UI.syncState = function (s) {
 };
 
 /* ---------- friends ---------- */
-UI.openFriends = function () { UI.friendsRefresh(); $('mdlFriends').hidden = false; if (NET.state === 'off') NET.init(); };
-UI.menuFriendsBadge = function () {
-  const n = NET.uid() ? Object.keys(NET.requests).length : 0;
-  for (const id of ['friendBadge', 'pauseFriendBadge']) {
-    const b = $(id); if (!b) continue;
-    b.hidden = n === 0; b.textContent = n;
-  }
-};
+UI.openFriends = function () { $('mdlFriends').hidden = false; UI.friendsRefresh(); CHAT.setTab(CHAT.unreadTotal() ? 'chats' : NET.uid() && Object.keys(NET.requests || {}).length ? 'friends' : CHAT.tab); if (NET.state === 'off') NET.init(); };
+/* Badge am Knopf „Sozial“: Freundschaftsanfragen und ungelesene Nachrichten */
+UI.menuFriendsBadge = function () { CHAT.badges(); };
 UI.friendsRefresh = function () {
   UI.menuFriendsBadge();
+  if (!$('mdlFriends').hidden && CHAT.tab === 'chats') { if (CHAT.with) CHAT.renderHead(); else CHAT.renderList(); }
   const inBox = $('fLoggedIn'); if (!inBox) return;
   const user = NET.uid();
   $('fLoggedOut').hidden = !!user; inBox.hidden = !user;
@@ -12978,6 +13328,9 @@ UI.friendsRefresh = function () {
     if (st.on) line = st.h && st.w ? 'Spielt in „' + st.w + '“' : st.w ? 'Ist in einer Welt' : 'Online im Menü';
     const li = friendCard(f.name || st.name || 'Freund', st.skin, line, st.on ? (st.h ? 'host' : 'on') : '');
     const act = li.querySelector('.fbtns');
+    const chat = document.createElement('button'); chat.className = 'btn'; chat.type = 'button'; chat.textContent = '💬 Chat';
+    chat.addEventListener('click', () => { CHAT.setTab('chats'); CHAT.open(fid); });
+    act.appendChild(chat);
     if (st.on && st.h) {
       const join = document.createElement('button'); join.className = 'btn primary'; join.type = 'button'; join.textContent = 'Beitreten';
       join.addEventListener('click', () => joinFriend(fid, f.name || st.name));
@@ -13217,7 +13570,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -14346,7 +14699,7 @@ const NET = {
     this.pendingName = null;
     this.name = p.name;
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
-    this.startPresence(); this.watchFriends(); SUPPORT.watch();
+    this.startPresence(); this.watchFriends(); SUPPORT.watch(); CHAT.watch();
     this.loginT = performance.now();
     INVITES.watch(); ADMIN.watchMe(); UI.adminButton(); ADMIN.watchMods(); MODS.pull();
     FAVS.pull().then(() => { if (UI.menuServers) UI.menuServers(true); });
@@ -14429,7 +14782,7 @@ const NET = {
       this.requests = s.val() || {};
       this.cleanRequests();
       // tell the player about new requests, also while playing
-      if (!first) for (const fid in this.requests) if (!before[fid] && !this.friends[fid]) { UI.toast((this.requests[fid].name || 'Jemand') + (this.requests[fid].srv ? ' lädt dich auf den Server „' + this.requests[fid].srv + '“ ein.' : ' möchte mit dir spielen.') + ' Nimm die Anfrage unter „Freunde“ an.', 'good', 6000, 'req'); SFX.ui(); }
+      if (!first) for (const fid in this.requests) if (!before[fid] && !this.friends[fid]) { UI.toast((this.requests[fid].name || 'Jemand') + (this.requests[fid].srv ? ' lädt dich auf den Server „' + this.requests[fid].srv + '“ ein.' : ' möchte mit dir spielen.') + ' Nimm die Anfrage unter „Sozial“ an.', 'good', 6000, 'req'); SFX.ui(); }
       first = false;
       UI.friendsRefresh();
     };
@@ -14471,7 +14824,7 @@ const NET = {
     for (const fid in this.statusRefs) { const [r, cb] = this.statusRefs[fid]; r.off('value', cb); }
     this.statusRefs = {}; this.statuses = {}; this.friends = {}; this.requests = {};
   },
-  stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
+  stopWatching() { this.stopPresence(); this.stopFriends(); SUPPORT.stop(); CHAT.stop(); if (typeof UI.supportBadge === 'function') UI.supportBadge(); },
   /* srv: { owner, wid, name } of the server this request also invites to */
   async addFriend(name, srv) {
     const lower = (name || '').trim().toLowerCase();
@@ -16335,6 +16688,202 @@ function bindSupportUI() {
       msg.className = 'form-msg ok'; msg.textContent = 'Abgeschickt. Danke! Du kannst gleich noch mehr schicken.';
     } catch (e) { msg.className = 'form-msg'; msg.textContent = e && e.message && !/PERMISSION/.test(e.message) ? e.message : 'Das ging nicht. ' + netMsg(e); }
   });
+}
+
+/* ---- 19sc_chat.js ---- */
+/* =========================================================================
+   Sozial: Chat mit Freunden.
+   - Nachrichten liegen unter chats/<uidA_uidB> (sortierte uids), nur die
+     beiden dürfen sie lesen, schreiben nur Freunde.
+   - Jede Nachricht kommt zusätzlich in chatin/<empfänger> als „ungelesen“.
+     Der Empfänger bekommt oben eine Benachrichtigung (antippen öffnet den
+     Chat). Geöffnet gilt die Nachricht als gelesen und verschwindet dort.
+   - Im Pausenmenü (und im Hauptmenü) heißt der Knopf „Sozial“: Chats,
+     Freunde und Freundschaftsanfragen an einem Ort.
+   ========================================================================= */
+const CHAT = {
+  tab: 'chats', with: null, ref: null, cb: null, msgs: [], unread: {}, inRef: null, inCb: null, inRmCb: null,
+  startT: 0, lastSend: 0, LKEY: 'bloodmoon-chat-last',
+  cid(a, b) { return [a, b].sort().join('_'); },
+  /* letzte Nachricht pro Freund (für die Liste), nur auf diesem Gerät */
+  last() { try { return JSON.parse(localStorage.getItem(this.LKEY + '-' + (NET.uid() || '')) || '{}') || {}; } catch (e) { return {}; } },
+  setLast(fid, m) { const l = this.last(); l[fid] = { t: String(m.t || '').slice(0, 80), at: m.at || Date.now(), me: !!m.me }; try { localStorage.setItem(this.LKEY + '-' + (NET.uid() || ''), JSON.stringify(l)); } catch (e) { /* voll */ } },
+  unreadTotal() { let n = 0; for (const f in this.unread) n += this.unread[f].length; return n; },
+
+  /* ---------- ungelesene Nachrichten: läuft, solange man angemeldet ist ---------- */
+  watch() {
+    const uid = NET.uid(); if (!uid || !NET.db) return;
+    this.stop();
+    this.startT = Date.now();
+    this.unread = {};
+    this.inRef = NET.db.ref('chatin/' + uid);
+    let first = true, firstN = 0;
+    this.inCb = (s) => {
+      const v = s.val(); if (!v || !v.f) return;
+      const m = { k: s.key, f: v.f, n: String(v.n || 'Freund'), t: String(v.t || ''), at: +v.at || Date.now() };
+      // gerade offen: sofort gelesen
+      if (this.with === m.f && this.visible()) { NET.db.ref('chatin/' + uid + '/' + m.k).remove().catch(() => { }); return; }
+      (this.unread[m.f] = this.unread[m.f] || []).push(m);
+      this.setLast(m.f, { t: m.t, at: m.at });
+      if (first) { firstN++; return; }
+      const st = NET.statuses[m.f] || {};
+      UI.notify('Nachricht von ' + m.n, m.t.length > 90 ? m.t.slice(0, 88) + '…' : m.t, 'Antippen zum Antworten', st.skin, () => CHAT.openWith(m.f));
+      this.badges();
+    };
+    this.inRmCb = (s) => { for (const f in this.unread) this.unread[f] = this.unread[f].filter((m) => m.k !== s.key); this.badges(); };
+    this.inRef.on('child_added', this.inCb);
+    this.inRef.on('child_removed', this.inRmCb);
+    // was beim Anmelden schon wartete: eine einzige Meldung
+    this.inRef.once('value').then(() => {
+      first = false;
+      if (firstN) {
+        const from = Object.keys(this.unread);
+        const name = from.length === 1 ? this.unread[from[0]][0].n : null;
+        UI.notify('Neue Nachrichten', firstN === 1 ? '1 neue Nachricht' + (name ? ' von ' + name : '') : firstN + ' neue Nachrichten' + (name ? ' von ' + name : ''), 'Antippen zum Lesen', from.length === 1 ? (NET.statuses[from[0]] || {}).skin : null, () => (from.length === 1 ? CHAT.openWith(from[0]) : CHAT.openSocial('chats')));
+      }
+      this.badges();
+    }).catch(() => { first = false; });
+  },
+  stop() {
+    if (this.inRef) { this.inRef.off('child_added', this.inCb); this.inRef.off('child_removed', this.inRmCb); this.inRef = null; }
+    this.close(); this.unread = {}; this.badges();
+  },
+  badges() {
+    const n = this.unreadTotal();
+    const req = NET.uid() ? Object.keys(NET.requests || {}).length : 0;
+    for (const id of ['friendBadge', 'pauseFriendBadge']) { const b = $(id); if (b) { b.hidden = n + req === 0; b.textContent = n + req; } }
+    const tb = $('socChatsN'); if (tb) { tb.hidden = !n; tb.textContent = n; }
+    const fb = $('socFriendsN'); if (fb) { fb.hidden = !req; fb.textContent = req; }
+    if (!$('mdlFriends').hidden && this.tab === 'chats' && !this.with) this.renderList();
+  },
+  visible() { return !$('mdlFriends').hidden && this.tab === 'chats' && !document.hidden; },
+
+  /* ---------- Fenster ---------- */
+  openSocial(tab) {
+    if (G.state === 'playing') { if (document.pointerLockElement) document.exitPointerLock(); INPUT.clear(); G.state = 'inv'; }
+    if (!$('mdlPause').hidden) { $('mdlPause').hidden = true; UI._friendsFrom = 'pause'; }
+    UI.openFriends();
+    this.setTab(tab || (this.unreadTotal() ? 'chats' : this.tab));
+  },
+  openWith(fid) {
+    this.openSocial('chats');
+    this.open(fid);
+  },
+  setTab(t) {
+    this.tab = t;
+    document.querySelectorAll('#socTabs .tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+    $('socChats').hidden = t !== 'chats'; $('socFriends').hidden = t !== 'friends';
+    if (t === 'chats') { if (this.with) this.renderHead(); else this.renderList(); } else this.close();
+  },
+  renderList() {
+    const box = $('chatList'); if (!box) return;
+    $('chatView').hidden = true; box.hidden = false;
+    $('chatOut').hidden = !!NET.uid();
+    box.innerHTML = '';
+    if (!NET.uid()) return;
+    const last = this.last();
+    const ids = Object.keys(NET.friends || {});
+    if (!ids.length) { box.innerHTML = '<div class="list-empty">Noch keine Freunde. Unter „Freunde“ fügst du jemanden über den Benutzernamen hinzu.</div>'; return; }
+    const when = (f) => Math.max((last[f] || {}).at || 0, ...(this.unread[f] || []).map((m) => m.at));
+    ids.sort((a, b) => ((this.unread[b] || []).length - (this.unread[a] || []).length) || when(b) - when(a) || (!!(NET.statuses[b] || {}).on - !!(NET.statuses[a] || {}).on));
+    for (const fid of ids) {
+      const f = NET.friends[fid], st = NET.statuses[fid] || {}, u = this.unread[fid] || [], l = last[fid];
+      const line = u.length ? u[u.length - 1].t : l ? (l.me ? 'Du: ' : '') + l.t : st.on ? 'Online · schreib etwas!' : 'Noch keine Nachrichten';
+      const li = friendCard(f.name || st.name || 'Freund', st.skin, line, st.on ? (st.h ? 'host' : 'on') : '');
+      li.classList.add('chat-row'); if (u.length) li.classList.add('unread');
+      const act = li.querySelector('.fbtns');
+      if (u.length) { const b = document.createElement('span'); b.className = 'chat-badge'; b.textContent = u.length; act.appendChild(b); }
+      const t = document.createElement('small'); t.className = 'chat-when'; t.textContent = when(fid) ? ago(when(fid)) : ''; act.appendChild(t);
+      li.tabIndex = 0; li.setAttribute('role', 'button');
+      li.addEventListener('click', () => this.open(fid));
+      li.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.open(fid); });
+      box.appendChild(li);
+    }
+  },
+  renderHead() {
+    const fid = this.with; if (!fid) return;
+    const f = NET.friends[fid] || {}, st = NET.statuses[fid] || {};
+    drawSkinAvatar($('chatAva'), st.skin || 'ranger');
+    $('chatName').textContent = f.name || st.name || 'Freund';
+    $('chatSt').textContent = st.on ? (st.h && st.w ? 'Spielt in „' + st.w + '“' : st.w ? 'In einer Welt' : 'Online') : 'Offline' + (st.at ? ' · zuletzt ' + ago(st.at) : '');
+    $('chatView').classList.toggle('on', !!st.on);
+  },
+  open(fid) {
+    if (!NET.uid() || !NET.friends[fid]) return;
+    this.close();
+    this.with = fid; this.msgs = [];
+    $('chatList').hidden = true; $('chatView').hidden = false;
+    this.renderHead();
+    $('chatMsgs').innerHTML = '<div class="chat-empty">Lädt …</div>';
+    const ref = NET.db.ref('chats/' + this.cid(NET.uid(), fid));
+    this.ref = ref.limitToLast ? ref.limitToLast(60) : ref;
+    let any = false;
+    this.cb = (s) => {
+      const v = s.val(); if (!v || typeof v.t !== 'string') return;
+      if (!any) { any = true; $('chatMsgs').innerHTML = ''; }
+      this.addMsg({ k: s.key, f: v.f, t: v.t, at: +v.at || Date.now() });
+    };
+    this.ref.on('child_added', this.cb, () => { $('chatMsgs').innerHTML = '<div class="chat-empty">Der Chat ist gerade nicht erreichbar.</div>'; });
+    this.ref.once('value').then((s) => { if (!s.exists() && this.with === fid) $('chatMsgs').innerHTML = '<div class="chat-empty">Noch keine Nachrichten. Sag Hallo!</div>'; }).catch(() => { });
+    this.markRead(fid);
+    if (!touchUI()) setTimeout(() => $('chatIn').focus(), 50);
+  },
+  markRead(fid) {
+    const u = this.unread[fid] || []; if (!u.length) return;
+    const upd = {}; for (const m of u) upd['chatin/' + NET.uid() + '/' + m.k] = null;
+    this.unread[fid] = [];
+    NET.db.ref().update(upd).catch(() => { });
+    this.badges();
+  },
+  close() {
+    if (this.ref && this.cb) this.ref.off('child_added', this.cb);
+    this.ref = null; this.cb = null; this.with = null;
+    const v = $('chatView'); if (v) v.hidden = true;
+  },
+  addMsg(m) {
+    if (this.msgs.some((q) => q.k === m.k)) return;
+    this.msgs.push(m);
+    const box = $('chatMsgs');
+    const me = m.f === NET.uid();
+    const prev = this.msgs[this.msgs.length - 2];
+    if (!prev || new Date(prev.at).toDateString() !== new Date(m.at).toDateString()) {
+      const d = document.createElement('div'); d.className = 'chat-day';
+      d.textContent = new Date(m.at).toDateString() === new Date().toDateString() ? 'Heute' : new Date(m.at).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' });
+      box.appendChild(d);
+    }
+    const b = document.createElement('div'); b.className = 'chat-msg' + (me ? ' me' : '');
+    const t = document.createElement('span'); t.textContent = m.t;
+    const tm = document.createElement('small'); const dt = new Date(m.at); tm.textContent = String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0');
+    b.append(t, tm); box.appendChild(b);
+    box.scrollTop = box.scrollHeight;
+    this.setLast(this.with, { t: m.t, at: m.at, me });
+  },
+  async send(text) {
+    const uid = NET.uid(), fid = this.with;
+    text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+    if (!uid || !fid || !text) return false;
+    if (performance.now() - this.lastSend < 600) return false;
+    this.lastSend = performance.now();
+    const k = NET.db.ref('chats').push().key;
+    const upd = {};
+    upd['chats/' + this.cid(uid, fid) + '/' + k] = { f: uid, t: text, at: NET.TS() };
+    upd['chatin/' + fid + '/' + k] = { f: uid, n: NET.name || '', t: text.slice(0, 160), at: NET.TS() };
+    try { await withTimeout(NET.db.ref().update(upd), 15000); return true; }
+    catch (e) { UI.toast(/PERMISSION/i.test(String(e && (e.code || e.message))) ? 'Die Nachricht ging nicht raus. Seid ihr beide Freunde?' : 'Die Nachricht ging nicht raus. ' + netMsg(e), 'warn', 4200, 'chat'); return false; }
+  },
+};
+function bindChat() {
+  document.querySelectorAll('#socTabs .tab').forEach((b) => b.addEventListener('click', () => CHAT.setTab(b.dataset.tab)));
+  $('chatBack').addEventListener('click', () => { CHAT.close(); CHAT.renderList(); });
+  $('chatLogin').addEventListener('click', () => { UI.closeModal('mdlFriends'); UI.openAccount && UI.openAccount(); });
+  $('chatForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const inp = $('chatIn'), t = inp.value;
+    if (!t.trim()) return;
+    inp.value = '';
+    if (!(await CHAT.send(t))) inp.value = inp.value || t;
+  });
+  $('chatIn').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); $('chatIn').blur(); } });
 }
 
 /* ---- 19t_mods.js ---- */
@@ -19602,7 +20151,7 @@ function mapBlockCol(id) {
   MAP_COL[id] = [a[0] * 255, a[1] * 255, a[2] * 255];
   return MAP_COL[id];
 }
-const MAP_BIO_COL = ['#3f76e4', '#dbcf8e', '#6fb050', '#4f8f3a', '#c07a2e', '#e6a0c0', '#3f6e44', '#eef3f6', '#e0cf8a', '#8d8d8d', '#2f4a33', '#8fb8d8', '#7a5a8a', '#82c060', '#4e6a3a'].map(hexToRgb);
+const MAP_BIO_COL = ['#3f76e4', '#dbcf8e', '#6fb050', '#4f8f3a', '#c07a2e', '#e6a0c0', '#3f6e44', '#eef3f6', '#e0cf8a', '#8d8d8d', '#2f4a33', '#8fb8d8', '#7a5a8a', '#82c060', '#4e6a3a', '#7fbf5a', '#b9b45a', '#cfe6f5', '#a98bd6', '#4f9a48'].map(hexToRgb);
 const _mci = {};
 /* ein Stück Karte (ein Chunk = 4 x 4 Pixel): aus den echten Blöcken, sonst aus der Weltgenerierung */
 function mapTile(key, cx, cz) {
@@ -19676,6 +20225,7 @@ function mapStructs() {
   try {
     scan(ruinGrid(), ruinAt, (s) => dist(s) > RING_OUT - 20);
     scan(towerGrid(), towerAt, (s) => dist(s) > RING_IN - 80 && dist(s) < RING_OUT + 80);
+    scan(LOST_G, lostAt, (s) => dist(s) > 140);
     for (const v of villagesNear(x, z, R)) out.push({ kind: 'village', x: v.x, z: v.z });
   } catch (e) { /* noch keine Welt */ }
   out.push({ kind: 'spawn', x: CX, z: CZ });
@@ -19765,7 +20315,7 @@ function drawMapView() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const fp = CAMC.mode === 'fp';
   const bottom = touchUI() ? 96 : 84;   // über der Hotbar
-  const S = Math.min(Wd * 0.8, (Ht - bottom) * (fp ? 0.84 : 0.66), 640);
+  const S = Math.min(Wd * 0.92, (Ht - bottom) * (fp ? 0.97 : 0.8), 820);
   // laufen: die Karte wippt mit, beim Umsehen schwingt sie ein wenig nach
   const w = PL.onGround ? PL.walkAmt : 0, ph = PL.walkPhase || 0, calm = SETTINGS.camShake ? 1 : 0.4;
   const bobX = Math.sin(ph) * S * 0.012 * w * calm, bobY = Math.abs(Math.cos(ph)) * S * 0.018 * w * calm;
@@ -19838,6 +20388,10 @@ function drawMapMarker(ctx, kind, x, y, s) {
   } else if (kind === 'tower') {
     ctx.beginPath(); ctx.rect(-s * 0.24, -s * 0.5, s * 0.48, s * 0.98); ctx.fillStyle = '#5d6170'; ctx.fill(); o();
     ctx.fillStyle = '#5d6170'; ctx.beginPath(); ctx.rect(-s * 0.36, -s * 0.62, s * 0.72, s * 0.2); ctx.fill(); o();
+  } else if (kind === 'cabin' || kind === 'circle' || kind === 'dtemple') {
+    // verlassene Orte: ein kleines Fragezeichen auf dunklem Stein
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.42, 0, Math.PI * 2); ctx.fillStyle = kind === 'dtemple' ? '#c9a96a' : kind === 'circle' ? '#8f8a80' : '#6b4a2e'; ctx.fill(); o();
+    ctx.fillStyle = '#fff6dc'; ctx.font = '900 ' + Math.round(s * 0.62) + 'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('?', 0, s * 0.04);
   } else if (kind === 'spawn') {
     ctx.beginPath(); ctx.moveTo(0, -s * 0.55); ctx.quadraticCurveTo(s * 0.45, -s * 0.05, s * 0.2, s * 0.35); ctx.lineTo(-s * 0.2, s * 0.35); ctx.quadraticCurveTo(-s * 0.45, -s * 0.05, 0, -s * 0.55); ctx.fillStyle = '#ff9a2e'; ctx.fill(); o('#5a2a10');
     ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(0, s * 0.12, s * 0.15, 0, Math.PI * 2); ctx.fill();
