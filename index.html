@@ -382,6 +382,7 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .ban-box { max-width: min(420px, calc(100% - 32px)); padding: 26px; border-radius: 20px; display: grid; gap: 12px; text-align: center; }
 .ban-box h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 30px; color: #ff8a80; }
 .adm-ban { flex-wrap: wrap; }
+.adm-note { color: var(--muted); font-size: 12.5px; margin: 0 0 8px; line-height: 1.4; }
 .adm-ban .field { flex: 1 1 140px; }
 .admin-link { color: #ff8a80; }
 .tgl-btn[aria-pressed="false"] { opacity: 0.55; }
@@ -457,6 +458,10 @@ select.field { appearance: auto; }
 .vi.vx { background: rgba(190, 40, 40, 0.88); padding: 0 5px; }
 .vi.vx svg { width: 13px; height: 13px; stroke-width: 3; }
 .vi.vidle { color: rgba(255, 255, 255, 0.55); }
+.vi.vc, .vi.vf { color: rgba(255, 255, 255, 0.6); }
+.vi em { font-style: normal; font-size: 12px; font-weight: 900; line-height: 1; }
+.vi.vc em { color: #ffd479; }
+.vi.vf em { color: #fff; background: #e0682a; border-radius: 99px; padding: 1px 5px; }
 .wv { display: inline-flex; align-items: center; gap: 2px; height: 14px; margin-left: 1px; }
 .wv em { transform-origin: 50% 50%; }
 .wv em { display: block; width: 3px; height: 100%; border-radius: 2px; background: #d8ffe0; animation: wv 0.5s ease-in-out infinite alternate; }
@@ -1510,6 +1515,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="list" id="admMods"></div>
       <p class="sec-t">Mod-Bibliothek</p>
       <div class="list" id="admModLib"></div>
+      <p class="sec-t">Sprachchat: Weiterleitungs-Server (TURN)</p>
+      <p class="adm-note">Ohne ihn klappt der Sprachchat nicht in jedem Netz (oft im Handy-Netz). Kostenlos: Konto bei metered.ca anlegen (20 GB im Monat frei), dort „TURN Server“ → die Adresse für die Zugangsdaten kopieren (https://DEINAPP.metered.live/api/v1/turn/credentials?apiKey=…) und hier einfügen. Leer lassen = aus.</p>
+      <form class="newworld" id="admTurnForm" autocomplete="off"><input class="field" id="admTurn" maxlength="300" placeholder="https://….metered.live/api/v1/turn/credentials?apiKey=…" aria-label="Adresse des TURN-Servers" spellcheck="false" autocapitalize="off"><button class="btn primary" type="submit">Speichern</button></form>
       <p class="sec-t">Spieler sperren</p>
       <form class="newworld adm-ban" id="admBanForm" autocomplete="off"><input class="field" id="admBanName" maxlength="16" placeholder="Benutzername" aria-label="Benutzername" autocapitalize="off" spellcheck="false"><input class="field" id="admBanWhy" maxlength="200" placeholder="Grund (freiwillig)" aria-label="Grund"><button class="btn danger" type="submit">Sperren</button></form>
       <p class="sec-t">Gesperrt</p>
@@ -1805,8 +1813,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.30.0';
+const GAME_VERSION = '2.30.1';
 const GAME_NOTES = [
+  ['2.30.1', 'Sprachchat: über dem Namen siehst du jetzt auch, ob die Verbindung noch aufgebaut wird (…) oder nicht klappt (!). Klappt sie nicht, versucht das Spiel es immer wieder. Neu im Admin-Fenster: ein Weiterleitungs-Server (TURN) für Netze, die keine direkte Verbindung erlauben (oft im Handy-Netz).'],
   ['2.30.0', 'Sprachchat: zwei Knöpfe oben, das Mikrofon (H) schaltet dich stumm, der Lautsprecher (J) schaltet die anderen stumm (du kannst trotzdem reden). Mikrofon und Ton sind am Anfang an und bleiben so, wie du sie zuletzt hattest. Neuer Start: „Willkommen beim Sprachchat!“ mit kurzer Erklärung und Ja oder Nein. Das Einrichten und die Erklärung kommen nur beim ersten Mal. Über jedem Namen siehst du, ob jemand gerade redet (Mikrofon mit Schallwellen), stumm ist, die anderen stumm geschaltet hat oder keinen Sprachchat hat (✕).'],
   ['2.29.1', 'Sprachchat: geht jetzt auch auf Servern zuverlässig (die Verbindung wartet, bis die Welt fertig geladen ist, und fragt bei Bedarf nochmal), auch auf öffentlichen Servern mit IP (dort laufen nur Sprachchat, Wegpunkte und Weltkarte). Wer gerade spricht, hat ein grünes Mikrofon über dem Namen. Mikrofon- und Lautsprecher-Auswahl: Knopf „Mikrofon erlauben“, danach stehen alle Geräte mit Namen in der Liste.'],
   ['2.29.0', 'Drei neue Mods von Blood Moon. Sprachchat: mit Freunden in derselben Welt sprechen, H (am Handy der Knopf 🔇/🎤) schaltet das Mikrofon an und aus, vorher Datenschutz zustimmen, beim Start Mikrofon und Lautsprecher wählen, wer weiter weg ist, ist leiser, nichts wird aufgenommen. Wegpunkte: P öffnet das Menü, Wegpunkt am Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Weltkarte: M öffnet die ganze Welt als Vollbild mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, zoomen und verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt. Die Kartenfarben passen jetzt besser zu den echten Blöcken.'],
@@ -16979,6 +16988,7 @@ UI.openAdmin = function () {
   $('mdlAdmin').hidden = false;
   $('admMsg').hidden = true;
   UI.adminRefresh();
+  withTimeout(NET.db.ref('mods/meta/_voice/turn').once('value'), 8000).then((s) => { $('admTurn').value = s.val() || ''; }).catch(() => { });
 };
 function admMsg(t, ok) { const m = $('admMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; }
 UI.adminRefresh = async function () {
@@ -17084,6 +17094,21 @@ function bindAdminUI() {
     ev.preventDefault();
     try { const n = await ADMIN.ban($('admBanName').value, $('admBanWhy').value); $('admBanName').value = ''; $('admBanWhy').value = ''; admMsg(n + ' ist gesperrt.', true); UI.adminRefresh(); }
     catch (e) { admMsg(e && e.message ? e.message : netMsg(e)); }
+  });
+  $('admTurnForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const v = $('admTurn').value.trim();
+    if (v && !/^https:\/\/[^\s]+$/.test(v)) { admMsg('Die Adresse muss mit https:// anfangen.'); return; }
+    try {
+      if (v) {
+        // gleich ausprobieren: kommen Zugangsdaten zurück?
+        const a = await withTimeout(fetch(v, { cache: 'no-store' }).then((r) => r.json()), 8000);
+        if (!Array.isArray(a) || !a.some((s) => s && String(s.urls).includes('turn'))) { admMsg('Die Adresse antwortet, aber nicht mit TURN-Zugangsdaten. Prüf den Link (apiKey).'); return; }
+      }
+      await withTimeout(NET.db.ref('mods/meta/_voice/turn').set(v || null), 10000);
+      VOICE_TURN.list = null;
+      admMsg(v ? 'Weiterleitungs-Server gespeichert. Gilt ab dem nächsten Verbinden.' : 'Weiterleitungs-Server aus.', true);
+    } catch (e) { admMsg('Ging nicht: ' + (e && e.message ? e.message : netMsg(e))); }
   });
   $('admSayForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -22335,6 +22360,25 @@ MODFX_DEF.voiceChat = false;
 if (MODFX.voiceChat === undefined) MODFX.voiceChat = false;
 const VOICE_OK_KEY = 'bloodmoon-voice-ok', VOICE_CFG_KEY = 'bloodmoon-voice';
 const VOICE_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
+/* Weiterleitungs-Server (TURN): wenn zwei Netze keine direkte Verbindung zulassen (Handy-Netz,
+   manche WLANs), geht die Stimme verschlüsselt über ihn. Der Admin trägt die Adresse im Admin-Fenster
+   ein (mods/meta/_voice/turn, z. B. https://APP.metered.live/api/v1/turn/credentials?apiKey=...). */
+const VOICE_TURN = { list: null, t: 0, has: false };
+async function voiceIce() {
+  if (VOICE_TURN.list && performance.now() - VOICE_TURN.t < 20 * 60000) return VOICE_TURN.list;
+  let extra = [];
+  try {
+    const url = (await withTimeout(NET.db.ref('mods/meta/_voice/turn').once('value'), 6000)).val();
+    if (typeof url === 'string' && /^https:\/\//.test(url)) {
+      const r = await withTimeout(fetch(url, { cache: 'no-store' }), 7000);
+      const a = await r.json();
+      if (Array.isArray(a)) extra = a.filter((s) => s && (typeof s.urls === 'string' || Array.isArray(s.urls))).slice(0, 8);
+    }
+  } catch (e) { console.warn('voice turn', e); }
+  VOICE_TURN.has = extra.length > 0;
+  VOICE_TURN.list = VOICE_ICE.concat(extra); VOICE_TURN.t = performance.now();
+  return VOICE_TURN.list;
+}
 const VOICE = {
   begun: false, on: false, muted: true, deaf: false, declined: false, rst: new Map(), stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Map(),
   cfg: { mic: '', spk: '', vol: 1, range: 'near', done: false, muted: false, deaf: false }, t: 0, lvlT: 0, base: '', test: null, gestureWait: false, busy: false,
@@ -22628,7 +22672,8 @@ function voiceTagKey(uid) {
   if (VOICE.ready.has(uid)) {
     const s = VOICE.rst.get(uid) || 0, m = s & 1, d = s & 2;
     const t = !m && voiceSpeaking(uid);
-    return ((t ? 't' : '') + (m ? 'm' : '') + (d ? 'd' : '')) || 'i';
+    const p = VOICE.peers.get(uid), c = !p || p.state !== 'ok' ? (p && p.state === 'fail' && p.tries >= 2 ? 'f' : 'c') : '';
+    return ((t ? 't' : '') + (m ? 'm' : '') + c + (d ? 'd' : '')) || 'i';
   }
   const h = VOICE.hiTo.get(uid);
   return h && (h.n >= 2 || performance.now() - h.f > 7000) ? 'x' : '';
@@ -22639,6 +22684,8 @@ function voiceTagHtml(k) {
   let h = '';
   if (k.includes('t')) h += '<span class="vi vt" title="redet">' + voSvg(VO_MIC) + '<span class="wv"><em></em><em></em><em></em><em></em></span></span>';
   else if (k.includes('m')) h += '<span class="vi vm" title="stumm">' + voSvg(VO_MIC + VO_SLASH) + '</span>';
+  else if (k.includes('f')) h += '<span class="vi vf" title="keine Verbindung">' + voSvg(VO_MIC) + '<em>!</em></span>';
+  else if (k.includes('c')) h += '<span class="vi vc" title="verbindet …">' + voSvg(VO_MIC) + '<em>…</em></span>';
   if (k.includes('d')) h += '<span class="vi vd" title="hört die anderen nicht">' + voSvg(VO_SPK + VO_X) + '</span>';
   if (k === 'i') h += '<span class="vi vidle" title="Sprachchat an">' + voSvg(VO_MIC) + '</span>';
   return h;
@@ -22657,9 +22704,9 @@ function voiceWaitIce(pc, ms) {
     pc.addEventListener('icegatheringstatechange', chk);
   });
 }
-function voiceNewPeer(uid) {
+function voiceNewPeer(uid, ice) {
   voiceClosePeer(uid, true);
-  const pc = new RTCPeerConnection({ iceServers: VOICE_ICE });
+  const pc = new RTCPeerConnection({ iceServers: ice || VOICE_ICE });
   const audio = document.createElement('audio');
   audio.autoplay = true; audio.setAttribute('playsinline', ''); audio.hidden = true; audio.muted = VOICE.deaf;
   document.body.appendChild(audio);
@@ -22676,6 +22723,7 @@ function voiceNewPeer(uid) {
     if (s === 'connected') {
       if (p.state !== 'ok') { const r = REMOTE[uid]; UI.toast('🎙️ Sprachverbindung mit ' + ((r && r.name) || 'einem Spieler') + ' steht.', 'good', 2400, 'vo' + uid); }
       p.state = 'ok'; p.tries = 0;
+      pc.getStats().then((st) => { st.forEach((r) => { if (r.type === 'candidate-pair' && r.nominated && r.state === 'succeeded') { const l = st.get(r.localCandidateId); p.relay = !!(l && l.candidateType === 'relay'); } }); }).catch(() => { });
     } else if (s === 'failed') { p.state = 'fail'; p.failT = performance.now(); }
     else if (s === 'disconnected') p.state = 'wait';
     if (!$('mdlVoice').hidden) voicePeerList();
@@ -22693,7 +22741,13 @@ function voiceClosePeer(uid, keep) {
   if (!keep) VOICE.peers.delete(uid);
 }
 async function voiceOffer(uid) {
-  const p = voiceNewPeer(uid);
+  VOICE.offering = VOICE.offering || new Set();
+  if (VOICE.offering.has(uid)) return;
+  VOICE.offering.add(uid);
+  let ice;
+  try { ice = await voiceIce(); } finally { VOICE.offering.delete(uid); }
+  if (!VOICE.on || !REMOTE[uid]) return;
+  const p = voiceNewPeer(uid, ice);
   p.tries++;
   p.oid = Math.random().toString(36).slice(2, 9);
   const oid = p.oid;
@@ -22708,7 +22762,9 @@ async function voiceOffer(uid) {
 }
 async function voiceAnswer(v) {
   const uid = v.u;
-  const p = voiceNewPeer(uid);
+  const ice = await voiceIce();
+  if (!VOICE.on) return;
+  const p = voiceNewPeer(uid, ice);
   p.oid = v.oid;
   try {
     await p.pc.setRemoteDescription({ type: 'offer', sdp: String(v.sdp) });
@@ -22770,7 +22826,8 @@ function updateVoice(dt) {
       const p = VOICE.peers.get(uid);
       if (!VOICE.ready.has(uid) || me > uid) continue;   // wer die kleinere Nummer hat, ruft an
       if (!p) voiceOffer(uid);
-      else if ((p.state === 'fail' || (p.state === 'wait' && now - p.t > 20000)) && now - (p.failT || p.t) > 6000 && p.tries < 4) voiceOffer(uid);
+      // klappt es nicht: nochmal versuchen, erst schnell, dann jede Minute (Netze ändern sich)
+      else if ((p.state === 'fail' || (p.state === 'wait' && now - p.t > 25000)) && now - (p.failT || p.t) > (p.tries < 4 ? 6000 : 60000)) voiceOffer(uid);
     }
     for (const uid of [...VOICE.peers.keys()]) if (!REMOTE[uid]) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
     for (const uid of [...VOICE.hiTo.keys()]) if (!REMOTE[uid]) VOICE.hiTo.delete(uid);
@@ -22814,7 +22871,7 @@ function voicePeerList() {
   for (const uid of uids) {
     const p = VOICE.peers.get(uid), r = REMOTE[uid];
     const rs = VOICE.rst.get(uid) || 0, ex = (rs & 1 ? ' · stumm' : '') + (rs & 2 ? ' · hört nicht zu' : '');
-    const st = !VOICE.ready.has(uid) ? ['hat keinen Sprachchat an', 'off'] : !p || p.state === 'wait' ? ['verbindet …', 'wait'] : p.state === 'ok' ? ['verbunden' + ex, 'ok'] : ['keine Verbindung (Netzwerk blockiert)', 'fail'];
+    const st = !VOICE.ready.has(uid) ? ['hat keinen Sprachchat an', 'off'] : !p || p.state === 'wait' ? ['verbindet …' + (p && p.tries > 1 ? ' (Versuch ' + p.tries + ')' : ''), 'wait'] : p.state === 'ok' ? ['verbunden' + (p.relay ? ' über Weiterleitung' : '') + ex, 'ok'] : [VOICE_TURN.has ? 'keine Verbindung (Netzwerk blockiert)' : 'keine Verbindung: euer Netzwerk blockiert direkte Verbindungen. Hilft nur ein Weiterleitungs-Server (Admin).', 'fail'];
     const row = document.createElement('div'); row.className = 'vo-peer ' + st[1];
     row.innerHTML = '<i></i><b></b><span></span>';
     row.querySelector('b').textContent = r.name || 'Spieler'; row.querySelector('span').textContent = st[0];
