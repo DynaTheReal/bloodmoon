@@ -298,6 +298,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
 #zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
 #zoomNote[hidden] { display: none; }
+#modSpace { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9; }
 #mapView { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 #compassChip { position: fixed; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); z-index: 6; pointer-events: none; padding: 5px 12px; border-radius: 99px; font-size: 13px; font-weight: 800; white-space: nowrap; }
 /* Handy: Textfelder unter 16px zoomen auf dem iPhone beim Antippen die ganze Seite */
@@ -1446,8 +1447,11 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.23.0';
+const GAME_VERSION = '2.24.2';
 const GAME_NOTES = [
+  ['2.24.2', 'Mods-Animation: der Weltraum kommt früher und es wird schneller dunkel, ein leichtes Rütteln beim Aufstieg, mehr und schnellere Matrix-Zeichen.'],
+  ['2.24.1', 'Mods-Animation ruhiger: die Kamera steigt von der Seite schräg nach oben, durch eine grüne Schicht mit sanft fallenden Matrix-Zeichen, ohne Wackeln, dann in den Weltraum.'],
+  ['2.24.0', 'Mods-Knopf im Hauptmenü: die Kamera fliegt hoch, die Welt wird klein, Matrix-Glitches, dann bist du im Weltraum und das Mod-Fenster geht auf. Beim Schließen geht es wieder hinunter zur Welt.'],
   ['2.23.0', 'Karte (Händler: 5 Kristalle + 1 Papier, Papier gibt es in Ruinen): mit beiden Händen gehalten, zeigt 1000 Blöcke um dich herum im Minecraft-Stil. Aufgedeckt wird, wo du langläufst (ca. 100 Blöcke um dich), Dörfer, Ruinen und Türme werden markiert. Kompass (4 Eisen + 1 Rubin): die Nadel zeigt immer zum Spawn. Shop: kein Mods-Reiter mehr, Waren aus Mods werden automatisch einsortiert. Creative-Modus: eigener Knopf 🎨 (Taste K) mit Kreativ-Menü, das Inventar startet leer. Handy: Fix für das plötzliche Ranzoomen der Kamera (ein hängengebliebener Finger galt als Zwei-Finger-Zoom). Server: eine ältere Version der Welt kann eine neuere nicht mehr überschreiben (z. B. wenn zwei Leute den Server gleichzeitig gestartet haben), es wird nie gespeichert, solange die Welt noch lädt, Speicherfehler werden angezeigt, und alle 3 Stunden entsteht automatisch ein Backup (Server → Verwalten).'],
   ['2.22.1', 'Meine Mods: angefangene Mods speichern sich automatisch als Entwurf, sobald ein Name, eine Beschreibung oder Code drinsteht (auch wenn du die App einfach schließt). Nur eine Idee für den KI-Prompt speichert weiterhin nichts. Handy: kein zufälliges Ranzoomen mehr beim schnellen Tippen; falls die Seite doch gezoomt ist, bringt ein Knopf „Zoom zurücksetzen“ sie zurück.'],
   ['2.22.0', 'Zuschauer-Modus: mit C (oder Strg) nach unten fliegen, am Handy mit dem Knopf „Runter“ (auch beim Kreativ-Fliegen). Als Zuschauer kannst du jetzt sofort abbauen, unendlich bauen und angreifen. Admin-Optionen (Nacht, Morgen, Blood Moon, Wetter, Tornado, Kreaturen weg, Volle Leben) gibt es in jeder Welt, auch als Gast, auf Servern und als Zuschauer.'],
@@ -13897,6 +13901,7 @@ function menuUpdate(dt) {
     eye = [ex, MENU_CAM.h + Math.sin(a * 0.6) * 3, ez];
     target = [cx + Math.cos(a + 1.6) * 6, PL.y + 2, cz + Math.sin(a + 1.6) * 6];
     CAM.fov = 52 * Math.PI / 180;
+    modFlyCam(eye, target);   // Mods-Knopf: hoch in den Weltraum
   }
   MENU_CAM.cx = PL.x; MENU_CAM.cz = PL.z;
   if (!MENU_CAM.eye || MENU_CAM.snap) { MENU_CAM.eye = eye.slice(); MENU_CAM.target = target.slice(); MENU_CAM.snap = false; }
@@ -13904,7 +13909,7 @@ function menuUpdate(dt) {
   for (let i = 0; i < 3; i++) { MENU_CAM.eye[i] = damp(MENU_CAM.eye[i], eye[i], k, dt); MENU_CAM.target[i] = damp(MENU_CAM.target[i], target[i], k, dt); }
   if (!UI.skinPreview && Math.hypot(MENU_CAM.eye[0] - eye[0], MENU_CAM.eye[1] - eye[1], MENU_CAM.eye[2] - eye[2]) < 0.5) MENU_CAM.blend = false;
   CAM.eye = MENU_CAM.eye.slice(); CAM.target = MENU_CAM.target.slice();
-  CAM.near = 0.2; CAM.far = SETTINGS.viewDist * CS + 80; CAM.underwater = false;
+  CAM.near = 0.2; CAM.far = SETTINGS.viewDist * CS + 80 + modFlyK() * 420; CAM.underwater = false;
   updateParts(dt); updateObjects(dt, shaderTime);
   updateWeather(dt); updateTornado(dt); updateFarFog(dt, PL.x, PL.z);
 }
@@ -13938,7 +13943,7 @@ function frame(now) {
   if (simulate) { G.playTime += dt; guard('Spiel', () => gameUpdate(dt)); }
   else if (inMenu) guard('Menü', () => menuUpdate(dt));
   else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
-  guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); });
+  guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); updateModFly(dt); });
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
   guard('Umgebung', () => { computeEnv(G.time, SETTINGS.viewDist); applyDimEnv(); });
@@ -17325,7 +17330,7 @@ function modAfterTest() {
 }
 
 function bindModsUI() {
-  $('btnMods').addEventListener('click', () => UI.openMods());
+  $('btnMods').addEventListener('click', () => modFlyOpen());
   $('modTabs').addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (!b) return; modsTab(b.dataset.tab); UI.modsRefresh(); });
   $('modCats').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; MODUI.cat = b.dataset.cat; UI.modsRefresh(); });
   $('modSearch').addEventListener('input', () => { MODUI.q = $('modSearch').value; UI.modsRefresh(); });
@@ -20001,6 +20006,135 @@ function bindCreative() {
     if (!$('mdlCreative').hidden) { UI.closeModal('mdlCreative'); return; }
     if (G.state === 'playing') UI.openCreative();
   });
+}
+
+/* ---- 19z_modfly.js ---- */
+/* =========================================================================
+   Mods-Knopf im Hauptmenü: die Kamera schießt nach oben, die Welt wird
+   klein, oben flackern Matrix-Glitches, nach etwa einer Sekunde bist du im
+   Weltraum, dann erst geht das Mod-Fenster auf. Beim Schließen geht es
+   wieder hinunter zur Welt.
+   ========================================================================= */
+const MODFLY = { phase: 'off', t: 0, dur: 1.05, tab: null, cv: null, ctx: null, stars: null, cols: null, last: 0 };
+
+function modFlyOpen(tab) {
+  if (G.state !== 'menu' || MODFLY.phase !== 'off' || !$('mdlMods').hidden) { UI.openMods(tab); return; }
+  modFlyCanvas();
+  MODFLY.phase = 'up'; MODFLY.t = 0; MODFLY.t0 = performance.now(); MODFLY.tab = tab || null;
+  $('scrMenu').hidden = true;
+  SFX.ui();
+}
+function modFlyCanvas() {
+  if (MODFLY.cv) return;
+  const cv = document.createElement('canvas'); cv.id = 'modSpace'; cv.hidden = true;
+  const gl = $('gl'); gl.parentNode.insertBefore(cv, gl.nextSibling);
+  MODFLY.cv = cv; MODFLY.ctx = cv.getContext('2d');
+  const rnd = mulberry32(4711);
+  MODFLY.stars = []; for (let k = 0; k < 260; k++) MODFLY.stars.push([rnd(), rnd(), 0.4 + rnd() * 1.4, rnd() * 6.28, rnd()]);
+}
+/* wie weit oben (0 = Welt, 1 = Weltraum) */
+function modFlyK() {
+  if (MODFLY.phase === 'off') return 0;
+  if (MODFLY.phase === 'space') return 1;
+  const t = clamp(MODFLY.t / MODFLY.dur, 0, 1);
+  return MODFLY.phase === 'up' ? t : 1 - t;
+}
+/* die Kamera im Menü: nach oben, mit dem Blick hinunter auf die Welt */
+function modFlyCam(eye, target) {
+  const k = modFlyK(); if (k <= 0) return;
+  // von der Seite, schräg nach oben: die Blickrichtung bleibt, nur die Höhe wächst
+  const up = k * k * (3 - 2 * k) * 0.35 + k * k * k * 0.65;
+  eye[1] += up * 300; target[1] += up * 300 + k * 18;
+  // ein leichtes Rütteln beim Aufstieg (am stärksten in der Mitte)
+  const sh = Math.sin(Math.PI * k) * 0.55, t = performance.now() / 1000;
+  eye[0] += Math.sin(t * 31) * sh; eye[1] += Math.sin(t * 27 + 1.3) * sh * 0.8; eye[2] += Math.cos(t * 29) * sh;
+  MENU_CAM.snap = true;
+}
+function updateModFly(dt) {
+  if (MODFLY.phase === 'off') return;
+  // ein Spiel startet (z. B. die Testwelt einer Mod): sofort zurück, ohne Animation
+  if (G.state !== 'menu') { modFlyStop(); return; }
+  // nach der echten Zeit (nicht den Spiel-Frames): immer etwa eine Sekunde
+  if (MODFLY.phase === 'up') {
+    MODFLY.t = (performance.now() - MODFLY.t0) / 1000;
+    if (MODFLY.t >= MODFLY.dur) { MODFLY.phase = 'space'; UI.openMods(MODFLY.tab); }
+  } else if (MODFLY.phase === 'space') {
+    if ($('mdlMods').hidden && $('mdlConfirm').hidden) { MODFLY.phase = 'down'; MODFLY.t = 0; MODFLY.t0 = performance.now(); }
+  } else if (MODFLY.phase === 'down') {
+    MODFLY.t = (performance.now() - MODFLY.t0) / 1000;
+    if (MODFLY.t >= MODFLY.dur) { modFlyStop(); return; }
+  }
+  modFlyDraw();
+}
+function modFlyStop() {
+  const was = MODFLY.phase !== 'off';
+  MODFLY.phase = 'off'; MODFLY.t = 0;
+  if (MODFLY.cv) MODFLY.cv.hidden = true;
+  const gl = $('gl'); gl.style.transform = ''; gl.style.filter = '';
+  if (was && G.state === 'menu' && MODALS.every((id) => $(id).hidden) && $('scrSkins').hidden) { $('scrMenu').hidden = false; MENU_CAM.blend = true; }
+}
+/* Weltraum mit Sternen und der Welt als Planet; auf dem Weg dorthin eine grüne Schicht
+   in der Luft, in der Matrix-Zeichen ruhig nach unten rieseln */
+function modFlyDraw() {
+  const cv = MODFLY.cv, ctx = MODFLY.ctx;
+  const dpr = Math.min(2, window.devicePixelRatio || 1), Wd = window.innerWidth, Ht = window.innerHeight;
+  if (cv.width !== Math.round(Wd * dpr) || cv.height !== Math.round(Ht * dpr)) { cv.width = Math.round(Wd * dpr); cv.height = Math.round(Ht * dpr); }
+  cv.hidden = false;
+  const k = modFlyK(), now = performance.now() / 1000;
+  const dt = clamp(now - (MODFLY.last || now), 0, 0.1); MODFLY.last = now;
+  const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const space = sm(0.42, 0.82, k), dark = sm(0.15, 0.6, k) * (1 - space);
+  const green = MODFLY.phase === 'space' ? 0 : sm(0.08, 0.32, k) * (1 - sm(0.6, 0.92, k));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, Wd, Ht);
+  // es wird schon früh dunkler, bevor die Sterne kommen
+  if (dark > 0.01) { ctx.fillStyle = 'rgba(4,8,22,' + (dark * 0.55) + ')'; ctx.fillRect(0, 0, Wd, Ht); }
+  if (space > 0) {
+    ctx.globalAlpha = space;
+    const bg = ctx.createLinearGradient(0, 0, 0, Ht);
+    bg.addColorStop(0, '#020309'); bg.addColorStop(0.6, '#060b1c'); bg.addColorStop(1, '#0d1d36');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, Wd, Ht);
+    for (const [sx, sy, r, ph, c] of MODFLY.stars) {
+      const tw = 0.6 + 0.4 * Math.sin(now * (0.8 + c * 1.5) + ph);
+      ctx.fillStyle = c > 0.85 ? 'rgba(170,200,255,' + tw + ')' : c > 0.7 ? 'rgba(255,225,190,' + tw + ')' : 'rgba(255,255,255,' + tw + ')';
+      ctx.fillRect(sx * Wd, sy * Ht * 0.8, r, r);
+    }
+    // die Welt unten, schräg von der Seite gesehen
+    const R = Math.max(Wd, Ht) * 2.2, cx = Wd * 0.5, py = Ht * 0.86 + R;
+    const glow = ctx.createRadialGradient(cx, py, R * 0.985, cx, py, R * 1.05);
+    glow.addColorStop(0, 'rgba(120,200,255,0.5)'); glow.addColorStop(1, 'rgba(120,200,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(cx, py, R * 1.05, 0, Math.PI * 2); ctx.fill();
+    const pl = ctx.createLinearGradient(0, Ht * 0.86, 0, Ht);
+    pl.addColorStop(0, '#4c9a63'); pl.addColorStop(0.3, '#2f7090'); pl.addColorStop(1, '#173750');
+    ctx.fillStyle = pl; ctx.beginPath(); ctx.arc(cx, py, R, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  if (green > 0.01) {
+    // grüner Dunst
+    const hz = ctx.createLinearGradient(0, 0, 0, Ht);
+    hz.addColorStop(0, 'rgba(40,255,140,' + (0.1 * green) + ')'); hz.addColorStop(0.5, 'rgba(30,220,110,' + (0.32 * green) + ')'); hz.addColorStop(1, 'rgba(20,160,90,' + (0.18 * green) + ')');
+    ctx.fillStyle = hz; ctx.fillRect(0, 0, Wd, Ht);
+    // Matrix-Zeichen: ruhig fallende Spalten, nur ab und zu wechselt ein Zeichen
+    const fs = Math.max(11, Math.round(Wd / 95)), n = Math.ceil(Wd / fs);
+    const chars = '0123456789アイウエオカキクケコサシスセソﾊﾋﾌﾍﾎ';
+    if (!MODFLY.cols || MODFLY.cols.length !== n) {
+      MODFLY.cols = Array.from({ length: n }, () => ({ y: Math.random() * Ht, v: 220 + Math.random() * 380, len: 8 + ((Math.random() * 14) | 0), on: Math.random() < 0.9, c: Array.from({ length: 24 }, () => chars[(Math.random() * chars.length) | 0]) }));
+    }
+    ctx.font = '600 ' + fs + 'px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textAlign = 'center';
+    for (let i = 0; i < n; i++) {
+      const col = MODFLY.cols[i]; if (!col.on) continue;
+      col.y += col.v * dt; if (col.y - col.len * fs > Ht) col.y = -Math.random() * Ht * 0.3;
+      if (Math.random() < 0.15) col.c[(Math.random() * col.c.length) | 0] = chars[(Math.random() * chars.length) | 0];
+      for (let j = 0; j < col.len; j++) {
+        const y = col.y - j * fs; if (y < -fs || y > Ht + fs) continue;
+        const a = green * (j === 0 ? 0.95 : 0.7 * (1 - j / col.len));
+        ctx.fillStyle = j === 0 ? 'rgba(210,255,225,' + a + ')' : 'rgba(80,255,150,' + a + ')';
+        ctx.fillText(col.c[j % col.c.length], i * fs + fs / 2, y);
+      }
+    }
+    ctx.textAlign = 'left';
+  }
 }
 
 /* ---- 99_start.js ---- */
