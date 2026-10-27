@@ -331,6 +331,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @keyframes goalPop { 30% { transform: scale(1.05); border-color: var(--ember); } }
 .hud-tr { position: absolute; top: var(--safe-t); right: var(--safe-r); display: flex; gap: 8px; align-items: center; }
 .resg, .btns { display: flex; gap: 8px; align-items: center; }
+.modbtns { display: flex; gap: 8px; align-items: center; }
+.modbtns:not(:has(> :not([hidden]))) { display: none; }
 .res { display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; font-size: 16px; font-variant-numeric: tabular-nums; min-width: 64px; }
 .res b { font-family: var(--font-display); font-weight: 400; font-size: 18px; }
 .res-i { width: 24px; height: 24px; image-rendering: pixelated; }
@@ -432,6 +434,62 @@ select.field { appearance: auto; }
 @keyframes bump { 40% { transform: scale(1.14); } }
 .ibtn { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; color: var(--text); }
 .cre-btn { font-size: 20px; line-height: 1; }
+
+/* Sprachchat, Wegpunkte, Weltkarte */
+.vo-btn { font-size: 19px; line-height: 1; position: relative; }
+.vo-btn[data-st="live"] { background: rgba(60, 170, 90, 0.55); box-shadow: 0 0 0 calc(var(--lv, 0) * 7px) rgba(90, 230, 120, 0.35); transition: box-shadow 0.08s; }
+.vo-btn[data-st="off"] { opacity: 0.6; }
+.vo-lead { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+.vo-list { margin: 0 0 12px; padding-left: 18px; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.4; }
+.vo-list b { color: var(--text); }
+.vo-agree { display: flex; gap: 9px; align-items: flex-start; font-size: 14px; font-weight: 700; padding: 10px 0; cursor: pointer; }
+.vo-agree input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--ember); }
+.vo-btns { justify-content: flex-end; margin-top: 4px; }
+.vo-dev { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.vo-lvl { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.vo-lvl i { display: block; height: 100%; width: 0; background: var(--leaf); border-radius: 99px; transition: width 0.06s; }
+.vo-note { color: var(--muted); font-size: 12px; font-weight: 600; }
+.vo-sel { width: auto; max-width: 190px; }
+.vo-peers { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+.vo-peer { display: flex; align-items: center; gap: 8px; }
+.vo-peer i { width: 9px; height: 9px; border-radius: 50%; background: #777; flex: 0 0 auto; }
+.vo-peer b { color: var(--text); }
+.vo-peer.ok i { background: var(--leaf); } .vo-peer.wait i { background: #e8c547; } .vo-peer.fail i { background: var(--blood); }
+.vo-keys { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+.wp-new { display: flex; gap: 8px; }
+.wp-new .field { flex: 1 1 auto; min-width: 0; }
+.wp-cols { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0 4px; }
+.wp-col { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(0, 0, 0, 0.35); padding: 0; cursor: pointer; }
+.wp-col[aria-pressed="true"] { outline: 3px solid #fff; outline-offset: 2px; }
+.wp-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.wp-row .grow { min-width: 0; }
+.wp-row b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-row small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.wp-dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 10px currentColor; border: 2px solid rgba(0, 0, 0, 0.3); }
+.wp-empty, .wp-hint { color: var(--muted); font-size: 13px; }
+.wp-hint { margin-top: 12px; }
+#wptags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.wptag { margin-left: -80px; width: 160px; display: grid; justify-items: center; gap: 1px; transform-origin: 50% 100%; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.wptag i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 8px var(--wc, #fff); order: 3; margin-top: 2px; }
+.wptag b { max-width: 160px; padding: 2px 8px; border-radius: 7px; background: rgba(8, 12, 13, 0.55); font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 2px solid var(--wc, #fff); }
+.wptag span { font-size: 11px; font-weight: 800; color: #f2f2f2; }
+.wmap { position: fixed; inset: 0; z-index: 19; background: #15131c; touch-action: none; user-select: none; -webkit-user-select: none; }
+.wmap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.wmap canvas:active { cursor: grabbing; }
+.wm-top { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); pointer-events: none; }
+.wm-top > * { pointer-events: auto; }
+.wm-title { padding: 7px 12px; display: grid; gap: 1px; }
+.wm-title b { font-size: 15px; }
+.wm-title span { font-size: 12px; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.wm-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.wm-btns .ibtn { font-size: 19px; font-weight: 800; }
+.wm-help { position: absolute; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); margin: 0; padding: 6px 10px; font-size: 12px; color: var(--muted); font-weight: 700; pointer-events: none; }
+.wm-pop { position: absolute; left: 0; top: 0; width: 240px; padding: 12px; display: grid; gap: 6px; z-index: 2; }
+.wm-pop b { font-size: 14px; padding-right: 20px; }
+.wm-pop small { color: var(--muted); font-size: 12px; font-weight: 700; }
+.wm-px { position: absolute; right: 6px; top: 6px; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+.wm-form { display: flex; gap: 6px; }
+.wm-form .field { flex: 1 1 auto; min-width: 0; }
 .ibtn svg { width: 20px; height: 20px; }
 .ibtn:hover { background: var(--glass-hi); }
 .toasts { position: fixed; z-index: 25; top: calc(var(--safe-t) + 4px); left: 50%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; pointer-events: none; width: min(520px, 70vw); }
@@ -890,6 +948,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 @media (max-width: 640px) {
   .hud-tr { flex-direction: column; align-items: flex-end; gap: 6px; }
   .btns { order: -1; gap: 6px; }
+  .modbtns { order: 0; flex-direction: column; gap: 6px; }
   .resg { flex-direction: column; align-items: flex-end; gap: 5px; }
   .ibtn { width: 38px; height: 38px; }
   .hud-tl { max-width: calc(100vw - var(--safe-l) - var(--safe-r) - 96px); gap: 6px; }
@@ -1000,8 +1059,13 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="res panel" id="resDiaBox" title="Diamanten" hidden><canvas class="res-i" id="icoDia" width="64" height="64"></canvas><b id="resDia">0</b></div>
     <div class="res panel" id="resCryBox" title="Leuchtkristalle" hidden><canvas class="res-i" id="icoCry" width="64" height="64"></canvas><b id="resCry">0</b></div>
     </div>
-    <div class="btns">
+    <div class="modbtns">
+    <button class="ibtn panel vo-btn" id="btnVoice" hidden aria-label="Sprachchat" title="Sprachchat">🔇</button>
+    <button class="ibtn panel cre-btn" id="btnWp" hidden aria-label="Wegpunkte" title="Wegpunkte (P)">📍</button>
+    <button class="ibtn panel cre-btn" id="btnWmap" hidden aria-label="Weltkarte" title="Weltkarte (M)">🗺️</button>
     <button class="ibtn panel cre-btn" id="btnCreative" hidden aria-label="Kreativ-Menü" title="Kreativ-Menü (K)">🎨</button>
+    </div>
+    <div class="btns">
     <button class="ibtn panel" id="btnBag" aria-label="Inventar" title="Inventar (I)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg></button>
     <button class="ibtn panel" id="btnCam" aria-label="Kamera wechseln" title="Kamera wechseln (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
     <button class="ibtn panel" id="btnPause" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"></rect><rect x="14" y="5" width="4" height="14" rx="1.2"></rect></svg></button>
@@ -1223,6 +1287,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button class="btn" id="btnInv" type="button">Inventar</button>
       <button class="btn" id="btnPauseFriends" type="button">Sozial<span class="badge" id="pauseFriendBadge" hidden>1</span></button>
       <button class="btn" id="btnPauseSettings" type="button">Einstellungen</button>
+      <button class="btn" id="btnPauseVoice" type="button" hidden>🎙️ Sprachchat</button>
       <button class="btn" id="btnHelp" type="button">Steuerung</button>
       <button class="btn ghost" id="btnQuit" type="button">Speichern und zum Hauptmenü</button>
     </div></div>
@@ -1591,6 +1656,69 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   </div>
 </div>
 
+<div id="mdlWp" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="wpTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="wpTitle">📍 Wegpunkte</h2><p id="wpHere"></p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <div class="wp-new"><input class="field" id="wpName" maxlength="24" placeholder="Name, z. B. Zuhause" autocomplete="off" spellcheck="false" aria-label="Name des Wegpunkts"><button class="btn primary" id="wpSet" type="button">📍 Hier setzen</button></div>
+      <div class="wp-cols" id="wpCols" aria-label="Farbe"></div>
+      <p class="sec-t">Deine Wegpunkte <small id="wpCount"></small></p>
+      <div id="wpList"></div>
+      <p class="wp-hint">Taste P öffnet und schließt dieses Menü. Mit der Weltkarte (M) setzt du Wegpunkte auch weit weg.</p>
+    </div>
+  </div>
+</div>
+
+<div id="mdlWmap" class="wmap" hidden role="dialog" aria-modal="true" aria-label="Weltkarte">
+  <canvas id="wmCanvas"></canvas>
+  <div class="wm-top">
+    <div class="wm-title panel"><b>🗺️ Weltkarte</b><span id="wmCoord"></span></div>
+    <div class="wm-btns"><button class="ibtn panel" id="wmMe" type="button" title="Zu mir">📍</button><button class="ibtn panel" id="wmSpawn" type="button" title="Zum Spawn">🔥</button><button class="ibtn panel" id="wmOut" type="button" title="Herauszoomen">−</button><button class="ibtn panel" id="wmIn" type="button" title="Hineinzoomen">+</button><button class="ibtn panel" id="wmClose" type="button" title="Schließen (M)" aria-label="Schließen"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+  </div>
+  <p class="wm-help panel" id="wmHelp"></p>
+  <div class="wm-pop panel" id="wmPop" hidden>
+    <button class="wm-px" id="wmPopX" type="button" aria-label="Schließen">✕</button>
+    <b id="wmPopT"></b><small id="wmPopC"></small>
+    <button class="btn primary" id="wmPopSet" type="button">📍 Wegpunkt setzen</button>
+    <div class="wm-form" id="wmPopForm" hidden><input class="field" id="wmPopName" maxlength="24" placeholder="Name" autocomplete="off" spellcheck="false" aria-label="Name des Wegpunkts"><button class="btn primary" id="wmPopOk" type="button">Setzen</button></div>
+    <button class="btn ghost danger" id="wmPopDel" type="button" hidden>🗑 Wegpunkt löschen</button>
+  </div>
+</div>
+
+<div id="mdlVoice" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="voTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="voTitle">🎙️ Sprachchat</h2></div></div>
+    <div class="sheet-b">
+      <div id="voConsent">
+        <p class="vo-lead">Bevor du sprechen kannst, lies bitte kurz, was mit deiner Stimme passiert:</p>
+        <ul class="vo-list">
+          <li><b>Nur live, nichts gespeichert.</b> Deine Stimme geht verschlüsselt direkt zu den Geräten der Spieler, die in derselben Welt sind. Sie wird nicht aufgenommen und nirgends gespeichert, auch nicht von Blood Moon.</li>
+          <li><b>Du entscheidest.</b> Dein Mikrofon ist am Anfang aus. Erst wenn du H drückst (am Handy 🔇 oben antippen), hören dich die anderen. Nochmal drücken schaltet es wieder aus.</li>
+          <li><b>Verbindungsdaten.</b> Damit sich die Geräte finden, werden technische Daten über die Spiel-Datenbank (Google Firebase) und einen Verbindungsdienst von Google (STUN) ausgetauscht. Dabei sehen die anderen Spieler technisch deine IP-Adresse.</li>
+          <li><b>Fair bleiben.</b> Gespräche anderer heimlich aufzunehmen ist verboten. Wer andere beleidigt oder belästigt, kann gesperrt werden.</li>
+          <li><b>Unter 16?</b> Dann frag vorher deine Eltern, ob du den Sprachchat benutzen darfst.</li>
+          <li><b>Jederzeit zurücknehmen.</b> In den Sprachchat-Einstellungen (Pause → 🎙️ Sprachchat) ziehst du die Zustimmung zurück, oder du deinstallierst die Mod.</li>
+        </ul>
+        <label class="vo-agree"><input type="checkbox" id="voAgree"> <span>Ich habe das gelesen und bin einverstanden.</span></label>
+        <div class="btnrow vo-btns"><button class="btn ghost" id="voDecline" type="button">Ablehnen</button><button class="btn primary" id="voAccept" type="button" disabled>Zustimmen</button></div>
+      </div>
+      <div id="voSetup" hidden>
+        <div class="rows">
+          <div class="vo-dev"><label class="flabel" for="voMic">🎤 Mikrofon</label><select class="field" id="voMic"></select><div class="vo-lvl"><i id="voLvl"></i></div><small class="vo-note" id="voMicNote"></small></div>
+          <div class="vo-dev"><label class="flabel" for="voSpk">🔊 Lautsprecher</label><select class="field" id="voSpk"></select><small class="vo-note" id="voSpkNote" hidden>Dein Browser spielt immer über den Standard-Lautsprecher ab.</small></div>
+          <div class="row"><label for="voVol">Lautstärke der anderen</label><div class="rng"><input id="voVol" type="range" min="0" max="100" step="5"></div></div>
+          <div class="row"><label for="voRange">Hören<small>Nach Entfernung: wer nah ist, ist laut</small></label><select class="field vo-sel" id="voRange"><option value="near">Nach Entfernung</option><option value="all">Überall gleich laut</option></select></div>
+        </div>
+        <p class="sec-t">Mitspieler</p>
+        <div id="voPeers" class="vo-peers"></div>
+        <p class="vo-keys"><kbd>H</kbd> Mikrofon an und aus · am Handy der Knopf 🔇 oben. Es startet immer aus.</p>
+        <label class="vo-agree"><input type="checkbox" id="voSkip"> <span>Beim Start nicht mehr zeigen (später: Pause → 🎙️ Sprachchat)</span></label>
+        <div class="btnrow vo-btns"><button class="btn ghost danger" id="voRevoke" type="button">Zustimmung zurückziehen</button><button class="btn primary" id="voDone" type="button">Fertig</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="mdlConfirm" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="cfTitle">
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="cfTitle">Sicher?</h2><p id="cfText"></p></div></div>
@@ -1646,8 +1774,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.28.0';
+const GAME_VERSION = '2.29.0';
 const GAME_NOTES = [
+  ['2.29.0', 'Drei neue Mods von Blood Moon. Sprachchat: mit Freunden in derselben Welt sprechen, H (am Handy der Knopf 🔇/🎤) schaltet das Mikrofon an und aus, vorher Datenschutz zustimmen, beim Start Mikrofon und Lautsprecher wählen, wer weiter weg ist, ist leiser, nichts wird aufgenommen. Wegpunkte: P öffnet das Menü, Wegpunkt am Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Weltkarte: M öffnet die ganze Welt als Vollbild mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, zoomen und verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt. Die Kartenfarben passen jetzt besser zu den echten Blöcken.'],
   ['2.28.0', 'Skins: Skin-Editor wie bei Minecraft (eigenen Skin pixeln, 3D-Figur, zwei Schichten zum Ein- und Ausblenden, Pinsel, Radierer, Pipette, Füllen, Spiegeln, Farbkreis und Standardfarben, PNG laden und speichern). Andere Spieler sehen deinen eigenen Skin. Schöneres Skin-Menü mit „Dein eigener Skin“ und Drehen der Figur. Figuren (Skins, Händler, Zombies) wirken fester und klarer, nicht mehr wie aus Pappe oder Filz.'],
   ['2.27.1', 'Chat: größere Sprechblasen mit abgeschnittenen Ecken, deine blau, die der anderen grün.'],
   ['2.27.0', 'Schlafen: Zombies zählen nur im Umkreis von 10 Blöcken (auch oben und unten, ein Turm über dir stört nicht mehr). Schlafanimation: die Augen fallen zu, ein Nachthimmel mit Zzz und „Du schläfst …“, am Morgen „Guten Morgen!“. Andere Spieler sehen „💤 schläft“ über dir. Lava mit dem Eimer schöpfen (Lavaeimer) und als Falle ausgießen: Zombies verbrennen darin. Beim ersten Blood Moon kommen noch keine Fledermäuse. Beim Anmelden siehst du jetzt auch, welche Freunde schon online sind. Fix: unendliche Items (alte Creative-Mods, Zuschauer-Modus) sind nur noch geliehen und landen nie mehr im gespeicherten Inventar; liegt noch 999 von allem im Inventar, holt das Spiel auf Servern dein altes Inventar aus dem letzten Backup zurück (oder entfernt die 999er). Der unsichtbare Zuschauer übernimmt nie mehr einen Server und wird beim Wiederverbinden nicht zum normalen Spieler (daher kamen die 999 Items und kein Fallschaden).'],
@@ -11984,6 +12113,7 @@ function buildDrawLists(t, inMenu) {
     if ((!(CAMC.mode === 'fp' && CAMC.trans >= 0.6) || PL.dead) && !G.spectator) drawPlayer(t);
     drawDrops(t);
     drawSelection(t);
+    drawWaypointBeams(t);
     drawGhost();
     drawViewModel(t);
   }
@@ -13011,7 +13141,7 @@ UI.frame = function (dt) {
     let el = nt.children[ni];
     if (!el) { el = document.createElement('div'); el.className = 'tag anchor'; el.innerHTML = '<b></b><i></i>'; nt.appendChild(el); }
     el.hidden = false;
-    const tagTxt = r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
+    const tagTxt = (voiceSpeaking(uid) ? '🔊 ' : '') + r.name + ((r.flags & 8) ? ' · 💤 schläft' : '');
     if (el.firstChild.textContent !== tagTxt) el.firstChild.textContent = tagTxt;
     if ((r.flags & 8) && !r._slept && G.time.phase === 'night') UI.toast(r.name + ' liegt im Bett und schläft.' + (G.sleep ? '' : ' Leg dich auch hin, dann ist die Nacht vorbei.'), 'info', 4200, 'sleep' + uid);
     r._slept = !!(r.flags & 8);
@@ -13479,7 +13609,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlVoice', 'mdlWmap', 'mdlWp', 'mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -13493,6 +13623,8 @@ UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._mo
 UI.closeModal = function (id) {
   if (id === 'mdlModPick') { closeModPick(); return; }
   if (id === 'mdlModUi') { modCloseUi(false); return; }
+  if (id === 'mdlVoice') { voiceHide(); return; }
+  if (id === 'mdlWmap') wmClose();
   if (id === 'mdlMods' && MODUI.world) { closeModWorld(); return; }
   $(id).hidden = true;
   if (id === 'mdlInv') { UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; }
@@ -13503,7 +13635,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
   if (id === 'mdlFriends') CHAT.close();
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
-  if (['mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
+  if (['mdlWp', 'mdlWmap', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
     G.state = 'playing'; INPUT.clear(); updateCursorStyle();
     // first person: the mouse looks around again right away, no extra click needed
     if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); }
@@ -13544,10 +13676,18 @@ UI.pause = function (on) {
 };
 
 /* ---------- controls ---------- */
+/* Tasten der eingebauten Mods, wenn sie gerade laufen */
+function modKeysHelp(k, touch) {
+  let s = '';
+  if (MODFX.voiceChat) s += touch ? k(['🔇'], 'Mikrofon an und aus') : k(['H'], 'Mikrofon an und aus (Sprachchat)');
+  if (MODFX.waypoints) s += touch ? k(['📍'], 'Wegpunkte') : k(['P'], 'Wegpunkte');
+  if (MODFX.worldMap) s += touch ? k(['🗺️'], 'Weltkarte') : k(['M'], 'Weltkarte');
+  return s;
+}
 UI.controlsHtml = function () {
   const k = (keys, label) => '<div>' + keys.map((x) => '<kbd>' + x + '</kbd>').join('') + '<span>' + label + '</span></div>';
-  if (touchUI()) return k(['◐'], 'Links ziehen: laufen') + k(['↻'], 'Rechts ziehen: Kamera drehen') + k(['•'], 'Tippen: angreifen, öffnen, bauen') + k(['⧗'], 'Gedrückt halten: abbauen') + k(['⤢'], 'Zwei Finger: Zoom') + k(['⇡'], 'Springen-Knopf');
-  return k(['W', 'A', 'S', 'D'], 'Laufen') + k(['␣'], 'Springen') + k(['⇧'], 'Sprinten') + k(['R-Maus'], 'Ziehen: Kamera drehen') + k(['Mausrad'], 'Drehen: Zoom, gedrückt ziehen: Kamera') + k(['L-Maus'], 'Halten: abbauen, angreifen') + k(['R-Maus'], 'Klick: bauen') + k(['E'], 'Handeln, Tür, Bett, Truhe, Lagerfeuer') + k(['V'], 'Ego-Perspektive, Maus zum Umsehen') + k(['1–0'], 'Hotbar') + k(['Tab', 'I'], 'Inventar') + k(['Q'], 'Wegwerfen (Strg+Q: alles)') + k(['R'], 'Kamera drehen') + k(['Esc'], 'Pause');
+  if (touchUI()) return k(['◐'], 'Links ziehen: laufen') + modKeysHelp(k, true) + k(['↻'], 'Rechts ziehen: Kamera drehen') + k(['•'], 'Tippen: angreifen, öffnen, bauen') + k(['⧗'], 'Gedrückt halten: abbauen') + k(['⤢'], 'Zwei Finger: Zoom') + k(['⇡'], 'Springen-Knopf');
+  return k(['W', 'A', 'S', 'D'], 'Laufen') + k(['␣'], 'Springen') + k(['⇧'], 'Sprinten') + k(['R-Maus'], 'Ziehen: Kamera drehen') + k(['Mausrad'], 'Drehen: Zoom, gedrückt ziehen: Kamera') + k(['L-Maus'], 'Halten: abbauen, angreifen') + k(['R-Maus'], 'Klick: bauen') + k(['E'], 'Handeln, Tür, Bett, Truhe, Lagerfeuer') + k(['V'], 'Ego-Perspektive, Maus zum Umsehen') + k(['1–0'], 'Hotbar') + k(['Tab', 'I'], 'Inventar') + k(['Q'], 'Wegwerfen (Strg+Q: alles)') + k(['R'], 'Kamera drehen') + k(['Esc'], 'Pause') + modKeysHelp(k);
 };
 UI.openControls = function (from) {
   UI._from = from;
@@ -14108,7 +14248,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -14838,10 +14978,14 @@ function frame(now) {
   else if (inMenu) guard('Menü', () => menuUpdate(dt));
   else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
   guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); updateModFly(dt); });
+  guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); });
+  guard('Sprachchat', () => updateVoice(dt));
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
   guard('Umgebung', () => { computeEnv(G.time, SETTINGS.viewDist); applyDimEnv(); });
-  guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
+  // die Weltkarte deckt alles zu: dann die Welt nicht zeichnen (die Karte bekommt die Zeit)
+  const hidden3d = typeof WM !== 'undefined' && WM.open;
+  if (!hidden3d) guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
   RENDER_OPTS.shadows = TEX.shadowSize > 0;
   RENDER_OPTS.mb = !!SETTINGS.motionBlur;
   RENDER_OPTS.viewDist = SETTINGS.viewDist;
@@ -14849,7 +14993,7 @@ function frame(now) {
   RENDER_OPTS.cut[0] = PL.x; RENDER_OPTS.cut[1] = PL.y + PL.stepOffset + 1.0; RENDER_OPTS.cut[2] = PL.z;
   RENDER_OPTS.cut[3] = !inMenu && CAMC.mode === 'drone' ? 1 : 0;
   const focus = inMenu ? CAM.target : [PL.x, PL.y + 1, PL.z];
-  const okR = guard('Render', () => { renderFrame(shaderTime, focus, RENDER_OPTS); return true; });
+  const okR = hidden3d || guard('Render', () => { renderFrame(shaderTime, focus, RENDER_OPTS); return true; });
   if (!okR) { try { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindVertexArray(null); gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.DEPTH_TEST); } catch (e) { /* ignore */ } }
   if (!inMenu) guard('Anzeige', () => UI.frame(dt));
   guard('Welt laden', () => streamWorld(dt, inMenu));
@@ -16065,6 +16209,7 @@ function updateMobsClient(dt) {
 /* events from other players */
 function applyNetEvent(v) {
   switch (v.t) {
+    case 'vo': voiceOnSignal(v); break;
     case 'brk': if (getB(v.x, v.y, v.z) !== B.AIR) breakBlockAt(v.x, v.y, v.z, false, true); break;
     case 'plc': {
       if (!inWorld(v.x, v.y, v.z)) break;
@@ -18171,6 +18316,15 @@ mod.button('open', '📜 Aufträge');
 mod.on('key', open);
 mod.on('button', open);
 mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 0; mod.save(); show(); } });` },
+  { id: 'voice', name: 'Sprachchat', icon: '🎙️', author: 'Blood Moon', cat: 'fun', rec: true,
+    desc: 'Mit deinen Freunden in derselben Welt sprechen. H (am Handy der Knopf 🔇/🎤 oben) schaltet dein Mikrofon an und aus. Beim Start wählst du Mikrofon und Lautsprecher. Vorher stimmst du dem Datenschutz zu. Nichts wird aufgenommen.',
+    code: `mod.set('voiceChat', true);` },
+  { id: 'waypoints', name: 'Wegpunkte', icon: '📍', author: 'Blood Moon', cat: 'easy', rec: true,
+    desc: 'P (oder 📍 oben) öffnet das Wegpunkt-Menü: setz an deinem Standort einen Wegpunkt, gib ihm einen Namen und eine Farbe, lösch alte. Ein Lichtstrahl geht in den Himmel, dazu Name und Entfernung.',
+    code: `mod.set('waypoints', true);` },
+  { id: 'worldmap', name: 'Weltkarte', icon: '🗺️', author: 'Blood Moon', cat: 'easy', rec: true,
+    desc: 'M (oder 🗺️ oben) öffnet die Weltkarte als Vollbild: die ganze Welt mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, auch wo du noch nie warst. Zoomen, verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt.',
+    code: `mod.set('worldMap', true);` },
 ];
 
 /* ---------- Laufzeit ---------- */
@@ -18756,7 +18910,7 @@ function modCardEl(m, big) {
     b.className = 'btn ' + (!on ? 'primary' : inW ? 'ghost' : 'primary');
     b.textContent = !on ? 'Installieren' : inW ? 'Entfernen' : 'Hinzufügen';
     b.addEventListener('click', () => {
-      if (!on) { MODS.install(m); UI.toast(m.name + ' installiert.', 'good', 1800, 'modi'); }
+      if (!on) { modInstallAsk(m, () => { UI.toast(m.name + ' installiert.', 'good', 1800, 'modi'); SFX.ui(); UI.modsRefresh(); }); return; }
       else if (inW) Wd.sel.splice(Wd.sel.indexOf(m.id), 1);
       else Wd.sel.push(m.id);
       SFX.ui(); UI.modsRefresh();
@@ -18774,7 +18928,7 @@ function modCardEl(m, big) {
   b.title = on ? 'Klicken zum Deinstallieren' : '';
   b.addEventListener('click', () => {
     if (on) { MODS.uninstall(m.id); UI.toast(m.name + ' deinstalliert.', 'info', 2000, 'modi'); }
-    else { MODS.install(m); UI.toast(m.name + ' installiert. Du schaltest sie beim Erstellen einer Welt unter „Mods“ an.', 'good', 4200, 'modi'); }
+    else { modInstallAsk(m, () => { UI.toast(m.name + ' installiert. Du schaltest sie beim Erstellen einer Welt unter „Mods“ an.', 'good', 4200, 'modi'); SFX.ui(); UI.modsRefresh(); }); return; }
     SFX.ui(); UI.modsRefresh();
   });
   act.appendChild(b);
@@ -20285,8 +20439,10 @@ const MOD_CODE_MAX = 200000;
 const MOD_API_DOC = `// ---------- Werte (gelten, solange die Mod läuft) ----------
 mod.set('speed', 1.5)   // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magnet 1-6, maxHp 20-500,
                         // regen 0-10 (Leben/Sek.), dmg 0.25-10 (Schaden mal), zombieSpeed 0.3-3, zombieHp 0.2-10
-mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu, noFall, noNight, peaceful, nightVision, keepInventory
+mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu, waypoints, worldMap, voiceChat, noFall, noNight, peaceful, nightVision, keepInventory
   // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
+  // waypoints: Wegpunkte mit Lichtstrahl (Taste P); worldMap: Weltkarte als Vollbild (Taste M);
+  // voiceChat: Sprachchat mit den anderen Spielern (Taste H, jeder stimmt vorher dem Datenschutz zu)
 mod.effect('speed', 3, 10)   // einen Wert für 10 Sekunden ändern
 
 // ---------- Spieler, Welt, Meldungen ----------
@@ -21228,7 +21384,8 @@ function mapBlockCol(id) {
   MAP_COL[id] = [a[0] * 255, a[1] * 255, a[2] * 255];
   return MAP_COL[id];
 }
-const MAP_BIO_COL = ['#3f76e4', '#dbcf8e', '#6fb050', '#4f8f3a', '#c07a2e', '#e6a0c0', '#3f6e44', '#eef3f6', '#e0cf8a', '#8d8d8d', '#2f4a33', '#8fb8d8', '#7a5a8a', '#82c060', '#4e6a3a', '#7fbf5a', '#b9b45a', '#cfe6f5', '#a98bd6', '#4f9a48'].map(hexToRgb);
+// so ähnlich wie die echten Blöcke von oben (gemessen), damit Generiertes und Geladenes zusammenpassen
+const MAP_BIO_COL = ['#3f76e4', '#dbcf8e', '#7ccd52', '#4f8f3a', '#b9963a', '#e6a0c0', '#4f994f', '#e6eef0', '#e0cf8a', '#8d8d8d', '#2f4a33', '#78c46a', '#7a5a8a', '#86d058', '#5f9a3e', '#83d452', '#a8c84a', '#e3ebed', '#96c47e', '#55b540'].map(hexToRgb);
 const _mci = {};
 /* ein Stück Karte (ein Chunk = 4 x 4 Pixel): aus den echten Blöcken, sonst aus der Weltgenerierung */
 function mapTile(key, cx, cz) {
@@ -21526,6 +21683,1038 @@ function drawExploreIcon(ctx, key, S) {
     ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#2a2a30'; ctx.fill();
   }
   ctx.restore();
+}
+
+/* ---- 19xa_waypoints.js ---- */
+/* =========================================================================
+   Wegpunkte (eingebaute Mod „Wegpunkte“, mod.set('waypoints', true)).
+   - P (oder der Knopf 📍 oben) öffnet das Wegpunkt-Menü: am aktuellen
+     Standort einen Wegpunkt setzen und benennen, alte löschen.
+   - Jeder Wegpunkt hat einen Lichtstrahl, der in den Himmel geht, und ein
+     Schild mit Name und Entfernung.
+   - Die Weltkarte (Taste M) setzt auch Wegpunkte.
+   - Gespeichert pro Welt auf deinem Gerät (deine Wegpunkte sieht nur du).
+   ========================================================================= */
+MODFX_DEF.waypoints = false;
+if (MODFX.waypoints === undefined) MODFX.waypoints = false;
+const WP_COLORS = ['#ff5a5a', '#ffb02e', '#ffe14d', '#4fd66b', '#3fc9ff', '#4f7dff', '#b46bff', '#ff6bd0', '#ffffff'];
+const WP_MAX = 60;
+const WP = { list: [], key: '', col: 0, tagsEl: null };
+
+function wpOn() { return !!MODFX.waypoints && !G.spectator; }
+/* wo die Wegpunkte gespeichert werden: pro Welt (eigene Welt, Welt eines Freundes, Server) */
+function wpStoreKey() {
+  const s = MP.srv || G.server;
+  if (s && s.owner) return 'bloodmoon-wp:s:' + s.owner + ':' + s.wid;
+  if (MP.isClient()) return 'bloodmoon-wp:f:' + MP.hostUid + ':' + W.seed;
+  return 'bloodmoon-wp:w:' + ((WORLDS.current && WORLDS.current.id) || 'x') + ':' + W.seed;
+}
+function wpLoad() {
+  const k = wpStoreKey();
+  if (k === WP.key) return;
+  WP.key = k; WP.list = [];
+  try {
+    const a = JSON.parse(localStorage.getItem(k) || '[]');
+    if (Array.isArray(a)) for (const w of a) if (w && isFinite(w.x) && isFinite(w.y) && isFinite(w.z)) WP.list.push({ id: String(w.id || Math.random().toString(36).slice(2, 9)), name: String(w.name || 'Wegpunkt').slice(0, 24), x: +w.x, y: +w.y, z: +w.z, c: /^#[0-9a-f]{6}$/i.test(w.c) ? w.c : WP_COLORS[0] });
+  } catch (e) { /* kaputt: leer */ }
+}
+function wpSave() { try { localStorage.setItem(WP.key || wpStoreKey(), JSON.stringify(WP.list)); } catch (e) { /* voll */ } }
+function wpSameDim(w) { return (dimAt(w.x, w.z) || null) === (CURDIM || null); }
+function wpAdd(name, x, y, z, c) {
+  wpLoad();
+  if (WP.list.length >= WP_MAX) { UI.toast('Höchstens ' + WP_MAX + ' Wegpunkte. Lösch erst einen alten.', 'warn', 3200, 'wp'); SFX.deny(); return null; }
+  const w = { id: Math.random().toString(36).slice(2, 9), name: (String(name || '').trim() || 'Wegpunkt ' + (WP.list.length + 1)).slice(0, 24), x: Math.floor(x), y: Math.floor(y), z: Math.floor(z), c: c || WP_COLORS[WP.col % WP_COLORS.length] };
+  WP.list.push(w); wpSave();
+  WP.col++;
+  UI.toast('📍 Wegpunkt „' + w.name + '“ gesetzt.', 'good', 2200, 'wp');
+  SFX.ui();
+  return w;
+}
+function wpDel(id) {
+  const i = WP.list.findIndex((w) => w.id === id); if (i < 0) return;
+  const w = WP.list[i]; WP.list.splice(i, 1); wpSave();
+  UI.toast('Wegpunkt „' + w.name + '“ gelöscht.', 'info', 1800, 'wp');
+  SFX.ui();
+}
+
+/* ---------- Knöpfe oben ---------- */
+function syncWpBtns() {
+  const play = G.state !== 'menu' && G.state !== 'loading';
+  const b = $('btnWp');
+  if (b) { const s = wpOn() && play; if (b.hidden === s) b.hidden = !s; }
+  if (!wpOn() && $('mdlWp') && !$('mdlWp').hidden) UI.closeModal('mdlWp');
+  if (play && wpOn()) wpLoad();
+}
+
+/* ---------- das Menü (P) ---------- */
+UI.openWaypoints = function () {
+  if (!wpOn() || G.state !== 'playing') return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  G.state = 'inv';
+  wpLoad();
+  $('wpName').value = '';
+  $('mdlWp').hidden = false;
+  UI.wpRefresh();
+  SFX.ui();
+  if (!touchUI()) setTimeout(() => $('wpName').focus(), 30);
+};
+UI.wpRefresh = function () {
+  const cols = $('wpCols');
+  if (!cols.childElementCount) {
+    WP_COLORS.forEach((c, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'wp-col'; b.style.background = c; b.dataset.i = i;
+      b.setAttribute('aria-label', 'Farbe ' + (i + 1));
+      b.addEventListener('click', () => { WP.col = i; UI.wpRefresh(); });
+      cols.appendChild(b);
+    });
+  }
+  for (const b of cols.children) b.setAttribute('aria-pressed', String(+b.dataset.i === WP.col % WP_COLORS.length));
+  $('wpHere').textContent = 'Du stehst bei X ' + Math.floor(PL.x) + ' · Y ' + Math.floor(PL.y) + ' · Z ' + Math.floor(PL.z);
+  const box = $('wpList'); box.innerHTML = '';
+  const list = WP.list.slice().sort((a, b) => Math.hypot(a.x - PL.x, a.z - PL.z) - Math.hypot(b.x - PL.x, b.z - PL.z));
+  $('wpCount').textContent = list.length ? list.length + (list.length === 1 ? ' Wegpunkt' : ' Wegpunkte') : '';
+  if (!list.length) { const p = document.createElement('p'); p.className = 'wp-empty'; p.textContent = 'Noch keine Wegpunkte. Gib oben einen Namen ein und setz deinen ersten.'; box.appendChild(p); return; }
+  for (const w of list) {
+    const row = document.createElement('div'); row.className = 'wp-row';
+    const same = wpSameDim(w);
+    const d = Math.round(Math.hypot(w.x + 0.5 - PL.x, w.y - PL.y, w.z + 0.5 - PL.z));
+    row.innerHTML = '<i class="wp-dot"></i><div class="grow"><b></b><small></small></div><button class="btn icon ghost" type="button" title="Löschen" aria-label="Löschen"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg></button>';
+    row.querySelector('.wp-dot').style.background = w.c;
+    row.querySelector('b').textContent = w.name;
+    row.querySelector('small').textContent = (same ? d + ' m' : 'in einer anderen Dimension') + ' · X ' + w.x + ' · Y ' + w.y + ' · Z ' + w.z;
+    row.querySelector('button').addEventListener('click', () => { wpDel(w.id); UI.wpRefresh(); });
+    box.appendChild(row);
+  }
+};
+function wpSetHere() {
+  const w = wpAdd($('wpName').value, PL.x, PL.y, PL.z);
+  if (w) { $('wpName').value = ''; UI.wpRefresh(); }
+}
+
+/* ---------- Lichtstrahlen in der Welt ---------- */
+function drawWaypointBeams(t) {
+  if (!wpOn() || !WP.list.length) return;
+  const far = Math.min(CAM.far - 8, 380);
+  const pulse = 0.85 + Math.sin(t * 2.4) * 0.15;
+  for (const w of WP.list) {
+    if (!wpSameDim(w)) continue;
+    const dx = w.x + 0.5 - CAM.eye[0], dz = w.z + 0.5 - CAM.eye[2];
+    if (dx * dx + dz * dz > far * far) continue;
+    const c = hexToRgb(w.c), x = w.x, z = w.z, y = w.y;
+    const top = Math.max(y + 60, WY + 40);
+    // der helle Kern, ein weicher Schein darum und ein leuchtender Fleck am Boden
+    BATCH.trans.aabb(x + 0.36, y, z + 0.36, x + 0.64, top, z + 0.64, c[0], c[1], c[2], 1, 0.62 * pulse);
+    BATCH.trans.aabb(x + 0.14, y, z + 0.14, x + 0.86, top, z + 0.86, c[0], c[1], c[2], 1, 0.16 * pulse);
+    BATCH.trans.aabb(x - 0.1, y + 0.01, z - 0.1, x + 1.1, y + 0.05, z + 1.1, c[0], c[1], c[2], 1, 0.3);
+  }
+}
+/* Schilder mit Name und Entfernung */
+const _wps = [0, 0, 0];
+function updateWaypointTags() {
+  if (!WP.tagsEl) {
+    WP.tagsEl = document.createElement('div'); WP.tagsEl.id = 'wptags';
+    const nt = $('nametags'); nt.parentNode.insertBefore(WP.tagsEl, nt);
+  }
+  const box = WP.tagsEl;
+  const show = wpOn() && (G.state === 'playing' || G.state === 'paused') && !G.sleep && WP.list.length;
+  let n = 0;
+  if (show) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    for (const w of WP.list) {
+      if (!wpSameDim(w)) continue;
+      const d = Math.hypot(w.x + 0.5 - PL.x, w.y - PL.y, w.z + 0.5 - PL.z);
+      if (d < 2.5) continue;
+      if (!projectToScreen(CAM.vp, w.x + 0.5, w.y + 2.2, w.z + 0.5, vw, vh, _wps)) continue;
+      if (_wps[0] < -60 || _wps[0] > vw + 60 || _wps[1] < -30 || _wps[1] > vh + 30) continue;
+      let el = box.children[n];
+      if (!el) { el = document.createElement('div'); el.className = 'wptag anchor'; el.innerHTML = '<i></i><b></b><span></span>'; box.appendChild(el); }
+      el.hidden = false;
+      if (el.dataset.c !== w.c) { el.dataset.c = w.c; el.firstChild.style.background = w.c; el.style.setProperty('--wc', w.c); }
+      if (el.children[1].textContent !== w.name) el.children[1].textContent = w.name;
+      const dt = d >= 1000 ? (d / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(d) + ' m';
+      if (el.lastChild.textContent !== dt) el.lastChild.textContent = dt;
+      const sc = clamp(1.05 - d / 900, 0.72, 1);
+      el.style.transform = 'translate(' + _wps[0].toFixed(1) + 'px,' + _wps[1].toFixed(1) + 'px) scale(' + sc.toFixed(2) + ')';
+      n++;
+    }
+  }
+  for (let k = n; k < box.children.length; k++) if (!box.children[k].hidden) box.children[k].hidden = true;
+}
+
+function bindWaypoints() {
+  const b = $('btnWp'); if (!b) return;
+  fastTap(b, () => { if (G.state === 'playing') UI.openWaypoints(); });
+  $('wpSet').addEventListener('click', wpSetHere);
+  $('wpName').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wpSetHere(); } e.stopPropagation(); });
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyP' || e.repeat || !wpOn() || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if (!$('mdlWp').hidden) { UI.closeModal('mdlWp'); return; }
+    if (G.state === 'playing') UI.openWaypoints();
+  });
+}
+
+/* ---- 19xb_worldmap.js ---- */
+/* =========================================================================
+   Weltkarte (eingebaute Mod „Weltkarte“, mod.set('worldMap', true)).
+   - M (oder der Knopf 🗺️ oben) öffnet die Karte als Vollbild.
+   - Sie zeigt die ganze Welt, auch wo du noch nie warst: Gelände aus der
+     Weltgenerierung, in der Nähe die echten Blöcke, dazu alle Dörfer,
+     Ruinen, Türme, verlassenen Orte, den Spawn, deine Wegpunkte und die
+     anderen Spieler.
+   - Ziehen verschiebt, Mausrad / zwei Finger / + − zoomen.
+   - Rechtsklick (PC) oder Antippen (Handy): ein kleines Menü mit
+     „Wegpunkt setzen“. Ein Wegpunkt auf der Karte antippen: löschen.
+   ========================================================================= */
+MODFX_DEF.worldMap = false;
+if (MODFX.worldMap === undefined) MODFX.worldMap = false;
+const WM_TS = 64;                                   // Pixel pro Kachel
+const WM_ZMIN = 1 / 32, WM_ZMAX = 6;                // Bildschirm-Pixel pro Block
+const WM = {
+  el: null, cv: null, ctx: null, open: false, cx: 0, cz: 0, z: 1, tiles: new Map(), queue: [], dpr: 1,
+  ptrs: new Map(), drag: null, pinch: null, pop: null, hoverX: null, hoverZ: null,
+  structs: [], sKey: '', sDone: false, need: true, raf: 0, worldKey: '', mouse: null,
+};
+function wmOn() { return !!MODFX.worldMap && !G.spectator; }
+function syncWmBtn() {
+  const b = $('btnWmap');
+  const play = G.state !== 'menu' && G.state !== 'loading';
+  if (b) { const s = wmOn() && play; if (b.hidden === s) b.hidden = !s; }
+  if (!wmOn() && WM.open) UI.closeModal('mdlWmap');
+}
+
+/* ---------- eine Stelle der Welt: Farbe, Höhe, Wasser ---------- */
+const _wmi = {}, _wmo = [0, 0, 0, 0, 0];
+function wmSample(x, z, fine, o) {
+  if (Math.abs(x) >= WLIM - 2 || Math.abs(z) >= WLIM - 2) { o[0] = 24; o[1] = 22; o[2] = 30; o[3] = 0; o[4] = -1; return o; }
+  let r, g, b, h, wd = 0;
+  const cx = Math.floor(x / CS), cz = Math.floor(z / CS);
+  const c = fine ? CHM.get(ckey(cx, cz)) : null;
+  if (c && c.ready) {
+    const lx = x - cx * CS, lz = z - cz * CS;
+    const col = (lx << 4) | lz, base = col * WY;
+    h = c.top[col];
+    let y = h + 1; while (y < WY && c.blocks[base + y] === B.WATER) y++;
+    wd = y - h - 1;
+    const id = h >= 0 ? c.blocks[base + h] : B.STONE;
+    const bc = mapBlockCol(id);
+    if (MAP_TINT[id]) { const k = col * 3; r = bc[0] * c.tint[k] / 128; g = bc[1] * c.tint[k + 1] / 128; b = bc[2] * c.tint[k + 2] / 128; }
+    else { r = bc[0]; g = bc[1]; b = bc[2]; }
+    if (wd > 0) h = y - 1;
+  } else {
+    colInfo(x, z, _wmi);
+    h = Math.round(_wmi.h);
+    if (h < SEA) { wd = SEA - h; h = SEA; }
+    const bc = MAP_BIO_COL[_wmi.b] || MAP_BIO_COL[2];
+    r = bc[0] * 255; g = bc[1] * 255; b = bc[2] * 255;
+  }
+  if (wd > 0) { const f = wd <= 2 ? 1 : wd <= 6 ? 0.86 : 0.72; r = 63 * f; g = 118 * f; b = 228 * f; }
+  o[0] = r; o[1] = g; o[2] = b; o[3] = h; o[4] = wd;
+  return o;
+}
+/* eine Kachel: 64 x 64 Pixel, s Blöcke pro Pixel */
+function wmMakeTile(s, tx, tz) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = WM_TS;
+  const ctx = cv.getContext('2d'), img = ctx.createImageData(WM_TS, WM_TS), d = img.data;
+  const x0 = tx * WM_TS * s, z0 = tz * WM_TS * s, fine = s <= 4, off = s > 1 ? (s >> 1) : 0;
+  const prevH = new Float32Array(WM_TS), curH = new Float32Array(WM_TS);
+  for (let u = 0; u < WM_TS; u++) { const o = wmSample(x0 + u * s + off, z0 - s + off, fine, _wmo); prevH[u] = o[4] > 0 ? -1000 : o[3]; }
+  for (let v = 0; v < WM_TS; v++) {
+    for (let u = 0; u < WM_TS; u++) {
+      const o = wmSample(x0 + u * s + off, z0 + v * s + off, fine, _wmo);
+      const p = (v * WM_TS + u) * 4;
+      let f;
+      if (o[4] < 0) f = 1;
+      else if (o[4] > 0) { const wd = o[4]; f = wd <= 2 ? 1 : wd <= 6 ? ((u + v) & 1 ? 0.94 : 1) : (u + v) & 1 ? 0.9 : 0.96; curH[u] = -1000; }
+      else {
+        const n = prevH[u] > -1000 ? prevH[u] : o[3];
+        // wie bei Minecraft: was nach Norden ansteigt ist heller, was abfällt dunkler (weit weg sanfter)
+        const k = s >= 8 ? 0.5 : 1;
+        f = o[3] > n ? 1 + 0.08 * k : o[3] < n ? 1 - 0.2 * k : 1 - 0.07 * k;
+        curH[u] = o[3];
+      }
+      if (o[4] < 0) curH[u] = 0;
+      d[p] = Math.min(255, o[0] * f); d[p + 1] = Math.min(255, o[1] * f); d[p + 2] = Math.min(255, o[2] * f); d[p + 3] = 255;
+    }
+    prevH.set(curH);
+  }
+  ctx.putImageData(img, 0, 0);
+  return cv;
+}
+function wmTileKey(s, tx, tz) { return s + ':' + tx + ':' + tz; }
+function wmLevel() { return Math.pow(2, clamp(Math.ceil(Math.log2(1 / (WM.z * WM.dpr)) - 0.001), 0, 5)); }
+
+/* ---------- Strukturen im sichtbaren Bereich ---------- */
+function wmStructs(x0, z0, x1, z1) {
+  const key = Math.floor(x0 / 256) + ':' + Math.floor(z0 / 256) + ':' + Math.ceil(x1 / 256) + ':' + Math.ceil(z1 / 256);
+  if (key === WM.sKey && WM.sDone) return WM.structs;
+  if (key !== WM.sKey) { WM.sKey = key; WM.sDone = false; }
+  const out = [];
+  let budget = 500, done = true;
+  const scan = (Gs, fn, ok) => {
+    for (let gx = Math.floor(x0 / Gs) - 1; gx <= Math.floor(x1 / Gs) + 1; gx++) for (let gz = Math.floor(z0 / Gs) - 1; gz <= Math.floor(z1 / Gs) + 1; gz++) {
+      const k = fn.name + ':' + gx + ':' + gz;
+      let s = STRUCT_CACHE.get(k);
+      if (s === undefined) {
+        if (budget-- <= 0) { done = false; continue; }
+        const t = fn(gx, gz); s = t ? Object.assign(t, { ops: null }) : null; STRUCT_CACHE.set(k, s);
+      }
+      if (s && ok(s)) out.push({ kind: s.kind, x: s.x, z: s.z });
+    }
+  };
+  const dist = (s) => Math.hypot(s.x - CX, s.z - CZ) / (W.mode === 'island' ? ISLAND_S : 1);
+  try {
+    scan(ruinGrid(), ruinAt, (s) => dist(s) > RING_OUT - 20);
+    scan(towerGrid(), towerAt, (s) => dist(s) > RING_IN - 80 && dist(s) < RING_OUT + 80);
+    scan(LOST_G, lostAt, (s) => dist(s) > 140);
+    const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, R = Math.max(x1 - x0, z1 - z0) / 2 + 60;
+    for (const v of villagesNear(mx, mz, R)) out.push({ kind: 'village', x: v.x, z: v.z });
+  } catch (e) { /* noch keine Welt */ }
+  out.push({ kind: 'spawn', x: CX, z: CZ });
+  WM.structs = out; WM.sDone = done;
+  if (!done) WM.need = true;
+  return out;
+}
+const WM_NAMES = { village: 'Dorf', ruin: 'Ruine', tower: 'Turm', cabin: 'Verlassene Hütte', circle: 'Steinkreis', dtemple: 'Wüstentempel', spawn: 'Spawn' };
+
+/* ---------- öffnen und schließen ---------- */
+UI.openWorldMap = function () {
+  if (!wmOn() || G.state !== 'playing') return;
+  if (CURDIM) { UI.toast('Die Weltkarte zeigt nur die normale Welt, nicht diese Dimension.', 'info', 3200, 'wm'); return; }
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  G.state = 'inv';
+  const wk = W.seed + ':' + W.mode + ':' + W.gen;
+  if (wk !== WM.worldKey) { WM.worldKey = wk; WM.tiles.clear(); WM.sKey = ''; }
+  // in der Nähe zeigt die Karte die echten Blöcke: was sich seit dem letzten Öffnen geändert hat, neu zeichnen
+  for (const [k, t] of WM.tiles) { if (t.s > 4) continue; const [s, tx, tz] = k.split(':').map(Number); const bx = (tx + 0.5) * WM_TS * s, bz = (tz + 0.5) * WM_TS * s; if (Math.abs(bx - PL.x) < 260 + WM_TS * s && Math.abs(bz - PL.z) < 260 + WM_TS * s) WM.tiles.delete(k); }
+  WM.cx = PL.x; WM.cz = PL.z;
+  if (!WM.zSet) { WM.z = touchUI() ? 1.5 : 2; WM.zSet = true; }
+  WM.open = true; WM.need = true; wmClosePop();
+  $('wmHelp').textContent = touchUI() ? 'Ziehen: verschieben · zwei Finger: zoomen · antippen: Wegpunkt setzen' : 'Ziehen: verschieben · Mausrad: zoomen · Rechtsklick: Wegpunkt setzen · M: schließen';
+  $('mdlWmap').hidden = false;
+  wmResize();
+  SFX.ui();
+  cancelAnimationFrame(WM.raf); WM.raf = requestAnimationFrame(wmLoop);
+};
+function wmClose() { WM.open = false; cancelAnimationFrame(WM.raf); wmClosePop(); WM.ptrs.clear(); WM.drag = WM.pinch = null; }
+function wmResize() {
+  const cv = WM.cv, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = cv.clientWidth || window.innerWidth, h = cv.clientHeight || window.innerHeight;
+  WM.dpr = dpr;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  WM.need = true;
+}
+
+/* ---------- zeichnen ---------- */
+function wmLoop() {
+  if (!WM.open) return;
+  WM.raf = requestAnimationFrame(wmLoop);
+  if ($('mdlWmap').hidden) { wmClose(); return; }
+  // neue Kacheln, höchstens ein paar Millisekunden pro Bild
+  const t0 = performance.now();
+  let made = 0;
+  while (WM.queue.length && performance.now() - t0 < 12) {
+    const q = WM.queue.shift(), k = wmTileKey(q[0], q[1], q[2]);
+    if (WM.tiles.has(k)) continue;
+    WM.tiles.set(k, { cv: wmMakeTile(q[0], q[1], q[2]), s: q[0], used: performance.now() });
+    made++;
+  }
+  if (made) WM.need = true;
+  // die anderen Spieler und du bewegen sich: ab und zu neu zeichnen
+  if ((WM.tick = (WM.tick || 0) + 1) % 10 === 0) WM.need = true;
+  if (!WM.need) return;
+  WM.need = false;
+  wmDraw();
+}
+function wmToScreen(x, z) { const cv = WM.cv; return [(x - WM.cx) * WM.z + cv.width / WM.dpr / 2, (z - WM.cz) * WM.z + cv.height / WM.dpr / 2]; }
+function wmToWorld(sx, sy) { const cv = WM.cv; return [WM.cx + (sx - cv.width / WM.dpr / 2) / WM.z, WM.cz + (sy - cv.height / WM.dpr / 2) / WM.z]; }
+function wmDraw() {
+  const cv = WM.cv, ctx = WM.ctx, dpr = WM.dpr;
+  const Wd = cv.width / dpr, Ht = cv.height / dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#15131c'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  const [x0, z0] = wmToWorld(0, 0), [x1, z1] = wmToWorld(Wd, Ht);
+  const s = wmLevel(), span = WM_TS * s;
+  const tx0 = Math.floor(x0 / span), tz0 = Math.floor(z0 / span), tx1 = Math.floor(x1 / span), tz1 = Math.floor(z1 / span);
+  const want = [];
+  const now = performance.now();
+  for (let tx = tx0; tx <= tx1; tx++) for (let tz = tz0; tz <= tz1; tz++) {
+    const [sx, sy] = wmToScreen(tx * span, tz * span), sz = span * WM.z;
+    const t = WM.tiles.get(wmTileKey(s, tx, tz));
+    if (t) { t.used = now; ctx.drawImage(t.cv, Math.floor(sx), Math.floor(sy), Math.ceil(sz + 0.5), Math.ceil(sz + 0.5)); continue; }
+    want.push([s, tx, tz, Math.hypot((tx + 0.5) * span - WM.cx, (tz + 0.5) * span - WM.cz)]);
+    // solange die feine Kachel fehlt: eine gröbere strecken
+    for (let ps = s * 2; ps <= 32; ps *= 2) {
+      const pspan = WM_TS * ps, ptx = Math.floor(tx * span / pspan), ptz = Math.floor(tz * span / pspan);
+      const pt = WM.tiles.get(wmTileKey(ps, ptx, ptz));
+      if (!pt) continue;
+      const k = WM_TS * span / pspan, ox = (tx * span - ptx * pspan) / ps, oz = (tz * span - ptz * pspan) / ps;
+      ctx.drawImage(pt.cv, ox, oz, k, k, Math.floor(sx), Math.floor(sy), Math.ceil(sz + 0.5), Math.ceil(sz + 0.5));
+      break;
+    }
+  }
+  want.sort((a, b) => a[3] - b[3]);
+  WM.queue = want.slice(0, 80);
+  // einmal grob alles, dann fein: so ist sofort etwas zu sehen
+  if (s < 32 && want.length > 6) {
+    const cs = Math.min(32, s * 4), cspan = WM_TS * cs;
+    for (let tx = Math.floor(x0 / cspan); tx <= Math.floor(x1 / cspan); tx++) for (let tz = Math.floor(z0 / cspan); tz <= Math.floor(z1 / cspan); tz++) if (!WM.tiles.has(wmTileKey(cs, tx, tz))) WM.queue.unshift([cs, tx, tz]);
+  }
+  if (WM.queue.length) WM.need = true;
+  // zu viele Kacheln: die am längsten nicht gezeigten weg
+  if (WM.tiles.size > 900) { const a = [...WM.tiles.entries()].sort((p, q) => p[1].used - q[1].used); for (let i = 0; i < 250; i++) WM.tiles.delete(a[i][0]); }
+  // Gitter weit draußen: alle 1000 Blöcke eine feine Linie
+  if (WM.z < 0.5) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let gx = Math.ceil(x0 / 1000) * 1000; gx <= x1; gx += 1000) { const [sx] = wmToScreen(gx, 0); ctx.moveTo(Math.round(sx) + 0.5, 0); ctx.lineTo(Math.round(sx) + 0.5, Ht); }
+    for (let gz = Math.ceil(z0 / 1000) * 1000; gz <= z1; gz += 1000) { const [, sy] = wmToScreen(0, gz); ctx.moveTo(0, Math.round(sy) + 0.5); ctx.lineTo(Wd, Math.round(sy) + 0.5); }
+    ctx.stroke();
+  }
+  // Strukturen (nicht ganz weit draußen: dort wären es Tausende)
+  const ms = clamp(10 + WM.z * 6, 12, 26);
+  WM.shown = [];
+  if (x1 - x0 < 9000) {
+    for (const st of wmStructs(x0, z0, x1, z1)) {
+      // weit herausgezoomt nur die großen Sachen, sonst wird es zu voll
+      if ((st.kind === 'cabin' || st.kind === 'circle' || st.kind === 'dtemple') && WM.z < 0.45) continue;
+      if (st.kind === 'ruin' && WM.z < 0.4) continue;
+      const [sx, sy] = wmToScreen(st.x, st.z);
+      if (sx < -ms || sy < -ms || sx > Wd + ms || sy > Ht + ms) continue;
+      drawMapMarker(ctx, st.kind, sx, sy, st.kind === 'spawn' ? ms * 1.15 : ms);
+      WM.shown.push([sx, sy, WM_NAMES[st.kind] || '', st.x, st.z]);
+    }
+  } else {
+    const [sx, sy] = wmToScreen(CX, CZ);
+    drawMapMarker(ctx, 'spawn', sx, sy, ms * 1.15);
+  }
+  // Wegpunkte
+  wpLoad();
+  ctx.font = '800 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  for (const w of WP.list) {
+    if (dimAt(w.x, w.z)) continue;
+    const [sx, sy] = wmToScreen(w.x + 0.5, w.z + 0.5);
+    if (sx < -40 || sy < -40 || sx > Wd + 40 || sy > Ht + 60) continue;
+    wmPin(ctx, sx, sy, w.c);
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,8,14,0.85)'; ctx.strokeText(w.name, sx, sy - 22);
+    ctx.fillStyle = '#fff'; ctx.fillText(w.name, sx, sy - 22);
+  }
+  // die anderen Spieler
+  for (const uid in REMOTE) {
+    const r = REMOTE[uid]; if (!r.seen || dimAt(r.x, r.z)) continue;
+    const [sx, sy] = wmToScreen(r.x, r.z);
+    ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fillStyle = '#4fd66b'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#10200c'; ctx.stroke();
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,8,14,0.85)'; ctx.strokeText(r.name || '', sx, sy - 9); ctx.fillStyle = '#d8ffd8'; ctx.fillText(r.name || '', sx, sy - 9);
+  }
+  // du: ein weißer Pfeil in Blickrichtung
+  const [fx, fz] = camForward();
+  const [ux, uy] = wmToScreen(PL.x, PL.z);
+  ctx.save(); ctx.translate(ux, uy); ctx.rotate(Math.atan2(fz, fx) + Math.PI / 2);
+  const a = 11;
+  ctx.beginPath(); ctx.moveTo(0, -a); ctx.lineTo(a * 0.62, a * 0.75); ctx.lineTo(0, a * 0.35); ctx.lineTo(-a * 0.62, a * 0.75); ctx.closePath();
+  ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = '#1a1620'; ctx.stroke();
+  ctx.restore();
+  // Maßstab
+  const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+  let L = nice[0]; for (const n of nice) if (n * WM.z <= 140) L = n;
+  const bx = 16, by = Ht - 18, bw = L * WM.z;
+  ctx.fillStyle = 'rgba(10,8,14,0.6)'; ctx.fillRect(bx - 6, by - 20, bw + 12, 28);
+  ctx.fillStyle = '#fff'; ctx.fillRect(bx, by - 3, bw, 3); ctx.fillRect(bx, by - 8, 2, 8); ctx.fillRect(bx + bw - 2, by - 8, 2, 8);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.font = '700 11px system-ui, sans-serif';
+  ctx.fillText(L >= 1000 ? L / 1000 + ' km' : L + ' Blöcke', bx, by - 6);
+  // Koordinaten unter der Maus
+  const co = $('wmCoord');
+  const txt = WM.hoverX !== null ? 'X ' + Math.floor(WM.hoverX) + ' · Z ' + Math.floor(WM.hoverZ) : 'X ' + Math.floor(WM.cx) + ' · Z ' + Math.floor(WM.cz);
+  if (co.textContent !== txt) co.textContent = txt;
+  if (WM.pop) wmPlacePop();
+}
+function wmPin(ctx, x, y, c) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(-3, -6, -9, -9, -9, -15); ctx.arc(0, -15, 9, Math.PI, 0); ctx.bezierCurveTo(9, -9, 3, -6, 0, 0); ctx.closePath();
+  ctx.fillStyle = c; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(10,8,14,0.9)'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, -15, 3.4, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- zoomen und verschieben ---------- */
+function wmZoomAt(f, sx, sy) {
+  const [wx, wz] = wmToWorld(sx, sy);
+  WM.z = clamp(WM.z * f, WM_ZMIN, WM_ZMAX);
+  const [nx, nz] = wmToWorld(sx, sy);
+  WM.cx += wx - nx; WM.cz += wz - nz;
+  WM.need = true;
+}
+function wmLocal(e) { const r = WM.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+
+/* ---------- das kleine Menü (Rechtsklick / Antippen) ---------- */
+function wmClosePop() { WM.pop = null; const p = $('wmPop'); if (p) p.hidden = true; }
+function wmOpenPop(sx, sy) {
+  const [wx, wz] = wmToWorld(sx, sy);
+  // ein Wegpunkt dort?
+  let hit = null, bd = 16;
+  for (const w of WP.list) { if (dimAt(w.x, w.z)) continue; const [px, py] = wmToScreen(w.x + 0.5, w.z + 0.5); const d = Math.hypot(px - sx, py - 12 - sy); if (d < bd) { bd = d; hit = w; } }
+  let place = '', pd = 16;
+  for (const s of WM.shown || []) { const d = Math.hypot(s[0] - sx, s[1] - sy); if (d < pd) { pd = d; place = s[2]; } }
+  WM.pop = { wx: hit ? hit.x + 0.5 : wx, wz: hit ? hit.z + 0.5 : wz, wp: hit ? hit.id : null };
+  const p = $('wmPop');
+  const fx = Math.floor(WM.pop.wx), fz = Math.floor(WM.pop.wz);
+  $('wmPopT').textContent = hit ? '📍 ' + hit.name : place || 'Diese Stelle';
+  $('wmPopC').textContent = 'X ' + fx + ' · Z ' + fz + ' · ' + Math.round(Math.hypot(fx - PL.x, fz - PL.z)) + ' m von dir';
+  $('wmPopSet').hidden = !!hit; $('wmPopDel').hidden = !hit; $('wmPopForm').hidden = true;
+  $('wmPopSet').disabled = !wpOn();
+  $('wmPopSet').textContent = wpOn() ? '📍 Wegpunkt setzen' : '📍 Wegpunkt setzen (braucht die Mod „Wegpunkte“)';
+  p.hidden = false;
+  wmPlacePop();
+}
+function wmPlacePop() {
+  const p = $('wmPop'); if (!WM.pop || p.hidden) return;
+  const [sx, sy] = wmToScreen(WM.pop.wx, WM.pop.wz);
+  const Wd = WM.cv.clientWidth, Ht = WM.cv.clientHeight, pw = p.offsetWidth, ph = p.offsetHeight;
+  const x = clamp(sx - pw / 2, 8, Wd - pw - 8), y = sy - ph - 14 < 60 ? Math.min(sy + 14, Ht - ph - 8) : sy - ph - 14;
+  p.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+}
+function wmPopSave() {
+  if (!WM.pop) return;
+  const x = Math.floor(WM.pop.wx), z = Math.floor(WM.pop.wz);
+  wmSample(x, z, true, _wmo);
+  const w = wpAdd($('wmPopName').value, x, _wmo[3] + 1, z);
+  if (w) { wmClosePop(); WM.need = true; }
+}
+
+function bindWorldMap() {
+  WM.el = $('mdlWmap'); WM.cv = $('wmCanvas'); WM.ctx = WM.cv.getContext('2d');
+  fastTap($('btnWmap'), () => { if (G.state === 'playing') UI.openWorldMap(); });
+  $('wmClose').addEventListener('click', () => UI.closeModal('mdlWmap'));
+  $('wmIn').addEventListener('click', () => wmZoomAt(1.6, WM.cv.clientWidth / 2, WM.cv.clientHeight / 2));
+  $('wmOut').addEventListener('click', () => wmZoomAt(1 / 1.6, WM.cv.clientWidth / 2, WM.cv.clientHeight / 2));
+  $('wmMe').addEventListener('click', () => { WM.cx = PL.x; WM.cz = PL.z; WM.need = true; wmClosePop(); });
+  $('wmSpawn').addEventListener('click', () => { WM.cx = CX; WM.cz = CZ; WM.need = true; wmClosePop(); });
+  $('wmPopSet').addEventListener('click', () => { $('wmPopSet').hidden = true; $('wmPopForm').hidden = false; $('wmPopName').value = ''; wmPlacePop(); setTimeout(() => $('wmPopName').focus(), 20); });
+  $('wmPopOk').addEventListener('click', wmPopSave);
+  $('wmPopName').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); wmPopSave(); } if (e.key === 'Escape') { e.preventDefault(); wmClosePop(); } });
+  $('wmPopDel').addEventListener('click', () => { if (WM.pop && WM.pop.wp) wpDel(WM.pop.wp); wmClosePop(); WM.need = true; if (!$('mdlWp').hidden) UI.wpRefresh(); });
+  $('wmPopX').addEventListener('click', wmClosePop);
+  window.addEventListener('resize', () => { if (WM.open) wmResize(); });
+  const cv = WM.cv;
+  cv.addEventListener('contextmenu', (e) => { e.preventDefault(); const [sx, sy] = wmLocal(e); wmOpenPop(sx, sy); });
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); const [sx, sy] = wmLocal(e); wmZoomAt(Math.pow(1.0018, -e.deltaY * (e.deltaMode === 1 ? 30 : 1)), sx, sy); }, { passive: false });
+  cv.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    cv.setPointerCapture(e.pointerId);
+    const [sx, sy] = wmLocal(e);
+    WM.ptrs.set(e.pointerId, [sx, sy]);
+    if (WM.ptrs.size === 1) WM.drag = { sx, sy, cx: WM.cx, cz: WM.cz, t: performance.now(), moved: 0, touch: e.pointerType !== 'mouse' };
+    else if (WM.ptrs.size === 2) {
+      const [a, b] = [...WM.ptrs.values()];
+      WM.pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z: WM.z, mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2 };
+      if (WM.drag) WM.drag.moved = 99;
+    }
+  });
+  cv.addEventListener('pointermove', (e) => {
+    const [sx, sy] = wmLocal(e);
+    if (e.pointerType === 'mouse') { [WM.hoverX, WM.hoverZ] = wmToWorld(sx, sy); WM.need = true; }
+    if (!WM.ptrs.has(e.pointerId)) return;
+    WM.ptrs.set(e.pointerId, [sx, sy]);
+    if (WM.pinch && WM.ptrs.size >= 2) {
+      const [a, b] = [...WM.ptrs.values()];
+      const d = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      // zuerst mitschieben, dann um die Mitte der Finger zoomen
+      WM.cx -= (mx - WM.pinch.mx) / WM.z; WM.cz -= (my - WM.pinch.my) / WM.z;
+      WM.pinch.mx = mx; WM.pinch.my = my;
+      wmZoomAt(clamp(WM.pinch.z * d / WM.pinch.d, WM_ZMIN, WM_ZMAX) / WM.z, mx, my);
+      return;
+    }
+    const dr = WM.drag; if (!dr) return;
+    dr.moved = Math.max(dr.moved, Math.hypot(sx - dr.sx, sy - dr.sy));
+    if (dr.moved > 4) { WM.cx = dr.cx - (sx - dr.sx) / WM.z; WM.cz = dr.cz - (sy - dr.sy) / WM.z; WM.need = true; if (WM.pop) wmPlacePop(); }
+  });
+  const up = (e) => {
+    if (!WM.ptrs.has(e.pointerId)) return;
+    WM.ptrs.delete(e.pointerId);
+    if (WM.ptrs.size < 2) WM.pinch = null;
+    const dr = WM.drag;
+    if (WM.ptrs.size === 0) {
+      WM.drag = null;
+      if (dr && dr.moved <= 6 && e.type === 'pointerup') {
+        const [sx, sy] = wmLocal(e);
+        // Handy: antippen öffnet das Menü; PC: Klick schließt es (Rechtsklick öffnet)
+        if (dr.touch && performance.now() - dr.t < 600) { if (WM.pop) wmClosePop(); else wmOpenPop(sx, sy); }
+        else if (!dr.touch) wmClosePop();
+      }
+    } else if (WM.ptrs.size === 1) {
+      const [p] = [...WM.ptrs.values()];
+      WM.drag = { sx: p[0], sy: p[1], cx: WM.cx, cz: WM.cz, t: performance.now(), moved: 99, touch: true };
+    }
+  };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { WM.hoverX = WM.hoverZ = null; WM.need = true; } });
+  window.addEventListener('keydown', (e) => {
+    const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if (WM.open && !$('mdlWmap').hidden) {
+      if (e.code === 'KeyM' && !e.repeat) { UI.closeModal('mdlWmap'); return; }
+      const k = 80 / WM.z;
+      if (e.code === 'KeyW' || e.code === 'ArrowUp') { WM.cz -= k; WM.need = true; }
+      else if (e.code === 'KeyS' || e.code === 'ArrowDown') { WM.cz += k; WM.need = true; }
+      else if (e.code === 'KeyA' || e.code === 'ArrowLeft') { WM.cx -= k; WM.need = true; }
+      else if (e.code === 'KeyD' || e.code === 'ArrowRight') { WM.cx += k; WM.need = true; }
+      else if (e.key === '+' || e.code === 'NumpadAdd') wmZoomAt(1.4, WM.cv.clientWidth / 2, WM.cv.clientHeight / 2);
+      else if (e.key === '-' || e.code === 'NumpadSubtract') wmZoomAt(1 / 1.4, WM.cv.clientWidth / 2, WM.cv.clientHeight / 2);
+      return;
+    }
+    if (e.code !== 'KeyM' || e.repeat || !wmOn() || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (G.state === 'playing') UI.openWorldMap();
+  });
+}
+
+/* ---- 19xc_voice.js ---- */
+/* =========================================================================
+   Sprachchat (eingebaute Mod „Sprachchat“, mod.set('voiceChat', true)).
+   - Vor dem ersten Mal: Datenschutz lesen und zustimmen (beim Installieren
+     und bei jedem, der die Mod in einer Welt zum ersten Mal erlebt).
+   - Beim Start der Welt: Mikrofon und Lautsprecher wählen (beides steht
+     auf „Automatisch“).
+   - H (oder der Knopf 🎤 oben) schaltet das Mikrofon an und aus, kein
+     Push-to-Talk. Es startet immer stumm. Stumm heißt: das Mikrofon ist
+     wirklich aus, nicht nur leise.
+   - Die Stimme geht live und verschlüsselt direkt von Gerät zu Gerät
+     (WebRTC). Nichts wird aufgenommen oder gespeichert. Für den Aufbau
+     der Verbindung gehen zwei kurze Nachrichten über die Welt (ev/vo).
+   - Wer weiter weg ist, ist leiser (oder überall gleich laut, einstellbar).
+   - Unsichtbare Zuschauer hören nie mit und werden nie verbunden.
+   ========================================================================= */
+MODFX_DEF.voiceChat = false;
+if (MODFX.voiceChat === undefined) MODFX.voiceChat = false;
+const VOICE_OK_KEY = 'bloodmoon-voice-ok', VOICE_CFG_KEY = 'bloodmoon-voice';
+const VOICE_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
+const VOICE = {
+  begun: false, on: false, muted: true, declined: false, stream: null, sid: '', peers: new Map(), ready: new Map(), hiTo: new Set(),
+  cfg: { mic: '', spk: '', vol: 1, range: 'near', skip: false }, t: 0, lvlT: 0, base: '', test: null, gestureWait: false, busy: false,
+};
+function voiceLoadCfg() { try { Object.assign(VOICE.cfg, JSON.parse(localStorage.getItem(VOICE_CFG_KEY) || '{}')); } catch (e) { /* ignore */ } VOICE.cfg.vol = clamp(+VOICE.cfg.vol || 0, 0, 1); }
+function voiceSaveCfg() { try { localStorage.setItem(VOICE_CFG_KEY, JSON.stringify(VOICE.cfg)); } catch (e) { /* ignore */ } }
+function voiceConsented() { try { return localStorage.getItem(VOICE_OK_KEY) === '1'; } catch (e) { return false; } }
+function voiceSupported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+function voiceWanted() { return !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading'; }
+
+/* ---------- Datenschutz ---------- */
+/* zeigt die Zustimmung; true, wenn zugestimmt */
+function voiceAskConsent() {
+  return new Promise((res) => {
+    voiceView('consent');
+    $('voAgree').checked = false; $('voAccept').disabled = true;
+    VOICE._consent = res;
+    voiceShow();
+  });
+}
+function voiceConsentAnswer(ok) {
+  const r = VOICE._consent; VOICE._consent = null;
+  if (ok) { try { localStorage.setItem(VOICE_OK_KEY, '1'); } catch (e) { /* ignore */ } }
+  if (r) r(ok);
+}
+/* beim Installieren der Mod: erst zustimmen */
+async function modInstallAsk(m, done) {
+  if (m.id === 'voice' && !voiceConsented()) {
+    const wasMods = !$('mdlMods').hidden;
+    const ok = await voiceAskConsent();
+    voiceHide();
+    if (wasMods) $('mdlMods').hidden = false;
+    if (!ok) { UI.toast('Sprachchat nicht installiert: ohne Zustimmung geht es nicht.', 'info', 3200, 'modi'); return; }
+  }
+  MODS.install(m);
+  done();
+}
+
+/* ---------- das Fenster (Zustimmung oder Einstellungen) ---------- */
+function voiceView(v) { $('voConsent').hidden = v !== 'consent'; $('voSetup').hidden = v !== 'setup'; $('voTitle').textContent = v === 'consent' ? '🎙️ Sprachchat: Datenschutz' : '🎙️ Sprachchat'; }
+function voiceShow() {
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  if (G.state === 'playing') { G.state = 'inv'; VOICE._fromPlay = true; }
+  $('mdlVoice').hidden = false;
+}
+function voiceHide() {
+  $('mdlVoice').hidden = true;
+  voiceTestStop();
+  if (VOICE._fromPlay) { VOICE._fromPlay = false; if (G.state === 'inv') { G.state = 'playing'; INPUT.clear(); updateCursorStyle(); if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); } } }
+  if (VOICE._consent) voiceConsentAnswer(false);
+}
+UI.openVoiceSetup = async function () {
+  if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat) { VOICE.declined = false; VOICE.begun = false; } return; }
+  voiceView('setup');
+  $('voSkip').checked = !!VOICE.cfg.skip;
+  $('voVol').value = Math.round(VOICE.cfg.vol * 100);
+  $('voRange').value = VOICE.cfg.range;
+  voiceShow();
+  $('mdlVoice').querySelector('.sheet-b').scrollTop = 0;
+  voicePeerList();
+  await voiceDevices(true);
+  voiceTestStart();
+};
+async function voiceDevices(ask) {
+  const ms = $('voMic'), ss = $('voSpk');
+  let list = [];
+  try {
+    list = await navigator.mediaDevices.enumerateDevices();
+    // ohne Erlaubnis gibt es keine Namen: einmal kurz fragen
+    if (ask && !list.some((d) => d.kind === 'audioinput' && d.label)) {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      s.getTracks().forEach((t) => t.stop());
+      list = await navigator.mediaDevices.enumerateDevices();
+    }
+  } catch (e) { $('voMicNote').textContent = voiceMicErr(e); }
+  const fill = (sel, kind, cur) => {
+    sel.innerHTML = '';
+    const a = document.createElement('option'); a.value = ''; a.textContent = 'Automatisch (Standard)'; sel.appendChild(a);
+    let n = 0;
+    for (const d of list) {
+      if (d.kind !== kind || d.deviceId === 'default' || d.deviceId === 'communications' || !d.deviceId) continue;
+      const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || (kind === 'audioinput' ? 'Mikrofon ' : 'Lautsprecher ') + (++n); sel.appendChild(o);
+    }
+    sel.value = [...sel.options].some((o) => o.value === cur) ? cur : '';
+  };
+  fill(ms, 'audioinput', VOICE.cfg.mic);
+  const sinkOk = 'setSinkId' in HTMLMediaElement.prototype;
+  fill(ss, 'audiooutput', VOICE.cfg.spk);
+  ss.disabled = !sinkOk;
+  $('voSpkNote').hidden = sinkOk;
+}
+function voiceMicErr(e) {
+  const n = e && e.name;
+  if (n === 'NotAllowedError' || n === 'SecurityError') return 'Das Mikrofon ist nicht erlaubt. Erlaube es oben in der Adressleiste (Schloss-Symbol) und versuch es nochmal.';
+  if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'Kein Mikrofon gefunden.';
+  if (n === 'NotReadableError') return 'Das Mikrofon wird gerade von einem anderen Programm benutzt.';
+  return 'Das Mikrofon geht nicht: ' + ((e && e.message) || n || 'unbekannter Fehler');
+}
+function voiceConstraints() { const a = { echoCancellation: true, noiseSuppression: true, autoGainControl: true }; if (VOICE.cfg.mic) a.deviceId = { exact: VOICE.cfg.mic }; return { audio: a }; }
+async function voiceGetMic() {
+  try { return await navigator.mediaDevices.getUserMedia(voiceConstraints()); }
+  catch (e) {
+    // das gewählte Mikrofon ist weg: das Standard-Mikrofon nehmen
+    if (VOICE.cfg.mic && (e.name === 'OverconstrainedError' || e.name === 'NotFoundError')) { VOICE.cfg.mic = ''; voiceSaveCfg(); return navigator.mediaDevices.getUserMedia(voiceConstraints()); }
+    throw e;
+  }
+}
+/* Pegel beim Einstellen: ob das Mikrofon etwas hört */
+async function voiceTestStart() {
+  voiceTestStop();
+  const tk = VOICE.testTk = (VOICE.testTk || 0) + 1;
+  $('voMicNote').textContent = '';
+  let s = VOICE.stream;
+  if (!s) { try { s = await voiceGetMic(); } catch (e) { $('voMicNote').textContent = voiceMicErr(e); return; } }
+  if (tk !== VOICE.testTk || $('mdlVoice').hidden) { if (s !== VOICE.stream) s.getTracks().forEach((t) => t.stop()); return; }
+  const lv = voiceLevelOf(s);
+  VOICE.test = { s, own: s !== VOICE.stream, lv };
+  const bar = $('voLvl');
+  const step = () => {
+    if (!VOICE.test || VOICE.test.lv !== lv) return;
+    bar.style.width = Math.round(lv.read() * 100) + '%';
+    VOICE.test.raf = requestAnimationFrame(step);
+  };
+  step();
+  $('voMicNote').textContent = VOICE.muted ? 'Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört. Im Spiel ist es erst an, wenn du H drückst.' : 'Sprich etwas: der grüne Balken zeigt, ob das Mikrofon dich hört.';
+}
+function voiceTestStop() {
+  const t = VOICE.test; VOICE.test = null;
+  if (!t) return;
+  cancelAnimationFrame(t.raf);
+  t.lv.close();
+  if (t.own) t.s.getTracks().forEach((x) => x.stop());
+  if ($('voLvl')) $('voLvl').style.width = '0%';
+}
+/* Lautstärke eines Mikrofons (0..1) */
+function voiceLevelOf(stream) {
+  let ac = null, an = null, buf = null;
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ac.createMediaStreamSource(stream);
+    an = ac.createAnalyser(); an.fftSize = 512; src.connect(an);
+    buf = new Uint8Array(an.fftSize);
+    if (ac.state === 'suspended') ac.resume().catch(() => { });
+  } catch (e) { ac = null; }
+  let v = 0;
+  return {
+    read() {
+      if (!an) return 0;
+      an.getByteTimeDomainData(buf);
+      let m = 0; for (let i = 0; i < buf.length; i++) { const d = Math.abs(buf[i] - 128); if (d > m) m = d; }
+      v = Math.max(m / 128 * 1.6, v * 0.85);
+      return Math.min(1, v);
+    },
+    close() { try { if (ac) ac.close(); } catch (e) { /* ignore */ } },
+  };
+}
+
+/* ---------- an und aus ---------- */
+async function voiceBegin() {
+  VOICE.begun = true;
+  if (!voiceSupported()) { UI.toast('Sprachchat geht in diesem Browser nicht.', 'warn', 4000, 'vo'); VOICE.declined = true; return; }
+  voiceLoadCfg();
+  if (!voiceConsented()) {
+    const ok = await voiceAskConsent();
+    if (!voiceWanted()) { voiceHide(); return; }
+    if (!ok) { voiceHide(); VOICE.declined = true; UI.toast('Sprachchat bleibt aus. Über den Knopf 🎙️ kannst du später doch zustimmen.', 'info', 4200, 'vo'); syncVoiceBtn(); return; }
+  }
+  VOICE.on = true; VOICE.muted = true; VOICE.sid = Math.random().toString(36).slice(2, 10);
+  VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base;
+  voiceHi(null);
+  syncVoiceBtn();
+  if (!VOICE.cfg.skip) UI.openVoiceSetup();
+  else { voiceHide(); UI.toast(voiceReadyMsg(), 'info', 3600, 'vo'); }
+}
+function voiceEnd() {
+  if (VOICE.on && MP.active()) voiceSend({ k: 'bye' });
+  for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid);
+  voiceStopMic();
+  VOICE.on = false; VOICE.begun = false; VOICE.muted = true; VOICE.ready.clear(); VOICE.hiTo.clear();
+  if (!$('mdlVoice').hidden) voiceHide();
+  syncVoiceBtn();
+}
+function voiceStopMic() {
+  if (VOICE.lv) { VOICE.lv.close(); VOICE.lv = null; }
+  if (VOICE.stream) { VOICE.stream.getTracks().forEach((t) => t.stop()); VOICE.stream = null; }
+  for (const p of VOICE.peers.values()) { const tr = voiceTrans(p.pc); if (tr) tr.sender.replaceTrack(null).catch(() => { }); }
+}
+async function voiceToggle() {
+  if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat && !G.spectator) { VOICE.declined = false; VOICE.begun = false; } return; }
+  if (VOICE.busy) return;
+  if (!VOICE.muted) { VOICE.muted = true; voiceStopMic(); syncVoiceBtn(); UI.toast('🔇 Mikrofon aus', 'info', 1400, 'vo'); SFX.ui(); return; }
+  VOICE.busy = true;
+  try {
+    const s = await voiceGetMic();
+    if (!VOICE.on) { s.getTracks().forEach((t) => t.stop()); return; }
+    VOICE.stream = s; VOICE.muted = false;
+    VOICE.lv = voiceLevelOf(s);
+    const tr = s.getAudioTracks()[0];
+    for (const p of VOICE.peers.values()) { const t = voiceTrans(p.pc); if (t) t.sender.replaceTrack(tr).catch(() => { }); }
+    const n = [...VOICE.peers.values()].filter((p) => p.state === 'ok').length;
+    UI.toast('🎤 Mikrofon an' + (n ? ' · ' + n + (n === 1 ? ' Spieler hört' : ' Spieler hören') + ' dich' : MP.active() ? ' · noch niemand verbunden' : ' · du bist allein in der Welt'), 'good', 2000, 'vo');
+    SFX.ui();
+  } catch (e) { UI.toast(voiceMicErr(e), 'warn', 5000, 'vo'); }
+  finally { VOICE.busy = false; syncVoiceBtn(); }
+}
+function voiceReadyMsg() { return '🎙️ Sprachchat bereit. ' + (touchUI() ? 'Tipp auf 🔇 rechts oben, dann hören dich die anderen.' : 'H schaltet dein Mikrofon an.'); }
+function syncVoiceBtn() {
+  const b = $('btnVoice'); if (!b) return;
+  const show = !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading';
+  if (b.hidden === show) b.hidden = !show;
+  const st = !VOICE.on ? 'off' : VOICE.muted ? 'mute' : 'live';
+  if (b.dataset.st !== st) {
+    b.dataset.st = st;
+    b.textContent = st === 'live' ? '🎤' : '🔇';
+    b.title = st === 'off' ? 'Sprachchat (aus)' : st === 'mute' ? 'Mikrofon ist aus – H oder antippen zum Sprechen' : 'Mikrofon ist an – H oder antippen zum Stummschalten';
+    b.setAttribute('aria-label', b.title);
+  }
+  const pb = $('btnPauseVoice'); if (pb) pb.hidden = !show;
+}
+
+/* ---------- Verbindungen ---------- */
+function voiceSend(o) { if (!MP.active() || !NET.uid()) return; o.t = 'vo'; o.sid = VOICE.sid; MP.send(o); }
+function voiceHi(to, re) { const o = { k: 'hi' }; if (to) o.to = to; if (re) o.re = 1; voiceSend(o); }
+function voiceTrans(pc) { try { return pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio') || pc.getTransceivers()[0] || null; } catch (e) { return null; } }
+function voiceWaitIce(pc, ms) {
+  return new Promise((res) => {
+    if (pc.iceGatheringState === 'complete') { res(); return; }
+    const t = setTimeout(done, ms);
+    function done() { clearTimeout(t); pc.removeEventListener('icegatheringstatechange', chk); res(); }
+    function chk() { if (pc.iceGatheringState === 'complete') done(); }
+    pc.addEventListener('icegatheringstatechange', chk);
+  });
+}
+function voiceNewPeer(uid) {
+  voiceClosePeer(uid, true);
+  const pc = new RTCPeerConnection({ iceServers: VOICE_ICE });
+  const audio = document.createElement('audio');
+  audio.autoplay = true; audio.setAttribute('playsinline', ''); audio.hidden = true;
+  document.body.appendChild(audio);
+  const p = { uid, pc, audio, state: 'wait', t: performance.now(), oid: '', tries: (VOICE.peers.get(uid) || {}).tries || 0, speakT: 0 };
+  VOICE.peers.set(uid, p);
+  pc.ontrack = (e) => {
+    audio.srcObject = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
+    if (VOICE.cfg.spk && audio.setSinkId) audio.setSinkId(VOICE.cfg.spk).catch(() => { });
+    voicePlay(audio);
+  };
+  pc.onconnectionstatechange = () => {
+    const s = pc.connectionState;
+    if (VOICE.peers.get(uid) !== p) return;
+    if (s === 'connected') {
+      if (p.state !== 'ok') { const r = REMOTE[uid]; UI.toast('🎙️ Sprachverbindung mit ' + ((r && r.name) || 'einem Spieler') + ' steht.', 'good', 2400, 'vo' + uid); }
+      p.state = 'ok'; p.tries = 0;
+    } else if (s === 'failed') { p.state = 'fail'; p.failT = performance.now(); }
+    else if (s === 'disconnected') p.state = 'wait';
+    if (!$('mdlVoice').hidden) voicePeerList();
+  };
+  return p;
+}
+function voicePlay(a) {
+  const pr = a.play();
+  if (pr && pr.catch) pr.catch(() => { VOICE.gestureWait = true; });
+}
+function voiceClosePeer(uid, keep) {
+  const p = VOICE.peers.get(uid); if (!p) return;
+  try { p.pc.close(); } catch (e) { /* ignore */ }
+  try { p.audio.srcObject = null; p.audio.remove(); } catch (e) { /* ignore */ }
+  if (!keep) VOICE.peers.delete(uid);
+}
+async function voiceOffer(uid) {
+  const p = voiceNewPeer(uid);
+  p.tries++;
+  p.oid = Math.random().toString(36).slice(2, 9);
+  const oid = p.oid;
+  try {
+    const tr = p.pc.addTransceiver('audio', { direction: 'sendrecv' });
+    if (VOICE.stream && !VOICE.muted) await tr.sender.replaceTrack(VOICE.stream.getAudioTracks()[0]);
+    await p.pc.setLocalDescription(await p.pc.createOffer());
+    await voiceWaitIce(p.pc, 2500);
+    if (VOICE.peers.get(uid) !== p || p.oid !== oid) return;
+    voiceSend({ k: 'of', to: uid, oid, sdp: p.pc.localDescription.sdp });
+  } catch (e) { console.warn('voice offer', e); p.state = 'fail'; p.failT = performance.now(); }
+}
+async function voiceAnswer(v) {
+  const uid = v.u;
+  const p = voiceNewPeer(uid);
+  p.oid = v.oid;
+  try {
+    await p.pc.setRemoteDescription({ type: 'offer', sdp: String(v.sdp) });
+    const tr = voiceTrans(p.pc);
+    if (tr) { tr.direction = 'sendrecv'; if (VOICE.stream && !VOICE.muted) await tr.sender.replaceTrack(VOICE.stream.getAudioTracks()[0]); }
+    await p.pc.setLocalDescription(await p.pc.createAnswer());
+    await voiceWaitIce(p.pc, 2500);
+    if (VOICE.peers.get(uid) !== p) return;
+    voiceSend({ k: 'an', to: uid, oid: v.oid, sdp: p.pc.localDescription.sdp });
+  } catch (e) { console.warn('voice answer', e); p.state = 'fail'; p.failT = performance.now(); }
+}
+/* eine Nachricht für den Sprachchat aus der Welt */
+function voiceOnSignal(v) {
+  if (!VOICE.on || !v || !v.u || v.u === NET.uid() || G.spectator) return;
+  if (v.to && v.to !== NET.uid()) return;
+  if (!REMOTE[v.u]) return;   // nur sichtbare Spieler (nie ein unsichtbarer Zuschauer)
+  const uid = v.u;
+  if (v.k === 'hi') {
+    const old = VOICE.ready.get(uid);
+    VOICE.ready.set(uid, v.sid);
+    // neu gestartet: die alte Verbindung ist tot
+    if (old && old !== v.sid && VOICE.peers.has(uid)) voiceClosePeer(uid);
+    if (!v.re) voiceHi(uid, true);
+  } else if (v.k === 'bye') { VOICE.ready.delete(uid); voiceClosePeer(uid); }
+  else if (v.k === 'of' && typeof v.sdp === 'string' && v.sdp.length < 20000) { VOICE.ready.set(uid, v.sid); voiceAnswer(v); }
+  else if (v.k === 'an' && typeof v.sdp === 'string' && v.sdp.length < 20000) {
+    const p = VOICE.peers.get(uid);
+    if (p && p.oid === v.oid && p.pc.signalingState === 'have-local-offer') p.pc.setRemoteDescription({ type: 'answer', sdp: v.sdp }).catch((e) => console.warn('voice', e));
+  }
+  if (!$('mdlVoice').hidden) voicePeerList();
+}
+
+/* ---------- jedes Bild ---------- */
+function updateVoice(dt) {
+  syncVoiceBtn();
+  const want = voiceWanted();
+  if (want && !VOICE.begun && !VOICE.declined) voiceBegin();
+  if (!want && (VOICE.begun || VOICE.on)) { voiceEnd(); VOICE.declined = false; }
+  if (!MODFX.voiceChat) VOICE.declined = false;
+  if (!VOICE.on) return;
+  const me = NET.uid();
+  // eine andere Welt / kein Multiplayer mehr: alles neu
+  if (VOICE.base !== MP.base) { for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid); VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base; if (MP.active()) voiceHi(null); }
+  VOICE.t -= dt;
+  if (VOICE.t <= 0 && MP.active() && me) {
+    VOICE.t = 1;
+    const now = performance.now();
+    for (const uid in REMOTE) {
+      if (!VOICE.hiTo.has(uid)) { VOICE.hiTo.add(uid); voiceHi(uid); }
+      const p = VOICE.peers.get(uid);
+      if (!VOICE.ready.has(uid) || me > uid) continue;   // wer die kleinere Nummer hat, ruft an
+      if (!p) voiceOffer(uid);
+      else if ((p.state === 'fail' || (p.state === 'wait' && now - p.t > 20000)) && now - (p.failT || p.t) > 6000 && p.tries < 4) voiceOffer(uid);
+    }
+    for (const uid of [...VOICE.peers.keys()]) if (!REMOTE[uid]) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
+    for (const uid of [...VOICE.hiTo]) if (!REMOTE[uid]) VOICE.hiTo.delete(uid);
+  }
+  // wie laut: nach Entfernung, und wer gerade spricht
+  const now = performance.now();
+  for (const p of VOICE.peers.values()) {
+    const r = REMOTE[p.uid];
+    let f = 1;
+    if (VOICE.cfg.range === 'near' && r) {
+      const d = Math.hypot(r.x - PL.x, r.y - PL.y, r.z - PL.z);
+      const k = clamp(1 - (d - 10) / 80, 0, 1);
+      f = k * k * (3 - 2 * k);
+    }
+    const vol = clamp(VOICE.cfg.vol * f, 0, 1);
+    if (Math.abs(p.audio.volume - vol) > 0.01) { try { p.audio.volume = vol; } catch (e) { /* iOS */ } }
+    if (now - (p.lvT || 0) > 200 && p.state === 'ok' && !p.lvBusy) {
+      p.lvT = now; p.lvBusy = true;
+      // wie viel Ton seit dem letzten Mal ankam (Energie pro Sekunde): spricht er gerade?
+      p.pc.getStats().then((st) => {
+        st.forEach((r) => {
+          if (r.type !== 'inbound-rtp' || r.kind !== 'audio' || r.totalAudioEnergy === undefined) return;
+          const e = r.totalAudioEnergy, d = r.totalSamplesDuration || 0;
+          if (p.lvE !== undefined && d > p.lvD) { const pw = (e - p.lvE) / (d - p.lvD); if (pw > 0.0004 && p.audio.volume > 0.02) p.speakT = performance.now(); }
+          p.lvE = e; p.lvD = d;
+        });
+      }).catch(() => { }).finally(() => { p.lvBusy = false; });
+    }
+  }
+  // dein eigener Pegel am Knopf
+  const b = $('btnVoice');
+  if (b && !VOICE.muted && VOICE.lv) { const l = VOICE.lv.read(); b.style.setProperty('--lv', l.toFixed(2)); b.classList.toggle('talk', l > 0.12); }
+  else if (b && b.classList.contains('talk')) { b.classList.remove('talk'); b.style.setProperty('--lv', '0'); }
+}
+function voiceSpeaking(uid) { const p = VOICE.peers.get(uid); return !!(p && performance.now() - p.speakT < 450); }
+function voicePeerList() {
+  const box = $('voPeers'); if (!box) return;
+  box.innerHTML = '';
+  const uids = Object.keys(REMOTE);
+  if (!MP.active() || !uids.length) { box.textContent = 'Gerade ist niemand sonst in der Welt. Sobald Freunde mit Sprachchat da sind, verbindet ihr euch von selbst.'; return; }
+  for (const uid of uids) {
+    const p = VOICE.peers.get(uid), r = REMOTE[uid];
+    const st = !VOICE.ready.has(uid) ? ['hat keinen Sprachchat an', 'off'] : !p || p.state === 'wait' ? ['verbindet …', 'wait'] : p.state === 'ok' ? ['verbunden', 'ok'] : ['keine Verbindung (Netzwerk blockiert)', 'fail'];
+    const row = document.createElement('div'); row.className = 'vo-peer ' + st[1];
+    row.innerHTML = '<i></i><b></b><span></span>';
+    row.querySelector('b').textContent = r.name || 'Spieler'; row.querySelector('span').textContent = st[0];
+    box.appendChild(row);
+  }
+}
+
+function bindVoice() {
+  voiceLoadCfg();
+  fastTap($('btnVoice'), () => { if (G.state === 'playing') voiceToggle(); });
+  $('btnVoice').addEventListener('contextmenu', (e) => { e.preventDefault(); if (G.state === 'playing') UI.openVoiceSetup(); });
+  $('btnPauseVoice').addEventListener('click', () => { UI.pause(false); setTimeout(() => UI.openVoiceSetup(), 30); });
+  $('voAgree').addEventListener('change', () => { $('voAccept').disabled = !$('voAgree').checked; });
+  $('voAccept').addEventListener('click', () => { if ($('voAgree').checked) voiceConsentAnswer(true); });
+  $('voDecline').addEventListener('click', () => voiceConsentAnswer(false));
+  $('voDone').addEventListener('click', () => { voiceHide(); UI.toast(voiceReadyMsg(), 'info', 3600, 'vo'); });
+  $('voMic').addEventListener('change', async () => {
+    VOICE.cfg.mic = $('voMic').value; voiceSaveCfg();
+    // läuft das Mikrofon schon: gleich das neue nehmen
+    if (VOICE.stream && !VOICE.muted) { voiceStopMic(); VOICE.muted = true; await voiceToggle(); }
+    voiceTestStart();
+  });
+  $('voSpk').addEventListener('change', () => { VOICE.cfg.spk = $('voSpk').value; voiceSaveCfg(); for (const p of VOICE.peers.values()) if (p.audio.setSinkId) p.audio.setSinkId(VOICE.cfg.spk).catch(() => { }); });
+  $('voVol').addEventListener('input', () => { VOICE.cfg.vol = clamp(+$('voVol').value / 100, 0, 1); voiceSaveCfg(); });
+  $('voRange').addEventListener('change', () => { VOICE.cfg.range = $('voRange').value === 'all' ? 'all' : 'near'; voiceSaveCfg(); });
+  $('voSkip').addEventListener('change', () => { VOICE.cfg.skip = $('voSkip').checked; voiceSaveCfg(); });
+  $('voRevoke').addEventListener('click', async () => {
+    const ok = await UI.confirm({ title: 'Zustimmung zurückziehen?', text: 'Der Sprachchat geht sofort aus. Wenn du ihn wieder willst, musst du erneut zustimmen.', yes: 'Zurückziehen' });
+    $('mdlVoice').hidden = false;
+    if (!ok) return;
+    try { localStorage.removeItem(VOICE_OK_KEY); } catch (e) { /* ignore */ }
+    voiceHide(); voiceEnd(); VOICE.declined = true;
+    UI.toast('Zustimmung zurückgezogen. Der Sprachchat ist aus.', 'info', 3200, 'vo');
+  });
+  // Browser spielen Ton erst nach einer Berührung oder einem Klick
+  const kick = () => { if (!VOICE.gestureWait) return; VOICE.gestureWait = false; for (const p of VOICE.peers.values()) voicePlay(p.audio); };
+  window.addEventListener('pointerdown', kick, true); window.addEventListener('keydown', kick, true);
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyH' || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !MODFX.voiceChat) return;
+    const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if (G.state === 'playing') voiceToggle();
+  });
+  // die Seite wird geschlossen: den anderen Bescheid sagen
+  window.addEventListener('pagehide', () => { if (VOICE.on) { voiceSend({ k: 'bye' }); voiceStopMic(); } });
 }
 
 /* ---- 19y_creative.js ---- */
