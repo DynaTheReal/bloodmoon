@@ -1418,8 +1418,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.19.0';
+const GAME_VERSION = '2.21.0';
 const GAME_NOTES = [
+  ['2.21.0', 'Neue Weltgenerierung (nur in Chunks, die noch nie generiert wurden): viel mehr Dörfer (etwa alle 600 bis 800 Blöcke), mehr Höhlen (auch ganz unter der Erde), Höhleneingänge als Löcher statt offener Gräben, deutlich weniger und niedrigere Berge. Übergänge zu altem Gelände sind weich.'],
+  ['2.20.0', 'Admin: eingereichte Mods vor dem Annehmen in einer Testwelt ausprobieren (▶ Testen). Danach geht es zurück ins Admin-Panel.'],
   ['2.19.0', 'Mods werden in Welten und auf Servern automatisch auf die neueste Version aktualisiert, sobald die Welt startet. Mod-Backups: unter Meine Mods (⟲) sind die letzten 5 eingereichten Versionen jeder Mod gespeichert und lassen sich zurücksetzen.'],
   ['2.18.0', 'Mods im Mehrspieler: Freunde, die deiner Welt beitreten, laden deine Mods automatisch mit (auf öffentlichen Servern laufen keine Mods). Neue Mod-Befehle: givePlayer, hurtPlayer, teleportPlayer, sendDimension, isHost, broadcast, Ereignisse join, leave, playerkill, message. Mod-Geschosse treffen auch andere Spieler.'],
   ['2.17.0', 'Mods zeigen ihre Downloads (⬇): jeder Spieler zählt einmal, auch wenn er eine Mod mehrmals installiert und löscht.'],
@@ -2963,7 +2965,7 @@ const W = {
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
-  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
+  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), gen5: false, g5: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
     // gen 3 = neue Weltgenerierung; gen3 = Chunks mit den neuen Höhlen (in alten Welten)
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
   merchantPos: [CX + 0.5, SEA + 6, CZ - 1.6],
@@ -2974,6 +2976,26 @@ const W = {
 /* ---------- chunk storage ---------- */
 const CHM = new Map();
 const ckey = (cx, cz) => (cx + 65536) * 131072 + (cz + 65536);
+/* Welt-Version 5 (2.21): mehr Dörfer, mehr Höhlen ohne Schluchten, weniger Berge.
+   Neue Welten überall, ältere Welten nur in Chunks, die noch nie generiert wurden. */
+function chunkV5(key) { return W.gen5 || W.g5.has(key) || (!W.explored.has(key) && !W.genOld.has(key)); }
+const V5W = new Map();
+/* how much of the new terrain a column gets: 1 = all, near chunks of the old version it fades out (no cliffs at the border) */
+function v5Weight(x, z) {
+  if (W.gen5) return 1;
+  const cx = x >> 4, cz = z >> 4, key = ckey(cx, cz);
+  let inf = V5W.get(key);
+  if (inf === undefined) {
+    if (!chunkV5(key)) inf = false;
+    else { inf = []; for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) if ((dx || dz) && !chunkV5(ckey(cx + dx, cz + dz))) inf.push([(cx + dx) * 16, (cz + dz) * 16]); if (!inf.length) inf = null; }
+    V5W.set(key, inf);
+  }
+  if (inf === false) return 0;
+  if (inf === null) return 1;
+  let md = 1e9;
+  for (const [ox, oz] of inf) { const ddx = Math.max(ox - x, 0, x - (ox + 15)), ddz = Math.max(oz - z, 0, z - (oz + 15)); md = Math.min(md, Math.hypot(ddx, ddz)); }
+  return smoothstep(2, 44, md);
+}
 let _lc = null, _lcx = 1e9, _lcz = 1e9;
 function resetChunkCache() { _lc = null; _lcx = 1e9; _lcz = 1e9; }
 function chunkAt(cx, cz) { return CHM.get(ckey(cx, cz)) || null; }
@@ -3077,9 +3099,12 @@ function colInfo3(x, z, o) {
   const detail = fbm(N.det, x / 18, z / 18, 2);
   const amp = lerp(1.4, 3.2, smoothstep(30, 170, dd)) * (1 + rough * 1.6);
   let h = SEA + 5 + hills * amp + detail * 0.7;
-  const mMask = smoothstep(0.1, 0.45, fbm(N.mm, ux / 420 + 31, uz / 420 - 17, 2) + 0.05) * smoothstep(170, 260, dd) * (1 - ring) * (1 - sea);
+  const mN = fbm(N.mm, ux / 420 + 31, uz / 420 - 17, 2) + 0.05;
+  const w5 = v5Weight(x, z);
+  // version 5: fewer and lower mountains
+  const mMask = lerp(smoothstep(0.1, 0.45, mN) * smoothstep(170, 260, dd), smoothstep(0.26, 0.56, mN) * smoothstep(230, 330, dd), w5) * (1 - ring) * (1 - sea);
   let ridge = 1 - Math.abs(fbm(N.ridge, x / 95, z / 95, 4)); ridge = ridge * ridge * ridge;
-  h += mMask * ridge * (isl ? 34 : 42);
+  h += mMask * ridge * lerp(isl ? 34 : 42, isl ? 24 : 27, w5);
   const dW = smoothstep(0.2, 0.36, temp) * smoothstep(0.04, -0.14, moist) * (1 - mMask) * (1 - near * 0.85) * (1 - ring);
   if (dW > 0) h = lerp(h, SEA + 4 + fbm(N.sand, x / 40, z / 40, 3) * 3.0, dW);
   const sw = smoothstep(0.2, 0.32, moist) * smoothstep(-0.05, 0.1, temp) * smoothstep(0.0, 0.2, patch) * (1 - near) * (1 - ring) * (1 - mMask) * (1 - dW);
@@ -3567,12 +3592,43 @@ function villageAt(k, i) {
 }
 function villagesNear(x, z, r) {
   if (W.mode === 'island') return [];
+  const out = [];
+  // version 5: villages everywhere in new land, one in about every second field of 420 blocks
+  for (let gx = Math.floor((x - r - VILLAGE_R - 140) / VGRID); gx <= Math.floor((x + r + VILLAGE_R + 140) / VGRID); gx++)
+    for (let gz = Math.floor((z - r - VILLAGE_R - 140) / VGRID); gz <= Math.floor((z + r + VILLAGE_R + 140) / VGRID); gz++) {
+      const v = villageCell(gx, gz); if (v && Math.abs(v.x - x) <= r + VILLAGE_R && Math.abs(v.z - z) <= r + VILLAGE_R) out.push(v);
+    }
   const d = Math.hypot(x - CX, z - CZ);
   const k = Math.round(d / VILLAGE_RING);
-  if (k < 1 || Math.abs(d - k * VILLAGE_RING) > 200 + r) return [];
-  const out = [];
+  if (k < 1 || Math.abs(d - k * VILLAGE_RING) > 200 + r) return out;
   for (let i = 0; i < VILLAGE_N; i++) { const v = villageAt(k, i); if (v && Math.abs(v.x - x) <= r + VILLAGE_R && Math.abs(v.z - z) <= r + VILLAGE_R) out.push(v); }
   return out;
+}
+const VGRID = 420;
+function villageCell(gx, gz) {
+  const key = 'vg:' + gx + ':' + gz;
+  if (STRUCT_CACHE.has(key)) return STRUCT_CACHE.get(key);
+  let v = null;
+  const seed = W.seed;
+  if (W.gen >= 3 && hashi(gx, 95, gz, seed) < 0.6) {
+    for (let t = 0; t < 10 && !v; t++) {
+      const x = Math.round(gx * VGRID + 70 + hashi(gx, 96 + t, gz, seed) * (VGRID - 140)), z = Math.round(gz * VGRID + 70 + hashi(gx, 110 + t, gz, seed) * (VGRID - 140));
+      if (Math.hypot(x - CX, z - CZ) < 230) continue;
+      colInfo(x, z, _vi);
+      if (_vi.h <= SEA + 2 || _vi.wet > 0.05 || _vi.b === BIO.MOUNTAIN || _vi.b === BIO.DARK) continue;
+      let lo = 1e9, hi = -1e9;
+      for (const [dx, dz] of [[-14, 0], [14, 0], [0, -14], [0, 14], [10, 10], [-10, -10], [10, -10], [-10, 10]]) { const hh = colHeight(x + dx, z + dz); lo = Math.min(lo, hh); hi = Math.max(hi, hh); }
+      if (hi - lo > 7 || lo <= SEA) continue;
+      v = { id: 'g' + gx + '_' + gz, x, z, ground: Math.round(clamp(_vi.h, SEA + 2, WY - 24)), kind: 'village', seed: Math.floor(hashi(gx, 97, gz, seed) * 1e9), houses: [] };
+    }
+    // only in land that is new (version 5): what was explored before stays as it is
+    if (v) {
+      const c0x = (v.x - VILLAGE_R - 2) >> 4, c1x = (v.x + VILLAGE_R + 2) >> 4, c0z = (v.z - VILLAGE_R - 2) >> 4, c1z = (v.z + VILLAGE_R + 2) >> 4;
+      for (let cx = c0x; cx <= c1x && v; cx++) for (let cz = c0z; cz <= c1z; cz++) if (!chunkV5(ckey(cx, cz))) { v = null; break; }
+    }
+  }
+  STRUCT_CACHE.set(key, v);
+  return v;
 }
 function villageOps(v) {
   const ops = [];
@@ -3740,6 +3796,8 @@ function generateChunk(cx, cz) {
   // die Höhlen der vierten Version: in neuen Welten überall, in älteren nur in Chunks, die noch nie da waren
   const useV4 = W.cave >= 4 || W.cave4.has(c.key) || (!W.explored.has(c.key) && !W.genOld.has(c.key));
   if (useV4 && W.cave < 4) W.cave4.add(c.key);
+  const useV5 = chunkV5(c.key);
+  if (useV5 && !W.gen5) W.g5.add(c.key);
   const N = W.N, seed = W.seed;
   const bl = c.blocks;
   const H = new Int16Array(CS * CS);
@@ -3780,7 +3838,7 @@ function generateChunk(cx, cz) {
     for (let y = 0; y <= top; y++) bl[base + y] = y === 0 ? B.BEDROCK : y === top ? surf : y > top - depth ? fill : B.STONE;
     for (let y = top + 1; y <= SEA; y++) bl[base + y] = B.WATER;
   }
-  if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV4) carveCaves4(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
+  if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV5) carveCaves4(c, H, info, true); else if (useV4) carveCaves4(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
   modOresChunk(c);
   // structures
   const structs = structuresFor(cx, cz, useV3 || useV4);
@@ -4411,7 +4469,7 @@ function resetWorld(seed, mode, gen) {
   SEA = W.gen >= 3 ? 106 : 30;
   RING_OUT = W.gen >= 3 ? 560 : 375;
   VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
+  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ W.gen5 = true; W.g5.clear(); V5W.clear(); WORM5_CACHE.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -4486,7 +4544,7 @@ function dropTree(t, l, n) {
      Kristall, Eis, Sand oder Magma.
    ========================================================================= */
 const WORM4_G = 48, WORM4_REACH = 150;
-const WORM4_CACHE = new Map();
+const WORM4_CACHE = new Map(), WORM5_CACHE = new Map();   // 5: Version 5 (2.21): mehr Höhlen, Eingänge als Löcher statt Gräben, Höhlen ganz unter der Erde
 const CB = { NONE: 0, PLAIN: 1, DRIP: 2, LUSH: 3, SHROOM: 4, CRYSTAL: 5, ICE: 6, SAND: 7, MAGMA: 8 };
 const _c4 = {};
 function pickCaveBiome(R, far, surf) {
@@ -4505,9 +4563,10 @@ function pickCaveBiome(R, far, surf) {
   let v = t * sum; for (const [b, w] of list) { if ((v -= w) < 0) return b; }
   return CB.PLAIN;
 }
-function wormCell4(gx, gz) {
+function wormCell4(gx, gz, v5) {
   const key = gx + ',' + gz;
-  let w = WORM4_CACHE.get(key);
+  const CACHE = v5 ? WORM5_CACHE : WORM4_CACHE;
+  let w = CACHE.get(key);
   if (w !== undefined) return w;
   w = null;
   const seed = W.seed;
@@ -4515,14 +4574,15 @@ function wormCell4(gx, gz) {
   const sx = gx * WORM4_G + 6 + Math.floor(R() * (WORM4_G - 12)), sz = gz * WORM4_G + 6 + Math.floor(R() * (WORM4_G - 12));
   const dd = Math.hypot(sx - CX, sz - CZ) / (W.mode === 'island' ? ISLAND_S : 1);
   const far = caveFar(dd);
-  const p = far < 0.12 ? 0.17 : 0.16 + 0.18 * far;
+  const p = v5 ? (far < 0.12 ? 0.24 : 0.25 + 0.22 * far) : far < 0.12 ? 0.17 : 0.16 + 0.18 * far;
+  const pts = [], falls = [], pools = [];
+  let bio = CB.PLAIN, top0 = 0;
   if (dd >= 28 && R() < p) {
     colInfo(sx, sz, _c4);
     const top = Math.round(clamp(_c4.h, 2, WY - 14));
     if (top > SEA + 1 && _c4.wet < 0.1) {
       const lava = caveLavaY();
-      const bio = pickCaveBiome(R, far, _c4.b);
-      const pts = [], falls = [], pools = [];
+      bio = pickCaveBiome(R, far, _c4.b); top0 = top;
       const add = (x, y, z, rh, rv) => pts.push([x, y, z, rh, rv]);
       // der Eingang: ein Gang, der schräg nach unten führt
       let x = sx + 0.5, y = top + 1.5, z = sz + 0.5, a = R() * TAU;
@@ -4533,6 +4593,8 @@ function wormCell4(gx, gz) {
       while (y > tY && steps++ < 120) {
         a += (R() - 0.5) * 0.42;
         pitch = clamp(pitch + (R() - 0.5) * 0.16, -0.62, -0.18);
+        // version 5: the first metres go steeply down, a hole in the ground and no long open trench
+        if (v5 && top - y < 7) pitch = -0.95;
         const c = Math.cos(pitch);
         x += Math.cos(a) * c * 1.1; z += Math.sin(a) * c * 1.1; y += Math.sin(pitch) * 1.1;
         const room = steps % 18 === 17 && R() < 0.5 ? 1.6 + R() * 1.6 : 0;
@@ -4574,22 +4636,44 @@ function wormCell4(gx, gz) {
           add(tx, ty, tz, tr, tr * 0.85);
         }
       }
-      const keep = pts.filter((q) => Math.abs(q[0] - sx) < WORM4_REACH && Math.abs(q[2] - sz) < WORM4_REACH);
-      if (keep.length) {
-        let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
-        for (const q of keep) { x0 = Math.min(x0, q[0] - q[3]); x1 = Math.max(x1, q[0] + q[3]); z0 = Math.min(z0, q[2] - q[3]); z1 = Math.max(z1, q[2] + q[3]); }
-        w = { pts: keep, falls, pools, far, bio, x0, x1, z0, z1, ex: sx, ez: sz };
+    }
+  }
+  // version 5: more caves deep under the ground, without an opening at the top
+  if (v5 && dd >= 50) {
+    const Q = mulberry32((hashi(gx, 402, gz, seed) * 4294967296) >>> 0);
+    if (Q() < 0.38 + 0.3 * far) {
+      const ux = gx * WORM4_G + 8 + Math.floor(Q() * (WORM4_G - 16)), uz = gz * WORM4_G + 8 + Math.floor(Q() * (WORM4_G - 16));
+      colInfo(ux, uz, _c4);
+      const top = Math.round(clamp(_c4.h, 2, WY - 14)), lava = caveLavaY();
+      const cy = Math.max(lava + 6, Math.min(top - 16, SEA - 6) - Q() * (18 + 34 * far));
+      if (!pts.length) { bio = pickCaveBiome(Q, far, _c4.b); top0 = top; }
+      const n = 2 + Math.floor(Q() * (2 + far * 2));
+      for (let k = 0; k < n; k++) {
+        let tx = ux, ty = cy, tz = uz, ta = Q() * TAU, tp = 0;
+        const len = 22 + Math.floor(Q() * (26 + far * 20)), tr = 1.4 + Q() * (0.9 + far * 0.6);
+        for (let s = 0; s < len; s++) {
+          ta += (Q() - 0.5) * 0.45; tp = clamp(tp * 0.85 + (Q() - 0.5) * 0.3, -0.45, 0.35);
+          tx += Math.cos(ta) * 1.15; tz += Math.sin(ta) * 1.15; ty = clamp(ty + tp * 1.15, lava + 3, top - 12);
+          const room = s % 14 === 13 && Q() < 0.45 ? 1.2 + Q() * (1.6 + far * 2) : 0;
+          pts.push([tx, ty, tz, tr + room, tr * 0.85 + room * 0.6]);
+        }
       }
     }
   }
-  WORM4_CACHE.set(key, w);
+  const keep = pts.filter((q) => Math.abs(q[0] - sx) < WORM4_REACH && Math.abs(q[2] - sz) < WORM4_REACH);
+  if (keep.length) {
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+    for (const q of keep) { x0 = Math.min(x0, q[0] - q[3]); x1 = Math.max(x1, q[0] + q[3]); z0 = Math.min(z0, q[2] - q[3]); z1 = Math.max(z1, q[2] + q[3]); }
+    w = { pts: keep, falls, pools, far, bio, x0, x1, z0, z1, ex: sx, ez: sz, top: top0 };
+  }
+  CACHE.set(key, w);
   return w;
 }
-function carveWorms4(c, H, bl, lava, cb) {
+function carveWorms4(c, H, bl, lava, cb, v5) {
   const cx0 = c.x0, cz0 = c.z0;
   for (let gx = Math.floor((cx0 - WORM4_REACH - 4) / WORM4_G); gx <= Math.floor((cx0 + CS + WORM4_REACH + 4) / WORM4_G); gx++)
     for (let gz = Math.floor((cz0 - WORM4_REACH - 4) / WORM4_G); gz <= Math.floor((cz0 + CS + WORM4_REACH + 4) / WORM4_G); gz++) {
-      const w = wormCell4(gx, gz); if (!w) continue;
+      const w = wormCell4(gx, gz, v5); if (!w) continue;
       if (w.x1 < cx0 - 1 || w.x0 > cx0 + CS || w.z1 < cz0 - 1 || w.z0 > cz0 + CS) continue;
       for (const p of w.pts) {
         const rh = p[3], rv = p[4];
@@ -4631,7 +4715,7 @@ function carveWorms4(c, H, bl, lava, cb) {
       }
     }
 }
-function carveCaves4(c, H, info) {
+function carveCaves4(c, H, info, v5) {
   const N = W.N, seed = W.seed, bl = c.blocks;
   const lava = caveLavaY(), deepY = caveDeepY();
   const cb = new Uint8Array(CS * CS * WY);
@@ -4659,7 +4743,7 @@ function carveCaves4(c, H, info) {
     }
   }
   // 3) die Höhlen mit Eingang
-  carveWorms4(c, H, bl, lava, cb);
+  carveWorms4(c, H, bl, lava, cb, v5);
   // 4) Höhlenbiome, Erze
   const RND = (x, y, z, s) => hashi(x, y, z, seed + s);
   for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
@@ -7417,7 +7501,7 @@ function makeSave() {
   const sheep = [];
   for (const [id, st] of W.sheepState) if (!st[0] && st[1] > G.playTime) sheep.push(id, st[1]);
   return {
-    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
+    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: G.inv, tools: G.tools, hotbar: G.hotbar, bag: G.bag || [], sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
@@ -7507,6 +7591,7 @@ function applySave(s, convert) {
     for (const id of s.clr || []) W.cleared.add(id);
     for (const k of s.ex || []) W.explored.add(k);
     markOldChunks(s);
+    W.gen5 = !!s.g5w; W.g5 = new Set(Array.isArray(s.g5) ? s.g5 : []); V5W.clear(); WORM5_CACHE.clear(); STRUCT_CACHE.clear();
     if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
     for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
   }
@@ -16464,7 +16549,7 @@ async function modsBegin() {
   const wait = MODRT.netWait || []; MODRT.netWait = [];
   if (n) setTimeout(() => { for (const [t, v] of wait) if (performance.now() - t < 15000) modNetEvent(v); }, 800);
   const srvTxt = modServerMode() ? ' (Server)' : MP.isClient() ? ' (aus der Welt von ' + (MP.hostName || 'deinem Freund') + ')' : '';
-  if (n) setTimeout(() => UI.toast(e && e.temp ? 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.' : n + (n === 1 ? ' Mod ist aktiv' : ' Mods sind aktiv') + srvTxt + '.', 'info', e && e.temp ? 5200 : 2800, 'modsOn'), 600);
+  if (n) setTimeout(() => UI.toast(e && e.temp ? (e.testFrom === 'admin' ? 'Testwelt: „' + e.testMod.name + '“ läuft. Zurück zur Prüfung über Pause → Hauptmenü.' : 'Testwelt: deine Mod läuft. Zurück zum Editor über Pause → Hauptmenü.') : n + (n === 1 ? ' Mod ist aktiv' : ' Mods sind aktiv') + srvTxt + '.', 'info', e && e.temp ? 5200 : 2800, 'modsOn'), 600);
   if (updated.length) setTimeout(() => UI.toast('Aktualisiert: ' + updated.slice(0, 3).join(', ') + (updated.length > 3 ? ' und ' + (updated.length - 3) + ' mehr' : '') + '.', 'good', 3600, 'modsUpd'), 1400);
   if (updated.length && G.server && MP.isHost()) SERVER.save(true);
 }
@@ -17065,11 +17150,16 @@ async function modTestWorld() {
   msg('Prüfe …', true);
   const r = await MODS.test(code); if (!r.ok) { msg(r.msg); return; }
   const draft = { id: '__test', name: ($('mdName').value.trim() || 'Meine Mod').slice(0, 30), icon: $('mdIcon').value.trim() || '🧩', desc: $('mdDesc').value.trim(), cat: $('mdCat').value, code };
-  UI._modDraftOpen = true;
+  await modTestRun(draft, 'editor');
+}
+/* a mod alone in a fresh test world (from the editor, or the owner checks a submitted mod) */
+async function modTestRun(draft, from) {
+  if (busyLoading()) return;
+  UI._modDraftOpen = from || 'editor';
   UI.closeAll();
   const seed = Math.floor(Math.random() * 1e9);
-  const e = { id: '__modtest', name: 'Mod-Test: ' + draft.name, seed, mode: 'endless', mods: ['__test'], temp: true, testMod: draft, updated: Date.now(), day: 1 };
-  if (busyLoading()) return;
+  draft = Object.assign({}, draft, { id: '__test' });
+  const e = { id: '__modtest', name: 'Mod-Test: ' + draft.name, seed, mode: 'endless', mods: ['__test'], temp: true, testMod: draft, testFrom: from, updated: Date.now(), day: 1 };
   if (MP.isClient()) await MP.leave(true);
   if (MP.isHost()) await MP.closeRoom();
   G.server = null;
@@ -17081,7 +17171,8 @@ async function modTestWorld() {
 /* zurück im Menü nach einer Testwelt: der Editor ist wieder offen, der Code noch da */
 function modAfterTest() {
   if (!UI._modDraftOpen) return;
-  UI._modDraftOpen = false;
+  const from = UI._modDraftOpen; UI._modDraftOpen = false;
+  if (from === 'admin') { setTimeout(() => { UI.openAdmin(); admMsg('Zurück aus der Testwelt. Du kannst die Mod jetzt annehmen oder ablehnen.', true); const el = $('admMods'); if (el) el.scrollIntoView({ block: 'center' }); }, 200); return; }
   setTimeout(() => { UI.openMods('up'); const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Zurück aus der Testwelt. Du kannst weiter am Code arbeiten oder ihn einreichen.'; }, 200);
 }
 
@@ -17148,6 +17239,10 @@ async function renderAdminMods() {
     $('admModsN').textContent = ids.length;
     if (!ids.length) pe.innerHTML = '<div class="list-empty">Keine Mods zur Prüfung.</div>';
     for (const k of ids) add(pe, p[k], [
+      ['▶ Testen', '', async () => {
+        const t = await MODS.test(p[k].code || ''); if (!t.ok) { admMsg('Die Mod hat einen Fehler: ' + t.msg); return; }
+        await modTestRun({ name: p[k].name || 'Mod', icon: p[k].icon || '🧩', desc: p[k].desc || '', cat: p[k].cat || 'fun', code: p[k].code || '' }, 'admin');
+      }],
       ['Annehmen', 'primary', async () => {
         const u = {}; const rec = Object.assign({}, p[k], { approvedAt: NET.TS() }); const rp = rec.replaces; delete rec.replaces;
         // ein Update einer schon veröffentlichten Mod (gleicher Autor): die alte wird ersetzt, Installationen bleiben
