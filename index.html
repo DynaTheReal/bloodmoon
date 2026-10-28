@@ -1960,8 +1960,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.35.0';
+const GAME_VERSION = '2.35.1';
 const GAME_NOTES = [
+  ['2.35.1', 'Server-Animation: statt eines Tunnels laufen weiße Speedlinien quer über die Welt, die Welt zieht zur Seite weg und eine Landschaft rast vorbei. Beim Ankommen kommt die Welt des Servers von der anderen Seite herein und bremst ab.'],
   ['2.35.0', 'Mit einem Server verbinden (aus dem Hauptmenü): die Kamera fährt geradeaus los, wird immer schneller, bis alles zu Lichtstreifen wird wie bei einer Reise durch die Zeit. Ein kleines Fenster zeigt den Fortschritt, Abbrechen geht jederzeit. Steht die Verbindung, wird es langsamer und du kommst auf dem Server an. Eigene Welten laden wie immer.'],
   ['2.34.0', 'Wegpunkte-Mod: Todespunkt (schwarzer Wegpunkt „Letzter Tod“, verschwindet auf 10 Blöcke Nähe, im Menü abschaltbar), temporäre Wegpunkte (über die Weltkarte oder durch Antippen der Karte in der Hand, verschwinden, sobald du dort bist), Pingen mit B oder 🔔: auf eine Stelle tippen, alle sehen den Ping eine Minute lang, außerhalb des Bildes rechts am Rand. Neue Welt: wenn das Standard-Modpack von DynaTheReal noch nicht installiert ist, wird es angeboten (Ja/Nein, „Nicht mehr anzeigen“).'],
   ['2.33.0', 'Mods: neuer Reiter „Zuletzt verwendet“ mit den Mods, die du zuletzt in deinen Welten benutzt hast. Beim Auswählen der Mods für eine Welt gibt es neben „Fertig“ jetzt „Fertig und spielen“. Neuer Reiter „📦 Modpacks“: mehrere Mods aus der Bibliothek zu einem Modpack zusammenstellen, mit Namen und Emoji oder Bild, wird sofort hochgeladen (ohne Prüfung). Ein Klick installiert alle Mods (oder schaltet sie in einer Welt an). Das Fenster „Welt bearbeiten“ ist neu gestaltet: Bild und Name der Welt oben, ein großer Spielen-Knopf, die Mods der Welt als Schilder, alles übersichtlich in Kästen.'],
@@ -24239,8 +24240,9 @@ function modFlyDraw() {
 /* ---- 19zb_warp.js ---- */
 /* =========================================================================
    Verbinden mit einem Server (aus dem Hauptmenü): die Kamera fährt
-   geradeaus los, erst langsam, dann immer schneller, bis alles zu
-   Lichtstreifen wird, wie eine Reise durch die Zeit. Ein kleines Fenster
+   geradeaus los, erst langsam, dann immer schneller; weiße Speedlinien
+   laufen quer über die Welt, die Welt zieht zur Seite weg und eine
+   Landschaft rast vorbei. Ein kleines Fenster
    zeigt, wie weit die Verbindung ist, und man kann abbrechen. Steht die
    Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
    (Eigene Welten laden wie immer.)
@@ -24319,63 +24321,83 @@ function warpLoop() {
   if (!warpOn()) return;
   WARP.raf = requestAnimationFrame(warpLoop);
   const now = performance.now(), dt = clamp((now - WARP.last) / 1000, 0, 0.1); WARP.last = now;
-  const tt = (now - WARP.t0) / 1000;
-  let alpha = 1, target = 1;
+  const tt = (now - WARP.t0) / 1000, Wd = window.innerWidth, gl = $('gl');
+  let target = 1, slide = 0;   // slide: wo die Welt gerade ist (-1 links raus, 0 Mitte, +1 rechts draußen)
   if (WARP.phase === 'accel') {
     const k = clamp(tt / WARP.accelDur, 0, 1);
-    target = 0.05 + k * k * 0.95; alpha = clamp((k - 0.3) / 0.6, 0, 1);
+    target = 0.08 + k * k * 0.92;
+    // erst fährt die Kamera, dann zieht die Welt immer schneller nach links weg
+    const m = clamp((k - 0.45) / 0.55, 0, 1);
+    slide = -(m * m * m);
     if (k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; $('warpBox').hidden = false; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
   } else if (WARP.phase === 'cruise') {
-    target = 1 + Math.sin(tt * 2.1) * 0.06;
+    target = 1 + Math.sin(tt * 2.1) * 0.06; slide = -1;
   } else if (WARP.phase === 'arrive') {
+    // die neue Welt kommt von der anderen Seite herein und bremst ab
     const k = clamp(tt / WARP.arriveDur, 0, 1);
-    target = (1 - k) * (1 - k); alpha = 1 - k * k * (3 - 2 * k);
-    // die Welt kommt aus der Tiefe näher
-    $('gl').style.transform = 'scale(' + (1 + (1 - k) * (1 - k) * 0.35).toFixed(3) + ')';
+    const e = 1 - Math.pow(1 - k, 3);
+    slide = 1 - e; target = (1 - e) * 0.9;
     if (k >= 1) { warpStop(); return; }
   }
   WARP.speed += (target - WARP.speed) * Math.min(1, dt * 4);
-  warpDraw(alpha, dt);
+  WARP.slide = slide;
+  gl.style.transform = slide ? 'translateX(' + (slide * Wd).toFixed(1) + 'px)' : '';
+  gl.style.filter = Math.abs(slide) > 0.001 && Math.abs(slide) < 1 ? 'blur(' + (Math.min(1, WARP.speed) * 3).toFixed(1) + 'px)' : '';
+  warpDraw(dt);
 }
-function warpDraw(alpha, dt) {
+/* über die Welt hinweg: Himmel, Hügel und Boden rasen nach links, weiße Speedlinien darüber */
+function warpDraw(dt) {
   const cv = WARP.cv, ctx = WARP.ctx;
   const dpr = Math.min(2, window.devicePixelRatio || 1), Wd = window.innerWidth, Ht = window.innerHeight;
   if (cv.width !== Math.round(Wd * dpr) || cv.height !== Math.round(Ht * dpr)) { cv.width = Math.round(Wd * dpr); cv.height = Math.round(Ht * dpr); }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, Wd, Ht);
-  if (alpha <= 0.002) return;
-  const cx = Wd / 2, cy = Ht / 2, R = Math.hypot(Wd, Ht) * 0.55, sp = WARP.speed, t = performance.now() / 1000;
-  ctx.globalAlpha = alpha;
-  // der Tunnel: dunkel in der Mitte, blau-violett am Rand
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-  g.addColorStop(0, '#0a0620'); g.addColorStop(0.45, '#120a36'); g.addColorStop(1, '#2a1260');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, Wd, Ht);
-  // Ringe, die an dir vorbeiziehen (wie Sekunden, die vorbeifliegen)
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 7; i++) {
-    const z = ((t * (0.25 + sp * 0.9) + i / 7) % 1);
-    const r = Math.pow(z, 3) * R * 1.4;
-    ctx.strokeStyle = 'rgba(140,120,255,' + (0.18 * z * sp) + ')';
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  const sp = WARP.speed, sl = WARP.slide || 0;
+  WARP.x = (WARP.x || 0) + dt * (60 + sp * 2600);
+  // wo die echte Welt nicht ist, kommt die Reise-Landschaft (sie schiebt sich mit der Welt herein und hinaus)
+  let x0 = 0, x1 = Wd;
+  if (sl < 0) x0 = Wd + sl * Wd; else if (sl > 0) x1 = sl * Wd;
+  if (x1 - x0 > 0.5) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, x1 - x0, Ht); ctx.clip();
+    const hz = Ht * 0.52;
+    const sky = ctx.createLinearGradient(0, 0, 0, hz + 40);
+    sky.addColorStop(0, '#5f9ee0'); sky.addColorStop(1, '#cfe4f4');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, Wd, hz + 80);
+    // ferne Hügel (langsam) und nahe Hügel (schneller)
+    const hills = (yBase, amp, f, speed, col) => {
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, Ht);
+      const off = WARP.x * speed;
+      for (let x = 0; x <= Wd + 8; x += 8) { const u = (x + off) * f; ctx.lineTo(x, yBase - (Math.sin(u) * 0.6 + Math.sin(u * 2.3 + 1.7) * 0.3 + Math.sin(u * 5.1) * 0.1) * amp); }
+      ctx.lineTo(Wd, Ht); ctx.closePath(); ctx.fill();
+    };
+    hills(hz + 6, 26, 0.006, 0.05, '#8fb9a0');
+    hills(hz + 30, 34, 0.01, 0.15, '#5f9e58');
+    // der Boden: Streifen, die vorbeirasen
+    const g = ctx.createLinearGradient(0, hz + 30, 0, Ht);
+    g.addColorStop(0, '#5aa346'); g.addColorStop(1, '#3f7f34');
+    ctx.fillStyle = g; ctx.fillRect(0, hz + 40, Wd, Ht - hz - 40);
+    ctx.fillStyle = 'rgba(30,70,25,0.35)';
+    const off = WARP.x * 0.6;
+    for (let k = 0; k < 18; k++) {
+      const y = hz + 44 + Math.pow(k / 18, 1.6) * (Ht - hz - 44), h = 2 + k * 0.9, step = 120 + k * 40;
+      for (let x = -((off * (0.3 + k * 0.08)) % step); x < Wd; x += step) ctx.fillRect(x, y, step * 0.35, h);
+    }
+    ctx.restore();
   }
-  // Lichtstreifen: Sterne, die in die Länge gezogen werden
-  ctx.lineCap = 'round';
-  for (const s of WARP.stars) {
-    s.z += dt * (0.08 + sp * 1.6) * (0.6 + s.h * 0.8);
-    if (s.z > 1) { s.z -= 1; s.a = Math.random() * Math.PI * 2; }
-    const p = Math.pow(s.z, 2.2), len = 0.02 + sp * 0.22 * (0.4 + s.z);
-    const r1 = (s.r * 0.15 + p) * R, r0 = Math.max(0, r1 - len * R * (0.3 + s.z));
-    const ca = Math.cos(s.a), sa = Math.sin(s.a);
-    const hue = s.h < 0.55 ? '170,220,255' : s.h < 0.85 ? '200,170,255' : '255,255,255';
-    ctx.strokeStyle = 'rgba(' + hue + ',' + clamp(0.25 + s.z * 0.9, 0, 1) + ')';
-    ctx.lineWidth = 0.6 + s.z * 2.2;
-    ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
+  // weiße Speedlinien: sie laufen quer über alles (auch über die echte Welt)
+  if (!WARP.lines) { const r = mulberry32(77); WARP.lines = []; for (let i = 0; i < 70; i++) WARP.lines.push({ y: r(), x: r(), l: 0.08 + r() * 0.3, v: 0.6 + r() * 1.2, w: 1 + r() * 2.4, a: 0.35 + r() * 0.6 }); }
+  if (sp > 0.05) {
+    ctx.lineCap = 'round';
+    for (const L of WARP.lines) {
+      L.x -= dt * L.v * (0.3 + sp * 3.2);
+      if (L.x < -L.l) { L.x = 1 + Math.random() * 0.3; L.y = Math.random(); }
+      const y = L.y * Ht, xa = L.x * Wd, xb = xa + L.l * Wd * (0.4 + sp);
+      const gr = ctx.createLinearGradient(xa, 0, xb, 0);
+      gr.addColorStop(0, 'rgba(255,255,255,' + (L.a * Math.min(1, sp)).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.strokeStyle = gr; ctx.lineWidth = L.w;
+      ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb, y); ctx.stroke();
+    }
   }
-  // helles Licht am Ende des Tunnels
-  const gl2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.28);
-  gl2.addColorStop(0, 'rgba(255,255,255,' + (0.55 * sp) + ')'); gl2.addColorStop(0.4, 'rgba(170,150,255,' + (0.2 * sp) + ')'); gl2.addColorStop(1, 'rgba(120,100,255,0)');
-  ctx.fillStyle = gl2; ctx.fillRect(0, 0, Wd, Ht);
-  ctx.globalAlpha = 1;
 }
 function bindWarp() {
   $('warpCancel').addEventListener('click', () => {
