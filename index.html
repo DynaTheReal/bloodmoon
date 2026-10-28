@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.9';
+const GAME_VERSION = '2.37.10';
 const GAME_NOTES = [
+  ['2.37.10', 'Server betreten ohne Ruckeln: während die Welt des Servers gebaut wird, fährt die Kamera über die alte Welt weiter. Die neue Welt wird in kleinen Stücken gebaut (darf dafür etwas länger dauern), damit das Bild flüssig bleibt.'],
   ['2.37.9', 'Server betreten: die Welt wird sofort geladen, nicht erst im Weltraum. Ist sie fertig, bevor der Weltraum kommt, fliegst du gleich in die Welt des Servers, sonst kommt der Weltraum, bis sie fertig ist.'],
   ['2.37.8', 'Server betreten wieder wie gewohnt: die Kamera fährt ganz langsam los und wird immer schneller, danach kommt immer der Weltraum. Sobald die Welt geladen ist, fliegst du aus dem Weltraum in die Welt des Servers. (Heruntergeladen wird schon ab dem ersten Moment.)'],
   ['2.37.7', 'Server betreten: die Kamera fährt immer ganz los (auch bei schneller Verbindung). Ist die Welt schon da, kommt danach kein Weltraum, sondern direkt die Fahrt in die Server-Welt.'],
@@ -6403,7 +6404,7 @@ function renderShadows(time, focus, viewDistBlocks) {
   gl.uniform1f(P.u('u_time'), time);
   gl.uniform1f(P.u('u_wind'), ENV.wind);
   gl.uniformMatrix4fv(P.u('u_model'), false, IDENT);
-  for (const c of CHM.values()) {
+  for (const c of renderChunks()) {
     if (!c.n || !c.ovao) continue;
     if (Math.abs(c.x0 + 8 - cx) > S + 12 || Math.abs(c.z0 + 8 - cz) > S + 12) continue;
     if (!aabbVisible(SH.planes, c.x0, c.minY, c.z0, c.x0 + CS, c.maxY + 1, c.z0 + CS)) continue;
@@ -6430,6 +6431,33 @@ function renderShadows(time, focus, viewDistBlocks) {
 }
 function sceneTarget() { return POST.on && POST.msFbo ? POST.msFbo : null; }
 
+/* Beim Losfahren zu einem Server wird die neue Welt schon gebaut, während man noch die alte sieht:
+   die fertigen Chunks der alten Welt werden so lange weiter gezeichnet (nur die Landschaft) */
+const GHOST = { chm: null, time: null, eye: null, target: null, tex: null };
+function renderChunks() { return (GHOST.chm || CHM).values(); }
+function ghostBegin() {
+  GHOST.chm = new Map(CHM);
+  CHM.clear(); dirtyChunks.clear();   // die neue Welt fängt leer an, die alten Chunks behalten ihre Grafik
+  GHOST.time = JSON.parse(JSON.stringify(G.time));
+  GHOST.eye = WARP.be.slice(); GHOST.target = WARP.bt.slice();
+}
+function ghostEnd() {
+  if (!GHOST.chm) return;
+  for (const c of GHOST.chm.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
+  GHOST.chm = null; GHOST.time = null;
+  if (GHOST.tex) { const t = GHOST.tex; GHOST.tex = null; buildTextureArray(t[0], t[1]); }
+}
+/* ein Bild der alten Welt, während die neue lädt: die Kamera fährt weiter */
+function ghostFrame(dt) {
+  if (WARP.phase !== 'accel') return;   // der Weltraum deckt schon alles zu
+  shaderTime += dt;
+  const eye = GHOST.eye.slice(), target = GHOST.target.slice();
+  warpCam(eye, target);
+  CAM.eye = eye; CAM.target = target;
+  computeEnv(GHOST.time, viewDistNow());
+  BATCH.solid.clear(); BATCH.trans.clear(); BATCH.view.clear(); BATCH.skin.clear(); MODELS_DRAW.length = 0;
+  renderFrame(shaderTime, CAM.target, RENDER_OPTS);
+}
 function renderFrame(time, focus, opts) {
   const w = canvas.width, h = canvas.height;
   updateCamMatrices(w / h);
@@ -6486,7 +6514,7 @@ function renderFrame(time, focus, opts) {
   const ex = CAM.eye[0], ez = CAM.eye[2];
   const maxD = Math.min(opts.viewDist * CS + 12, ENV.fogEnd + 30);
   visibleChunks = [];
-  for (const c of CHM.values()) {
+  for (const c of renderChunks()) {
     if (!c.ready) continue;
     const dx = c.x0 + 8 - ex, dz = c.z0 + 8 - ez;
     const d2 = dx * dx + dz * dz;
@@ -14780,10 +14808,13 @@ async function loadWorld(seed, save, opts = {}) {
   await nextFrame();
   for (const f of G.falling) freeModel(f.model);
   G.falling = []; G.sheep = []; G.zombies = [];
+  // zu einem Server unterwegs: die alte Welt bleibt zu sehen, die Kamera fährt weiter, die neue wird nebenher gebaut
+  const ghost = typeof WARP !== 'undefined' && WARP.phase === 'accel' && !!WARP.be && !GHOST.chm;
+  if (ghost) ghostBegin();
   resetWorld(seed, mode, save ? ((save.gen | 0) || 2) : 3);
   resetWeather();
   computeTileAverages(seed);
-  buildTextureArray(QP().tex, seed);
+  if (GHOST.chm) GHOST.tex = [QP().tex, seed]; else buildTextureArray(QP().tex, seed);
   TILE_CANVAS.clear();
   resetGameState();
   if (save) applySave(save, opts.convert);
@@ -14814,7 +14845,7 @@ async function loadWorld(seed, save, opts = {}) {
   for (const [a, b] of offs) {
     if (!CHM.has(ckey(pcx + a, pcz + b))) generateChunk(pcx + a, pcz + b);
     n++;
-    if (performance.now() - tl > 80) { setLoad(0.05 + 0.65 * n / offs.length, 'Erschaffe Landschaft'); await nextFrame(); tl = performance.now(); }
+    if (performance.now() - tl > (GHOST.chm ? 9 : 80)) { setLoad(0.05 + 0.65 * n / offs.length, 'Erschaffe Landschaft'); await nextFrame(); tl = performance.now(); }
   }
   fixPlayerPos();
   initMerchant();
@@ -14822,7 +14853,7 @@ async function loadWorld(seed, save, opts = {}) {
   updateFarFog(0, PL.x, PL.z);
   let left = dirtyChunks.size, done = 0;
   while (dirtyChunks.size) {
-    const k = processMeshQueue(70, PL.x, PL.z, R * CS + 8);
+    const k = processMeshQueue(GHOST.chm ? 9 : 70, PL.x, PL.z, R * CS + 8);
     done += k;
     setLoad(0.72 + 0.26 * Math.min(1, done / Math.max(1, left)), 'Baue Landschaft');
     await nextFrame();
@@ -14867,6 +14898,7 @@ function streamWorld(dt, inMenu) {
 function randomSeed() { return (Math.floor(Math.random() * 2147483646) + 1) >>> 0; }
 
 function showMenu() {
+  ghostEnd();
   G.state = 'menu';
   if (typeof WARP !== 'undefined' && WARP.phase !== 'off') warpStop();
   modsEnd();
@@ -14892,6 +14924,7 @@ async function toMenu(fromMp) {
   if (WORLDS.current && WORLDS.current.temp) { WORLDS.current = null; G.loadedWorld = null; modAfterTest(); }
 }
 function startPlaying() {
+  ghostEnd();
   SFX.unlock();
   SFX.setVolume(SETTINGS.volume);
   $('scrMenu').hidden = true; $('scrLoad').hidden = true; $('scrSkins').hidden = true;
@@ -15218,6 +15251,7 @@ function frame(now) {
   let dt = (now - lastT) / 1000; lastT = now;
   if (!(dt > 0)) dt = 0.016;
   if (dt > 0.1) dt = 0.1;
+  if (GHOST.chm) { guard('Größe', () => resize()); guard('Fahrt', () => ghostFrame(dt)); return; }
   if (G.state === 'loading') return;
   guard('Größe', () => resize());
   shaderTime += dt;
@@ -24479,7 +24513,7 @@ function warpCanvas() {
 /* los geht es: die Kamera fährt an (die Welt im Menü wird noch gezeichnet) */
 function warpStart(name) {
   warpCanvas();
-  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.k = 0; WARP.alpha = 0; WARP.a0 = 0; WARP.lift = 0; WARP.lt = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
+  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.k = 0; WARP.be = null; WARP.bt = null; WARP.alpha = 0; WARP.a0 = 0; WARP.lift = 0; WARP.lt = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
   WARP.done = new Promise((r) => { WARP.wait = r; });
   $('scrMenu').hidden = true;
   // alte Meldungen und Sprechblasen der Menü-Welt weg
@@ -24512,6 +24546,7 @@ function warpProgress(p, txt) {
 }
 /* angekommen: langsamer werden, die Streifen verblassen, die Welt kommt näher */
 function warpArrive() {
+  ghostEnd();
   if (!warpOn()) return;
   // so viel Weltraum, wie gerade zu sehen ist (keiner, wenn er noch gar nicht da war), blendet aus
   WARP.a0 = WARP.alpha || 0;
@@ -24523,6 +24558,7 @@ function warpArrive() {
   CAM.eye = [ex, ey, ez]; CAM.target = [ex + fx * 100, ey - 22, ez + fz * 100];
 }
 function warpStop() {
+  ghostEnd();
   WARP.phase = 'off'; cancelAnimationFrame(WARP.raf);
   if (WARP.cv) WARP.cv.hidden = true;
   $('warpBox').hidden = true;
@@ -24532,6 +24568,8 @@ function warpStop() {
 /* die Kamera im Menü fährt geradeaus, immer schneller */
 function warpCam(eye, target) {
   if (WARP.phase !== 'accel') return;
+  // die Ausgangsstellung merken (damit die Fahrt weitergehen kann, während die neue Welt schon gebaut wird)
+  if (!GHOST.chm) { WARP.be = eye.slice(); WARP.bt = target.slice(); }
   const t = Math.max(0, (performance.now() - WARP.t0) / 1000), k = clamp(t / WARP.accelDur, 0, 1);
   let dx = target[0] - eye[0], dy = target[1] - eye[1], dz = target[2] - eye[2];
   const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; dy = 0;
@@ -24540,10 +24578,12 @@ function warpCam(eye, target) {
   eye[0] += dx * d; eye[2] += dz * d; target[0] += dx * d; target[2] += dz * d;
   // über Berge drüber: die Kamera steigt sanft, wenn das Land vor ihr höher wird (sinkt aber nicht wieder, kein Schaukeln)
   const now = performance.now(), dts = clamp((now - WARP.lt) / 1000, 0, 0.1); WARP.lt = now;
-  let g = SEA;
-  for (const a of [0, 25, 55, 90]) g = Math.max(g, colTop(Math.floor(eye[0] + dx * a), Math.floor(eye[2] + dz * a)));
-  const need = g + 14 - eye[1];
-  if (need > WARP.lift) WARP.lift += (need - WARP.lift) * Math.min(1, dts * 2.5);
+  if (!GHOST.chm) {   // (die alte Welt ist dann nicht mehr abfragbar: die Höhe bleibt, wie sie ist)
+    let g = SEA;
+    for (const a of [0, 25, 55, 90]) g = Math.max(g, colTop(Math.floor(eye[0] + dx * a), Math.floor(eye[2] + dz * a)));
+    const need = g + 14 - eye[1];
+    if (need > WARP.lift) WARP.lift += (need - WARP.lift) * Math.min(1, dts * 2.5);
+  }
   eye[1] += WARP.lift; target[1] += WARP.lift;
   // die Welt vor der Kamera wird nachgeladen (nicht nur um den Spieler herum)
   WARP.cx = eye[0] + dx * 48; WARP.cz = eye[2] + dz * 48;
