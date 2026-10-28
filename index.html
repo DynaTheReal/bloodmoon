@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.5';
+const GAME_VERSION = '2.37.6';
 const GAME_NOTES = [
+  ['2.37.6', 'Server betreten: kein heller Lichtblitz mehr. Die Kamera fährt langsam los, nach gut drei Sekunden kommt der Weltraum. Ist die Welt schon vorher heruntergeladen, wird der Weltraum übersprungen und du fliegst direkt in die Welt des Servers.'],
   ['2.37.5', 'Server betreten: ist alles heruntergeladen, bevor der Weltraum kommt, gibt es keinen Weltraum mehr, sondern einen kurzen hellen Lichtblitz, und du fliegst gleich in die Welt des Servers. Nur bei langsamer Verbindung kommt noch der Weltraum.'],
   ['2.37.4', 'Server-Animation: die Kamera fährt ganz langsam los und dann immer schneller weit nach vorne (die Welt davor wird schneller nachgeladen, über Berge steigt sie drüber). Der Weltraum kommt erst nach gut drei Sekunden.'],
   ['2.37.3', 'Server-Animation gleichmäßig: die Kamera startet mit etwas Schwung und wird immer gleich stark schneller, egal wie schnell die Verbindung ist. Ist schon alles da, blenden die Lichtstreifen kurz ein und die Welt lädt darunter, ohne Ruckler.'],
@@ -24461,7 +24462,7 @@ function modFlyDraw() {
    Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
    (Eigene Welten laden wie immer.)
    ========================================================================= */
-const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 3.5, fade: 0.8, far: 300, cx: 0, cz: 0, flash: false, flashAt: 0, flashMin: 1.6, flashDur: 0.3, arriveDur: 1.1, wait: null, name: '' };
+const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 3.5, fade: 0.8, far: 300, cx: 0, cz: 0, skip: false, arriveDur: 1.1, wait: null, name: '' };
 
 function warpOn() { return WARP.phase !== 'off'; }
 function warpCanvas() {
@@ -24476,7 +24477,7 @@ function warpCanvas() {
 /* los geht es: die Kamera fährt an (die Welt im Menü wird noch gezeichnet) */
 function warpStart(name) {
   warpCanvas();
-  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.k = 0; WARP.flash = false; WARP.flashAt = 0; WARP.lift = 0; WARP.lt = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
+  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.k = 0; WARP.skip = false; WARP.lift = 0; WARP.lt = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
   WARP.done = new Promise((r) => { WARP.wait = r; });
   $('scrMenu').hidden = true;
   // alte Meldungen und Sprechblasen der Menü-Welt weg
@@ -24492,13 +24493,14 @@ function warpStart(name) {
 }
 /* wartet, bis die Kamera schnell genug ist (dann kommen nur noch die Lichtstreifen) */
 function warpAccelDone() { return WARP.phase === 'accel' ? WARP.done : Promise.resolve(); }
-/* alles ist schon heruntergeladen, bevor der Weltraum kommt: dann gibt es keinen Weltraum,
-   sondern einen kurzen hellen Lichtblitz, unter dem die Welt geladen wird (frühestens nach 1,6 s Fahrt) */
+/* alles ist schon heruntergeladen, bevor der Weltraum kommt: dann wird der Weltraum übersprungen,
+   die Welt wird gleich geladen und danach fliegt man direkt in sie hinein */
 function warpQuick() {
-  if (WARP.phase !== 'accel' || WARP.flashAt) return;
-  const now = performance.now(), tt = (now - WARP.t0) / 1000;
+  if (WARP.phase !== 'accel' || WARP.skip) return;
+  const tt = (performance.now() - WARP.t0) / 1000;
   if (tt > WARP.accelDur - WARP.fade) return;   // der Weltraum kommt schon, dann bleibt es dabei
-  WARP.flash = true; WARP.flashAt = Math.max(now, WARP.t0 + WARP.flashMin * 1000);
+  WARP.skip = true;
+  if (WARP.wait) { WARP.wait(); WARP.wait = null; }
 }
 /* abgebrochen? dann alles aufräumen und zurück ins Menü */
 async function warpAborted() {
@@ -24564,16 +24566,17 @@ function warpLoop() {
   if (WARP.phase === 'accel') {
     const k = WARP.k = clamp(tt / WARP.accelDur, 0, 1);
     // die Welt fliegt lange vorbei, der Weltraum kommt erst ganz am Ende
-    const x = WARP.flash ? clamp((now - WARP.flashAt) / 1000 / WARP.flashDur, 0, 1) : clamp(1 - (WARP.accelDur - tt) / WARP.fade, 0, 1);
+    const x = WARP.skip ? 0 : clamp(1 - (WARP.accelDur - tt) / WARP.fade, 0, 1);
     alpha = x * x * (3 - 2 * x);
     target = Math.max(0.05 + k * k * 0.95, alpha * 0.9);
-    if (k >= 1 || alpha >= 0.999) { WARP.phase = 'cruise'; WARP.t0 = now; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
+    if (!WARP.skip && k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
   } else if (WARP.phase === 'cruise') {
     target = 1 + Math.sin(tt * 2.1) * 0.06;
   } else if (WARP.phase === 'arrive') {
     // umgekehrt wie beim Losfahren: es wird langsamer, die Streifen verblassen, du fliegst in die neue Welt hinein
     const k = clamp(tt / WARP.arriveDur, 0, 1);
     target = (1 - k) * (1 - k); alpha = 1 - k * k * (3 - 2 * k);
+    if (WARP.skip) alpha = 0;   // ohne Weltraum: nur die Fahrt in die neue Welt
     if (k >= 1) { warpStop(); return; }
   }
   WARP.speed += (target - WARP.speed) * Math.min(1, dt * 4);
@@ -24599,16 +24602,6 @@ function warpDraw(alpha, dt) {
   ctx.clearRect(0, 0, Wd, Ht);
   if (alpha <= 0.002) return;
   const [cx, cy] = warpVanish(Wd, Ht);
-  if (WARP.flash) {
-    // der Lichtblitz: vom Ziel am Horizont aus wird alles hell
-    const R0 = Math.hypot(Math.max(cx, Wd - cx), Math.max(cy, Ht - cy));
-    ctx.globalAlpha = alpha;
-    const f = ctx.createRadialGradient(cx, cy, 0, cx, cy, R0);
-    f.addColorStop(0, '#ffffff'); f.addColorStop(0.5, '#f4f2ff'); f.addColorStop(1, '#ddd8ff');
-    ctx.fillStyle = f; ctx.fillRect(0, 0, Wd, Ht);
-    ctx.globalAlpha = 1;
-    return;
-  }
   const R = Math.hypot(Math.max(cx, Wd - cx), Math.max(cy, Ht - cy)) * 1.05, sp = WARP.speed, t = performance.now() / 1000;
   ctx.globalAlpha = alpha;
   // der Tunnel: dunkel am Ziel, blau-violett am Rand
