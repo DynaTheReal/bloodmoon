@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.6';
+const GAME_VERSION = '2.37.7';
 const GAME_NOTES = [
+  ['2.37.7', 'Server betreten: die Kamera fährt immer ganz los (auch bei schneller Verbindung). Ist die Welt schon da, kommt danach kein Weltraum, sondern direkt die Fahrt in die Server-Welt.'],
   ['2.37.6', 'Server betreten: kein heller Lichtblitz mehr. Die Kamera fährt langsam los, nach gut drei Sekunden kommt der Weltraum. Ist die Welt schon vorher heruntergeladen, wird der Weltraum übersprungen und du fliegst direkt in die Welt des Servers.'],
   ['2.37.5', 'Server betreten: ist alles heruntergeladen, bevor der Weltraum kommt, gibt es keinen Weltraum mehr, sondern einen kurzen hellen Lichtblitz, und du fliegst gleich in die Welt des Servers. Nur bei langsamer Verbindung kommt noch der Weltraum.'],
   ['2.37.4', 'Server-Animation: die Kamera fährt ganz langsam los und dann immer schneller weit nach vorne (die Welt davor wird schneller nachgeladen, über Berge steigt sie drüber). Der Weltraum kommt erst nach gut drei Sekunden.'],
@@ -24493,14 +24494,13 @@ function warpStart(name) {
 }
 /* wartet, bis die Kamera schnell genug ist (dann kommen nur noch die Lichtstreifen) */
 function warpAccelDone() { return WARP.phase === 'accel' ? WARP.done : Promise.resolve(); }
-/* alles ist schon heruntergeladen, bevor der Weltraum kommt: dann wird der Weltraum übersprungen,
-   die Welt wird gleich geladen und danach fliegt man direkt in sie hinein */
+/* alles ist schon heruntergeladen, bevor der Weltraum kommt: die Kamera fährt trotzdem ganz los,
+   aber statt des Weltraums wird dann gleich die Welt geladen und man fliegt direkt in sie hinein */
 function warpQuick() {
   if (WARP.phase !== 'accel' || WARP.skip) return;
   const tt = (performance.now() - WARP.t0) / 1000;
   if (tt > WARP.accelDur - WARP.fade) return;   // der Weltraum kommt schon, dann bleibt es dabei
   WARP.skip = true;
-  if (WARP.wait) { WARP.wait(); WARP.wait = null; }
 }
 /* abgebrochen? dann alles aufräumen und zurück ins Menü */
 async function warpAborted() {
@@ -24569,7 +24569,9 @@ function warpLoop() {
     const x = WARP.skip ? 0 : clamp(1 - (WARP.accelDur - tt) / WARP.fade, 0, 1);
     alpha = x * x * (3 - 2 * x);
     target = Math.max(0.05 + k * k * 0.95, alpha * 0.9);
-    if (!WARP.skip && k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
+    // schon alles da: am Ende der Fahrt (wo sonst der Weltraum käme) geht es direkt weiter
+    if (WARP.skip && tt >= WARP.accelDur - WARP.fade) { if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
+    else if (!WARP.skip && k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
   } else if (WARP.phase === 'cruise') {
     target = 1 + Math.sin(tt * 2.1) * 0.06;
   } else if (WARP.phase === 'arrive') {
