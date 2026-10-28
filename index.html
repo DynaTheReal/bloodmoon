@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.10';
+const GAME_VERSION = '2.37.11';
 const GAME_NOTES = [
+  ['2.37.11', 'Server betreten: die Kamera fährt gleich mit etwas Schwung los und kommt dadurch weiter über die Welt. Der Weltraum kommt zur gleichen Zeit wie vorher.'],
   ['2.37.10', 'Server betreten ohne Ruckeln: während die Welt des Servers gebaut wird, fährt die Kamera über die alte Welt weiter. Die neue Welt wird in kleinen Stücken gebaut (darf dafür etwas länger dauern), damit das Bild flüssig bleibt.'],
   ['2.37.9', 'Server betreten: die Welt wird sofort geladen, nicht erst im Weltraum. Ist sie fertig, bevor der Weltraum kommt, fliegst du gleich in die Welt des Servers, sonst kommt der Weltraum, bis sie fertig ist.'],
   ['2.37.8', 'Server betreten wieder wie gewohnt: die Kamera fährt ganz langsam los und wird immer schneller, danach kommt immer der Weltraum. Sobald die Welt geladen ist, fliegst du aus dem Weltraum in die Welt des Servers. (Heruntergeladen wird schon ab dem ersten Moment.)'],
@@ -24498,7 +24499,7 @@ function modFlyDraw() {
    Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
    (Eigene Welten laden wie immer.)
    ========================================================================= */
-const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 3.5, fade: 0.8, far: 300, cx: 0, cz: 0,  arriveDur: 1.1, wait: null, name: '' };
+const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 3.5, fade: 0.8, far: 380, v0: 14, cx: 0, cz: 0,  arriveDur: 1.1, wait: null, name: '' };
 
 function warpOn() { return WARP.phase !== 'off'; }
 function warpCanvas() {
@@ -24573,8 +24574,8 @@ function warpCam(eye, target) {
   const t = Math.max(0, (performance.now() - WARP.t0) / 1000), k = clamp(t / WARP.accelDur, 0, 1);
   let dx = target[0] - eye[0], dy = target[1] - eye[1], dz = target[2] - eye[2];
   const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; dy = 0;
-  // ganz langsam los, dann immer schneller, weit nach vorne (in 3,5 s etwa 300 Blöcke)
-  const tc = Math.min(t, WARP.accelDur), d = WARP.far * Math.pow(tc / WARP.accelDur, 3.4);
+  // gleich mit etwas Schwung los, dann immer schneller, weit nach vorne (in 3,5 s etwa 430 Blöcke)
+  const tc = Math.min(t, WARP.accelDur), d = WARP.v0 * tc + WARP.far * Math.pow(tc / WARP.accelDur, 2.6);
   eye[0] += dx * d; eye[2] += dz * d; target[0] += dx * d; target[2] += dz * d;
   // über Berge drüber: die Kamera steigt sanft, wenn das Land vor ihr höher wird (sinkt aber nicht wieder, kein Schaukeln)
   const now = performance.now(), dts = clamp((now - WARP.lt) / 1000, 0, 0.1); WARP.lt = now;
