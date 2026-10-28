@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.1';
+const GAME_VERSION = '2.37.2';
 const GAME_NOTES = [
+  ['2.37.2', 'Server betreten: das Fenster mit dem Fortschritt ist sofort da, wenn die Kamera losfährt (die Verbindung läuft ab dem ersten Moment). Ist alles schon heruntergeladen, wird die Kamera schneller, man wartet nicht mehr auf die Animation. Die Regeln des Servers werden gleichzeitig mit der Welt geholt.'],
   ['2.37.1', 'Server schneller betreten: die Verbindung wird schon aufgebaut und die Welt heruntergeladen, während die Kamera losfährt. Server verlassen ohne Standbild: du bist sofort im Hauptmenü, das Speichern und Aufräumen läuft im Hintergrund weiter.'],
   ['2.37.0', 'Neue Art von Mods: Client-Mods (eigene Kategorie, auf der Karte steht „Client-Mod“). Einmal installiert laufen sie überall, im Startmenü, in den Menüs und in jeder Welt, und können das Aussehen ändern: Knöpfe, Fenster, Felder, den Hintergrund des Startmenüs (mod.theme, mod.css). In deinen eigenen Welten laufen sie zusätzlich wie normale Mods. Neue Client-Mod „Peak Buttons and GUIs“: kantige Fenster mit abgeschrägten Ecken, türkise Hauptknöpfe in Großbuchstaben mit harten Schatten.'],
   ['2.36.2', 'Start-Animation flüssiger: während sie läuft, werden keine neuen Chunks gebaut, Schatten und Bewegungsunschärfe sind aus, die Welt wird nicht gezeichnet, sobald der Mond alles bedeckt, und sie beginnt erst nach ein paar Bildern zum Aufwärmen.'],
@@ -16797,6 +16798,7 @@ async function playServer(srv, keep) {
     try {
       setLoad(0.15, 'Verbinde mit ' + (info.host || 'dem Server'));
       const { snap } = await MP.join(info.hostUid, info.host || 'Server', srv);
+      if (warp) { warpHurry(); setLoad(0.5, 'Verbunden, Welt wird geladen'); }
       if (!(await ready())) return;
       const data = JSON.parse(snap.d);
       WORLDS.current = null; G.loadedWorld = null; G.server = null;
@@ -16814,6 +16816,10 @@ async function playServer(srv, keep) {
     }
   }
   let save = null, raw = null, rev = null;
+  // die Regeln des Besitzers gleich mitfragen (nicht erst nach dem Laden)
+  const meta = 'srvmeta/' + srv.owner + '/' + srv.wid + '/';
+  const fallP = withTimeout(NET.db.ref(meta + 'fall').once('value'), 8000).then((v) => v.val() !== false, () => null);
+  const pvpP = withTimeout(NET.db.ref(meta + 'pvp').once('value'), 8000).then((v) => v.val() === true, () => false);
   try {
     // the stamp first: if the world is saved right now, the stamp and the world still belong together
     setLoad(0.2, 'Welt wird heruntergeladen');
@@ -16823,6 +16829,7 @@ async function playServer(srv, keep) {
   }
   catch (e) { if (warp) warpStop(); showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
   if (!save) { if (warp) warpStop(); showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
+  if (warp) { warpHurry(); setLoad(0.5, 'Heruntergeladen, Welt wird geladen'); }
   if (!(await ready())) return;
   WORLDS.current = null; G.loadedWorld = null;
   G.server = srv;
@@ -16832,8 +16839,8 @@ async function playServer(srv, keep) {
   await loadWorld(save.seed, save, { mode: save.mode, force: true, server: true, you });
   SERVER.autoBackup(srv, raw, save);
   // the owner's rules for this server
-  try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 8000)).val(); W.rules.fall = f !== false; } catch (e) { /* keep */ }
-  try { W.rules.pvp = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').once('value'), 8000)).val() === true; } catch (e) { W.rules.pvp = false; }
+  const fall = await fallP; if (fall !== null) W.rules.fall = fall;
+  W.rules.pvp = await pvpP;
   if (warp && await warpAborted()) return;
   if (warp) warpArrive();
   startPlaying();
@@ -24448,7 +24455,7 @@ function modFlyDraw() {
    Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
    (Eigene Welten laden wie immer.)
    ========================================================================= */
-const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 2.6, arriveDur: 1.1, wait: null, name: '' };
+const WARP = { phase: 'off', t0: 0, k: 0, rate: 1, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 2.6, arriveDur: 1.1, wait: null, name: '' };
 
 function warpOn() { return WARP.phase !== 'off'; }
 function warpCanvas() {
@@ -24463,7 +24470,7 @@ function warpCanvas() {
 /* los geht es: die Kamera fährt an (die Welt im Menü wird noch gezeichnet) */
 function warpStart(name) {
   warpCanvas();
-  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
+  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.k = 0; WARP.rate = 1; WARP.cancel = false; WARP.name = name || 'Server';
   WARP.done = new Promise((r) => { WARP.wait = r; });
   $('scrMenu').hidden = true;
   // alte Meldungen und Sprechblasen der Menü-Welt weg
@@ -24472,11 +24479,16 @@ function warpStart(name) {
   $('warpTxt').textContent = 'Server wird gesucht …'; $('warpFill').style.width = '2%';
   $('warpCancel').disabled = false; $('warpCancel').textContent = 'Abbrechen';
   WARP.cv.hidden = false;
+  // das Fenster gleich zeigen: die Verbindung wird ja schon aufgebaut, während die Kamera anfährt
+  $('warpBox').hidden = false;
   cancelAnimationFrame(WARP.raf); WARP.last = performance.now(); WARP.raf = requestAnimationFrame(warpLoop);
   SFX.ui();
 }
 /* wartet, bis die Kamera schnell genug ist (dann kommen nur noch die Lichtstreifen) */
 function warpAccelDone() { return WARP.phase === 'accel' ? WARP.done : Promise.resolve(); }
+/* alles ist schon da: die Kamera wird schneller, damit man nicht auf die Animation warten muss
+   (ohne Sprung, nur der Rest der Fahrt geht etwa doppelt so schnell) */
+function warpHurry() { if (WARP.phase === 'accel') WARP.rate = Math.max(WARP.rate, 2.2); }
 /* abgebrochen? dann alles aufräumen und zurück ins Menü */
 async function warpAborted() {
   if (!WARP.cancel) return false;
@@ -24512,7 +24524,7 @@ function warpStop() {
 /* die Kamera im Menü fährt geradeaus, immer schneller */
 function warpCam(eye, target) {
   if (WARP.phase !== 'accel') return;
-  const k = clamp((performance.now() - WARP.t0) / 1000 / WARP.accelDur, 0, 1);
+  const k = clamp(WARP.k, 0, 1);
   let dx = target[0] - eye[0], dy = target[1] - eye[1], dz = target[2] - eye[2];
   const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; dy = 0;
   const d = 260 * k * k * k + 6 * k * k;
@@ -24529,11 +24541,12 @@ function warpLoop() {
   const tt = (now - WARP.t0) / 1000;
   let alpha = 1, target = 1;
   if (WARP.phase === 'accel') {
-    const k = clamp(tt / WARP.accelDur, 0, 1);
-    // die Welt fliegt lange vorbei, der Weltraum kommt erst in der letzten Sekunde
-    const left = WARP.accelDur - tt;
+    WARP.k = Math.min(1, WARP.k + dt / WARP.accelDur * WARP.rate);
+    const k = WARP.k;
+    // die Welt fliegt lange vorbei, der Weltraum kommt erst in der letzten Sekunde (bei Eile etwas kürzer)
+    const left = (1 - k) * WARP.accelDur / WARP.rate * (WARP.rate > 1 ? 1.6 : 1);
     target = 0.05 + k * k * 0.95; alpha = clamp(1 - left, 0, 1); alpha = alpha * alpha * (3 - 2 * alpha);
-    if (k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; $('warpBox').hidden = false; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
+    if (k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
   } else if (WARP.phase === 'cruise') {
     target = 1 + Math.sin(tt * 2.1) * 0.06;
   } else if (WARP.phase === 'arrive') {
