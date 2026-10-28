@@ -415,6 +415,8 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .islot { touch-action: none; }
 .islot:hover { border-color: rgba(255, 255, 255, 0.3); }
 .inv-acts { margin-top: 12px; }
+.sup-msg.new { border-color: rgba(255, 90, 90, 0.7); box-shadow: 0 0 0 1px rgba(255, 90, 90, 0.35); }
+.sup-msg.new .sup-h b::after { content: 'NEU'; margin-left: 8px; font-size: 10px; padding: 1px 6px; border-radius: 99px; background: var(--blood); color: #fff; vertical-align: 2px; }
 .sup-msg { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 10px; }
 .sup-h { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
 .sup-h span { color: var(--muted); font-weight: 700; margin-left: auto; }
@@ -1286,8 +1288,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div id="farBox" hidden>
       <p class="sec-t">🔭 Advanced Render Distance</p>
       <div class="rows">
-        <div class="row"><div class="lbl">Fernsicht<small>Hinter der Sichtweite: die Welt bis weit zum Horizont, je weiter weg, desto gröber (pixeliger)</small></div><button class="tgl" id="setFarOn" type="button" role="switch" aria-checked="true" aria-label="Fernsicht"></button></div>
-        <div class="row"><label for="setFar">Weite<small>Bis wohin du siehst</small></label><div class="rng"><input id="setFar" type="range" min="0" max="100" step="1"><output id="setFarO"></output></div></div>
+        <div class="row"><label for="setFar">Sichtweite<small id="farNote"></small></label><div class="rng"><input id="setFar" type="range" min="0" max="100" step="1"><output id="setFarO"></output></div></div>
         <div class="row ctl-row"><div class="lbl">Detail<small id="farHint"></small></div><div class="seg" id="setFarQ"><button data-v="1" type="button">Low</button><button data-v="2" type="button">Mittel</button><button data-v="3" type="button">High</button></div></div>
       </div>
       </div>
@@ -1821,8 +1822,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.31.0';
+const GAME_VERSION = '2.32.0';
 const GAME_NOTES = [
+  ['2.32.0', 'Advanced Render Distance: nur noch ein Regler „Sichtweite“ (4 bis 4000 Chunks). Je nach Detail werden die ersten Chunks normal gezeichnet (Low 5, Mittel 10, High 16), dahinter wird es langsam immer pixeliger. Die Fernsicht erscheint sofort und wird nach und nach fertig. Support (für DynaTheReal): neue Nachrichten kommen oben als Benachrichtigung wie im Chat, antippen öffnet den Support. Die rote Zahl zeigt ungelesene, beim Öffnen geht sie weg, die Nachrichten bleiben (neue sind markiert).'],
   ['2.31.0', 'Neue Mod „Advanced Render Distance“: Fernsicht bis zu 4000 Chunks. Hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low, Mittel, High). Die Sichtweite in den Einstellungen steht jetzt in Chunks statt in Metern. Mod-API: mod.set(\'viewDist\'), mod.set(\'farView\'), mod.set(\'farDetail\') und mod.set(\'farUi\').'],
   ['2.30.1', 'Sprachchat: über dem Namen siehst du jetzt auch, ob die Verbindung noch aufgebaut wird (…) oder nicht klappt (!). Klappt sie nicht, versucht das Spiel es immer wieder. Neu im Admin-Fenster: ein Weiterleitungs-Server (TURN) für Netze, die keine direkte Verbindung erlauben (oft im Handy-Netz).'],
   ['2.30.0', 'Sprachchat: zwei Knöpfe oben, das Mikrofon (H) schaltet dich stumm, der Lautsprecher (J) schaltet die anderen stumm (du kannst trotzdem reden). Mikrofon und Ton sind am Anfang an und bleiben so, wie du sie zuletzt hattest. Neuer Start: „Willkommen beim Sprachchat!“ mit kurzer Erklärung und Ja oder Nein. Das Einrichten und die Erklärung kommen nur beim ersten Mal. Über jedem Namen siehst du, ob jemand gerade redet (Mikrofon mit Schallwellen), stumm ist, die anderen stumm geschaltet hat oder keinen Sprachchat hat (✕).'],
@@ -8087,7 +8089,7 @@ const QUALITY = {
 /* every device starts on Mittel */
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: 'medium', viewDist: 9, fov: 72, farOn: true, farView: 128, farDetail: 2,
+  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
@@ -8101,7 +8103,13 @@ function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
 /* touch with a crosshair: aim with the middle of the screen, buttons dig and build, the finger only looks around */
 function crossUI() { return SETTINGS.touchMode === 'cross'; }
 /* wie viele Chunks um dich herum geladen und gezeichnet werden (eine Mod kann das ändern: mod.set('viewDist', n)) */
-function viewDistNow() { const m = typeof MODFX !== 'undefined' ? MODFX.viewDist : 0; return m >= 2 ? Math.round(m) : SETTINGS.viewDist; }
+function viewDistNow() {
+  const m = typeof MODFX !== 'undefined' ? MODFX.viewDist : 0;
+  if (m >= 2) return Math.round(m);
+  // Mod „Advanced Render Distance“: ein Regler, die ersten Chunks normal
+  const f = typeof farNearChunks === 'function' ? farNearChunks() : 0;
+  return f || SETTINGS.viewDist;
+}
 function touchUI() {
   if (SETTINGS.touchMode === 'on' || SETTINGS.touchMode === 'cross') return true;
   if (SETTINGS.touchMode === 'off') return false;
@@ -13694,6 +13702,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
   if (id === 'mdlInv' && UI._invFrom === 'pause') { $('mdlPause').hidden = false; UI._invFrom = null; return; }
   if (id === 'mdlChest') { UI._chest = null; SFX.chest(); }
+  if (id === 'mdlSupport' && G.state === 'paused') { $('mdlPause').hidden = false; return; }
   if (id === 'mdlFriends') CHAT.close();
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
   if (['mdlWp', 'mdlWmap', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
@@ -17408,10 +17417,22 @@ const SUPPORT = {
       const v = s.val() || {};
       // the owner hears about new messages right away
       if (isOwner()) {
-        const before = this.n === undefined ? null : this.n;
-        let n = 0; for (const u in v) n += Object.keys(v[u] || {}).length;
-        if (before !== null && n > before) { UI.toast('Neue Support-Nachricht.', 'info', 4000, 'sup'); SFX.ui(); }
-        this.n = n;
+        // wie bei einer Chat-Nachricht: oben eine Benachrichtigung, antippen öffnet den Support
+        const first = !this.known;
+        const known = this.known || new Set(), seen = this.seen(), fresh = [];
+        for (const u in v) for (const id in v[u] || {}) {
+          const m = v[u][id];
+          if (!m || !m.text || known.has(id)) continue;
+          known.add(id);
+          if (u !== NET.uid() && !seen.has(id)) fresh.push({ u, m });
+        }
+        this.known = known;
+        if (fresh.length && !(first && !$('mdlSupport').hidden)) {
+          const one = fresh.length === 1 ? fresh[0] : null;
+          if (one && !first) UI.notify('Support von ' + (one.m.name || 'Spieler'), one.m.text.length > 90 ? one.m.text.slice(0, 88) + '…' : one.m.text, 'Antippen zum Lesen', (NET.statuses[one.u] || {}).skin, () => UI.openSupport());
+          else UI.notify('Support', fresh.length === 1 ? '1 neue Nachricht' : fresh.length + ' neue Nachrichten', 'Antippen zum Lesen', null, () => UI.openSupport());
+          SFX.ui();
+        }
       }
       this.data = isOwner() ? v : { [NET.uid()]: v };
       UI.supportBadge();
@@ -17428,22 +17449,35 @@ const SUPPORT = {
   },
   /* owner: a message is done, it goes away */
   async dismiss(uid, id) { await withTimeout(NET.db.ref('support/' + uid + '/' + id).remove(), 15000); },
-  /* owner: every message still in the inbox */
+  /* owner: which messages you have already looked at (they stay until you click them away) */
+  seen() { try { return new Set(JSON.parse(localStorage.getItem(this.seenKey) || '[]')); } catch (e) { return new Set(); } },
+  markSeen() {
+    const ids = [];
+    for (const uid in this.data) for (const id in this.data[uid] || {}) ids.push(id);
+    try { localStorage.setItem(this.seenKey, JSON.stringify(ids.slice(-500))); } catch (e) { /* ignore */ }
+  },
+  /* owner: messages you have not opened yet (the red number) */
   unread() {
     if (!isOwner()) return 0;
+    const seen = this.seen();
     let n = 0;
-    for (const uid in this.data) for (const id in this.data[uid] || {}) if (this.data[uid][id] && this.data[uid][id].text) n++;
+    for (const uid in this.data) for (const id in this.data[uid] || {}) { const m = this.data[uid][id]; if (m && m.text && uid !== NET.uid() && !seen.has(id)) n++; }
     return n;
   },
 };
 UI.supportBadge = function () {
   const n = SUPPORT.unread();
-  const b = $('supportBadge'); b.hidden = n <= 0; b.textContent = n;
+  const b = $('supportBadge'); b.hidden = n <= 0; b.textContent = n > 9 ? '9+' : n;
+  if (!$('mdlSupport').hidden && n > 0) { SUPPORT.markSeen(); b.hidden = true; }
 };
 UI.openSupport = function () {
+  if (G.state !== 'menu' && G.state !== 'loading') { if (G.state === 'playing') UI.pause(true); $('mdlPause').hidden = true; }
   UI.closeAll();
   $('mdlSupport').hidden = false;
+  // was neu war, bleibt beim Öffnen markiert; die rote Zahl geht weg
+  UI._supNew = isOwner() ? SUPPORT.seen() : null;
   UI.supportRefresh();
+  if (isOwner()) { SUPPORT.markSeen(); UI.supportBadge(); }
 };
 UI.supportRefresh = function () {
   const inn = !!NET.uid(), owner = isOwner();
@@ -17459,7 +17493,7 @@ UI.supportRefresh = function () {
   msgs.sort((a, b) => (b.m.at || 0) - (a.m.at || 0));
   if (!msgs.length) list.innerHTML = '<div class="list-empty">Keine Nachrichten.</div>';
   for (const { uid, id, m } of msgs) {
-    const d = document.createElement('div'); d.className = 'sup-msg';
+    const d = document.createElement('div'); d.className = 'sup-msg' + (UI._supNew && !UI._supNew.has(id) && uid !== NET.uid() ? ' new' : '');
     const when = m.at ? new Date(m.at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
     d.innerHTML = '<div class="sup-h"><b></b><span></span><button class="sup-x" type="button" aria-label="Wegklicken" title="Wegklicken">✕</button></div><p class="sup-t"></p>';
     d.querySelector('b').textContent = m.name || 'Spieler';
@@ -20531,10 +20565,11 @@ mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu
   // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
   // waypoints: Wegpunkte mit Lichtstrahl (Taste P); worldMap: Weltkarte als Vollbild (Taste M);
   // voiceChat: Sprachchat mit den anderen Spielern (Taste H, jeder stimmt vorher dem Datenschutz zu)
-mod.set('viewDist', 8)  // normale Sichtweite in Chunks (2-14, 0 = wie in den Einstellungen)
+mod.set('viewDist', 8)  // normale Sichtweite in Chunks (2-16, 0 = wie in den Einstellungen)
 mod.set('farView', 500) // Fernsicht bis zu 4000 Chunks: hinter der Sichtweite grobe Landschaft bis zum Horizont (0 = aus)
 mod.set('farDetail', 2) // wie schnell es in der Ferne pixelig wird: 1 = Low (schon nah), 2 = Mittel, 3 = High (erst ganz spät)
-  // farUi: zeigt den Spielern in den Einstellungen Fernsicht an/aus, Weite und Detail (wie die Mod „Advanced Render Distance“)
+  // farUi: ein Regler „Sichtweite“ (4-4000 Chunks) und Detail in den Einstellungen, wie die Mod „Advanced Render Distance“:
+  // Low = die ersten 5 Chunks normal, Mittel = 10, High = 16, dahinter immer pixeliger
 mod.effect('speed', 3, 10)   // einen Wert für 10 Sekunden ändern
 
 // ---------- Spieler, Welt, Meldungen ----------
@@ -22966,23 +23001,30 @@ function bindVoice() {
      mod.set('viewDist', chunks) für die normale Sichtweite.
    ========================================================================= */
 MODFX_DEF.farUi = false; MODFX_DEF.farView = 0; MODFX_DEF.farDetail = 0; MODFX_DEF.viewDist = 0;
-Object.assign(MODFX_RANGE, { farView: [0, 4000], farDetail: [0, 3], viewDist: [0, 14] });
+Object.assign(MODFX_RANGE, { farView: [0, 4000], farDetail: [0, 3], viewDist: [0, 16] });
 for (const k of ['farUi', 'farView', 'farDetail', 'viewDist']) if (MODFX[k] === undefined) MODFX[k] = MODFX_DEF[k];
 
-const FAR_Q = { 1: { k: 48, T: 16, name: 'Low' }, 2: { k: 80, T: 16, name: 'Mittel' }, 3: { k: 128, T: 32, name: 'High' } };
+/* near: so viele Chunks werden normal gezeichnet, dahinter wird es nach und nach pixeliger;
+   k: wie weit eine Stufe reicht (größer = später gröber), T: Kachelgröße */
+const FAR_Q = { 1: { k: 72, T: 16, near: 5, name: 'Low' }, 2: { k: 96, T: 16, near: 10, name: 'Mittel' }, 3: { k: 144, T: 32, near: 16, name: 'High' } };
 const FAR = {
   on: false, blocks: 0, planKey: '', levels: [], tiles: new Map(), prog: null, progQ: -1,
   proj: new Float32Array(16), vp: new Float32Array(16), planes: [], buildT: 0, cleanT: 0, made: 0,
 };
 function farChunks() {
   if (MODFX.farView > 0) return Math.round(MODFX.farView);
-  if (MODFX.farUi && SETTINGS.farOn !== false) return SETTINGS.farView || 128;
+  if (MODFX.farUi) return SETTINGS.farView || 64;
   return 0;
 }
+/* mit der Mod gibt es nur einen Regler: die ersten Chunks normal (je nach Detail), der Rest als Fernsicht */
+function farNearChunks() {
+  if (!MODFX.farUi || MODFX.farView > 0) return 0;
+  return Math.max(2, Math.min(SETTINGS.farView || 64, FAR_Q[farDetailNow()].near));
+}
 function farDetailNow() { const m = Math.round(MODFX.farDetail || 0); return m >= 1 && m <= 3 ? m : (SETTINGS.farDetail || 2); }
-/* Regler 0..100 <-> 16..4000 Chunks (gleichmäßig auf einer Log-Skala) */
-function farFromSlider(v) { return Math.round(16 * Math.pow(4000 / 16, v / 100)); }
-function farToSlider(c) { return Math.round(Math.log(c / 16) / Math.log(4000 / 16) * 100); }
+/* Regler 0..100 <-> 4..4000 Chunks (gleichmäßig auf einer Log-Skala) */
+function farFromSlider(v) { return Math.round(4 * Math.pow(1000, v / 100)); }
+function farToSlider(c) { return Math.round(Math.log(Math.max(4, c) / 4) / Math.log(1000) * 100); }
 
 /* ---------- welche Kacheln gebraucht werden ---------- */
 function farPlan() {
@@ -23109,8 +23151,10 @@ function updateFar(dt) {
     const tcx = Math.round(PL.x / lv.tw) * lv.tw, tcz = Math.round(PL.z / lv.tw) * lv.tw;
     if (tcx !== lv.tcx || tcz !== lv.tcz || !lv.want.length) { lv.tcx = tcx; lv.tcz = tcz; lv.want = farWanted(L, tcx, tcz); }
     let missing = 0;
-    for (const w of lv.want) if (!FAR.tiles.has(farTileKey(lv.s, w[0], w[1]))) { missing++; need.push([L, w[0], w[1], L * 1e6 + w[2]]); }
-    if (!missing && (lv.cx !== tcx || lv.cz !== tcz)) { lv.cx = tcx; lv.cz = tcz; lv.list = lv.want.map((w) => farTileKey(lv.s, w[0], w[1])); }
+    for (const w of lv.want) if (!FAR.tiles.has(farTileKey(lv.s, w[0], w[1]))) { missing++; need.push([L, w[0], w[1], w[2] / lv.tw]); }
+    // beim ersten Mal gleich zeigen, was schon fertig ist; beim Weiterlaufen erst umschalten, wenn alles da ist
+    if ((!missing || !lv.list.length) && (lv.cx !== tcx || lv.cz !== tcz || !lv.list.length)) { lv.cx = tcx; lv.cz = tcz; lv.list = lv.want.map((w) => farTileKey(lv.s, w[0], w[1])); }
+    lv.complete = !missing && lv.cx === tcx && lv.cz === tcz;
   }
   // die nächsten zuerst, ein paar Millisekunden pro Bild
   if (need.length) {
@@ -23199,7 +23243,9 @@ function farRender() {
     const lv = FAR.levels[L];
     if (!lv.list.length) continue;
     const pv = L > 0 ? FAR.levels[L - 1] : null;
-    if (pv && pv.list.length) gl.uniform4f(P.u('u_hole'), pv.cx, pv.cz, pv.H, 0); else gl.uniform4f(P.u('u_hole'), 0, 0, 0, 1);
+    if (pv && pv.complete) gl.uniform4f(P.u('u_hole'), pv.cx, pv.cz, pv.H, 0); else gl.uniform4f(P.u('u_hole'), 0, 0, 0, 1);
+    // gröbere Stufen ein wenig nach hinten, damit sich nichts flackernd überlagert, solange eine feinere noch entsteht
+    if (L) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, L * 6); } else gl.disable(gl.POLYGON_OFFSET_FILL);
     for (const k of lv.list) {
       const t = FAR.tiles.get(k);
       if (!t || !t.n) continue;
@@ -23211,6 +23257,7 @@ function farRender() {
     }
   }
   FAR.drawn = drawn;
+  gl.disable(gl.POLYGON_OFFSET_FILL);
   gl.bindVertexArray(null);
   // die normale Welt kommt mit eigener Tiefe darüber
   gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -23250,17 +23297,17 @@ function farSettingsRefresh() {
   const box = $('farBox'); if (!box) return;
   const show = !!MODFX.farUi;
   box.hidden = !show;
+  // mit der Mod nur ein Regler: der normale Sichtweite-Regler geht weg
+  const vr = $('setView').closest('.rows'); if (vr) vr.hidden = show;
   if (!show) return;
-  const c = SETTINGS.farView || 128, on = SETTINGS.farOn !== false, d = SETTINGS.farDetail || 2;
-  $('setFarOn').setAttribute('aria-checked', String(on));
+  const c = SETTINGS.farView || 64, d = SETTINGS.farDetail || 2, nr = Math.min(c, FAR_Q[d].near);
   $('setFar').value = farToSlider(c);
   $('setFarO').textContent = c + ' Chunks';
-  $('setFar').disabled = !on;
   $('setFarQ').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.v === d)));
-  $('farHint').textContent = d === 1 ? 'Low: schon kurz hinter der Sichtweite grob und pixelig, läuft auch auf schwachen Geräten' : d === 2 ? 'Mittel: wird nach und nach pixeliger' : 'High: wird erst ganz weit weg pixelig, braucht mehr Leistung';
+  $('farHint').textContent = (c <= nr ? 'Alle ' + c + ' Chunks normal' : 'Die ersten ' + nr + ' Chunks normal, dahinter ' + (d === 1 ? 'langsam immer pixeliger, läuft auch auf schwachen Geräten' : d === 2 ? 'nach und nach pixeliger' : 'erst spät pixelig, braucht mehr Leistung')) + '.';
+  $('farNote').textContent = c <= nr ? 'So weit siehst du (1 Chunk = 16 Blöcke)' : 'So weit siehst du: ' + nr + ' Chunks normal, ' + (c - nr) + ' Chunks Fernsicht';
 }
 function bindFarSettings() {
-  $('setFarOn').addEventListener('click', () => { SETTINGS.farOn = SETTINGS.farOn === false; saveSettings(); farSettingsRefresh(); });
   $('setFar').addEventListener('input', (e) => { SETTINGS.farView = farFromSlider(+e.target.value); saveSettings(); farSettingsRefresh(); });
   $('setFarQ').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; SETTINGS.farDetail = +b.dataset.v; saveSettings(); farSettingsRefresh(); });
   const o = UI.settingsRefresh;
