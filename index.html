@@ -158,6 +158,13 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && ((auth.uid === $uid && !root.child('bans/' + auth.uid).exists()) || root.child('usernames/dynathereal').val() === auth.uid)"
       }
+    },
+    "modpacks": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.child('authorUid').val() === auth.uid && (!newData.exists() || newData.child('authorUid').val() === auth.uid)) || (!newData.exists() && root.child('usernames/dynathereal').val() === auth.uid))",
+        ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 30 && newData.child('mods').exists() && (!newData.child('img').exists() || (newData.child('img').isString() && newData.child('img').val().beginsWith('data:image/') && newData.child('img').val().length <= 60000)))"
+      }
     }
   }
 }
@@ -1024,6 +1031,26 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .chip { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 800; color: var(--muted); cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--ember); color: var(--ink); border-color: transparent; }
 .mod-rec { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.pk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.pk-top .hint { margin: 0; }
+.pk-top .btn { flex: 0 0 auto; }
+.pk-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 25px; background: rgba(255, 255, 255, 0.07); overflow: hidden; flex: none; }
+.pk-ico img, .pk-pic img { width: 100%; height: 100%; object-fit: cover; image-rendering: auto; }
+.pk-mods { display: flex; flex-wrap: wrap; gap: 5px; }
+.pk-mods span { padding: 3px 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pk-mods span.miss { opacity: 0.5; text-decoration: line-through; }
+.mcard.pack { background: linear-gradient(160deg, rgba(120, 160, 255, 0.12), rgba(255, 255, 255, 0.04)); border-color: rgba(120, 160, 255, 0.28); }
+.pk-head { display: flex; gap: 14px; align-items: center; }
+.pk-pic { width: 84px; height: 84px; border-radius: 18px; display: grid; place-items: center; font-size: 46px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line); overflow: hidden; flex: none; }
+.pk-fields { display: grid; gap: 8px; flex: 1; min-width: 0; }
+.pk-iconrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.pk-emoji { width: 64px; text-align: center; font-size: 20px; }
+.pk-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; max-height: 320px; overflow: auto; padding: 2px; }
+.pk-opt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); cursor: pointer; font-size: 13px; font-weight: 700; text-align: left; color: var(--text); }
+.pk-opt[aria-pressed="true"] { border-color: rgba(255, 177, 92, 0.7); background: rgba(255, 177, 92, 0.14); }
+.pk-opt i { font-style: normal; font-size: 18px; }
+.pk-opt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-btns { justify-content: flex-end; margin-top: 10px; }
 .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
 .mcard { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); scroll-snap-align: start; min-width: 0; }
 .mcard.big { background: linear-gradient(160deg, rgba(255, 177, 92, 0.16), rgba(255, 255, 255, 0.04)); border-color: rgba(255, 177, 92, 0.3); }
@@ -1043,6 +1070,19 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .btn.icon.gold { color: #ffd34d; border-color: rgba(255, 211, 77, 0.5); }
 .mod-form { display: grid; grid-template-columns: 2fr 1fr 1.6fr; gap: 10px; }
 .mod-form .field { width: 100%; }
+.we-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.we-head canvas { width: 52px; height: 52px; border-radius: 12px; flex: 0 0 auto; image-rendering: pixelated; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+.we-head h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.we-body { display: grid; gap: 10px; }
+.we-play { width: 100%; padding: 13px; font-size: 16px; }
+.we-card { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); display: grid; gap: 8px; }
+.we-card .hint { margin: 0; }
+.we-t { margin: 0; font-weight: 800; font-size: 14px; }
+.we-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.we-mods { display: flex; flex-wrap: wrap; gap: 6px; }
+.we-mods:empty { display: none; }
+.we-mods span { padding: 4px 10px; border-radius: 99px; background: rgba(255, 177, 92, 0.12); border: 1px solid rgba(255, 177, 92, 0.3); font-size: 12.5px; font-weight: 700; }
+.we-danger { background: transparent; border-style: dashed; }
 .nw-mods { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
 .mods-pill { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px 8px 12px; border-radius: 99px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); color: var(--text); font-weight: 800; font-size: 13.5px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
 .mods-pill:hover { background: rgba(255, 255, 255, 0.1); }
@@ -1051,6 +1091,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .mods-pill .mp-n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--ember); color: var(--ink); font-size: 12px; display: grid; place-items: center; }
 .mod-wbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 18px 10px; padding: 8px 8px 8px 14px; border-radius: 12px; background: rgba(255, 177, 92, 0.12); border: 1px solid rgba(255, 177, 92, 0.3); font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .mod-wbar b { color: var(--text); }
+.mw-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.mod-last { display: block; margin-top: 4px; font-size: 11.5px; color: var(--muted); font-weight: 700; }
 .mcard.in { border-color: rgba(255, 177, 92, 0.6); background: rgba(255, 177, 92, 0.08); }
 @media (max-width: 560px) { .mod-form { grid-template-columns: 1fr 1fr; } .mod-form > div:first-child { grid-column: 1 / -1; } .mod-rec { grid-auto-columns: 82%; } }
 .mod-code { margin: 0 0 8px; padding: 10px; max-height: 240px; overflow: auto; border-radius: 10px; background: rgba(0, 0, 0, 0.35); font: 600 11.5px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; color: var(--text); }
@@ -1405,22 +1447,32 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlWorldEdit" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="weTitle">
   <div class="sheet narrow panel">
-    <div class="sheet-h"><div class="grow"><h2 id="weTitle">Welt bearbeiten</h2><p id="weInfo"></p></div><button class="x" id="weClose" aria-label="Zurück" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="sheet-b">
-      <p class="sec-t">Name</p>
-      <form class="newworld" id="weForm" autocomplete="off"><input class="field" id="weName" maxlength="24" aria-label="Name der Welt"><button class="btn primary" type="submit">Speichern</button></form>
-      <p class="sec-t">Server</p>
-      <p class="hint" id="weSrvHint"></p>
-      <button class="btn primary" id="weServer" type="button">Zum Server machen</button>
+    <div class="sheet-h"><div class="grow we-head"><canvas id="weIcon" width="84" height="84"></canvas><div><h2 id="weTitle">Welt bearbeiten</h2><p id="weInfo"></p></div></div><button class="x" id="weClose" aria-label="Zurück" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b we-body">
+      <button class="btn primary we-play" id="wePlay" type="button">▶ Spielen</button>
+      <div class="we-card">
+        <p class="we-t">✏️ Name</p>
+        <form class="newworld" id="weForm" autocomplete="off"><input class="field" id="weName" maxlength="24" aria-label="Name der Welt"><button class="btn" type="submit">Umbenennen</button></form>
+      </div>
+      <div class="we-card">
+        <div class="we-row"><p class="we-t">🧩 Mods</p><button class="mods-pill" id="weModsBtn" type="button">Mods</button></div>
+        <div class="we-mods" id="weModList"></div>
+        <p class="hint">Gelten nur in dieser Welt. Auf einem Server aus dieser Welt laufen sie mit.</p>
+      </div>
+      <div class="we-card">
+        <p class="we-t">🌐 Server</p>
+        <p class="hint" id="weSrvHint"></p>
+        <button class="btn" id="weServer" type="button">Zum Server machen</button>
+      </div>
       <p class="form-msg" id="weMsg" hidden></p>
-      <p class="sec-t">Mods</p>
-      <p class="hint">Gelten nur in dieser Welt, nie auf Servern.</p>
-      <div class="nw-mods"><button class="mods-pill" id="weModsBtn" type="button">Mods</button></div>
-      <p class="sec-t">Backup</p>
-      <p class="hint">Ein Backup ist eine Kopie in deinen Welten. Exportieren lädt die Welt als Datei herunter.</p>
-      <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
-      <p class="sec-t">Mehr</p>
-      <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">Welt löschen</button></div>
+      <div class="we-card">
+        <p class="we-t">💾 Backup</p>
+        <p class="hint">Ein Backup ist eine Kopie in deinen Welten. Exportieren lädt die Welt als Datei herunter.</p>
+        <div class="btnrow"><button class="btn" id="weCopy" type="button">Backup erstellen</button><button class="btn" id="weExport" type="button">Exportieren</button></div>
+      </div>
+      <div class="we-card we-danger">
+        <div class="btnrow"><button class="btn" id="weOld" type="button" hidden>Stand vor Update laden</button><button class="btn danger" id="weDel" type="button">🗑 Welt löschen</button></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1428,9 +1480,11 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <div id="mdlMods" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modTitle">
   <div class="sheet panel wide">
     <div class="sheet-h"><div class="grow"><h2 id="modTitle">Mods</h2><p>Für deine eigenen Welten und deine Server. Als Gast bei Freunden laufen sie nicht.</p></div><button class="link" id="modReload" type="button">Neu laden</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="mod-wbar" id="modWorldBar" hidden><span>🌍 <b id="mwN">noch keine an</b> · nur in dieser Welt</span><button class="btn primary" id="mwDone" type="button">Fertig</button></div>
+    <div class="mod-wbar" id="modWorldBar" hidden><span>🌍 <b id="mwN">noch keine an</b> · nur in dieser Welt</span><span class="mw-btns"><button class="btn" id="mwDone" type="button">Fertig</button><button class="btn primary" id="mwPlay" type="button">▶ Fertig und spielen</button></span></div>
     <div class="tabs" id="modTabs" role="tablist">
       <button class="tab" type="button" data-tab="lib" aria-selected="true">Bibliothek</button>
+      <button class="tab" type="button" data-tab="recent" aria-selected="false">Zuletzt verwendet</button>
+      <button class="tab" type="button" data-tab="packs" aria-selected="false">📦 Modpacks</button>
       <button class="tab" type="button" data-tab="inst" aria-selected="false">Installiert<span id="modInstN"></span></button>
       <button class="tab" type="button" data-tab="mine" aria-selected="false">Meine Mods<span id="myModN"></span></button>
     </div>
@@ -1443,6 +1497,32 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <p class="sec-t" id="modGridT">Alle Mods</p>
         <div class="mod-grid" id="modGrid"></div>
         <div id="modHidden" hidden></div>
+      </div>
+      <div id="modPacks" hidden>
+        <div id="pkBrowse">
+          <div class="pk-top"><p class="hint">Ein Modpack fasst mehrere Mods zusammen: ein Klick, und alle sind installiert (oder in deiner Welt an).</p><button class="btn primary" id="pkNew" type="button">＋ Modpack erstellen</button></div>
+          <p class="form-msg" id="pkMsg" hidden></p>
+          <div class="mod-grid" id="pkGrid"></div>
+        </div>
+        <div id="pkEdit" hidden>
+          <p class="sec-t" id="pkEditT">Neues Modpack</p>
+          <div class="pk-head">
+            <div class="pk-pic" id="pkPic">📦</div>
+            <div class="pk-fields">
+              <input class="field" id="pkName" maxlength="30" placeholder="Name des Modpacks" aria-label="Name des Modpacks" autocomplete="off">
+              <div class="pk-iconrow"><input class="field pk-emoji" id="pkEmoji" maxlength="4" placeholder="📦" aria-label="Emoji"><button class="btn" id="pkImg" type="button">🖼 Bild wählen</button><button class="btn ghost" id="pkImgX" type="button" hidden>Bild weg</button><input type="file" id="pkFile" accept="image/*" hidden></div>
+            </div>
+          </div>
+          <p class="sec-t">Mods im Modpack <small id="pkCount"></small></p>
+          <div class="mod-search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><input class="field" id="pkSearch" type="search" maxlength="40" placeholder="Mods suchen" aria-label="Mods suchen" autocomplete="off" spellcheck="false"></div>
+          <div class="pk-pick" id="pkPick"></div>
+          <p class="form-msg" id="pkEditMsg" hidden></p>
+          <div class="btnrow pk-btns"><button class="btn ghost" id="pkCancel" type="button">Abbrechen</button><button class="btn primary" id="pkSave" type="button">Hochladen</button></div>
+        </div>
+      </div>
+      <div id="modRecent" hidden>
+        <p class="hint">Die Mods, die du zuletzt in deinen Welten benutzt hast, die neueste zuerst.</p>
+        <div class="mod-grid" id="modRecentList"></div>
       </div>
       <div id="modInst" hidden>
         <p class="hint">Installierte Mods schaltest du für jede Welt einzeln an: beim Erstellen einer Welt unter „Mods“ oder später unter Welten → Bearbeiten → Mods.</p>
@@ -1822,8 +1902,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.32.0';
+const GAME_VERSION = '2.33.0';
 const GAME_NOTES = [
+  ['2.33.0', 'Mods: neuer Reiter „Zuletzt verwendet“ mit den Mods, die du zuletzt in deinen Welten benutzt hast. Beim Auswählen der Mods für eine Welt gibt es neben „Fertig“ jetzt „Fertig und spielen“. Neuer Reiter „📦 Modpacks“: mehrere Mods aus der Bibliothek zu einem Modpack zusammenstellen, mit Namen und Emoji oder Bild, wird sofort hochgeladen (ohne Prüfung). Ein Klick installiert alle Mods (oder schaltet sie in einer Welt an). Das Fenster „Welt bearbeiten“ ist neu gestaltet: Bild und Name der Welt oben, ein großer Spielen-Knopf, die Mods der Welt als Schilder, alles übersichtlich in Kästen.'],
   ['2.32.0', 'Advanced Render Distance: nur noch ein Regler „Sichtweite“ (4 bis 4000 Chunks). Je nach Detail werden die ersten Chunks normal gezeichnet (Low 5, Mittel 10, High 16), dahinter wird es langsam immer pixeliger. Die Fernsicht erscheint sofort und wird nach und nach fertig. Support (für DynaTheReal): neue Nachrichten kommen oben als Benachrichtigung wie im Chat, antippen öffnet den Support. Die rote Zahl zeigt ungelesene, beim Öffnen geht sie weg, die Nachrichten bleiben (neue sind markiert).'],
   ['2.31.0', 'Neue Mod „Advanced Render Distance“: Fernsicht bis zu 4000 Chunks. Hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low, Mittel, High). Die Sichtweite in den Einstellungen steht jetzt in Chunks statt in Metern. Mod-API: mod.set(\'viewDist\'), mod.set(\'farView\'), mod.set(\'farDetail\') und mod.set(\'farUi\').'],
   ['2.30.1', 'Sprachchat: über dem Namen siehst du jetzt auch, ob die Verbindung noch aufgebaut wird (…) oder nicht klappt (!). Klappt sie nicht, versucht das Spiel es immer wieder. Neu im Admin-Fenster: ein Weiterleitungs-Server (TURN) für Netze, die keine direkte Verbindung erlauben (oft im Handy-Netz).'],
@@ -13916,11 +13997,23 @@ UI.openWorldEdit = function (e) {
   $('weMsg').hidden = true;
   e.mods = (e.mods || []).filter((id) => MODS.get(id));
   modBtnLabel($('weModsBtn'), e.mods);
+  weModList(e);
+  $('weTitle').textContent = e.name;
+  drawWorldIcon($('weIcon'), e.seed, entryMode(e));
+  $('mdlWorldEdit').querySelector('.sheet-b').scrollTop = 0;
 };
+/* die Mods der Welt als kleine Schilder */
+function weModList(e) {
+  const box = $('weModList'); box.innerHTML = '';
+  for (const id of e.mods || []) { const m = MODS.get(id); if (!m) continue; const s = document.createElement('span'); s.textContent = (m.icon || '🧩') + ' ' + m.name; box.appendChild(s); }
+}
 function closeWorldEdit() { $('mdlWorldEdit').hidden = true; UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); }
 function bindWorldEditUI() {
-  $('nwModsBtn').addEventListener('click', () => UI.openMods('lib', { sel: UI.newMods, name: $('newWorldName').value.trim() || 'neue Welt', back: ['mdlWorlds'], onDone: (sel) => modBtnLabel($('nwModsBtn'), sel) }));
-  $('weModsBtn').addEventListener('click', () => { const e = UI._edit; if (!e) return; e.mods = e.mods || []; UI.openMods('lib', { sel: e.mods, name: e.name, back: ['mdlWorldEdit'], onDone: (sel) => { modBtnLabel($('weModsBtn'), sel); WORLDS.saveIndex(); if (G.loadedWorld === e.id) UI.toast('Gilt ab dem nächsten Start dieser Welt.', 'info', 3000, 'modw'); } }); });
+  $('nwModsBtn').addEventListener('click', () => UI.openMods('lib', { sel: UI.newMods, name: $('newWorldName').value.trim() || 'neue Welt', back: ['mdlWorlds'], onDone: (sel) => modBtnLabel($('nwModsBtn'), sel),
+    play: () => { const n = $('newWorldName').value; $('newWorldName').value = ''; UI.closeAll(); createAndPlay(n, UI.newMode, UI.newMods); } }));
+  $('weModsBtn').addEventListener('click', () => { const e = UI._edit; if (!e) return; e.mods = e.mods || []; UI.openMods('lib', { sel: e.mods, name: e.name, back: ['mdlWorldEdit'], onDone: (sel) => { modBtnLabel($('weModsBtn'), sel); weModList(e); WORLDS.saveIndex(); if (G.loadedWorld === e.id && G.state === 'menu') UI.toast('Gilt ab dem nächsten Start dieser Welt.', 'info', 3000, 'modw'); },
+    play: () => { UI._edit = null; UI.closeAll(); playWorld(e); } }); });
+  $('wePlay').addEventListener('click', () => { const e = UI._edit; if (!e) return; UI._edit = null; UI.closeAll(); playWorld(e); });
   $('weClose').addEventListener('click', closeWorldEdit);
   $('weForm').addEventListener('submit', (ev) => {
     ev.preventDefault();
@@ -13930,6 +14023,7 @@ function bindWorldEditUI() {
     e.name = n; e.updated = Date.now(); WORLDS.saveIndex();
     if (NET.uid() && (!e.owner || e.owner === NET.uid())) { const str = WORLDS.ls(WORLD_PREFIX + e.id); if (str) { WORLDS.pendingCloud.set(e.id, str); WORLDS.flushCloud(); } }
     const m = $('weMsg'); m.hidden = false; m.className = 'form-msg ok'; m.textContent = 'Umbenannt in „' + n + '“.';
+    $('weTitle').textContent = n;
     UI.menuRefresh();
   });
   $('weServer').addEventListener('click', async () => {
@@ -14318,7 +14412,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -18519,6 +18613,7 @@ async function modsBegin() {
   // öffentlicher Server: fremder Mod-Code läuft nicht, nur die eingebauten, die nichts an der Welt ändern
   if (MODRT.srvPublic && modServerMode()) list = list.filter((m) => MOD_PUBLIC_OK.includes(m.id) && MODS.builtin(m.id)).map((m) => MODS.slim(MODS.builtin(m.id)));
   if (!list.length) return;
+  if (!(e && e.temp)) modRecentAdd(list.map((m) => m.id));
   let n = 0;
   for (const m of list) if (startModWorker(m)) n++;
   // messages from other players that came before the mods were running (e.g. right when joining)
@@ -19032,7 +19127,7 @@ function modCardEl(m, big) {
     b.addEventListener('click', () => {
       if (!on) { modInstallAsk(m, () => { UI.toast(m.name + ' installiert.', 'good', 1800, 'modi'); SFX.ui(); UI.modsRefresh(); }); return; }
       else if (inW) Wd.sel.splice(Wd.sel.indexOf(m.id), 1);
-      else Wd.sel.push(m.id);
+      else { Wd.sel.push(m.id); modRecentAdd([m.id]); }
       SFX.ui(); UI.modsRefresh();
     });
     act.appendChild(b);
@@ -19078,12 +19173,22 @@ function modCardEl(m, big) {
   }
   return el;
 }
-/* world = { sel, name, back, onDone }: the panel picks the mods for one world */
+/* zuletzt benutzte Mods (in einer Welt gespielt oder einer Welt hinzugefügt), die neueste zuerst */
+const MOD_RECENT_KEY = 'bloodmoon-mods-recent';
+function modRecent() { try { const a = JSON.parse(localStorage.getItem(MOD_RECENT_KEY) || '[]'); return Array.isArray(a) ? a.filter((r) => r && typeof r.id === 'string') : []; } catch (e) { return []; } }
+function modRecentAdd(ids) {
+  const now = Date.now();
+  let a = modRecent().filter((r) => !ids.includes(r.id));
+  a = ids.filter((id) => id && id !== '__test').map((id) => ({ id, t: now })).concat(a).slice(0, 30);
+  try { localStorage.setItem(MOD_RECENT_KEY, JSON.stringify(a)); } catch (e) { /* ignore */ }
+}
+/* world = { sel, name, back, onDone, play }: the panel picks the mods for one world (play: „Fertig und spielen“) */
 UI.openMods = function (tab, world) {
   if (world) { for (const id of MODALS) $(id).hidden = true; for (const id of world.back || []) $(id).hidden = true; }
   else UI.closeAll();
   MODUI.world = world || null;
   $('modWorldBar').hidden = !world;
+  $('mwPlay').hidden = !(world && world.play);
   $('modTabs').querySelector('[data-tab="mine"]').hidden = !!world;
   $('modTitle').textContent = world ? 'Mods für „' + (world.name || 'neue Welt') + '“' : 'Mods';
   $('mdlMods').hidden = false;
@@ -19096,7 +19201,8 @@ function modsTab(t) {
   MODUI.tab = t;
   const tt = t === 'up' ? 'mine' : t;
   $('modTabs').querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tt)));
-  $('modLib').hidden = t !== 'lib'; $('modInst').hidden = t !== 'inst'; $('modUp').hidden = t !== 'up'; $('modMine').hidden = t !== 'mine';
+  $('modLib').hidden = t !== 'lib'; $('modRecent').hidden = t !== 'recent'; $('modPacks').hidden = t !== 'packs';
+  if (t === 'packs' && !PACKS.edit) packsRender(true); $('modInst').hidden = t !== 'inst'; $('modUp').hidden = t !== 'up'; $('modMine').hidden = t !== 'mine';
   if (t === 'mine') myModsRender(true);
 }
 UI.modsRefresh = function () {
@@ -19121,6 +19227,17 @@ UI.modsRefresh = function () {
   const msg = $('modLibMsg');
   if (!NET.uid()) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = 'Melde dich an, um auch Community-Mods zu sehen und eigene hochzuladen.'; }
   else if (!MODS.libOk && !msg.textContent) { msg.hidden = false; msg.className = 'form-msg ok'; msg.textContent = 'Community-Mods laden …'; }
+  if (MODUI.tab === 'packs' && !PACKS.edit) packsRender(false);
+  // zuletzt verwendet
+  const rl = $('modRecentList'); rl.innerHTML = '';
+  const rec = modRecent().map((r) => [MODS.get(r.id), r.t]).filter(([m]) => m && !MODS.hidden(m.id));
+  if (!rec.length) rl.innerHTML = '<div class="list-empty">Noch nichts. Sobald du eine Welt mit Mods spielst, stehen sie hier.</div>';
+  for (const [m, t] of rec) {
+    const el = modCardEl(Object.assign({ builtin: !!MODS.builtin(m.id) }, m), false);
+    const w = document.createElement('small'); w.className = 'mod-last'; w.textContent = 'Zuletzt benutzt ' + ago(t);
+    (el.querySelector('.mc-d') || el).after(w);
+    rl.appendChild(el);
+  }
   // installiert
   const inst = $('modInstList'); inst.innerHTML = '';
   const il = MODS.installed();
@@ -19231,6 +19348,7 @@ function modAfterTest() {
 
 function bindModsUI() {
   $('btnMods').addEventListener('click', () => modFlyOpen());
+  $('mwPlay').addEventListener('click', () => { const Wd = MODUI.world; if (!Wd || !Wd.play) return; closeModWorld(); Wd.play(); });
   $('modTabs').addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (!b) return; modsTab(b.dataset.tab); UI.modsRefresh(); });
   $('modCats').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; MODUI.cat = b.dataset.cat; UI.modsRefresh(); });
   $('modSearch').addEventListener('input', () => { MODUI.q = $('modSearch').value; UI.modsRefresh(); });
@@ -21087,6 +21205,200 @@ function bindMyMods() {
     else { $('mdPromptOut').hidden = false; $('mdPromptOut').value = p; $('mdPromptOut').select(); UI.toast('Kopieren ging nicht automatisch. Markier den Text und kopier ihn.', 'warn', 4000, 'mmprompt'); }
   });
   $('mdPromptShow').addEventListener('click', () => { const o = $('mdPromptOut'); o.hidden = !o.hidden; if (!o.hidden) o.value = prompt(); });
+}
+
+/* ---- 19te_modpacks.js ---- */
+/* =========================================================================
+   Modpacks: mehrere Mods aus der Bibliothek zusammen, mit Namen und einem
+   Emoji oder Bild. Jeder kann eins bauen; es wird sofort hochgeladen (ohne
+   Prüfung, es enthält ja nur Mods, die schon geprüft sind).
+   modpacks/{id} = { name, icon, img?, mods: [ids], author, authorUid, at }
+   ========================================================================= */
+const PACKS = { list: [], ok: false, t: 0, edit: null, q: '' };
+function packMods(p) { const m = p && p.mods; return (Array.isArray(m) ? m : m && typeof m === 'object' ? Object.values(m) : []).filter((x) => typeof x === 'string').slice(0, 40); }
+function packImgOk(s) { return typeof s === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= 60000; }
+async function packsFetch(force) {
+  if (!NET.uid() || !NET.db) { PACKS.list = []; return; }
+  if (!force && PACKS.ok && performance.now() - PACKS.t < 60000) return;
+  const v = (await withTimeout(NET.db.ref('modpacks').once('value'), 15000)).val() || {};
+  PACKS.list = Object.keys(v).map((id) => Object.assign({ id }, v[id])).filter((p) => p && typeof p.name === 'string').sort((a, b) => (b.at || 0) - (a.at || 0));
+  PACKS.ok = true; PACKS.t = performance.now();
+}
+function packIconEl(p, cls) {
+  const d = document.createElement('div'); d.className = cls;
+  if (packImgOk(p.img)) { const im = document.createElement('img'); im.src = p.img; im.alt = ''; d.appendChild(im); }
+  else d.textContent = String(p.icon || '📦').slice(0, 4);
+  return d;
+}
+
+/* ---------- ansehen ---------- */
+async function packsRender(load) {
+  const grid = $('pkGrid'), msg = $('pkMsg');
+  if (!NET.uid()) { grid.innerHTML = ''; msg.hidden = false; msg.className = 'form-msg'; msg.textContent = 'Melde dich an, um Modpacks zu sehen und eigene zu bauen.'; $('pkNew').disabled = true; return; }
+  $('pkNew').disabled = false;
+  if (load) {
+    if (!PACKS.ok) { msg.hidden = false; msg.className = 'form-msg ok'; msg.textContent = 'Modpacks laden …'; }
+    try { await packsFetch(load === 'force'); msg.hidden = true; } catch (e) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = netMsg(e); }
+  }
+  grid.innerHTML = '';
+  if (!PACKS.list.length) { grid.innerHTML = '<div class="list-empty">Noch keine Modpacks. Bau das erste!</div>'; return; }
+  for (const p of PACKS.list) grid.appendChild(packCardEl(p));
+}
+function packCardEl(p) {
+  const el = document.createElement('div'); el.className = 'mcard pack';
+  const ids = packMods(p), mods = ids.map((id) => MODS.get(id));
+  const ok = mods.filter(Boolean);
+  const top = document.createElement('div'); top.className = 'mc-top';
+  top.appendChild(packIconEl(p, 'pk-ico'));
+  const t = document.createElement('div'); t.className = 'mc-t'; t.innerHTML = '<b></b><span class="mc-by"></span>';
+  t.querySelector('b').textContent = p.name; t.querySelector('.mc-by').textContent = 'von ' + (p.author || '?') + ' · ' + ids.length + (ids.length === 1 ? ' Mod' : ' Mods');
+  top.appendChild(t); el.appendChild(top);
+  const chips = document.createElement('div'); chips.className = 'pk-mods';
+  ids.forEach((id, i) => { const m = mods[i]; const s = document.createElement('span'); if (!m) { s.className = 'miss'; s.textContent = '🧩 gibt es nicht mehr'; } else s.textContent = (m.icon || '🧩') + ' ' + m.name; chips.appendChild(s); });
+  el.appendChild(chips);
+  const f = document.createElement('div'); f.className = 'mc-f'; f.innerHTML = '<span></span><div class="mc-act"></div>';
+  const act = f.querySelector('.mc-act');
+  const Wd = MODUI.world;
+  const b = document.createElement('button'); b.type = 'button';
+  if (Wd) {
+    const all = ok.length && ok.every((m) => Wd.sel.includes(m.id));
+    b.className = 'btn ' + (all ? 'ghost' : 'primary'); b.textContent = all ? 'In der Welt ✓' : 'Zur Welt hinzufügen';
+    b.disabled = !ok.length;
+    b.addEventListener('click', async () => {
+      if (all) { for (const m of ok) { const i = Wd.sel.indexOf(m.id); if (i >= 0) Wd.sel.splice(i, 1); } UI.modsRefresh(); return; }
+      const got = await packInstall(ok);
+      for (const m of got) if (!Wd.sel.includes(m.id)) Wd.sel.push(m.id);
+      modRecentAdd(got.map((m) => m.id));
+      UI.toast('„' + p.name + '“: ' + got.length + (got.length === 1 ? ' Mod ist' : ' Mods sind') + ' jetzt in der Welt an.', 'good', 2600, 'pk');
+      SFX.ui(); UI.modsRefresh();
+    });
+  } else {
+    const all = ok.length && ok.every((m) => MODS.isInstalled(m.id));
+    b.className = 'btn ' + (all ? 'ghost' : 'primary'); b.textContent = all ? 'Installiert ✓' : 'Alle installieren';
+    b.disabled = !ok.length || all;
+    b.addEventListener('click', async () => {
+      const got = await packInstall(ok);
+      UI.toast('„' + p.name + '“: ' + got.length + (got.length === 1 ? ' Mod installiert.' : ' Mods installiert.') + ' Du schaltest sie beim Erstellen oder Bearbeiten einer Welt an.', 'good', 4200, 'pk');
+      SFX.ui(); UI.modsRefresh();
+    });
+  }
+  act.appendChild(b);
+  const mine = p.authorUid === NET.uid();
+  if (mine) {
+    const e = document.createElement('button'); e.type = 'button'; e.className = 'btn icon ghost'; e.title = 'Bearbeiten'; e.setAttribute('aria-label', 'Bearbeiten'); e.textContent = '✏️';
+    e.addEventListener('click', () => packEditOpen(p));
+    act.appendChild(e);
+  }
+  if (mine || isOwner()) {
+    const d = document.createElement('button'); d.type = 'button'; d.className = 'btn icon ghost'; d.title = 'Löschen'; d.setAttribute('aria-label', 'Löschen');
+    d.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>';
+    d.addEventListener('click', async () => {
+      const go = await UI.confirm({ title: '„' + p.name + '“ löschen?', text: 'Das Modpack verschwindet für alle. Die Mods darin bleiben installiert.', yes: 'Löschen' });
+      $('mdlMods').hidden = false;
+      if (!go) return;
+      try { await withTimeout(NET.db.ref('modpacks/' + p.id).remove(), 15000); PACKS.list = PACKS.list.filter((q) => q.id !== p.id); packsRender(false); UI.toast('Modpack gelöscht.', 'info', 1800, 'pk'); }
+      catch (err) { UI.toast(netMsg(err), 'warn', 4000); }
+    });
+    act.appendChild(d);
+  }
+  el.appendChild(f);
+  return el;
+}
+/* alle Mods eines Modpacks installieren (der Sprachchat fragt vorher nach der Zustimmung) */
+async function packInstall(mods) {
+  const got = [];
+  for (const m of mods) {
+    if (MODS.isInstalled(m.id)) { got.push(m); continue; }
+    if (m.id === 'voice' && typeof voiceConsented === 'function' && !voiceConsented()) {
+      const ok = await voiceAskConsent(); voiceHide(); $('mdlMods').hidden = false;
+      if (!ok) continue;
+    }
+    MODS.install(m); got.push(m);
+  }
+  return got;
+}
+
+/* ---------- bauen und bearbeiten ---------- */
+function packEditOpen(p) {
+  PACKS.edit = { id: p ? p.id : null, name: p ? p.name : '', icon: p ? (p.icon || '📦') : '📦', img: p && packImgOk(p.img) ? p.img : '', sel: p ? packMods(p).filter((id) => MODS.get(id)) : [] };
+  PACKS.q = '';
+  $('pkBrowse').hidden = true; $('pkEdit').hidden = false;
+  $('pkEditT').textContent = p ? 'Modpack bearbeiten' : 'Neues Modpack';
+  $('pkSave').textContent = p ? 'Speichern' : 'Hochladen';
+  $('pkName').value = PACKS.edit.name; $('pkEmoji').value = PACKS.edit.img ? '' : PACKS.edit.icon; $('pkSearch').value = '';
+  $('pkEditMsg').hidden = true;
+  packEditRefresh();
+  $('mdlMods').querySelector('.sheet-b').scrollTop = 0;
+}
+function packEditClose() { PACKS.edit = null; $('pkEdit').hidden = true; $('pkBrowse').hidden = false; packsRender(false); }
+function packEditRefresh() {
+  const E = PACKS.edit; if (!E) return;
+  const pic = $('pkPic'); pic.innerHTML = '';
+  if (E.img) { const im = document.createElement('img'); im.src = E.img; im.alt = ''; pic.appendChild(im); } else pic.textContent = E.icon || '📦';
+  $('pkImgX').hidden = !E.img;
+  const box = $('pkPick'); box.innerHTML = '';
+  const q = PACKS.q.trim().toLowerCase();
+  const all = MODS.all().filter((m) => m && m.id !== '__test');
+  // was schon drin ist zuerst
+  all.sort((a, b) => (E.sel.includes(b.id) ? 1 : 0) - (E.sel.includes(a.id) ? 1 : 0));
+  for (const m of all) {
+    if (q && !(m.name + ' ' + (m.desc || '')).toLowerCase().includes(q)) continue;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pk-opt';
+    b.setAttribute('aria-pressed', String(E.sel.includes(m.id)));
+    b.innerHTML = '<i></i><span></span>'; b.firstChild.textContent = m.icon || '🧩'; b.lastChild.textContent = m.name;
+    b.title = m.desc || '';
+    b.addEventListener('click', () => { const i = E.sel.indexOf(m.id); if (i >= 0) E.sel.splice(i, 1); else if (E.sel.length < 30) E.sel.push(m.id); packEditRefresh(); });
+    box.appendChild(b);
+  }
+  $('pkCount').textContent = E.sel.length ? '(' + E.sel.length + ' gewählt)' : '';
+}
+/* ein Bild: in der Mitte quadratisch ausschneiden, 96 x 96 Pixel */
+function packPickImage(file) {
+  if (!file || !/^image\//.test(file.type)) return;
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.onload = () => {
+    const S = 96, c = document.createElement('canvas'); c.width = c.height = S;
+    const ctx = c.getContext('2d'), s = Math.min(im.width, im.height);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, S, S);
+    URL.revokeObjectURL(url);
+    let d = c.toDataURL('image/png');
+    if (d.length > 40000) d = c.toDataURL('image/jpeg', 0.85);
+    if (!packImgOk(d)) { UI.toast('Das Bild geht leider nicht.', 'warn', 2400, 'pk'); return; }
+    PACKS.edit.img = d; $('pkEmoji').value = ''; packEditRefresh();
+  };
+  im.onerror = () => { URL.revokeObjectURL(url); UI.toast('Das Bild konnte nicht geladen werden.', 'warn', 2400, 'pk'); };
+  im.src = url;
+}
+async function packSave() {
+  const E = PACKS.edit; if (!E) return;
+  const msg = $('pkEditMsg'), say = (t, ok) => { msg.hidden = false; msg.className = 'form-msg' + (ok ? ' ok' : ''); msg.textContent = t; };
+  const name = $('pkName').value.trim().slice(0, 30);
+  if (!name) { say('Gib deinem Modpack einen Namen.'); return; }
+  if (E.sel.length < 2) { say('Wähl mindestens 2 Mods aus.'); return; }
+  const icon = ($('pkEmoji').value.trim() || E.icon || '📦').slice(0, 4);
+  const data = { name, icon, mods: E.sel.slice(0, 30), author: NET.name, authorUid: NET.uid(), at: NET.TS() };
+  if (E.img) data.img = E.img;
+  $('pkSave').disabled = true; say('Wird hochgeladen …', true);
+  try {
+    if (E.id) await withTimeout(NET.db.ref('modpacks/' + E.id).set(data), 15000);
+    else await withTimeout(NET.db.ref('modpacks').push(data), 15000);
+    await packsFetch(true);
+    UI.toast('📦 „' + name + '“ ist online. Jeder kann es jetzt benutzen.', 'good', 3200, 'pk');
+    packEditClose();
+  } catch (e) { say('Ging nicht: ' + netMsg(e)); }
+  finally { $('pkSave').disabled = false; }
+}
+function bindModPacks() {
+  $('pkNew').addEventListener('click', () => packEditOpen(null));
+  $('pkCancel').addEventListener('click', packEditClose);
+  $('pkSave').addEventListener('click', packSave);
+  $('pkImg').addEventListener('click', () => $('pkFile').click());
+  $('pkFile').addEventListener('change', (e) => { packPickImage(e.target.files && e.target.files[0]); e.target.value = ''; });
+  $('pkImgX').addEventListener('click', () => { if (PACKS.edit) { PACKS.edit.img = ''; packEditRefresh(); } });
+  $('pkEmoji').addEventListener('input', () => { const E = PACKS.edit; if (!E) return; const v = $('pkEmoji').value.trim(); if (v) { E.icon = v.slice(0, 4); E.img = ''; } packEditRefresh(); });
+  $('pkSearch').addEventListener('input', () => { PACKS.q = $('pkSearch').value; packEditRefresh(); });
 }
 
 /* ---- 19u_dims.js ---- */
