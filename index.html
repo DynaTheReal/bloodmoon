@@ -354,6 +354,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
 #zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
 #zoomNote[hidden] { display: none; }
+#warpFx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 16; }
+#warpBox { position: fixed; left: 50%; bottom: calc(var(--safe-b) + 34px); transform: translateX(-50%); z-index: 17; width: min(340px, calc(100vw - 32px)); padding: 14px 16px; display: grid; gap: 8px; text-align: center; background: rgba(14, 10, 40, 0.72); border-color: rgba(160, 140, 255, 0.35); backdrop-filter: blur(6px); }
+#warpBox b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#warpBox small { color: rgba(220, 215, 255, 0.8); font-weight: 700; font-size: 12.5px; }
+.warp-bar { height: 7px; border-radius: 99px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.warp-bar i { display: block; height: 100%; width: 2%; border-radius: 99px; background: linear-gradient(90deg, #8fd4ff, #b48cff); transition: width 0.35s; }
+#gl { transform-origin: 50% 50%; }
 #modSpace { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9; }
 #mapView { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 #compassChip { position: fixed; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); z-index: 6; pointer-events: none; padding: 5px 12px; border-radius: 99px; font-size: 13px; font-weight: 800; white-space: nowrap; }
@@ -512,6 +519,18 @@ select.field { appearance: auto; }
 .wptag { margin-left: -80px; width: 160px; display: grid; justify-items: center; gap: 1px; transform-origin: 50% 100%; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
 .wptag i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 8px var(--wc, #fff); order: 3; margin-top: 2px; }
 .wptag b { max-width: 160px; padding: 2px 8px; border-radius: 7px; background: rgba(8, 12, 13, 0.55); font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 2px solid var(--wc, #fff); }
+.wp-opt { border-bottom: 0; padding: 4px 0 6px; }
+.wptag.death b { background: rgba(0, 0, 0, 0.8); border-bottom-color: #888; }
+#pingLayer { position: fixed; inset: 0; z-index: 18; cursor: crosshair; touch-action: none; }
+#pingLayer p { position: absolute; left: 50%; top: calc(var(--safe-t) + 70px); transform: translateX(-50%); margin: 0; padding: 9px 16px; border-radius: 12px; background: rgba(8, 12, 13, 0.75); font-weight: 800; font-size: 14px; white-space: nowrap; pointer-events: none; }
+#pings { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ping { position: absolute; left: 0; top: 0; display: grid; justify-items: center; gap: 2px; margin-left: -60px; width: 120px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+.ping i { font-style: normal; font-size: 22px; line-height: 1; animation: pingPop 0.9s ease-in-out infinite alternate; }
+.ping b { padding: 2px 8px; border-radius: 7px; background: rgba(8, 12, 13, 0.62); font-size: 12px; font-weight: 800; white-space: nowrap; border-bottom: 2px solid #ffd447; }
+.ping span { font-size: 11px; font-weight: 800; }
+.ping.edge { margin-left: 0; width: auto; justify-items: end; }
+.ping.edge i { animation: none; }
+@keyframes pingPop { to { transform: scale(1.18); } }
 .wptag span { font-size: 11px; font-weight: 800; color: #f2f2f2; }
 .wmap { position: fixed; inset: 0; z-index: 19; background: #15131c; touch-action: none; user-select: none; -webkit-user-select: none; }
 .wmap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
@@ -1031,6 +1050,22 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .chip { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 800; color: var(--muted); cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--ember); color: var(--ink); border-color: transparent; }
 .mod-rec { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.sp-pack { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
+.sp-pt { display: grid; gap: 3px; min-width: 0; }
+.sp-pt b { font-size: 18px; }
+.sp-pt small { color: var(--muted); font-weight: 700; font-size: 12.5px; }
+.sp-mods { display: grid; gap: 6px; }
+.sp-mod { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.045); }
+.sp-mod > div { flex: 1; min-width: 0; }
+.sp-mods { min-width: 0; overflow: hidden; }
+.sp-mod i { font-style: normal; font-size: 20px; width: 26px; text-align: center; flex: none; }
+.sp-mod b { display: block; font-size: 13.5px; }
+.sp-mod small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-mod em { font-style: normal; margin-left: auto; font-size: 11.5px; color: var(--leaf); font-weight: 800; flex: none; }
+.sp-hide { display: flex; align-items: center; gap: 12px; margin: 14px auto 0; padding: 10px 16px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text); font-weight: 800; font-size: 14.5px; cursor: pointer; }
+.sp-box { width: 30px; height: 30px; border-radius: 9px; border: 2px solid rgba(255, 255, 255, 0.35); display: grid; place-items: center; font-size: 18px; font-weight: 900; color: transparent; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+.sp-hide[aria-pressed="true"] .sp-box { background: var(--leaf); border-color: var(--leaf); color: #10200c; }
+.pk-std { font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 99px; background: rgba(255, 210, 80, 0.2); color: #ffd760; align-self: flex-start; }
 .pk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .pk-top .hint { margin: 0; }
 .pk-top .btn { flex: 0 0 auto; }
@@ -1138,6 +1173,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <button class="ibtn panel vo-btn" id="btnVoice" hidden aria-label="Sprachchat" title="Sprachchat"></button>
     <button class="ibtn panel vo-btn" id="btnDeaf" hidden aria-label="Die anderen stumm schalten" title="Die anderen stumm schalten"></button>
     <button class="ibtn panel cre-btn" id="btnWp" hidden aria-label="Wegpunkte" title="Wegpunkte (P)">📍</button>
+    <button class="ibtn panel cre-btn" id="btnPing" hidden aria-label="Pingen" title="Pingen (B)">🔔</button>
     <button class="ibtn panel cre-btn" id="btnWmap" hidden aria-label="Weltkarte" title="Weltkarte (M)">🗺️</button>
     <button class="ibtn panel cre-btn" id="btnCreative" hidden aria-label="Kreativ-Menü" title="Kreativ-Menü (K)">🎨</button>
     </div>
@@ -1786,9 +1822,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="sheet-b">
       <div class="wp-new"><input class="field" id="wpName" maxlength="24" placeholder="Name, z. B. Zuhause" autocomplete="off" spellcheck="false" aria-label="Name des Wegpunkts"><button class="btn primary" id="wpSet" type="button">📍 Hier setzen</button></div>
       <div class="wp-cols" id="wpCols" aria-label="Farbe"></div>
+      <div class="row wp-opt"><div class="lbl">💀 Todespunkt<small>Wenn du stirbst, ein schwarzer Wegpunkt „Letzter Tod“. Er verschwindet, wenn du auf 10 Blöcke heran bist.</small></div><button class="tgl" id="wpDeath" type="button" role="switch" aria-checked="true" aria-label="Todespunkt"></button></div>
       <p class="sec-t">Deine Wegpunkte <small id="wpCount"></small></p>
       <div id="wpList"></div>
-      <p class="wp-hint">Taste P öffnet und schließt dieses Menü. Mit der Weltkarte (M) setzt du Wegpunkte auch weit weg.</p>
+      <p class="wp-hint">Taste P öffnet und schließt dieses Menü. Mit der Weltkarte (M) setzt du Wegpunkte auch weit weg, auch temporäre (⏱), die verschwinden, sobald du dort bist. Mit der Karte in der Hand: auf die Karte tippen (PC: Linksklick) setzt einen temporären Wegpunkt. Pingen: B (am Handy 🔔) und auf eine Stelle tippen, alle sehen ihn eine Minute lang.</p>
     </div>
   </div>
 </div>
@@ -1804,6 +1841,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <button class="wm-px" id="wmPopX" type="button" aria-label="Schließen">✕</button>
     <b id="wmPopT"></b><small id="wmPopC"></small>
     <button class="btn primary" id="wmPopSet" type="button">📍 Wegpunkt setzen</button>
+    <button class="btn" id="wmPopTemp" type="button">⏱ Temporärer Wegpunkt</button>
     <div class="wm-form" id="wmPopForm" hidden><input class="field" id="wmPopName" maxlength="24" placeholder="Name" autocomplete="off" spellcheck="false" aria-label="Name des Wegpunkts"><button class="btn primary" id="wmPopOk" type="button">Setzen</button></div>
     <button class="btn ghost danger" id="wmPopDel" type="button" hidden>🗑 Wegpunkt löschen</button>
   </div>
@@ -1845,6 +1883,26 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
     </div>
   </div>
+</div>
+
+<div id="mdlStdPack" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="spTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="spTitle">📦 Standard-Modpack installieren?</h2><p>DynaTheReal empfiehlt dieses Modpack für deine Welten.</p></div></div>
+    <div class="sheet-b">
+      <div class="sp-pack"><div class="pk-pic" id="spIco"></div><div class="sp-pt"><b id="spName"></b><small id="spSub"></small></div></div>
+      <p class="sec-t">Diese Mods sind drin</p>
+      <div class="sp-mods" id="spMods"></div>
+      <div class="btnrow vo-btns vo-yn"><button class="btn ghost" id="spNo" type="button">Nein</button><button class="btn primary" id="spYes" type="button">Ja, installieren</button></div>
+      <button class="sp-hide" id="spHide" type="button" aria-pressed="false"><span class="sp-box">✓</span><span>Nicht mehr anzeigen</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="warpBox" class="panel" hidden role="status" aria-live="polite">
+  <b id="warpT">Verbinde …</b>
+  <div class="warp-bar"><i id="warpFill"></i></div>
+  <small id="warpTxt"></small>
+  <button class="btn ghost" id="warpCancel" type="button">Abbrechen</button>
 </div>
 
 <div id="mdlConfirm" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="cfTitle">
@@ -1902,8 +1960,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.33.0';
+const GAME_VERSION = '2.35.0';
 const GAME_NOTES = [
+  ['2.35.0', 'Mit einem Server verbinden (aus dem Hauptmenü): die Kamera fährt geradeaus los, wird immer schneller, bis alles zu Lichtstreifen wird wie bei einer Reise durch die Zeit. Ein kleines Fenster zeigt den Fortschritt, Abbrechen geht jederzeit. Steht die Verbindung, wird es langsamer und du kommst auf dem Server an. Eigene Welten laden wie immer.'],
+  ['2.34.0', 'Wegpunkte-Mod: Todespunkt (schwarzer Wegpunkt „Letzter Tod“, verschwindet auf 10 Blöcke Nähe, im Menü abschaltbar), temporäre Wegpunkte (über die Weltkarte oder durch Antippen der Karte in der Hand, verschwinden, sobald du dort bist), Pingen mit B oder 🔔: auf eine Stelle tippen, alle sehen den Ping eine Minute lang, außerhalb des Bildes rechts am Rand. Neue Welt: wenn das Standard-Modpack von DynaTheReal noch nicht installiert ist, wird es angeboten (Ja/Nein, „Nicht mehr anzeigen“).'],
   ['2.33.0', 'Mods: neuer Reiter „Zuletzt verwendet“ mit den Mods, die du zuletzt in deinen Welten benutzt hast. Beim Auswählen der Mods für eine Welt gibt es neben „Fertig“ jetzt „Fertig und spielen“. Neuer Reiter „📦 Modpacks“: mehrere Mods aus der Bibliothek zu einem Modpack zusammenstellen, mit Namen und Emoji oder Bild, wird sofort hochgeladen (ohne Prüfung). Ein Klick installiert alle Mods (oder schaltet sie in einer Welt an). Das Fenster „Welt bearbeiten“ ist neu gestaltet: Bild und Name der Welt oben, ein großer Spielen-Knopf, die Mods der Welt als Schilder, alles übersichtlich in Kästen.'],
   ['2.32.0', 'Advanced Render Distance: nur noch ein Regler „Sichtweite“ (4 bis 4000 Chunks). Je nach Detail werden die ersten Chunks normal gezeichnet (Low 5, Mittel 10, High 16), dahinter wird es langsam immer pixeliger. Die Fernsicht erscheint sofort und wird nach und nach fertig. Support (für DynaTheReal): neue Nachrichten kommen oben als Benachrichtigung wie im Chat, antippen öffnet den Support. Die rote Zahl zeigt ungelesene, beim Öffnen geht sie weg, die Nachrichten bleiben (neue sind markiert).'],
   ['2.31.0', 'Neue Mod „Advanced Render Distance“: Fernsicht bis zu 4000 Chunks. Hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low, Mittel, High). Die Sichtweite in den Einstellungen steht jetzt in Chunks statt in Metern. Mod-API: mod.set(\'viewDist\'), mod.set(\'farView\'), mod.set(\'farDetail\') und mod.set(\'farUi\').'],
@@ -8955,6 +9015,7 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   UI.hurt(); SFX.hurt();
   if (PL.hp <= 0) {
     PL.dead = true; PL.deadT = 0; modEmit('death', {}); modPlayerDied();
+    wpOnDeath();
     dropEverything();
     UI.death(); SFX.death();
   }
@@ -12261,6 +12322,7 @@ function buildDrawLists(t, inMenu) {
     drawDrops(t);
     drawSelection(t);
     drawWaypointBeams(t);
+    drawPings(t);
     drawGhost();
     drawViewModel(t);
   }
@@ -13759,7 +13821,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlVoice', 'mdlWmap', 'mdlWp', 'mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlStdPack', 'mdlVoice', 'mdlWmap', 'mdlWp', 'mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -13774,6 +13836,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlModPick') { closeModPick(); return; }
   if (id === 'mdlModUi') { modCloseUi(false); return; }
   if (id === 'mdlVoice') { voiceHide(); return; }
+  if (id === 'mdlStdPack') { stdPackAnswer(false); return; }
   if (id === 'mdlWmap') wmClose();
   if (id === 'mdlMods' && MODUI.world) { closeModWorld(); return; }
   $(id).hidden = true;
@@ -13831,7 +13894,7 @@ UI.pause = function (on) {
 function modKeysHelp(k, touch) {
   let s = '';
   if (MODFX.voiceChat) s += touch ? k(['🎤'], 'Dich stumm schalten') + k(['🔊'], 'Die anderen stumm schalten') : k(['H'], 'Dich stumm schalten (Sprachchat)') + k(['J'], 'Die anderen stumm schalten');
-  if (MODFX.waypoints) s += touch ? k(['📍'], 'Wegpunkte') : k(['P'], 'Wegpunkte');
+  if (MODFX.waypoints) s += touch ? k(['📍'], 'Wegpunkte') + k(['🔔'], 'Pingen') : k(['P'], 'Wegpunkte') + k(['B'], 'Pingen');
   if (MODFX.worldMap) s += touch ? k(['🗺️'], 'Weltkarte') : k(['M'], 'Weltkarte');
   return s;
 }
@@ -14010,7 +14073,7 @@ function weModList(e) {
 function closeWorldEdit() { $('mdlWorldEdit').hidden = true; UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); }
 function bindWorldEditUI() {
   $('nwModsBtn').addEventListener('click', () => UI.openMods('lib', { sel: UI.newMods, name: $('newWorldName').value.trim() || 'neue Welt', back: ['mdlWorlds'], onDone: (sel) => modBtnLabel($('nwModsBtn'), sel),
-    play: () => { const n = $('newWorldName').value; $('newWorldName').value = ''; UI.closeAll(); createAndPlay(n, UI.newMode, UI.newMods); } }));
+    play: () => { const n = $('newWorldName').value; $('newWorldName').value = ''; newWorldGo(n); } }));
   $('weModsBtn').addEventListener('click', () => { const e = UI._edit; if (!e) return; e.mods = e.mods || []; UI.openMods('lib', { sel: e.mods, name: e.name, back: ['mdlWorldEdit'], onDone: (sel) => { modBtnLabel($('weModsBtn'), sel); weModList(e); WORLDS.saveIndex(); if (G.loadedWorld === e.id && G.state === 'menu') UI.toast('Gilt ab dem nächsten Start dieser Welt.', 'info', 3000, 'modw'); },
     play: () => { UI._edit = null; UI.closeAll(); playWorld(e); } }); });
   $('wePlay').addEventListener('click', () => { const e = UI._edit; if (!e) return; UI._edit = null; UI.closeAll(); playWorld(e); });
@@ -14342,7 +14405,7 @@ function bindUI() {
     UI.newMode = b.dataset.v;
     $('newWorldMode').querySelectorAll('button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
   });
-  $('newWorldForm').addEventListener('submit', (e) => { e.preventDefault(); const n = $('newWorldName').value; $('newWorldName').value = ''; UI.closeAll(); createAndPlay(n, UI.newMode, UI.newMods); });
+  $('newWorldForm').addEventListener('submit', (e) => { e.preventDefault(); const n = $('newWorldName').value; $('newWorldName').value = ''; newWorldGo(n); });
   // account
   $('aForm').querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => { UI.authMode = t.dataset.mode; $('aMsg').hidden = true; UI.account(); }));
   $('aForm').addEventListener('submit', async (e) => {
@@ -14412,7 +14475,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -14661,7 +14724,7 @@ function applyQuality(first) {
   resize(true);
 }
 function busyLoading() { return G.state === 'loading' && performance.now() - (G.loadT || 0) < 25000; }
-function setLoad(p, txt) { $('loadFill').style.width = Math.round(p * 100) + '%'; if (txt) $('loadTxt').textContent = txt + ' …'; }
+function setLoad(p, txt) { $('loadFill').style.width = Math.round(p * 100) + '%'; if (txt) $('loadTxt').textContent = txt + ' …'; if (typeof warpProgress === 'function') warpProgress(p, txt); }
 
 function resetGameState() {
   G.time = { phase: 'day', t: 70, day: 1, night: 0, blood: false, bloodTonight: false, afterBlood: false };
@@ -14689,7 +14752,7 @@ function worldMode(save, fallback) {
 }
 async function loadWorld(seed, save, opts = {}) {
   G.state = 'loading';
-  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; $('scrSkins').hidden = true;
+  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = typeof WARP !== 'undefined' && WARP.phase !== 'off'; $('scrSkins').hidden = true;
   const mode = opts.force ? opts.mode : worldMode(save, opts.mode);
   setLoad(0.02, opts.client ? 'Lade die Welt von ' + opts.host : mode === 'island' ? 'Insel wird erschaffen' : 'Welt wird erschaffen');
   await nextFrame();
@@ -14781,6 +14844,7 @@ function randomSeed() { return (Math.floor(Math.random() * 2147483646) + 1) >>> 
 
 function showMenu() {
   G.state = 'menu';
+  if (typeof WARP !== 'undefined' && WARP.phase !== 'off') warpStop();
   modsEnd();
   $('scrLoad').hidden = true; $('hud').hidden = true; $('scrDeath').hidden = true; $('scrSkins').hidden = true;
   $('scrMenu').hidden = false;
@@ -15100,6 +15164,7 @@ function menuUpdate(dt) {
     target = [cx + Math.cos(a + 1.6) * 6, PL.y + 2, cz + Math.sin(a + 1.6) * 6];
     CAM.fov = 52 * Math.PI / 180;
     modFlyCam(eye, target);   // Mods-Knopf: hoch in den Weltraum
+    warpCam(eye, target);     // zu einem Server: geradeaus, immer schneller
   }
   MENU_CAM.cx = PL.x; MENU_CAM.cz = PL.z;
   if (!MENU_CAM.eye || MENU_CAM.snap) { MENU_CAM.eye = eye.slice(); MENU_CAM.target = target.slice(); MENU_CAM.snap = false; }
@@ -15142,7 +15207,7 @@ function frame(now) {
   else if (inMenu) guard('Menü', () => menuUpdate(dt));
   else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
   guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); updateModFly(dt); });
-  guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); });
+  guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); updatePingTags(); });
   guard('Sprachchat', () => updateVoice(dt));
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
@@ -16375,6 +16440,7 @@ function updateMobsClient(dt) {
 function applyNetEvent(v) {
   switch (v.t) {
     case 'vo': voiceOnSignal(v); break;
+    case 'ping': if (REMOTE[v.u]) pingAdd(v, false); break;
     case 'brk': if (getB(v.x, v.y, v.z) !== B.AIR) breakBlockAt(v.x, v.y, v.z, false, true); break;
     case 'plc': {
       if (!inWorld(v.x, v.y, v.z)) break;
@@ -16669,27 +16735,35 @@ async function playServer(srv, keep) {
   if (!NET.uid()) { UI.toast('Melde dich zuerst an.', 'warn'); return; }
   if (MP.active()) await MP.leave(true);
   if (G.state !== 'menu' && WORLDS.current && !G.server) saveGame(true);
+  // aus dem Hauptmenü: die Kamera fährt los, durch einen Tunnel aus Licht (Welten laden wie immer)
+  const warp = G.state === 'menu' && !keep;
   UI.closeAll(); releaseLock();
-  G.state = 'loading';
-  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, 'Verbinde mit dem Server „' + srv.name + '“');
+  if (warp) { warpStart(srv.name); $('hud').hidden = true; setLoad(0.02, 'Verbinde mit dem Server „' + srv.name + '“'); }
+  else { G.state = 'loading'; $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = false; setLoad(0.02, 'Verbinde mit dem Server „' + srv.name + '“'); }
   let info = null;
   // öffentliche Server (mit IP): dort laufen keine Mods
   MODRT.srvPublic = false;
   try { MODRT.srvPublic = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/public').once('value'), 8000)).val() === true; } catch (e) { /* not readable: members only */ }
   try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); }
   catch (e) {
+    if (warp) { await warpAccelDone(); warpStop(); }
     showMenu();
     UI.toast(/PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message))) ? (srv.ownerName || 'Der Besitzer') + ' muss dich zuerst zum Server hinzufügen.' : 'Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600);
     return;
   }
+  if (warp) { await warpAccelDone(); if (await warpAborted()) return; G.state = 'loading'; G.loadT = performance.now(); setLoad(0.08, 'Server gefunden'); }
   // somebody runs it already: join them
   if (info && info.open && info.hostUid && info.hostUid !== NET.uid()) {
     try {
+      setLoad(0.15, 'Verbinde mit ' + (info.host || 'dem Server'));
       const { snap } = await MP.join(info.hostUid, info.host || 'Server', srv);
+      if (warp && await warpAborted()) return;
       const data = JSON.parse(snap.d);
       WORLDS.current = null; G.loadedWorld = null; G.server = null;
       await loadWorld(data.seed, data, { client: true, host: MP.hostName, you: mine || data.you });
+      if (warp && await warpAborted()) return;
       MP.clientReady(data);
+      if (warp) warpArrive();
       startPlaying();
       if (mine) MP.sendPdata();
       UI.toast('Du bist auf dem Server „' + srv.name + '“. ' + MP.hostName + ' lässt die Welt gerade laufen.', 'good', 4600);
@@ -16702,12 +16776,14 @@ async function playServer(srv, keep) {
   let save = null, raw = null, rev = null;
   try {
     // the stamp first: if the world is saved right now, the stamp and the world still belong together
+    setLoad(0.2, 'Welt wird heruntergeladen');
     rev = (await withTimeout(NET.db.ref(srvPath(srv) + '/rev').once('value'), 30000)).val() || null;
     raw = (await withTimeout(NET.db.ref(srvPath(srv) + '/save').once('value'), 60000)).val();
     save = raw ? JSON.parse(raw) : null;
   }
-  catch (e) { showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
-  if (!save) { showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
+  catch (e) { if (warp) warpStop(); showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
+  if (warp && await warpAborted()) return;
+  if (!save) { if (warp) warpStop(); showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
   WORLDS.current = null; G.loadedWorld = null;
   G.server = srv;
   SERVER.lastUp = performance.now();
@@ -16718,6 +16794,8 @@ async function playServer(srv, keep) {
   // the owner's rules for this server
   try { const f = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/fall').once('value'), 8000)).val(); W.rules.fall = f !== false; } catch (e) { /* keep */ }
   try { W.rules.pvp = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/pvp').once('value'), 8000)).val() === true; } catch (e) { W.rules.pvp = false; }
+  if (warp && await warpAborted()) return;
+  if (warp) warpArrive();
   startPlaying();
   UI.toast('Du bist auf dem Server „' + srv.name + '“. Deine Freunde können jetzt jederzeit dazukommen.', 'good', 5200);
 }
@@ -18526,7 +18604,7 @@ mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 
     desc: 'Mit deinen Freunden in derselben Welt sprechen. H (am Handy der Knopf 🔇/🎤 oben) schaltet dein Mikrofon an und aus. Beim Start wählst du Mikrofon und Lautsprecher. Vorher stimmst du dem Datenschutz zu. Nichts wird aufgenommen.',
     code: `mod.set('voiceChat', true);` },
   { id: 'waypoints', name: 'Wegpunkte', icon: '📍', author: 'Blood Moon', cat: 'easy', rec: true,
-    desc: 'P (oder 📍 oben) öffnet das Wegpunkt-Menü: setz an deinem Standort einen Wegpunkt, gib ihm einen Namen und eine Farbe, lösch alte. Ein Lichtstrahl geht in den Himmel, dazu Name und Entfernung.',
+    desc: 'P (oder 📍 oben) öffnet das Wegpunkt-Menü: Wegpunkt an deinem Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Wenn du stirbst, zeigt ein schwarzer Wegpunkt „Letzter Tod“, wo deine Sachen liegen. Temporäre Wegpunkte (über die Weltkarte oder durch Antippen der Karte in der Hand) verschwinden, sobald du dort bist. Pingen: B (am Handy 🔔) und auf eine Stelle tippen, alle in der Welt sehen den Ping eine Minute lang, auch am Bildschirmrand.',
     code: `mod.set('waypoints', true);` },
   { id: 'worldmap', name: 'Weltkarte', icon: '🗺️', author: 'Blood Moon', cat: 'easy', rec: true,
     desc: 'M (oder 🗺️ oben) öffnet die Weltkarte als Vollbild: die ganze Welt mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, auch wo du noch nie warst. Zoomen, verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt.',
@@ -21284,6 +21362,17 @@ function packCardEl(p) {
   }
   act.appendChild(b);
   const mine = p.authorUid === NET.uid();
+  if (p.id === packStdId()) { const st = document.createElement('span'); st.className = 'pk-std'; st.textContent = '⭐ Standard-Modpack'; el.insertBefore(st, chips); }
+  // DynaTheReal: eines seiner Modpacks wird das Standard-Modpack (wird beim Erstellen einer Welt angeboten)
+  if (mine && isOwner()) {
+    const on = p.id === packStdId();
+    const sb = document.createElement('button'); sb.type = 'button'; sb.className = 'btn icon ' + (on ? 'primary' : 'ghost'); sb.title = on ? 'Ist das Standard-Modpack (antippen: nicht mehr)' : 'Als Standard-Modpack anbieten'; sb.textContent = '⭐';
+    sb.addEventListener('click', async () => {
+      try { await withTimeout(NET.db.ref('mods/meta/_pack').set(on ? null : { std: p.id }), 15000); await MODS.fetchLibrary(); UI.toast(on ? 'Kein Standard-Modpack mehr.' : '⭐ „' + p.name + '“ ist jetzt das Standard-Modpack.', 'good', 2600, 'pk'); packsRender(false); }
+      catch (err) { UI.toast(netMsg(err), 'warn', 4000); }
+    });
+    act.appendChild(sb);
+  }
   if (mine) {
     const e = document.createElement('button'); e.type = 'button'; e.className = 'btn icon ghost'; e.title = 'Bearbeiten'; e.setAttribute('aria-label', 'Bearbeiten'); e.textContent = '✏️';
     e.addEventListener('click', () => packEditOpen(p));
@@ -21310,7 +21399,8 @@ async function packInstall(mods) {
   for (const m of mods) {
     if (MODS.isInstalled(m.id)) { got.push(m); continue; }
     if (m.id === 'voice' && typeof voiceConsented === 'function' && !voiceConsented()) {
-      const ok = await voiceAskConsent(); voiceHide(); $('mdlMods').hidden = false;
+      const wasMods = !$('mdlMods').hidden;
+      const ok = await voiceAskConsent(); voiceHide(); if (wasMods) $('mdlMods').hidden = false;
       if (!ok) continue;
     }
     MODS.install(m); got.push(m);
@@ -21391,6 +21481,7 @@ async function packSave() {
   finally { $('pkSave').disabled = false; }
 }
 function bindModPacks() {
+  bindStdPack();
   $('pkNew').addEventListener('click', () => packEditOpen(null));
   $('pkCancel').addEventListener('click', packEditClose);
   $('pkSave').addEventListener('click', packSave);
@@ -21399,6 +21490,71 @@ function bindModPacks() {
   $('pkImgX').addEventListener('click', () => { if (PACKS.edit) { PACKS.edit.img = ''; packEditRefresh(); } });
   $('pkEmoji').addEventListener('input', () => { const E = PACKS.edit; if (!E) return; const v = $('pkEmoji').value.trim(); if (v) { E.icon = v.slice(0, 4); E.img = ''; } packEditRefresh(); });
   $('pkSearch').addEventListener('input', () => { PACKS.q = $('pkSearch').value; packEditRefresh(); });
+}
+
+/* ---------- das Standard-Modpack von DynaTheReal beim Erstellen einer Welt ---------- */
+const STDPACK_HIDE = 'bloodmoon-stdpack-hide';
+function packStdId() { const m = MODS.meta && MODS.meta._pack; return m && typeof m.std === 'string' ? m.std : null; }
+async function stdPackCheck() {
+  if (!NET.uid() || !NET.db) return null;
+  if (!MODS.libOk) { try { await withTimeout(MODS.fetchLibrary(), 6000); } catch (e) { return null; } }
+  const id = packStdId(); if (!id) return null;
+  try { if (localStorage.getItem(STDPACK_HIDE) === id) return null; } catch (e) { /* ignore */ }
+  await withTimeout(packsFetch(false), 6000);
+  const p = PACKS.list.find((q) => q.id === id); if (!p) return null;
+  // nur das Modpack von DynaTheReal selbst
+  const ownerUid = (await withTimeout(NET.db.ref('usernames/dynathereal').once('value'), 6000)).val();
+  if (!ownerUid || p.authorUid !== ownerUid) return null;
+  const mods = packMods(p).map((x) => MODS.get(x)).filter(Boolean);
+  if (!mods.length || mods.every((m) => MODS.isInstalled(m.id))) return null;
+  return { p, mods };
+}
+function stdPackAsk(info) {
+  return new Promise((res) => {
+    const { p, mods } = info;
+    const pic = $('spIco'); pic.innerHTML = '';
+    if (packImgOk(p.img)) { const im = document.createElement('img'); im.src = p.img; im.alt = ''; pic.appendChild(im); } else pic.textContent = String(p.icon || '📦').slice(0, 4);
+    $('spName').textContent = p.name;
+    $('spSub').textContent = mods.length + (mods.length === 1 ? ' Mod' : ' Mods') + ' · von DynaTheReal';
+    const box = $('spMods'); box.innerHTML = '';
+    for (const m of mods) {
+      const r = document.createElement('div'); r.className = 'sp-mod';
+      r.innerHTML = '<i></i><div style="min-width:0"><b></b><small></small></div>' + (MODS.isInstalled(m.id) ? '<em>schon da ✓</em>' : '');
+      r.querySelector('i').textContent = m.icon || '🧩'; r.querySelector('b').textContent = m.name; r.querySelector('small').textContent = m.desc || '';
+      box.appendChild(r);
+    }
+    $('spHide').setAttribute('aria-pressed', 'false');
+    UI._sp = { res, id: p.id };
+    $('mdlStdPack').hidden = false;
+  });
+}
+function stdPackAnswer(yes) {
+  const S = UI._sp; UI._sp = null;
+  $('mdlStdPack').hidden = true;
+  if (!S) return;
+  if ($('spHide').getAttribute('aria-pressed') === 'true') { try { localStorage.setItem(STDPACK_HIDE, S.id); } catch (e) { /* ignore */ } }
+  S.res(!!yes);
+}
+/* eine neue Welt: vorher das Standard-Modpack anbieten (nur wenn es noch nicht installiert ist) */
+async function newWorldGo(name) {
+  let info = null;
+  try { info = await stdPackCheck(); } catch (e) { info = null; }
+  if (info) {
+    for (const id of MODALS) if (id !== 'mdlStdPack') $(id).hidden = true;
+    const yes = await stdPackAsk(info);
+    if (yes) {
+      const got = await packInstall(info.mods);
+      for (const m of got) if (!UI.newMods.includes(m.id)) UI.newMods.push(m.id);
+      if (got.length) UI.toast('📦 ' + got.length + (got.length === 1 ? ' Mod installiert' : ' Mods installiert') + ' und in der neuen Welt an.', 'good', 3200, 'pk');
+    }
+  }
+  UI.closeAll();
+  createAndPlay(name, UI.newMode, UI.newMods);
+}
+function bindStdPack() {
+  $('spYes').addEventListener('click', () => stdPackAnswer(true));
+  $('spNo').addEventListener('click', () => stdPackAnswer(false));
+  $('spHide').addEventListener('click', () => { const b = $('spHide'); b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); });
 }
 
 /* ---- 19u_dims.js ---- */
@@ -22016,6 +22172,18 @@ function drawMapView() {
     if (mx < -P + M + ms * 0.5 || my < -P + M + ms * 0.5 || mx > P - M - ms * 0.5 || my > P - M - ms * 0.5) continue;
     drawMapMarker(ctx, s.kind, mx, my, ms);
   }
+  // Wegpunkte (Mod „Wegpunkte“): kleine Nadeln; antippen der Karte setzt einen temporären
+  MAPV.lay = { cx, cy, tilt, P, M, inner, bx0, bz0 };
+  if (typeof wpOn === 'function' && wpOn()) {
+    for (const w of WP.list) {
+      if (dimAt(w.x, w.z)) continue;
+      const [mx, my] = toMap(w.x + 0.5, w.z + 0.5);
+      if (mx < -P + M || my < -P + M || mx > P - M || my > P - M) continue;
+      ctx.beginPath(); ctx.arc(mx, my, ms * 0.36, 0, Math.PI * 2); ctx.fillStyle = w.c; ctx.fill();
+      ctx.lineWidth = Math.max(1.5, ms * 0.12); ctx.strokeStyle = w.k === 'death' ? '#d0d0d0' : '#2a2018'; ctx.stroke();
+      if (w.k === 'temp') { ctx.beginPath(); ctx.arc(mx, my, ms * 0.6, 0, Math.PI * 2); ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]); }
+    }
+  }
   // du: ein weißer Pfeil in Blickrichtung
   const [fx, fz] = camForward();
   const [ux, uy] = toMap(PL.x, PL.z);
@@ -22133,12 +22301,21 @@ function drawExploreIcon(ctx, key, S) {
      Schild mit Name und Entfernung.
    - Die Weltkarte (Taste M) setzt auch Wegpunkte.
    - Gespeichert pro Welt auf deinem Gerät (deine Wegpunkte sieht nur du).
+   - Todespunkt: wenn du stirbst, ein schwarzer Wegpunkt „Letzter Tod“; er
+     verschwindet, wenn du auf 10 Blöcke heran bist (im Menü abschaltbar).
+   - Temporäre Wegpunkte (⏱): aus der Weltkarte oder durch Antippen der
+     Karte in der Hand; sie verschwinden, sobald du dort bist.
+   - Ping: B (am Handy die Glocke) und dann auf eine Stelle tippen; alle in
+     der Welt sehen ihn eine Minute lang, außerhalb des Bildes am Rand.
    ========================================================================= */
 MODFX_DEF.waypoints = false;
 if (MODFX.waypoints === undefined) MODFX.waypoints = false;
 const WP_COLORS = ['#ff5a5a', '#ffb02e', '#ffe14d', '#4fd66b', '#3fc9ff', '#4f7dff', '#b46bff', '#ff6bd0', '#ffffff'];
 const WP_MAX = 60;
-const WP = { list: [], key: '', col: 0, tagsEl: null };
+const WP = { list: [], key: '', col: 0, tagsEl: null, cfg: { death: true } };
+const WP_CFG_KEY = 'bloodmoon-wp-cfg';
+try { Object.assign(WP.cfg, JSON.parse(localStorage.getItem(WP_CFG_KEY) || '{}')); } catch (e) { /* ignore */ }
+function wpSaveCfg() { try { localStorage.setItem(WP_CFG_KEY, JSON.stringify(WP.cfg)); } catch (e) { /* ignore */ } }
 
 function wpOn() { return !!MODFX.waypoints && !G.spectator; }
 /* wo die Wegpunkte gespeichert werden: pro Welt (eigene Welt, Welt eines Freundes, Server) */
@@ -22154,18 +22331,22 @@ function wpLoad() {
   WP.key = k; WP.list = [];
   try {
     const a = JSON.parse(localStorage.getItem(k) || '[]');
-    if (Array.isArray(a)) for (const w of a) if (w && isFinite(w.x) && isFinite(w.y) && isFinite(w.z)) WP.list.push({ id: String(w.id || Math.random().toString(36).slice(2, 9)), name: String(w.name || 'Wegpunkt').slice(0, 24), x: +w.x, y: +w.y, z: +w.z, c: /^#[0-9a-f]{6}$/i.test(w.c) ? w.c : WP_COLORS[0] });
+    if (Array.isArray(a)) for (const w of a) if (w && isFinite(w.x) && isFinite(w.y) && isFinite(w.z)) WP.list.push({ id: String(w.id || Math.random().toString(36).slice(2, 9)), name: String(w.name || 'Wegpunkt').slice(0, 24), x: +w.x, y: +w.y, z: +w.z, c: /^#[0-9a-f]{6}$/i.test(w.c) ? w.c : WP_COLORS[0], k: w.k === 'death' || w.k === 'temp' ? w.k : undefined });
   } catch (e) { /* kaputt: leer */ }
 }
 function wpSave() { try { localStorage.setItem(WP.key || wpStoreKey(), JSON.stringify(WP.list)); } catch (e) { /* voll */ } }
 function wpSameDim(w) { return (dimAt(w.x, w.z) || null) === (CURDIM || null); }
-function wpAdd(name, x, y, z, c) {
+function wpAdd(name, x, y, z, c, kind) {
   wpLoad();
+  if (kind === 'death') { for (let i = WP.list.length - 1; i >= 0; i--) if (WP.list[i].k === 'death') WP.list.splice(i, 1); }
   if (WP.list.length >= WP_MAX) { UI.toast('Höchstens ' + WP_MAX + ' Wegpunkte. Lösch erst einen alten.', 'warn', 3200, 'wp'); SFX.deny(); return null; }
-  const w = { id: Math.random().toString(36).slice(2, 9), name: (String(name || '').trim() || 'Wegpunkt ' + (WP.list.length + 1)).slice(0, 24), x: Math.floor(x), y: Math.floor(y), z: Math.floor(z), c: c || WP_COLORS[WP.col % WP_COLORS.length] };
+  const def = kind === 'death' ? 'Letzter Tod' : kind === 'temp' ? 'Ziel' : 'Wegpunkt ' + (WP.list.length + 1);
+  const w = { id: Math.random().toString(36).slice(2, 9), name: (String(name || '').trim() || def).slice(0, 24), x: Math.floor(x), y: Math.floor(y), z: Math.floor(z), c: kind === 'death' ? '#16161c' : c || WP_COLORS[WP.col % WP_COLORS.length] };
+  if (kind) w.k = kind;
   WP.list.push(w); wpSave();
-  WP.col++;
-  UI.toast('📍 Wegpunkt „' + w.name + '“ gesetzt.', 'good', 2200, 'wp');
+  if (!kind) WP.col++;
+  if (kind === 'death') return w;
+  UI.toast((kind === 'temp' ? '⏱ Temporärer Wegpunkt „' : '📍 Wegpunkt „') + w.name + '“ gesetzt.' + (kind === 'temp' ? ' Er verschwindet, wenn du dort bist.' : ''), 'good', 2600, 'wp');
   SFX.ui();
   return w;
 }
@@ -22209,6 +22390,7 @@ UI.wpRefresh = function () {
     });
   }
   for (const b of cols.children) b.setAttribute('aria-pressed', String(+b.dataset.i === WP.col % WP_COLORS.length));
+  $('wpDeath').setAttribute('aria-checked', String(!!WP.cfg.death));
   $('wpHere').textContent = 'Du stehst bei X ' + Math.floor(PL.x) + ' · Y ' + Math.floor(PL.y) + ' · Z ' + Math.floor(PL.z);
   const box = $('wpList'); box.innerHTML = '';
   const list = WP.list.slice().sort((a, b) => Math.hypot(a.x - PL.x, a.z - PL.z) - Math.hypot(b.x - PL.x, b.z - PL.z));
@@ -22220,12 +22402,31 @@ UI.wpRefresh = function () {
     const d = Math.round(Math.hypot(w.x + 0.5 - PL.x, w.y - PL.y, w.z + 0.5 - PL.z));
     row.innerHTML = '<i class="wp-dot"></i><div class="grow"><b></b><small></small></div><button class="btn icon ghost" type="button" title="Löschen" aria-label="Löschen"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg></button>';
     row.querySelector('.wp-dot').style.background = w.c;
-    row.querySelector('b').textContent = w.name;
+    row.querySelector('b').textContent = (w.k === 'death' ? '💀 ' : w.k === 'temp' ? '⏱ ' : '') + w.name;
     row.querySelector('small').textContent = (same ? d + ' m' : 'in einer anderen Dimension') + ' · X ' + w.x + ' · Y ' + w.y + ' · Z ' + w.z;
     row.querySelector('button').addEventListener('click', () => { wpDel(w.id); UI.wpRefresh(); });
     box.appendChild(row);
   }
 };
+/* gestorben: ein schwarzer Wegpunkt, wo deine Sachen liegen */
+function wpOnDeath() {
+  if (!wpOn() || !WP.cfg.death) return;
+  wpAdd('Letzter Tod', PL.x, PL.y, PL.z, null, 'death');
+}
+/* Todespunkt und temporäre Wegpunkte verschwinden, wenn du dort bist */
+function wpAutoRemove() {
+  if (!wpOn() || PL.dead || !WP.list.length || G.state === 'menu' || G.state === 'loading') return;
+  for (let i = WP.list.length - 1; i >= 0; i--) {
+    const w = WP.list[i]; if (!w.k || !wpSameDim(w)) continue;
+    const d = Math.hypot(w.x + 0.5 - PL.x, w.y - PL.y, w.z + 0.5 - PL.z), dh = Math.hypot(w.x + 0.5 - PL.x, w.z + 0.5 - PL.z);
+    if (w.k === 'death' ? d < 10 : (d < 6 || (w.y < 0 && dh < 6))) {
+      WP.list.splice(i, 1); wpSave();
+      UI.toast(w.k === 'death' ? '💀 Todespunkt erreicht.' : '⏱ Ziel „' + w.name + '“ erreicht.', 'good', 2200, 'wp');
+      SFX.ui();
+      if (!$('mdlWp').hidden) UI.wpRefresh();
+    }
+  }
+}
 function wpSetHere() {
   const w = wpAdd($('wpName').value, PL.x, PL.y, PL.z);
   if (w) { $('wpName').value = ''; UI.wpRefresh(); }
@@ -22251,6 +22452,7 @@ function drawWaypointBeams(t) {
 /* Schilder mit Name und Entfernung */
 const _wps = [0, 0, 0];
 function updateWaypointTags() {
+  wpAutoRemove();
   if (!WP.tagsEl) {
     WP.tagsEl = document.createElement('div'); WP.tagsEl.id = 'wptags';
     const nt = $('nametags'); nt.parentNode.insertBefore(WP.tagsEl, nt);
@@ -22270,7 +22472,9 @@ function updateWaypointTags() {
       if (!el) { el = document.createElement('div'); el.className = 'wptag anchor'; el.innerHTML = '<i></i><b></b><span></span>'; box.appendChild(el); }
       el.hidden = false;
       if (el.dataset.c !== w.c) { el.dataset.c = w.c; el.firstChild.style.background = w.c; el.style.setProperty('--wc', w.c); }
-      if (el.children[1].textContent !== w.name) el.children[1].textContent = w.name;
+      const nm = (w.k === 'death' ? '💀 ' : w.k === 'temp' ? '⏱ ' : '') + w.name;
+      if (el.children[1].textContent !== nm) el.children[1].textContent = nm;
+      el.classList.toggle('death', w.k === 'death');
       const dt = d >= 1000 ? (d / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(d) + ' m';
       if (el.lastChild.textContent !== dt) el.lastChild.textContent = dt;
       const sc = clamp(1.05 - d / 900, 0.72, 1);
@@ -22285,6 +22489,7 @@ function bindWaypoints() {
   const b = $('btnWp'); if (!b) return;
   fastTap(b, () => { if (G.state === 'playing') UI.openWaypoints(); });
   $('wpSet').addEventListener('click', wpSetHere);
+  $('wpDeath').addEventListener('click', () => { WP.cfg.death = !WP.cfg.death; wpSaveCfg(); UI.wpRefresh(); });
   $('wpName').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wpSetHere(); } e.stopPropagation(); });
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyP' || e.repeat || !wpOn() || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -22538,6 +22743,7 @@ function wmDraw() {
     const [sx, sy] = wmToScreen(w.x + 0.5, w.z + 0.5);
     if (sx < -40 || sy < -40 || sx > Wd + 40 || sy > Ht + 60) continue;
     wmPin(ctx, sx, sy, w.c);
+    if (w.k === 'temp') { ctx.beginPath(); ctx.arc(sx, sy - 15, 13, 0, Math.PI * 2); ctx.setLineDash([3, 3]); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.setLineDash([]); }
     ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,8,14,0.85)'; ctx.strokeText(w.name, sx, sy - 22);
     ctx.fillStyle = '#fff'; ctx.fillText(w.name, sx, sy - 22);
   }
@@ -22602,7 +22808,7 @@ function wmOpenPop(sx, sy) {
   const fx = Math.floor(WM.pop.wx), fz = Math.floor(WM.pop.wz);
   $('wmPopT').textContent = hit ? '📍 ' + hit.name : place || 'Diese Stelle';
   $('wmPopC').textContent = 'X ' + fx + ' · Z ' + fz + ' · ' + Math.round(Math.hypot(fx - PL.x, fz - PL.z)) + ' m von dir';
-  $('wmPopSet').hidden = !!hit; $('wmPopDel').hidden = !hit; $('wmPopForm').hidden = true;
+  $('wmPopSet').hidden = !!hit; $('wmPopTemp').hidden = !!hit || !wpOn(); $('wmPopDel').hidden = !hit; $('wmPopForm').hidden = true;
   $('wmPopSet').disabled = !wpOn();
   $('wmPopSet').textContent = wpOn() ? '📍 Wegpunkt setzen' : '📍 Wegpunkt setzen (braucht die Mod „Wegpunkte“)';
   p.hidden = false;
@@ -22631,8 +22837,14 @@ function bindWorldMap() {
   $('wmOut').addEventListener('click', () => wmZoomAt(1 / 1.6, WM.cv.clientWidth / 2, WM.cv.clientHeight / 2));
   $('wmMe').addEventListener('click', () => { WM.cx = PL.x; WM.cz = PL.z; WM.need = true; wmClosePop(); });
   $('wmSpawn').addEventListener('click', () => { WM.cx = CX; WM.cz = CZ; WM.need = true; wmClosePop(); });
-  $('wmPopSet').addEventListener('click', () => { $('wmPopSet').hidden = true; $('wmPopForm').hidden = false; $('wmPopName').value = ''; wmPlacePop(); setTimeout(() => $('wmPopName').focus(), 20); });
+  $('wmPopSet').addEventListener('click', () => { $('wmPopSet').hidden = true; $('wmPopTemp').hidden = true; $('wmPopForm').hidden = false; $('wmPopName').value = ''; wmPlacePop(); setTimeout(() => $('wmPopName').focus(), 20); });
   $('wmPopOk').addEventListener('click', wmPopSave);
+  $('wmPopTemp').addEventListener('click', () => {
+    if (!WM.pop) return;
+    const x = Math.floor(WM.pop.wx), z = Math.floor(WM.pop.wz);
+    wmSample(x, z, true, _wmo);
+    if (wpAdd('Ziel', x, _wmo[3] + 1, z, '#ffffff', 'temp')) { wmClosePop(); WM.need = true; }
+  });
   $('wmPopName').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); wmPopSave(); } if (e.key === 'Escape') { e.preventDefault(); wmClosePop(); } });
   $('wmPopDel').addEventListener('click', () => { if (WM.pop && WM.pop.wp) wpDel(WM.pop.wp); wmClosePop(); WM.need = true; if (!$('mdlWp').hidden) UI.wpRefresh(); });
   $('wmPopX').addEventListener('click', wmClosePop);
@@ -23626,6 +23838,164 @@ function bindFarSettings() {
   UI.settingsRefresh = function () { if (o) o(); farSettingsRefresh(); };
 }
 
+/* ---- 19xe_ping.js ---- */
+/* =========================================================================
+   Pingen und die Karte in der Hand (gehört zur Mod „Wegpunkte“).
+   - B (Handy: 🔔 oben): der Bildschirm wird zum Zielen, ein Tipp/Klick
+     setzt den Ping dort, wo du hinzeigst. Alle in der Welt sehen ihn eine
+     Minute lang; ist er nicht im Bild, steht er rechts am Rand mit Pfeil.
+   - Karte aus Papier in der Hand: auf die Karte tippen (PC: Linksklick)
+     setzt dort einen temporären Wegpunkt.
+   ========================================================================= */
+const PINGS = [];
+const PING_LIFE = 60;
+const _pg = [0, 0, 0];
+function pingSyncBtn() {
+  const b = $('btnPing'); if (!b) return;
+  const s = wpOn() && G.state !== 'menu' && G.state !== 'loading';
+  if (b.hidden === s) b.hidden = !s;
+}
+function pingAim() {
+  if (!wpOn() || G.state !== 'playing') return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  let L = $('pingLayer');
+  if (!L) {
+    L = document.createElement('div'); L.id = 'pingLayer';
+    L.innerHTML = '<p></p>';
+    document.body.appendChild(L);
+    L.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); pingAt(e.clientX, e.clientY); });
+    L.addEventListener('contextmenu', (e) => { e.preventDefault(); pingCancel(); });
+  }
+  L.firstChild.textContent = touchUI() ? '🔔 Tipp auf die Stelle, die du pingen willst' : '🔔 Klick auf die Stelle, die du pingen willst (Esc: abbrechen)';
+  L.hidden = false;
+  G.state = 'inv'; PINGS.aiming = true;
+}
+function pingCancel() {
+  const L = $('pingLayer'); if (L) L.hidden = true;
+  if (PINGS.aiming) { PINGS.aiming = false; if (G.state === 'inv') { G.state = 'playing'; INPUT.clear(); if (CAMC.mode === 'fp' && !touchUI()) { INPUT.lockSoft = true; requestLock('fp'); } } }
+}
+function pingAt(sx, sy) {
+  const r = screenRay(sx, sy);
+  const hit = raycast(r.o[0], r.o[1], r.o[2], r.d[0], r.d[1], r.d[2], 300, () => true);
+  let x, y, z;
+  if (hit) { x = hit.x + 0.5; y = hit.y + 1; z = hit.z + 0.5; }
+  else { x = r.o[0] + r.d[0] * 60; y = r.o[1] + r.d[1] * 60; z = r.o[2] + r.d[2] * 60; }
+  pingCancel();
+  const p = { x: +x.toFixed(1), y: +y.toFixed(1), z: +z.toFixed(1), n: NET.name || 'Du' };
+  pingAdd(p, true);
+  if (MP.active()) MP.send({ t: 'ping', x: p.x, y: p.y, z: p.z, n: p.n });
+}
+function pingAdd(v, own) {
+  if (!wpOn() || !isFinite(v.x) || !isFinite(v.y) || !isFinite(v.z)) return;
+  if (Math.abs(v.x) > WLIM || Math.abs(v.z) > WLIM) return;
+  const name = own ? 'Du' : String(v.n || 'Spieler').slice(0, 16);
+  // pro Spieler nur ein Ping
+  for (let i = PINGS.length - 1; i >= 0; i--) if (PINGS[i].n === name) PINGS.splice(i, 1);
+  PINGS.push({ x: v.x, y: v.y, z: v.z, n: name, t0: performance.now() });
+  if (PINGS.length > 12) PINGS.shift();
+  SFX.greet ? SFX.greet() : SFX.ui();
+  if (!own) UI.toast('🔔 ' + name + ' hat gepingt', 'info', 1800, 'ping');
+}
+/* ein kleiner gelber Strahl an der Stelle */
+function drawPings(t) {
+  if (!PINGS.length) return;
+  const now = performance.now();
+  for (let i = PINGS.length - 1; i >= 0; i--) if (now - PINGS[i].t0 > PING_LIFE * 1000) PINGS.splice(i, 1);
+  const pulse = 0.7 + Math.sin(t * 6) * 0.3;
+  for (const p of PINGS) {
+    if ((dimAt(p.x, p.z) || null) !== (CURDIM || null)) continue;
+    if (Math.hypot(p.x - CAM.eye[0], p.z - CAM.eye[2]) > Math.min(CAM.far - 8, 380)) continue;
+    BATCH.trans.aabb(p.x - 0.12, p.y, p.z - 0.12, p.x + 0.12, p.y + 14, p.z + 0.12, 1, 0.83, 0.28, 1, 0.55 * pulse);
+    BATCH.trans.aabb(p.x - 0.5, p.y + 0.02, p.z - 0.5, p.x + 0.5, p.y + 0.06, p.z + 0.5, 1, 0.83, 0.28, 1, 0.4);
+  }
+}
+/* Schilder: im Bild über der Stelle, sonst rechts am Rand mit einem Pfeil */
+function updatePingTags() {
+  pingSyncBtn();
+  let box = $('pings');
+  if (!box) { box = document.createElement('div'); box.id = 'pings'; const nt = $('nametags'); nt.parentNode.insertBefore(box, nt); }
+  const show = wpOn() && (G.state === 'playing' || G.state === 'paused' || PINGS.aiming) && !G.sleep;
+  let n = 0, edgeY = 0;
+  if (show && PINGS.length) {
+    const vw = window.innerWidth, vh = window.innerHeight, now = performance.now();
+    const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : CAMC.yaw;
+    const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+    for (const p of PINGS) {
+      if ((dimAt(p.x, p.z) || null) !== (CURDIM || null)) continue;
+      const d = Math.hypot(p.x - PL.x, p.y - PL.y, p.z - PL.z);
+      let el = box.children[n];
+      if (!el) { el = document.createElement('div'); el.className = 'ping'; el.innerHTML = '<i>🔔</i><b></b><span></span>'; box.appendChild(el); }
+      el.hidden = false;
+      const left = Math.max(0, PING_LIFE - (now - p.t0) / 1000);
+      el.style.opacity = left < 5 ? (left / 5).toFixed(2) : '1';
+      const nm = p.n, dt = (d >= 1000 ? (d / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(d) + ' m');
+      if (el.children[1].textContent !== nm) el.children[1].textContent = nm;
+      const vis = projectToScreen(CAM.vp, p.x, p.y + 2.5, p.z, vw, vh, _pg) && _pg[0] > 20 && _pg[0] < vw - 20 && _pg[1] > 40 && _pg[1] < vh - 40;
+      if (vis) {
+        el.classList.remove('edge');
+        if (el.firstChild.textContent !== '🔔') el.firstChild.textContent = '🔔';
+        if (el.lastChild.textContent !== dt) el.lastChild.textContent = dt;
+        el.style.transform = 'translate(' + _pg[0].toFixed(1) + 'px,' + (_pg[1] - 40).toFixed(1) + 'px)';
+      } else {
+        // nicht im Bild (auch wenn du nach oben oder unten schaust): rechts am Rand, der Pfeil zeigt die Richtung
+        el.classList.add('edge');
+        const dx = p.x - PL.x, dz = p.z - PL.z, ang = Math.atan2(dx * rx + dz * rz, dx * fx + dz * fz);
+        const arrow = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️'][((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8];
+        if (el.firstChild.textContent !== arrow) el.firstChild.textContent = arrow;
+        const tx = '🔔 ' + dt;
+        if (el.lastChild.textContent !== tx) el.lastChild.textContent = tx;
+        el.style.transform = 'translate(' + (vw - 14 - el.offsetWidth) + 'px,' + (vh * 0.32 + edgeY) + 'px)';
+        edgeY += 62;
+      }
+      n++;
+    }
+  }
+  for (let k = n; k < box.children.length; k++) if (!box.children[k].hidden) box.children[k].hidden = true;
+}
+/* Karte in der Hand antippen: temporärer Wegpunkt */
+function mapTapWaypoint(sx, sy) {
+  if (!wpOn() || G.state !== 'playing' || !mapHeld() || !MAPV.lay || !MAPV.el || MAPV.el.hidden) return false;
+  const L = MAPV.lay;
+  const c = Math.cos(-L.tilt), s = Math.sin(-L.tilt);
+  const ox = sx - L.cx, oy = sy - L.cy, lx = ox * c - oy * s, ly = ox * s + oy * c;
+  const u = (lx - (-L.P + L.M)) / L.inner, v = (ly - (-L.P + L.M)) / L.inner;
+  if (u < 0 || v < 0 || u > 1 || v > 1) return false;
+  const x = L.bx0 + u * MAP_N * MAP_BLOCKS, z = L.bz0 + v * MAP_N * MAP_BLOCKS;
+  if (Math.hypot(x - PL.x, z - PL.z) < 6) return false;
+  const o = wmSample(Math.floor(x), Math.floor(z), true, [0, 0, 0, 0, 0]);
+  wpAdd('Ziel', x, o[3] + 1, z, '#ffffff', 'temp');
+  return true;
+}
+function bindPing() {
+  fastTap($('btnPing'), () => { if (G.state === 'playing') pingAim(); });
+  window.addEventListener('keydown', (e) => {
+    const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if (PINGS.aiming && e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); pingCancel(); return; }
+    if (e.code !== 'KeyB' || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !wpOn()) return;
+    if (PINGS.aiming) { pingCancel(); return; }
+    if (G.state === 'playing') pingAim();
+  }, true);
+  // Karte in der Hand: PC Linksklick (in der Ego-Sicht zählt die Mitte), Handy kurzes Antippen
+  window.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || !mapHeld() || !wpOn() || G.state !== 'playing') return;
+    if (e.target && e.target.closest && e.target.closest('button, .modal, .panel')) return;
+    const lock = !!document.pointerLockElement;
+    if (mapTapWaypoint(lock ? window.innerWidth / 2 : e.clientX, lock ? window.innerHeight / 2 : e.clientY)) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  const tt = new Map();
+  window.addEventListener('touchstart', (e) => { for (const t of e.changedTouches) tt.set(t.identifier, [t.clientX, t.clientY, performance.now()]); }, { capture: true, passive: true });
+  window.addEventListener('touchend', (e) => {
+    for (const t of e.changedTouches) {
+      const s = tt.get(t.identifier); tt.delete(t.identifier);
+      if (!s || performance.now() - s[2] > 350 || Math.hypot(t.clientX - s[0], t.clientY - s[1]) > 12) continue;
+      if (t.clientX < window.innerWidth * 0.3) continue;   // links ist der Steuerknüppel
+      if (e.target && e.target.closest && e.target.closest('button, .modal, .panel')) continue;
+      mapTapWaypoint(t.clientX, t.clientY);
+    }
+  }, { capture: true, passive: true });
+}
+
 /* ---- 19y_creative.js ---- */
 /* =========================================================================
    Kreativ-Menü (nur mit einer Mod, die mod.set('creativeMenu', true) setzt,
@@ -23864,6 +24234,155 @@ function modFlyDraw() {
     }
     ctx.textAlign = 'left';
   }
+}
+
+/* ---- 19zb_warp.js ---- */
+/* =========================================================================
+   Verbinden mit einem Server (aus dem Hauptmenü): die Kamera fährt
+   geradeaus los, erst langsam, dann immer schneller, bis alles zu
+   Lichtstreifen wird, wie eine Reise durch die Zeit. Ein kleines Fenster
+   zeigt, wie weit die Verbindung ist, und man kann abbrechen. Steht die
+   Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
+   (Eigene Welten laden wie immer.)
+   ========================================================================= */
+const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 1.5, arriveDur: 1.6, wait: null, name: '' };
+
+function warpOn() { return WARP.phase !== 'off'; }
+function warpCanvas() {
+  if (WARP.cv) return;
+  const cv = document.createElement('canvas'); cv.id = 'warpFx'; cv.hidden = true;
+  document.body.appendChild(cv);
+  WARP.cv = cv; WARP.ctx = cv.getContext('2d');
+  const rnd = mulberry32(9001);
+  WARP.stars = [];
+  for (let i = 0; i < 420; i++) WARP.stars.push({ a: rnd() * Math.PI * 2, r: 0.04 + rnd() * 1.1, z: rnd(), h: rnd() });
+}
+/* los geht es: die Kamera fährt an (die Welt im Menü wird noch gezeichnet) */
+function warpStart(name) {
+  warpCanvas();
+  WARP.phase = 'accel'; WARP.t0 = performance.now(); WARP.cancel = false; WARP.name = name || 'Server';
+  WARP.done = new Promise((r) => { WARP.wait = r; });
+  $('scrMenu').hidden = true;
+  // alte Meldungen und Sprechblasen der Menü-Welt weg
+  $('toasts').innerHTML = ''; if ($('bubble')) $('bubble').hidden = true;
+  $('warpT').textContent = 'Verbinde mit „' + WARP.name + '“';
+  $('warpTxt').textContent = 'Server wird gesucht …'; $('warpFill').style.width = '2%';
+  $('warpCancel').disabled = false; $('warpCancel').textContent = 'Abbrechen';
+  WARP.cv.hidden = false;
+  cancelAnimationFrame(WARP.raf); WARP.last = performance.now(); WARP.raf = requestAnimationFrame(warpLoop);
+  SFX.ui();
+}
+/* wartet, bis die Kamera schnell genug ist (dann kommen nur noch die Lichtstreifen) */
+function warpAccelDone() { return WARP.phase === 'accel' ? WARP.done : Promise.resolve(); }
+/* abgebrochen? dann alles aufräumen und zurück ins Menü */
+async function warpAborted() {
+  if (!WARP.cancel) return false;
+  if (MP.active()) { try { await MP.leave(true); } catch (e) { /* ignore */ } }
+  G.server = null;
+  warpStop();
+  showMenu();
+  UI.toast('Verbindung abgebrochen.', 'info', 2200, 'warp');
+  return true;
+}
+function warpProgress(p, txt) {
+  if (!warpOn()) return;
+  $('warpFill').style.width = Math.round(clamp(p, 0, 1) * 100) + '%';
+  if (txt) $('warpTxt').textContent = txt + ' …';
+}
+/* angekommen: langsamer werden, die Streifen verblassen, die Welt kommt näher */
+function warpArrive() {
+  if (!warpOn()) return;
+  WARP.phase = 'arrive'; WARP.t0 = performance.now();
+  $('warpBox').hidden = true;
+}
+function warpStop() {
+  WARP.phase = 'off'; cancelAnimationFrame(WARP.raf);
+  if (WARP.cv) WARP.cv.hidden = true;
+  $('warpBox').hidden = true;
+  const gl = $('gl'); gl.style.transform = ''; gl.style.filter = '';
+  if (WARP.wait) { WARP.wait(); WARP.wait = null; }
+}
+/* die Kamera im Menü fährt geradeaus, immer schneller */
+function warpCam(eye, target) {
+  if (WARP.phase !== 'accel') return;
+  const k = clamp((performance.now() - WARP.t0) / 1000 / WARP.accelDur, 0, 1);
+  let dx = target[0] - eye[0], dy = target[1] - eye[1], dz = target[2] - eye[2];
+  const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; dy = 0;
+  const d = 260 * k * k * k + 6 * k * k;
+  eye[0] += dx * d; eye[2] += dz * d; target[0] += dx * d; target[2] += dz * d;
+  // ein leichtes Rütteln, je schneller, desto mehr
+  const t = performance.now() / 1000, sh = k * k * 0.35;
+  eye[1] += Math.sin(t * 37) * sh; eye[0] += Math.cos(t * 31) * sh;
+  MENU_CAM.snap = true;
+}
+function warpLoop() {
+  if (!warpOn()) return;
+  WARP.raf = requestAnimationFrame(warpLoop);
+  const now = performance.now(), dt = clamp((now - WARP.last) / 1000, 0, 0.1); WARP.last = now;
+  const tt = (now - WARP.t0) / 1000;
+  let alpha = 1, target = 1;
+  if (WARP.phase === 'accel') {
+    const k = clamp(tt / WARP.accelDur, 0, 1);
+    target = 0.05 + k * k * 0.95; alpha = clamp((k - 0.3) / 0.6, 0, 1);
+    if (k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; $('warpBox').hidden = false; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
+  } else if (WARP.phase === 'cruise') {
+    target = 1 + Math.sin(tt * 2.1) * 0.06;
+  } else if (WARP.phase === 'arrive') {
+    const k = clamp(tt / WARP.arriveDur, 0, 1);
+    target = (1 - k) * (1 - k); alpha = 1 - k * k * (3 - 2 * k);
+    // die Welt kommt aus der Tiefe näher
+    $('gl').style.transform = 'scale(' + (1 + (1 - k) * (1 - k) * 0.35).toFixed(3) + ')';
+    if (k >= 1) { warpStop(); return; }
+  }
+  WARP.speed += (target - WARP.speed) * Math.min(1, dt * 4);
+  warpDraw(alpha, dt);
+}
+function warpDraw(alpha, dt) {
+  const cv = WARP.cv, ctx = WARP.ctx;
+  const dpr = Math.min(2, window.devicePixelRatio || 1), Wd = window.innerWidth, Ht = window.innerHeight;
+  if (cv.width !== Math.round(Wd * dpr) || cv.height !== Math.round(Ht * dpr)) { cv.width = Math.round(Wd * dpr); cv.height = Math.round(Ht * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, Wd, Ht);
+  if (alpha <= 0.002) return;
+  const cx = Wd / 2, cy = Ht / 2, R = Math.hypot(Wd, Ht) * 0.55, sp = WARP.speed, t = performance.now() / 1000;
+  ctx.globalAlpha = alpha;
+  // der Tunnel: dunkel in der Mitte, blau-violett am Rand
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  g.addColorStop(0, '#0a0620'); g.addColorStop(0.45, '#120a36'); g.addColorStop(1, '#2a1260');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, Wd, Ht);
+  // Ringe, die an dir vorbeiziehen (wie Sekunden, die vorbeifliegen)
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 7; i++) {
+    const z = ((t * (0.25 + sp * 0.9) + i / 7) % 1);
+    const r = Math.pow(z, 3) * R * 1.4;
+    ctx.strokeStyle = 'rgba(140,120,255,' + (0.18 * z * sp) + ')';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  // Lichtstreifen: Sterne, die in die Länge gezogen werden
+  ctx.lineCap = 'round';
+  for (const s of WARP.stars) {
+    s.z += dt * (0.08 + sp * 1.6) * (0.6 + s.h * 0.8);
+    if (s.z > 1) { s.z -= 1; s.a = Math.random() * Math.PI * 2; }
+    const p = Math.pow(s.z, 2.2), len = 0.02 + sp * 0.22 * (0.4 + s.z);
+    const r1 = (s.r * 0.15 + p) * R, r0 = Math.max(0, r1 - len * R * (0.3 + s.z));
+    const ca = Math.cos(s.a), sa = Math.sin(s.a);
+    const hue = s.h < 0.55 ? '170,220,255' : s.h < 0.85 ? '200,170,255' : '255,255,255';
+    ctx.strokeStyle = 'rgba(' + hue + ',' + clamp(0.25 + s.z * 0.9, 0, 1) + ')';
+    ctx.lineWidth = 0.6 + s.z * 2.2;
+    ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
+  }
+  // helles Licht am Ende des Tunnels
+  const gl2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.28);
+  gl2.addColorStop(0, 'rgba(255,255,255,' + (0.55 * sp) + ')'); gl2.addColorStop(0.4, 'rgba(170,150,255,' + (0.2 * sp) + ')'); gl2.addColorStop(1, 'rgba(120,100,255,0)');
+  ctx.fillStyle = gl2; ctx.fillRect(0, 0, Wd, Ht);
+  ctx.globalAlpha = 1;
+}
+function bindWarp() {
+  $('warpCancel').addEventListener('click', () => {
+    if (!warpOn() || WARP.cancel) return;
+    WARP.cancel = true;
+    $('warpCancel').disabled = true; $('warpCancel').textContent = 'Wird abgebrochen …';
+  });
 }
 
 /* ---- 99_start.js ---- */
