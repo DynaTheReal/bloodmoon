@@ -1281,7 +1281,15 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <button type="button" data-v="high" role="radio"><b>High</b><span>16×16-Texturen, volle Auflösung, Leuchten, Lichtstrahlen, weiche Schatten</span></button>
       </div>
       <div class="rows">
-        <div class="row"><label for="setView">Sichtweite<small>Wie weit du die Welt siehst</small></label><div class="rng"><input id="setView" type="range" min="4" max="14" step="1"><output id="setViewO"></output></div></div>
+        <div class="row"><label for="setView">Sichtweite<small>Wie viele Chunks um dich herum gezeichnet werden (1 Chunk = 16 Blöcke)</small></label><div class="rng"><input id="setView" type="range" min="4" max="14" step="1"><output id="setViewO"></output></div></div>
+      </div>
+      <div id="farBox" hidden>
+      <p class="sec-t">🔭 Advanced Render Distance</p>
+      <div class="rows">
+        <div class="row"><div class="lbl">Fernsicht<small>Hinter der Sichtweite: die Welt bis weit zum Horizont, je weiter weg, desto gröber (pixeliger)</small></div><button class="tgl" id="setFarOn" type="button" role="switch" aria-checked="true" aria-label="Fernsicht"></button></div>
+        <div class="row"><label for="setFar">Weite<small>Bis wohin du siehst</small></label><div class="rng"><input id="setFar" type="range" min="0" max="100" step="1"><output id="setFarO"></output></div></div>
+        <div class="row ctl-row"><div class="lbl">Detail<small id="farHint"></small></div><div class="seg" id="setFarQ"><button data-v="1" type="button">Low</button><button data-v="2" type="button">Mittel</button><button data-v="3" type="button">High</button></div></div>
+      </div>
       </div>
       <p class="sec-t">Steuerung</p>
       <div class="rows">
@@ -1813,8 +1821,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.30.1';
+const GAME_VERSION = '2.31.0';
 const GAME_NOTES = [
+  ['2.31.0', 'Neue Mod „Advanced Render Distance“: Fernsicht bis zu 4000 Chunks. Hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low, Mittel, High). Die Sichtweite in den Einstellungen steht jetzt in Chunks statt in Metern. Mod-API: mod.set(\'viewDist\'), mod.set(\'farView\'), mod.set(\'farDetail\') und mod.set(\'farUi\').'],
   ['2.30.1', 'Sprachchat: über dem Namen siehst du jetzt auch, ob die Verbindung noch aufgebaut wird (…) oder nicht klappt (!). Klappt sie nicht, versucht das Spiel es immer wieder. Neu im Admin-Fenster: ein Weiterleitungs-Server (TURN) für Netze, die keine direkte Verbindung erlauben (oft im Handy-Netz).'],
   ['2.30.0', 'Sprachchat: zwei Knöpfe oben, das Mikrofon (H) schaltet dich stumm, der Lautsprecher (J) schaltet die anderen stumm (du kannst trotzdem reden). Mikrofon und Ton sind am Anfang an und bleiben so, wie du sie zuletzt hattest. Neuer Start: „Willkommen beim Sprachchat!“ mit kurzer Erklärung und Ja oder Nein. Das Einrichten und die Erklärung kommen nur beim ersten Mal. Über jedem Namen siehst du, ob jemand gerade redet (Mikrofon mit Schallwellen), stumm ist, die anderen stumm geschaltet hat oder keinen Sprachchat hat (✕).'],
   ['2.29.1', 'Sprachchat: geht jetzt auch auf Servern zuverlässig (die Verbindung wartet, bis die Welt fertig geladen ist, und fragt bei Bedarf nochmal), auch auf öffentlichen Servern mit IP (dort laufen nur Sprachchat, Wegpunkte und Weltkarte). Wer gerade spricht, hat ein grünes Mikrofon über dem Namen. Mikrofon- und Lautsprecher-Auswahl: Knopf „Mikrofon erlauben“, danach stehen alle Geräte mit Namen in der Liste.'],
@@ -6053,6 +6062,8 @@ function computeEnv(time, viewDist) {
   ENV.sunVis = smoothstep(-0.06, 0.02, es) * (1 - blood * 0.7);
   ENV.fogEnd = viewDist * CS - 6;
   ENV.fogDen = lerp(lerp(1 / 280, 1 / 320, dayF), 1 / 75, blood);   // clear air near the spawn, by day and by night
+  // Fernsicht: der Dunst kommt erst ganz hinten
+  if (FAR.on) { ENV.fogEnd = FAR.blocks; ENV.fogDen = lerp(1 / (FAR.blocks * 0.9), 1 / 75, blood); }
   ENV.exposure = lerp(1.75, 1.5, dayF);
   ENV.wind = 1 + blood * 0.6;
   applyWeatherEnv();
@@ -6291,6 +6302,9 @@ function renderFrame(time, focus, opts) {
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, TEX.noise); gl.uniform1i(P.u('u_noise'), 2);
   gl.bindVertexArray(GEO.triVao);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  // Fernsicht (Mod „Advanced Render Distance“): grobe Landschaft hinter der Sichtweite
+  if (FAR.on) farRender();
 
   // opaque terrain
   gl.enable(gl.DEPTH_TEST);
@@ -8073,7 +8087,7 @@ const QUALITY = {
 /* every device starts on Mittel */
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: 'medium', viewDist: 9, fov: 72,
+  quality: 'medium', viewDist: 9, fov: 72, farOn: true, farView: 128, farDetail: 2,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
@@ -8086,6 +8100,8 @@ function applyMsgSize() {
 function QP() { return QUALITY[SETTINGS.quality] || QUALITY.medium; }
 /* touch with a crosshair: aim with the middle of the screen, buttons dig and build, the finger only looks around */
 function crossUI() { return SETTINGS.touchMode === 'cross'; }
+/* wie viele Chunks um dich herum geladen und gezeichnet werden (eine Mod kann das ändern: mod.set('viewDist', n)) */
+function viewDistNow() { const m = typeof MODFX !== 'undefined' ? MODFX.viewDist : 0; return m >= 2 ? Math.round(m) : SETTINGS.viewDist; }
 function touchUI() {
   if (SETTINGS.touchMode === 'on' || SETTINGS.touchMode === 'cross') return true;
   if (SETTINGS.touchMode === 'off') return false;
@@ -9101,7 +9117,7 @@ function updateCamera(dt) {
   }
   modCamApply(dt, eye, target);
   CAM.eye = eye; CAM.target = target;
-  CAM.far = SETTINGS.viewDist * CS + 80;
+  CAM.far = viewDistNow() * CS + 80;
   CAM.underwater = getB(Math.floor(eye[0]), Math.floor(eye[1] + 0.12), Math.floor(eye[2])) === B.WATER;
 }
 function setCamMode(mode) {
@@ -10219,7 +10235,7 @@ function updateAmbientBats(dt) {
 }
 function drawAmbientBats(t) {
   if (!BATS.length) return;
-  const vd = SETTINGS.viewDist * CS + 40;
+  const vd = viewDistNow() * CS + 40;
   for (const b of BATS) {
     if (Math.abs(b.x - CAM.eye[0]) > vd || Math.abs(b.z - CAM.eye[2]) > vd) continue;
     const f = Math.sin(t * 22 + b.ph);
@@ -10900,7 +10916,7 @@ function drawArcher(z, t) {
   drawHumanoid(BATCH.solid, _ms, STYLE_SKELETON, P, sky, 'archer');
 }
 function drawMob(z, t) {
-  if (Math.hypot(z.x - CAM.eye[0], z.z - CAM.eye[2]) > SETTINGS.viewDist * CS + (z.type === 'bat' ? 60 : 8)) return;
+  if (Math.hypot(z.x - CAM.eye[0], z.z - CAM.eye[2]) > viewDistNow() * CS + (z.type === 'bat' ? 60 : 8)) return;
   if (z.type === 'bat') drawZombieBat(z, t);
   else if (z.type === 'wolf') drawWolf(z, t);
   else if (z.type === 'archer') drawArcher(z, t);
@@ -11582,7 +11598,7 @@ function drawTornado(t) {
   const T = TORNADO;
   if (T.vis < 0.02) return;
   const d = Math.hypot(T.x - CAM.eye[0], T.z - CAM.eye[2]);
-  if (d > SETTINGS.viewDist * CS + 70) return;
+  if (d > viewDistNow() * CS + 70) return;
   let g = colTop(Math.floor(T.x), Math.floor(T.z));
   if (g < 0) g = SEA + 4;
   T.gy = damp(T.gy === undefined ? g : T.gy, g, 2, 1 / 60);
@@ -11922,7 +11938,7 @@ function drawZombie(z, t) {
 }
 function drawMerchant(m, t) {
   if (m.visible < 0.5) return;
-  if (Math.hypot(m.x - CAM.eye[0], m.z - CAM.eye[2]) > SETTINGS.viewDist * CS + 8) return;
+  if (Math.hypot(m.x - CAM.eye[0], m.z - CAM.eye[2]) > viewDistNow() * CS + 8) return;
   const sky = skyAt(m.x, m.y + 1, m.z);
   const P = basePose();
   const w = m.walkAmt, ph = m.phase;
@@ -11937,7 +11953,7 @@ function drawMerchant(m, t) {
 }
 function drawSheepAll(t) {
   for (const s of G.sheep) {
-    if (Math.hypot(s.x - CAM.eye[0], s.z - CAM.eye[2]) > SETTINGS.viewDist * CS + 8) continue;
+    if (Math.hypot(s.x - CAM.eye[0], s.z - CAM.eye[2]) > viewDistNow() * CS + 8) continue;
     const sky = skyAt(s.x, s.y + 0.6, s.z);
     s.tint = 1; s.tintG = 1; s.tintB = 1;
     _ms.reset().t(s.x, s.y + s.stepOffset, s.z).ry(s.yaw);
@@ -12133,7 +12149,7 @@ function drawViewModel(t) {
 
 function buildDrawLists(t, inMenu) {
   BATCH.solid.clear(); BATCH.trans.clear(); BATCH.view.clear(); BATCH.skin.clear(); MODELS_DRAW.length = 0;
-  const vd = SETTINGS.viewDist * CS + 8;
+  const vd = viewDistNow() * CS + 8;
   for (const o of OBJS.values()) {
     if (Math.abs(o.x - CAM.eye[0]) > vd || Math.abs(o.z - CAM.eye[2]) > vd) continue;
     drawObject(o, BATCH.solid, t);
@@ -13753,7 +13769,7 @@ function bindSettingsUI() {
       : SETTINGS.touchMode === 'on' ? 'Joystick links, tippen zum Abbauen und Bauen'
         : SETTINGS.touchMode === 'cross' ? 'Wisch zum Umschauen, ziel mit dem Fadenkreuz, Knöpfe rechts zum Abbauen und Bauen'
           : 'Tastatur und Maus wie gewohnt';
-    $('setView').value = SETTINGS.viewDist; $('setViewO').textContent = SETTINGS.viewDist * CS + ' m';
+    $('setView').value = SETTINGS.viewDist; $('setViewO').textContent = SETTINGS.viewDist + ' Chunks';
     $('setFov').value = SETTINGS.fov; $('setFovO').textContent = SETTINGS.fov + '°';
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
@@ -14293,7 +14309,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -14603,7 +14619,7 @@ async function loadWorld(seed, save, opts = {}) {
   }
   if (touchUI() && crossUI()) CAMC.mode = 'fp';
   // the land around the player; the rest streams in while playing
-  const R = Math.min(SETTINGS.viewDist + 1, 6);
+  const R = Math.min(viewDistNow() + 1, 6);
   const offs = chunkOffsets(R);
   const pcx = Math.floor(PL.x) >> 4, pcz = Math.floor(PL.z) >> 4;
   let n = 0, tl = performance.now();
@@ -14641,7 +14657,7 @@ function entryLoadOpts(e, save) {
 function streamWorld(dt, inMenu) {
   const cx = inMenu ? MENU_CAM.cx : PL.x, cz = inMenu ? MENU_CAM.cz : PL.z;
   if (cx === undefined) return;
-  const R = SETTINGS.viewDist + 1;
+  const R = viewDistNow() + 1;
   // new land at the edge arrives a few chunks per second (smooth frames); after a jump
   // (respawn, joining) as fast as possible
   G._genTok = Math.min(3, (G._genTok || 0) + dt * 22);
@@ -14988,7 +15004,7 @@ function menuUpdate(dt) {
   for (let i = 0; i < 3; i++) { MENU_CAM.eye[i] = damp(MENU_CAM.eye[i], eye[i], k, dt); MENU_CAM.target[i] = damp(MENU_CAM.target[i], target[i], k, dt); }
   if (!UI.skinPreview && Math.hypot(MENU_CAM.eye[0] - eye[0], MENU_CAM.eye[1] - eye[1], MENU_CAM.eye[2] - eye[2]) < 0.5) MENU_CAM.blend = false;
   CAM.eye = MENU_CAM.eye.slice(); CAM.target = MENU_CAM.target.slice();
-  CAM.near = 0.2; CAM.far = SETTINGS.viewDist * CS + 80 + modFlyK() * 420; CAM.underwater = false;
+  CAM.near = 0.2; CAM.far = viewDistNow() * CS + 80 + modFlyK() * 420; CAM.underwater = false;
   updateParts(dt); updateObjects(dt, shaderTime);
   updateWeather(dt); updateTornado(dt); updateFarFog(dt, PL.x, PL.z);
 }
@@ -15027,13 +15043,14 @@ function frame(now) {
   guard('Sprachchat', () => updateVoice(dt));
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
-  guard('Umgebung', () => { computeEnv(G.time, SETTINGS.viewDist); applyDimEnv(); });
+  guard('Fernsicht', () => updateFar(dt));
+  guard('Umgebung', () => { computeEnv(G.time, viewDistNow()); applyDimEnv(); });
   // die Weltkarte deckt alles zu: dann die Welt nicht zeichnen (die Karte bekommt die Zeit)
   const hidden3d = typeof WM !== 'undefined' && WM.open;
   if (!hidden3d) guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
   RENDER_OPTS.shadows = TEX.shadowSize > 0;
   RENDER_OPTS.mb = !!SETTINGS.motionBlur;
-  RENDER_OPTS.viewDist = SETTINGS.viewDist;
+  RENDER_OPTS.viewDist = viewDistNow();
   RENDER_OPTS.patDen = Math.max(4, TEX.res * 2);
   RENDER_OPTS.cut[0] = PL.x; RENDER_OPTS.cut[1] = PL.y + PL.stepOffset + 1.0; RENDER_OPTS.cut[2] = PL.z;
   RENDER_OPTS.cut[3] = !inMenu && CAMC.mode === 'drone' ? 1 : 0;
@@ -18386,6 +18403,9 @@ mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 
   { id: 'worldmap', name: 'Weltkarte', icon: '🗺️', author: 'Blood Moon', cat: 'easy', rec: true,
     desc: 'M (oder 🗺️ oben) öffnet die Weltkarte als Vollbild: die ganze Welt mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, auch wo du noch nie warst. Zoomen, verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt.',
     code: `mod.set('worldMap', true);` },
+  { id: 'farview', name: 'Advanced Render Distance', icon: '🔭', author: 'Blood Moon', cat: 'world', rec: true,
+    desc: 'Fernsicht bis zu 4000 Chunks: hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low wird schon nah pixelig, High erst ganz spät).',
+    code: `mod.set('farUi', true);` },
 ];
 
 /* eingebaute Mods, die auch auf öffentlichen Servern laufen (sie ändern nur deine Anzeige) */
@@ -20511,6 +20531,10 @@ mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu
   // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
   // waypoints: Wegpunkte mit Lichtstrahl (Taste P); worldMap: Weltkarte als Vollbild (Taste M);
   // voiceChat: Sprachchat mit den anderen Spielern (Taste H, jeder stimmt vorher dem Datenschutz zu)
+mod.set('viewDist', 8)  // normale Sichtweite in Chunks (2-14, 0 = wie in den Einstellungen)
+mod.set('farView', 500) // Fernsicht bis zu 4000 Chunks: hinter der Sichtweite grobe Landschaft bis zum Horizont (0 = aus)
+mod.set('farDetail', 2) // wie schnell es in der Ferne pixelig wird: 1 = Low (schon nah), 2 = Mittel, 3 = High (erst ganz spät)
+  // farUi: zeigt den Spielern in den Einstellungen Fernsicht an/aus, Weite und Detail (wie die Mod „Advanced Render Distance“)
 mod.effect('speed', 3, 10)   // einen Wert für 10 Sekunden ändern
 
 // ---------- Spieler, Welt, Meldungen ----------
@@ -22924,6 +22948,323 @@ function bindVoice() {
   });
   // die Seite wird geschlossen: den anderen Bescheid sagen
   window.addEventListener('pagehide', () => { if (VOICE.on) { voiceSend({ k: 'bye' }); voiceStopMic(); } });
+}
+
+/* ---- 19xd_farview.js ---- */
+/* =========================================================================
+   Advanced Render Distance (eingebaute Mod, mod.set('farUi', true)).
+   Hinter der normalen Sichtweite wird die Welt bis zu 4000 Chunks weit
+   gezeichnet, als grobe Klötzchen-Landschaft: je weiter weg, desto größer
+   die Klötzchen (pixeliger). Low wird schon nah pixelig, High erst spät.
+   - Die Landschaft kommt aus der Weltgenerierung (wie bei der Weltkarte),
+     in der Nähe aus den echten Blöcken.
+   - Ringe (Stufen): jede Stufe hat doppelt so große Klötzchen und reicht
+     doppelt so weit wie die davor. Jede Stufe besteht aus Kacheln.
+   - Gezeichnet in einem eigenen Durchgang vor der normalen Welt (mit eigener
+     Tiefe), dann kommt die normale Welt darüber.
+   - Andere Mods: mod.set('farView', chunks), mod.set('farDetail', 1-3),
+     mod.set('viewDist', chunks) für die normale Sichtweite.
+   ========================================================================= */
+MODFX_DEF.farUi = false; MODFX_DEF.farView = 0; MODFX_DEF.farDetail = 0; MODFX_DEF.viewDist = 0;
+Object.assign(MODFX_RANGE, { farView: [0, 4000], farDetail: [0, 3], viewDist: [0, 14] });
+for (const k of ['farUi', 'farView', 'farDetail', 'viewDist']) if (MODFX[k] === undefined) MODFX[k] = MODFX_DEF[k];
+
+const FAR_Q = { 1: { k: 48, T: 16, name: 'Low' }, 2: { k: 80, T: 16, name: 'Mittel' }, 3: { k: 128, T: 32, name: 'High' } };
+const FAR = {
+  on: false, blocks: 0, planKey: '', levels: [], tiles: new Map(), prog: null, progQ: -1,
+  proj: new Float32Array(16), vp: new Float32Array(16), planes: [], buildT: 0, cleanT: 0, made: 0,
+};
+function farChunks() {
+  if (MODFX.farView > 0) return Math.round(MODFX.farView);
+  if (MODFX.farUi && SETTINGS.farOn !== false) return SETTINGS.farView || 128;
+  return 0;
+}
+function farDetailNow() { const m = Math.round(MODFX.farDetail || 0); return m >= 1 && m <= 3 ? m : (SETTINGS.farDetail || 2); }
+/* Regler 0..100 <-> 16..4000 Chunks (gleichmäßig auf einer Log-Skala) */
+function farFromSlider(v) { return Math.round(16 * Math.pow(4000 / 16, v / 100)); }
+function farToSlider(c) { return Math.round(Math.log(c / 16) / Math.log(4000 / 16) * 100); }
+
+/* ---------- welche Kacheln gebraucht werden ---------- */
+function farPlan() {
+  const d = farDetailNow(), q = FAR_Q[d], nearR = viewDistNow() * CS + 2, far = FAR.blocks;
+  const key = d + ':' + nearR + ':' + far + ':' + W.seed + ':' + W.mode + ':' + W.gen;
+  if (key === FAR.planKey) return;
+  FAR.planKey = key;
+  let s = 1;
+  while (s * (q.k - 1.5 * q.T) < nearR + 8) s *= 2;
+  FAR.levels = [];
+  let H = q.k * s;
+  for (;;) {
+    FAR.levels.push({ s, H, T: q.T, tw: q.T * s, cx: NaN, cz: NaN, tcx: NaN, tcz: NaN, list: [], want: [] });
+    if (H >= far + q.T * s || FAR.levels.length >= 16) break;
+    s *= 2; H *= 2;
+  }
+}
+function farTileKey(s, tx, tz) { return s + ':' + tx + ':' + tz; }
+function farWanted(L, cx, cz) {
+  const lv = FAR.levels[L], tw = lv.tw, out = [];
+  const prev = L > 0 ? FAR.levels[L - 1] : null;
+  const inner = prev ? prev.H - 1.5 * tw : -1;
+  const far = FAR.blocks;
+  const t0x = Math.floor((cx - lv.H) / tw), t1x = Math.floor((cx + lv.H - 0.001) / tw);
+  const t0z = Math.floor((cz - lv.H) / tw), t1z = Math.floor((cz + lv.H - 0.001) / tw);
+  for (let tx = t0x; tx <= t1x; tx++) for (let tz = t0z; tz <= t1z; tz++) {
+    const x0 = tx * tw, z0 = tz * tw, x1 = x0 + tw, z1 = z0 + tw;
+    // ganz in der Stufe davor
+    if (inner > 0 && x0 >= cx - inner && x1 <= cx + inner && z0 >= cz - inner && z1 <= cz + inner) continue;
+    // (Stufe 0 deckt auch die normale Sichtweite ab: dort, wo ein Chunk noch nicht geladen ist, sieht man sie statt eines Lochs)
+    // hinter der Fernsicht
+    const nx = Math.max(x0 - cx, 0, cx - x1), nz = Math.max(z0 - cz, 0, cz - z1);
+    if (Math.hypot(nx, nz) > far) continue;
+    // hinter dem Rand der Welt
+    if (x1 < -WLIM || x0 > WLIM || z1 < -WLIM || z0 > WLIM) continue;
+    out.push([tx, tz, Math.hypot(x0 + tw / 2 - PL.x, z0 + tw / 2 - PL.z)]);
+  }
+  return out;
+}
+
+/* ---------- eine Kachel bauen: Klötzchen-Landschaft ---------- */
+const _fo = [0, 0, 0, 0, 0];
+function farBuildTile(s, T, tx, tz) {
+  const N = T + 2, tw = T * s, x0 = tx * tw, z0 = tz * tw, off = s / 2;
+  const H = new Float32Array(N * N), C = new Uint8Array(N * N * 3), WT = new Uint8Array(N * N);
+  const fine = s <= 2;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const o = wmSample(Math.floor(x0 + (i - 1) * s + off), Math.floor(z0 + (j - 1) * s + off), fine, _fo);
+    const q = j * N + i;
+    if (o[4] < 0) { H[q] = -999; continue; }   // hinter dem Weltrand
+    H[q] = o[4] > 0 ? SEA + 0.9 : o[3] + 1; WT[q] = o[4] > 0 ? 1 : 0;
+    // ganz weit weg ein Hauch Rauschen, damit Flächen nicht wie Plastik aussehen
+    const n = s >= 8 ? ((hashi(tx * T + i, 3, tz * T + j, 7) - 0.5) * 10) : 0;
+    C[q * 3] = clamp(o[0] + n, 0, 255); C[q * 3 + 1] = clamp(o[1] + n, 0, 255); C[q * 3 + 2] = clamp(o[2] + n, 0, 255);
+  }
+  // Ecken: höchstens 4 pro Fläche; Oberseiten werden in einer Reihe zusammengefasst
+  const maxV = T * T * 20 + 64;
+  const buf = new ArrayBuffer(maxV * 16), f32 = new Float32Array(buf), u8 = new Uint8Array(buf);
+  const idx = new Uint16Array(maxV / 4 * 6);
+  let nv = 0, ni = 0, minY = 1e9, maxY = -1e9;
+  const quad = (ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz, q, nrm, shade) => {
+    const r = C[q * 3] * shade, g = C[q * 3 + 1] * shade, b = C[q * 3 + 2] * shade;
+    const P = [ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz];
+    for (let k = 0; k < 4; k++) {
+      const v = nv + k;
+      f32[v * 4] = P[k * 3]; f32[v * 4 + 1] = P[k * 3 + 1]; f32[v * 4 + 2] = P[k * 3 + 2];
+      u8[v * 16 + 12] = r; u8[v * 16 + 13] = g; u8[v * 16 + 14] = b; u8[v * 16 + 15] = nrm;
+      if (P[k * 3 + 1] < minY) minY = P[k * 3 + 1]; if (P[k * 3 + 1] > maxY) maxY = P[k * 3 + 1];
+    }
+    idx[ni++] = nv; idx[ni++] = nv + 1; idx[ni++] = nv + 2; idx[ni++] = nv; idx[ni++] = nv + 2; idx[ni++] = nv + 3;
+    nv += 4;
+  };
+  for (let j = 1; j <= T; j++) {
+    const z = z0 + (j - 1) * s, zb = z + s;
+    let i = 1;
+    while (i <= T) {
+      const q = j * N + i, h = H[q];
+      if (h === -999) { i++; continue; }
+      // gleiche Höhe und Farbe nebeneinander: eine lange Fläche
+      let e = i;
+      while (e + 1 <= T) { const p = j * N + e + 1; if (H[p] !== h || C[p * 3] !== C[q * 3] || C[p * 3 + 1] !== C[q * 3 + 1] || C[p * 3 + 2] !== C[q * 3 + 2]) break; e++; }
+      const xa = x0 + (i - 1) * s, xb = x0 + e * s;
+      quad(xa, h, z, xa, h, zb, xb, h, zb, xb, h, z, q, 0, 1);
+      i = e + 1;
+    }
+    // Wände: wo der Nachbar tiefer liegt
+    for (let ii = 1; ii <= T; ii++) {
+      const q = j * N + ii, h = H[q];
+      if (h === -999 || WT[q]) continue;
+      const x = x0 + (ii - 1) * s, xb = x + s;
+      let nh = H[q + 1]; if (nh !== -999 && nh < h) quad(xb, nh, z, xb, h, z, xb, h, zb, xb, nh, zb, q, 1, 0.86);
+      nh = H[q - 1]; if (nh !== -999 && nh < h) quad(x, nh, zb, x, h, zb, x, h, z, x, nh, z, q, 2, 0.86);
+      nh = H[q + N]; if (nh !== -999 && nh < h) quad(xb, nh, zb, xb, h, zb, x, h, zb, x, nh, zb, q, 3, 0.76);
+      nh = H[q - N]; if (nh !== -999 && nh < h) quad(x, nh, z, x, h, z, xb, h, z, xb, nh, z, q, 4, 0.76);
+      if (nv > maxV - 24) break;
+    }
+  }
+  const t = { s, x0, z0, x1: x0 + tw, z1: z0 + tw, minY: nv ? minY : 0, maxY: nv ? maxY : 0, n: ni, vao: null, vbo: null, ibo: null, used: performance.now() };
+  if (!ni) return t;
+  t.vao = gl.createVertexArray(); gl.bindVertexArray(t.vao);
+  t.vbo = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, t.vbo); gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(buf, 0, nv * 16), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 16, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, 16, 12);
+  t.ibo = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, t.ibo); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx.subarray(0, ni), gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
+  return t;
+}
+function farFreeTile(t) { if (t.vao) { gl.deleteVertexArray(t.vao); gl.deleteBuffer(t.vbo); gl.deleteBuffer(t.ibo); } }
+function farClear() { for (const t of FAR.tiles.values()) farFreeTile(t); FAR.tiles.clear(); FAR.planKey = ''; FAR.levels = []; }
+
+/* ---------- jedes Bild: planen, ein paar Kacheln bauen ---------- */
+function updateFar(dt) {
+  const ch = farChunks();
+  const want = ch > 0 && !CURDIM && G.state !== 'menu' && G.state !== 'loading' && !(typeof WM !== 'undefined' && WM.open);
+  const blocks = Math.min(ch * CS, WLIM * 2);
+  FAR.on = want && blocks > viewDistNow() * CS + 24;
+  if (!FAR.on) { if (FAR.tiles.size && G.state === 'menu') farClear(); return; }
+  FAR.blocks = blocks;
+  farPlan();
+  // wo jede Stufe hin soll; erst umschalten, wenn alle ihre Kacheln fertig sind (sonst Löcher)
+  const need = [];
+  for (let L = 0; L < FAR.levels.length; L++) {
+    const lv = FAR.levels[L];
+    const tcx = Math.round(PL.x / lv.tw) * lv.tw, tcz = Math.round(PL.z / lv.tw) * lv.tw;
+    if (tcx !== lv.tcx || tcz !== lv.tcz || !lv.want.length) { lv.tcx = tcx; lv.tcz = tcz; lv.want = farWanted(L, tcx, tcz); }
+    let missing = 0;
+    for (const w of lv.want) if (!FAR.tiles.has(farTileKey(lv.s, w[0], w[1]))) { missing++; need.push([L, w[0], w[1], L * 1e6 + w[2]]); }
+    if (!missing && (lv.cx !== tcx || lv.cz !== tcz)) { lv.cx = tcx; lv.cz = tcz; lv.list = lv.want.map((w) => farTileKey(lv.s, w[0], w[1])); }
+  }
+  // die nächsten zuerst, ein paar Millisekunden pro Bild
+  if (need.length) {
+    need.sort((a, b) => a[3] - b[3]);
+    const t0 = performance.now(), budget = G.state === 'playing' ? 5 : 9;
+    for (const [L, tx, tz] of need) {
+      if (performance.now() - t0 > budget) break;
+      const lv = FAR.levels[L];
+      FAR.tiles.set(farTileKey(lv.s, tx, tz), farBuildTile(lv.s, lv.T, tx, tz));
+      FAR.made++;
+    }
+  }
+  // alte Kacheln aufräumen
+  if ((FAR.cleanT -= dt) <= 0) {
+    FAR.cleanT = 3;
+    const keep = new Set();
+    for (const lv of FAR.levels) { for (const k of lv.list) keep.add(k); for (const w of lv.want) keep.add(farTileKey(lv.s, w[0], w[1])); }
+    const now = performance.now();
+    for (const [k, t] of FAR.tiles) if (!keep.has(k) && now - t.used > 8000) { farFreeTile(t); FAR.tiles.delete(k); }
+  }
+}
+
+/* ---------- zeichnen (vor der normalen Welt, eigene Tiefe) ---------- */
+const VS_FAR = `#version 300 es
+precision highp float;
+layout(location = 0) in vec3 a_pos;
+layout(location = 1) in vec4 a_col;
+uniform mat4 u_vp;
+out vec3 v_wp;
+flat out vec3 v_col;
+flat out vec3 v_n;
+void main() {
+  v_wp = a_pos;
+  v_col = a_col.rgb;
+  int k = int(a_col.a * 255.0 + 0.5);
+  v_n = k == 0 ? vec3(0.0, 1.0, 0.0) : k == 1 ? vec3(1.0, 0.0, 0.0) : k == 2 ? vec3(-1.0, 0.0, 0.0) : k == 3 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
+  gl_Position = u_vp * vec4(a_pos, 1.0);
+}`;
+const FS_FAR = `#version 300 es
+precision highp float;
+precision highp sampler2DShadow;
+in vec3 v_wp;
+flat in vec3 v_col;
+flat in vec3 v_n;
+uniform vec4 u_hole;   // xy: Mitte, z: halbe Breite (Kasten), w: 0 = Kasten, 1 = geladene Chunks (Maske)
+uniform highp sampler2D u_mask;
+uniform vec3 u_maskO;  // Ecke der Maske (Blöcke), Größe in Chunks
+uniform float u_farEnd;
+${GLSL_COMMON}
+out vec4 o;
+void main() {
+  vec2 d = v_wp.xz - u_hole.xy;
+  if (u_hole.w > 0.5) {
+    // wo die echte Welt schon gezeichnet wird, nichts zeichnen
+    ivec2 m = ivec2(floor((v_wp.xz - u_maskO.xy) / 16.0));
+    if (m.x >= 0 && m.y >= 0 && m.x < int(u_maskO.z) && m.y < int(u_maskO.z) && texelFetch(u_mask, m, 0).r > 0.5) discard;
+  }
+  else if (abs(d.x) < u_hole.z && abs(d.y) < u_hole.z) discard;
+  if (length(v_wp.xz - u_cam.xz) > u_farEnd) discard;
+  vec3 alb = pow(v_col, vec3(2.2));
+  vec3 n = v_n;
+  vec3 L = u_ambMin + u_amb * (0.72 + 0.28 * n.y) + u_sunCol * max(dot(n, u_sunDir), 0.0) * 0.8;
+  vec3 c = alb * L;
+  c = applyFog(c, v_wp);
+  o = vec4(tonemap(c), 1.0);
+}`;
+function farRender() {
+  if (!FAR.on || !FAR.levels.length || CAM.underwater) return false;
+  const q = QP().q;
+  if (!FAR.prog || FAR.progQ !== q) { try { FAR.prog = makeProgram(VS_FAR, FS_FAR, 'far'); FAR.progQ = q; } catch (e) { console.warn('far', e); FAR.prog = null; MODFX.farView = 0; return false; } }
+  const w = canvas.width, h = canvas.height;
+  M4.perspective(FAR.proj, CAM.fov, w / h, Math.max(2, viewDistNow() * CS * 0.25), FAR.blocks * 1.08 + 200);
+  M4.mul(FAR.vp, FAR.proj, CAM.view);
+  frustumPlanes(FAR.vp, FAR.planes);
+  const P = FAR.prog;
+  gl.useProgram(P.p);
+  setScene(P);
+  gl.uniformMatrix4fv(P.u('u_vp'), false, FAR.vp);
+  gl.uniform1f(P.u('u_farEnd'), FAR.blocks);
+  farMask(P);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true);
+  gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+  const now = performance.now();
+  let drawn = 0;
+  for (let L = 0; L < FAR.levels.length; L++) {
+    const lv = FAR.levels[L];
+    if (!lv.list.length) continue;
+    const pv = L > 0 ? FAR.levels[L - 1] : null;
+    if (pv && pv.list.length) gl.uniform4f(P.u('u_hole'), pv.cx, pv.cz, pv.H, 0); else gl.uniform4f(P.u('u_hole'), 0, 0, 0, 1);
+    for (const k of lv.list) {
+      const t = FAR.tiles.get(k);
+      if (!t || !t.n) continue;
+      t.used = now;
+      if (!aabbVisible(FAR.planes, t.x0, t.minY - 1, t.z0, t.x1, t.maxY + 1, t.z1)) continue;
+      gl.bindVertexArray(t.vao);
+      gl.drawElements(gl.TRIANGLES, t.n, gl.UNSIGNED_SHORT, 0);
+      drawn++;
+    }
+  }
+  FAR.drawn = drawn;
+  gl.bindVertexArray(null);
+  // die normale Welt kommt mit eigener Tiefe darüber
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  return true;
+}
+
+/* welche Chunks die normale Welt gerade zeichnet (dort keine Fernsicht), als kleine Textur */
+const FAR_MN = 64;
+function farMask(P) {
+  if (!FAR.maskTex) {
+    FAR.maskTex = gl.createTexture(); FAR.maskData = new Uint8Array(FAR_MN * FAR_MN);
+    gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, FAR.maskTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, FAR_MN, FAR_MN, 0, gl.RED, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  }
+  const bx = Math.floor(CAM.eye[0] / CS) - FAR_MN / 2, bz = Math.floor(CAM.eye[2] / CS) - FAR_MN / 2;
+  const d = FAR.maskData; d.fill(0);
+  const maxD = Math.min(viewDistNow() * CS + 12, ENV.fogEnd + 30), ex = CAM.eye[0], ez = CAM.eye[2];
+  for (const c of CHM.values()) {
+    if (!c.ready) continue;
+    const i = c.cx - bx, j = c.cz - bz;
+    if (i < 0 || j < 0 || i >= FAR_MN || j >= FAR_MN) continue;
+    const dx = c.x0 + 8 - ex, dz = c.z0 + 8 - ez;
+    if (dx * dx + dz * dz > maxD * maxD) continue;   // so wie beim Zeichnen der Welt
+    d[j * FAR_MN + i] = 255;
+  }
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, FAR.maskTex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, FAR_MN, FAR_MN, gl.RED, gl.UNSIGNED_BYTE, d);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+  gl.uniform1i(P.u('u_mask'), 4);
+  gl.uniform3f(P.u('u_maskO'), bx * CS, bz * CS, FAR_MN);
+}
+
+/* ---------- Einstellungen (nur mit der Mod) ---------- */
+function farSettingsRefresh() {
+  const box = $('farBox'); if (!box) return;
+  const show = !!MODFX.farUi;
+  box.hidden = !show;
+  if (!show) return;
+  const c = SETTINGS.farView || 128, on = SETTINGS.farOn !== false, d = SETTINGS.farDetail || 2;
+  $('setFarOn').setAttribute('aria-checked', String(on));
+  $('setFar').value = farToSlider(c);
+  $('setFarO').textContent = c + ' Chunks';
+  $('setFar').disabled = !on;
+  $('setFarQ').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.v === d)));
+  $('farHint').textContent = d === 1 ? 'Low: schon kurz hinter der Sichtweite grob und pixelig, läuft auch auf schwachen Geräten' : d === 2 ? 'Mittel: wird nach und nach pixeliger' : 'High: wird erst ganz weit weg pixelig, braucht mehr Leistung';
+}
+function bindFarSettings() {
+  $('setFarOn').addEventListener('click', () => { SETTINGS.farOn = SETTINGS.farOn === false; saveSettings(); farSettingsRefresh(); });
+  $('setFar').addEventListener('input', (e) => { SETTINGS.farView = farFromSlider(+e.target.value); saveSettings(); farSettingsRefresh(); });
+  $('setFarQ').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; SETTINGS.farDetail = +b.dataset.v; saveSettings(); farSettingsRefresh(); });
+  const o = UI.settingsRefresh;
+  UI.settingsRefresh = function () { if (o) o(); farSettingsRefresh(); };
 }
 
 /* ---- 19y_creative.js ---- */
