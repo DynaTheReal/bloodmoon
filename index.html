@@ -354,6 +354,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 @media (pointer: coarse) { input, textarea, select, .ms-ip .field, #supText { font-size: 16px !important; } }
 #zoomNote { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 99999; display: flex; gap: 10px; align-items: center; padding: 8px 10px 8px 14px; border-radius: 12px; background: rgba(20, 22, 26, 0.94); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); max-width: calc(100vw - 32px); }
 #zoomNote[hidden] { display: none; }
+#introFx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 30; }
+#introSkip { position: fixed; left: 50%; bottom: calc(var(--safe-b) + 26px); transform: translateX(-50%); z-index: 31; margin: 0; font-size: 12.5px; font-weight: 800; color: rgba(255, 220, 210, 0.6); letter-spacing: 0.04em; pointer-events: none; }
 #warpFx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 16; }
 #warpBox { position: fixed; left: 50%; bottom: calc(var(--safe-b) + 34px); transform: translateX(-50%); z-index: 17; width: min(340px, calc(100vw - 32px)); padding: 14px 16px; display: grid; gap: 8px; text-align: center; background: rgba(14, 10, 40, 0.72); border-color: rgba(160, 140, 255, 0.35); backdrop-filter: blur(6px); }
 #warpBox b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1127,6 +1129,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .mod-wbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 18px 10px; padding: 8px 8px 8px 14px; border-radius: 12px; background: rgba(255, 177, 92, 0.12); border: 1px solid rgba(255, 177, 92, 0.3); font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .mod-wbar b { color: var(--text); }
 .mw-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.mc-client { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 99px; font-size: 10.5px; font-weight: 900; letter-spacing: .03em; color: #07161d; background: #6fe0ff; vertical-align: 2px; white-space: nowrap; }
 .mod-last { display: block; margin-top: 4px; font-size: 11.5px; color: var(--muted); font-weight: 700; }
 .mcard.in { border-color: rgba(255, 177, 92, 0.6); background: rgba(255, 177, 92, 0.08); }
 @media (max-width: 560px) { .mod-form { grid-template-columns: 1fr 1fr; } .mod-form > div:first-child { grid-column: 1 / -1; } .mod-rec { grid-auto-columns: 82%; } }
@@ -1362,6 +1365,9 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
       <div class="rows">
         <div class="row"><label for="setView">Sichtweite<small>Wie viele Chunks um dich herum gezeichnet werden (1 Chunk = 16 Blöcke)</small></label><div class="rng"><input id="setView" type="range" min="4" max="14" step="1"><output id="setViewO"></output></div></div>
+      </div>
+      <div class="rows">
+        <div class="row"><div class="lbl">Start-Animation<small>Beim Öffnen der App geht ein Blutmond auf. Aus: das Menü kommt sofort.</small></div><button class="tgl" id="setIntro" type="button" role="switch" aria-checked="true" aria-label="Start-Animation"></button></div>
       </div>
       <div id="farBox" hidden>
       <p class="sec-t">🔭 Advanced Render Distance</p>
@@ -1960,8 +1966,12 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.35.1';
+const GAME_VERSION = '2.37.0';
 const GAME_NOTES = [
+  ['2.37.0', 'Neue Art von Mods: Client-Mods (eigene Kategorie, auf der Karte steht „Client-Mod“). Einmal installiert laufen sie überall, im Startmenü, in den Menüs und in jeder Welt, und können das Aussehen ändern: Knöpfe, Fenster, Felder, den Hintergrund des Startmenüs (mod.theme, mod.css). In deinen eigenen Welten laufen sie zusätzlich wie normale Mods. Neue Client-Mod „Peak Buttons and GUIs“: kantige Fenster mit abgeschrägten Ecken, türkise Hauptknöpfe in Großbuchstaben mit harten Schatten.'],
+  ['2.36.2', 'Start-Animation flüssiger: während sie läuft, werden keine neuen Chunks gebaut, Schatten und Bewegungsunschärfe sind aus, die Welt wird nicht gezeichnet, sobald der Mond alles bedeckt, und sie beginnt erst nach ein paar Bildern zum Aufwärmen.'],
+  ['2.36.1', 'Start-Animation: ersetzt jetzt den Ladebildschirm und dauert nur noch 2 Sekunden. Der Mond ist glatt und blass rot, ohne Krater, und wird sauber größer.'],
+  ['2.36.0', 'Start-Animation beim Öffnen der App: Nacht über der Welt, die Kamera schwebt, ein Blutmond geht auf. Oben wird er immer größer, bis alles rot ist, dann kommt das Menü. Antippen überspringt sie, in den Einstellungen lässt sie sich ausschalten. Server-Reise: die Kamera fliegt länger über die Welt, der Weltraum kommt erst in der letzten Sekunde, beim Ankommen nur in der ersten.'],
   ['2.35.1', 'Server-Animation: wieder der Flug ins Licht, aber die Streifen kommen jetzt vom Punkt am Horizont, auf den die Kamera zufährt, nicht aus der Bildmitte. Beim Ankommen umgekehrt: es wird langsamer, die Streifen verblassen und die Kamera fliegt von hinten in die neue Welt hinein bis zu dir.'],
   ['2.35.0', 'Mit einem Server verbinden (aus dem Hauptmenü): die Kamera fährt geradeaus los, wird immer schneller, bis alles zu Lichtstreifen wird wie bei einer Reise durch die Zeit. Ein kleines Fenster zeigt den Fortschritt, Abbrechen geht jederzeit. Steht die Verbindung, wird es langsamer und du kommst auf dem Server an. Eigene Welten laden wie immer.'],
   ['2.34.0', 'Wegpunkte-Mod: Todespunkt (schwarzer Wegpunkt „Letzter Tod“, verschwindet auf 10 Blöcke Nähe, im Menü abschaltbar), temporäre Wegpunkte (über die Weltkarte oder durch Antippen der Karte in der Hand, verschwinden, sobald du dort bist), Pingen mit B oder 🔔: auf eine Stelle tippen, alle sehen den Ping eine Minute lang, außerhalb des Bildes rechts am Rand. Neue Welt: wenn das Standard-Modpack von DynaTheReal noch nicht installiert ist, wird es angeboten (Ja/Nein, „Nicht mehr anzeigen“).'],
@@ -3225,6 +3235,7 @@ uniform vec3 u_sunDisc;
 uniform vec3 u_moonDir;
 uniform float u_night;
 uniform float u_blood;
+uniform float u_moonPlain;   // Start-Animation: ein glatter Mond ohne Krater
 uniform float u_time;
 uniform float u_sunVis;
 uniform vec3 u_cloudLit;
@@ -3258,7 +3269,7 @@ void main() {
     vec3 mt = normalize(cross(u_moonDir, vec3(0.0, 1.0, 0.0)));
     vec3 mb = cross(mt, u_moonDir);
     vec2 mp = vec2(dot(dir, mt), dot(dir, mb)) * 900.0;
-    float cr = texture(u_noise, mp * 0.004 + 0.2).r;
+    float cr = mix(texture(u_noise, mp * 0.004 + 0.2).r, 0.55, u_moonPlain);
     vec3 moonCol = mix(vec3(0.82, 0.88, 1.0) * (0.8 + 0.35 * cr), vec3(1.0, 0.09, 0.05) * (0.7 + 0.5 * cr), u_blood) * mix(2.4, 1.35, u_blood);
     c = mix(c, moonCol, moon * u_night);
   }
@@ -6438,6 +6449,7 @@ function renderFrame(time, focus, opts) {
   gl.uniform3fv(P.u('u_moonDir'), ENV.moonDir);
   gl.uniform1f(P.u('u_night'), ENV.night);
   gl.uniform1f(P.u('u_blood'), ENV.blood);
+  gl.uniform1f(P.u('u_moonPlain'), typeof INTRO !== 'undefined' && INTRO.on ? 1 : 0);
   gl.uniform1f(P.u('u_time'), time);
   gl.uniform1f(P.u('u_sunVis'), ENV.sunVis);
   gl.uniform3fv(P.u('u_cloudLit'), ENV.cloudLit);
@@ -8231,7 +8243,7 @@ const QUALITY = {
 /* every device starts on Mittel */
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2,
+  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2, intro: true,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
@@ -13928,7 +13940,7 @@ function bindSettingsUI() {
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
     $('setMBS').value = SETTINGS.mbStrength; $('setMBSO').textContent = Math.round(SETTINGS.mbStrength * 100) + '%'; $('mbRow').hidden = !SETTINGS.motionBlur;
-    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
+    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
     $('testBox').hidden = !isOwner();
   };
   UI.settingsRefresh = refresh;
@@ -13957,7 +13969,7 @@ function bindSettingsUI() {
   rng('setSens', 'sens', (v) => v);
   rng('setVol', 'volume', (v) => v);
   rng('setMBS', 'mbStrength', (v) => v);
-  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur']]) {
+  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
   // nobody but the owner can use them, even if the box were shown
@@ -14476,7 +14488,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -14753,7 +14765,7 @@ function worldMode(save, fallback) {
 }
 async function loadWorld(seed, save, opts = {}) {
   G.state = 'loading';
-  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = typeof WARP !== 'undefined' && WARP.phase !== 'off'; $('scrSkins').hidden = true;
+  $('scrMenu').hidden = true; $('hud').hidden = true; $('scrLoad').hidden = (typeof WARP !== 'undefined' && WARP.phase !== 'off') || (typeof INTRO !== 'undefined' && !!INTRO.boot); $('scrSkins').hidden = true;
   const mode = opts.force ? opts.mode : worldMode(save, opts.mode);
   setLoad(0.02, opts.client ? 'Lade die Welt von ' + opts.host : mode === 'island' ? 'Insel wird erschaffen' : 'Welt wird erschaffen');
   await nextFrame();
@@ -15166,6 +15178,7 @@ function menuUpdate(dt) {
     CAM.fov = 52 * Math.PI / 180;
     modFlyCam(eye, target);   // Mods-Knopf: hoch in den Weltraum
     warpCam(eye, target);     // zu einem Server: geradeaus, immer schneller
+    introCam(eye, target);    // Start-Animation: der Blutmond geht auf
   }
   MENU_CAM.cx = PL.x; MENU_CAM.cz = PL.z;
   if (!MENU_CAM.eye || MENU_CAM.snap) { MENU_CAM.eye = eye.slice(); MENU_CAM.target = target.slice(); MENU_CAM.snap = false; }
@@ -15210,15 +15223,19 @@ function frame(now) {
   guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); updateModFly(dt); });
   guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); updatePingTags(); });
   guard('Sprachchat', () => updateVoice(dt));
+  guard('Start-Animation', () => updateIntro());
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
   if (CAMC.trans < 1 && CAMC.transT0 && G.state === 'playing' && performance.now() - CAMC.transT0 > (CAMC.transDur || 0.5) * 1000 + 2500) CAMC.trans = 1;
   guard('Fernsicht', () => updateFar(dt));
   guard('Umgebung', () => { computeEnv(G.time, viewDistNow()); applyDimEnv(); });
   // die Weltkarte deckt alles zu: dann die Welt nicht zeichnen (die Karte bekommt die Zeit)
-  const hidden3d = typeof WM !== 'undefined' && WM.open;
+  // (auch wenn der Mond der Start-Animation alles bedeckt)
+  const introOn = typeof INTRO !== 'undefined' && INTRO.on;
+  const hidden3d = (typeof WM !== 'undefined' && WM.open) || (introOn && INTRO.full);
   if (!hidden3d) guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
-  RENDER_OPTS.shadows = TEX.shadowSize > 0;
-  RENDER_OPTS.mb = !!SETTINGS.motionBlur;
+  // Start-Animation: ohne Schatten und Bewegungsunschärfe, damit sie flüssig läuft
+  RENDER_OPTS.shadows = TEX.shadowSize > 0 && !introOn;
+  RENDER_OPTS.mb = !!SETTINGS.motionBlur && !introOn;
   RENDER_OPTS.viewDist = viewDistNow();
   RENDER_OPTS.patDen = Math.max(4, TEX.res * 2);
   RENDER_OPTS.cut[0] = PL.x; RENDER_OPTS.cut[1] = PL.y + PL.stepOffset + 1.0; RENDER_OPTS.cut[2] = PL.z;
@@ -15227,7 +15244,8 @@ function frame(now) {
   const okR = hidden3d || guard('Render', () => { renderFrame(shaderTime, focus, RENDER_OPTS); return true; });
   if (!okR) { try { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindVertexArray(null); gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.DEPTH_TEST); } catch (e) { /* ignore */ } }
   if (!inMenu) guard('Anzeige', () => UI.frame(dt));
-  guard('Welt laden', () => streamWorld(dt, inMenu));
+  // während der Start-Animation keine neuen Chunks bauen (die Welt um dich ist schon da): 60 Bilder pro Sekunde
+  if (!introOn) guard('Welt laden', () => streamWorld(dt, inMenu));
   guard('Ton', () => {
     let fire = 0;
     for (const o of OBJS.values()) if (o.id === B.CAMPFIRE && o.lit > 0.05) { const d = Math.hypot(o.x + 0.5 - CAM.eye[0], o.z + 0.5 - CAM.eye[2]); fire = Math.max(fire, o.lit * clamp(1 - d / 14, 0, 1)); }
@@ -15241,6 +15259,7 @@ async function boot(data) {
   if (!gl) { $('scrLoad').hidden = true; $('scrErr').hidden = false; return; }
   try {
     loadSettings();
+    introBoot();   // die Start-Animation ersetzt den Ladebildschirm
     initGL(); initBatches(); skin64Init(); skin64LoadMine();
     computeTileAverages(1);
     applyQuality(true);
@@ -15274,9 +15293,11 @@ async function boot(data) {
     showMenu();
     lastT = performance.now();
     requestAnimationFrame(frame);
-    if (data && data.save && data.playing && e) startPlaying();
+    if (data && data.save && data.playing && e) { INTRO.boot = false; if (INTRO.cv) INTRO.cv.hidden = true; startPlaying(); }
+    else introStart();
   } catch (err) {
     console.error(err);
+    introBootFail();
     $('scrLoad').hidden = true; $('scrErr').hidden = false;
     $('errTxt').textContent = 'Beim Start ist ein Fehler passiert: ' + (err && err.message ? err.message : err);
   }
@@ -18342,7 +18363,7 @@ const MODFX_RANGE = { speed: [0.2, 4], jump: [0.5, 3], gravity: [0, 2], reach: [
 const BKEY = {}, BID = {};
 for (const k in B) { BKEY[B[k]] = k.toLowerCase(); BID[k.toLowerCase()] = B[k]; }
 
-const MOD_CATS = [['all', 'Alle'], ['move', 'Bewegung'], ['fight', 'Kampf'], ['world', 'Welt & Dimensionen'], ['items', 'Items'], ['easy', 'Hilfen'], ['fun', 'Spaß']];
+const MOD_CATS = [['all', 'Alle'], ['move', 'Bewegung'], ['fight', 'Kampf'], ['world', 'Welt & Dimensionen'], ['items', 'Items'], ['easy', 'Hilfen'], ['fun', 'Spaß'], ['client', 'Client-Mods']];
 const MOD_CAT_NAME = {}; for (const [k, n] of MOD_CATS) MOD_CAT_NAME[k] = n;
 
 const MOD_WORKER_SRC = `'use strict';
@@ -18385,6 +18406,8 @@ const mod = {
     return { w: w, h: h, rgba: Array.from(g.getImageData(0, 0, w, h).data) };
   },
   element(id, def) { send('element', [String(id), def === null || def === undefined ? null : clone(def)]); },
+  theme(o) { send('theme', [clone(o) || {}]); },
+  css(s) { send('css', [String(s === undefined || s === null ? '' : s)]); },
   updateElement(id, def) { const d = clone(def) || {}; d.update = true; send('element', [String(id), d]); },
   keyframes(name, frames) { send('keyframes', [String(name), clone(frames) || {}]); },
   camera(def) { send('camera', [def === null ? null : clone(def) || {}]); },
@@ -18610,6 +18633,10 @@ mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 
   { id: 'worldmap', name: 'Weltkarte', icon: '🗺️', author: 'Blood Moon', cat: 'easy', rec: true,
     desc: 'M (oder 🗺️ oben) öffnet die Weltkarte als Vollbild: die ganze Welt mit allen Dörfern, Ruinen, Türmen und verlassenen Orten, auch wo du noch nie warst. Zoomen, verschieben, Rechtsklick (Handy: antippen) setzt einen Wegpunkt.',
     code: `mod.set('worldMap', true);` },
+  { id: 'peakui', name: 'Peak Buttons and GUIs', icon: '🎮', author: 'Blood Moon', cat: 'client', rec: true,
+    desc: 'Client-Mod: Knöpfe und Fenster wie in einem richtigen Game. Kantige Fenster mit abgeschrägten Ecken, türkise Hauptknöpfe in Großbuchstaben mit harten Schatten, dunkle Felder mit Stahlrand. Gilt überall: im Startmenü, in den Menüs und in der Welt.',
+    code: `mod.theme({ shape: 'angular', accent: '#6fe0ff', accentText: '#07161d', panel: '#2a2a40', border: '#4a6d8a', text: '#ffffff', muted: '#a3afc4', shadow: 'hard', uppercase: true, menuBg: ['#1c1b2e', '#3b2f52'], menuBgAlpha: 0.35 });
+mod.css('.btn.primary { font-weight: 900; } .sec-t { letter-spacing: .12em; } .slot { border-width: 2px; }');` },
   { id: 'farview', name: 'Advanced Render Distance', icon: '🔭', author: 'Blood Moon', cat: 'world', rec: true,
     desc: 'Fernsicht bis zu 4000 Chunks: hinter der normalen Sichtweite siehst du die Welt bis zum Horizont, je weiter weg, desto pixeliger. In den Einstellungen: an/aus, Weite und Detail (Low wird schon nah pixelig, High erst ganz spät).',
     code: `mod.set('farUi', true);` },
@@ -18624,7 +18651,7 @@ function applyMaxHp() { if (PL.maxHp !== MODFX.maxHp) { PL.maxHp = MODFX.maxHp; 
 function modsEnd() {
   MODRT.begin = (MODRT.begin || 0) + 1;   // a start that is still waiting for the library is cancelled
   if (typeof modApi2End === 'function') modApi2End();
-  for (const rec of MODRT.workers.values()) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } }
+  for (const rec of MODRT.workers.values()) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } themeDrop('w:' + rec.m.id); }
   MODRT.workers.clear();
   if (typeof modUiEnd === 'function') modUiEnd();
   Object.assign(MODFX, MODFX_DEF);
@@ -18691,8 +18718,10 @@ async function modsBegin() {
   }
   // öffentlicher Server: fremder Mod-Code läuft nicht, nur die eingebauten, die nichts an der Welt ändern
   if (MODRT.srvPublic && modServerMode()) list = list.filter((m) => MOD_PUBLIC_OK.includes(m.id) && MODS.builtin(m.id)).map((m) => MODS.slim(MODS.builtin(m.id)));
+  // deine Client-Mods laufen in deinen eigenen Welten zusätzlich als normale Mods
+  if (!(e && e.temp)) for (const cm of clientWorldMods()) if (!list.some((m) => m.id === cm.id)) list.push(cm);
   if (!list.length) return;
-  if (!(e && e.temp)) modRecentAdd(list.map((m) => m.id));
+  if (!(e && e.temp)) modRecentAdd(list.filter((m) => !isClientMod(m)).map((m) => m.id));
   let n = 0;
   for (const m of list) if (startModWorker(m)) n++;
   // messages from other players that came before the mods were running (e.g. right when joining)
@@ -18810,6 +18839,7 @@ function modCmd(rec, msg) {
   const near = (x, y, z) => Math.hypot(x - PL.x, z - PL.z) <= 80 && Math.abs(y - PL.y) <= 60;
   switch (msg.c) {
     case 'set': setFx(String(a[0]), a[1]); break;
+    case 'theme': case 'css': themeCmd('w:' + rec.m.id, msg.c, a); break;
     case 'toast': UI.toast('[' + rec.m.name + '] ' + String(a[0]).slice(0, 160), 'info', 3200, 'mod' + rec.m.id); break;
     case 'give': {
       const k = modResolveItem(rec.m.id, String(a[0])); const n = a[1] | 0; if (n < 1) break;
@@ -19188,6 +19218,7 @@ function modCardEl(m, big) {
   el.innerHTML = '<div class="mc-top"><div class="mc-ico"></div><div class="mc-t"><b></b><span class="mc-by"></span></div></div><p class="mc-d"></p><div class="mc-f"><span class="mc-cat"></span><div class="mc-act"></div></div>';
   el.querySelector('.mc-ico').textContent = m.icon || '🧩';
   el.querySelector('b').textContent = m.name;
+  if (isClientMod(m)) { const cb = document.createElement('span'); cb.className = 'mc-client'; cb.textContent = 'Client-Mod'; cb.title = 'Läuft überall (Startmenü und alle Welten), nachdem du sie installiert hast'; el.querySelector('b').after(cb); }
   el.querySelector('.mc-by').textContent = m.builtin ? 'Blood Moon' : 'von ' + (m.author || '?');
   el.querySelector('.mc-d').textContent = m.desc || '';
   el.querySelector('.mc-cat').textContent = MOD_CAT_NAME[m.cat] || 'Spaß';
@@ -19196,6 +19227,13 @@ function modCardEl(m, big) {
   if (dn !== null) { const d = document.createElement('span'); d.className = 'mc-dl'; d.title = dn + (dn === 1 ? ' Spieler hat' : ' Spieler haben') + ' die Mod installiert'; d.textContent = '⬇ ' + (dn >= 10000 ? Math.round(dn / 1000) + 'k' : dn >= 1000 ? (dn / 1000).toFixed(1).replace('.', ',') + 'k' : dn); el.querySelector('.mc-cat').after(d); }
   const act = el.querySelector('.mc-act');
   const Wd = MODUI.world;
+  if (Wd && isClientMod(m)) {
+    // Client-Mods gehören zu dir, nicht zu einer Welt: nur installieren oder deinstallieren
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + (on ? 'ghost' : 'primary'); b.textContent = on ? 'Läuft überall ✓' : 'Installieren';
+    b.addEventListener('click', () => { if (on) MODS.uninstall(m.id); else MODS.install(m); SFX.ui(); UI.modsRefresh(); });
+    act.appendChild(b);
+    return el;
+  }
   if (Wd) {
     // für eine Welt: installieren, dann hinzufügen / entfernen; das kleine Symbol deinstalliert
     const inW = Wd.sel.includes(m.id);
@@ -19343,6 +19381,7 @@ async function modsLoadLib() {
   if (!NET.uid()) { UI.modsRefresh(); return; }
   msg.textContent = '';
   try { await MODS.fetchLibrary(); msg.hidden = true; } catch (e) { msg.hidden = false; msg.className = 'form-msg'; msg.textContent = netMsg(e); }
+  clientModsSync();
   UI.modsRefresh();
 }
 
@@ -19356,7 +19395,7 @@ UI.openModPick = function (sel, onDone, back) {
 UI.modPickRefresh = function () {
   const P = UI._modPick; if (!P) return;
   const el = $('mpList'); el.innerHTML = '';
-  const inst = MODS.installed();
+  const inst = MODS.installed().filter((m) => !isClientMod(m));
   if (!inst.length) el.innerHTML = '<div class="list-empty">Noch keine Mods installiert. Unten findest du die Bibliothek.</div>';
   for (const m of inst) {
     const li = document.createElement('div'); li.className = 'li mod';
@@ -20762,6 +20801,17 @@ mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu
   // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
   // waypoints: Wegpunkte mit Lichtstrahl (Taste P); worldMap: Weltkarte als Vollbild (Taste M);
   // voiceChat: Sprachchat mit den anderen Spielern (Taste H, jeder stimmt vorher dem Datenschutz zu)
+// ---------- Aussehen: Client-Mods (Kategorie „Client-Mods“) ----------
+// Eine Client-Mod läuft nach dem Installieren überall: im Startmenü, in den Menüs und in jeder Welt.
+// In deinen eigenen Welten läuft sie außerdem wie eine normale Mod (dann gehen auch alle anderen Befehle hier).
+mod.theme({ shape: 'angular', accent: '#6fe0ff', accentText: '#07161d', panel: '#2a2a40', border: '#4a6d8a',
+  text: '#ffffff', muted: '#a3afc4', shadow: 'hard', uppercase: true, font: 'default',
+  menuBg: ['#1c1b2e', '#3b2f52'], menuBgAlpha: 0.35 })
+  // shape: angular (abgeschrägte Ecken) | square | round; shadow: hard | soft | none; font: default | mono | serif | display
+  // menuBg: eine Farbe oder bis zu 4 Farben als Verlauf über dem Startmenü (menuBgAlpha 0-1)
+mod.css('.btn { letter-spacing: 2px; } .sheet { border-width: 3px; }')
+  // eigenes CSS für Knöpfe (.btn, .btn.primary, .ibtn), Fenster (.panel, .sheet), Felder (.field), Reiter (.tab),
+  // Hotbar (.slot), Startmenü (.menu); Bilder nur als data:image/…, keine Dateien von außen
 mod.set('viewDist', 8)  // normale Sichtweite in Chunks (2-16, 0 = wie in den Einstellungen)
 mod.set('farView', 500) // Fernsicht bis zu 4000 Chunks: hinter der Sichtweite grobe Landschaft bis zum Horizont (0 = aus)
 mod.set('farDetail', 2) // wie schnell es in der Ferne pixelig wird: 1 = Low (schon nah), 2 = Mittel, 3 = High (erst ganz spät)
@@ -21556,6 +21606,140 @@ function bindStdPack() {
   $('spYes').addEventListener('click', () => stdPackAnswer(true));
   $('spNo').addEventListener('click', () => stdPackAnswer(false));
   $('spHide').addEventListener('click', () => { const b = $('spHide'); b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); });
+}
+
+/* ---- 19tf_clientmods.js ---- */
+/* =========================================================================
+   Client-Mods (Kategorie „Client-Mods“): einmal installiert laufen sie
+   überall, im Hauptmenü und in jeder Welt. Sie können das Aussehen ändern
+   (mod.theme, mod.css): Knöpfe, Fenster, Felder, den Hintergrund des
+   Startmenüs. In deinen eigenen Welten laufen sie zusätzlich wie normale
+   Mods (dann gehen auch alle anderen Befehle). Auf Servern und bei Freunden
+   ändern sie nur das Aussehen bei dir.
+   ========================================================================= */
+const CLIENTRT = { recs: new Map() };
+const THEMES = new Map();   // Schicht ('c:id' oder 'w:id') -> CSS
+function isClientMod(m) { return !!m && (m.cat === 'client' || m.client === true); }
+
+/* ---------- Aussehen ---------- */
+const hexC = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : d);
+function hexA(h, a) { const n = parseInt(h.slice(1), 16); return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+function hexMul(h, k) { const n = parseInt(h.slice(1), 16); const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => clamp(Math.round(v * k), 0, 255)); return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join(''); }
+/* aus den Einstellungen einer Mod wird CSS */
+function themeFromOpts(o) {
+  o = o && typeof o === 'object' ? o : {};
+  const shape = ['angular', 'square', 'round'].includes(o.shape) ? o.shape : null;
+  const acc = hexC(o.accent, null), accT = hexC(o.accentText, '#101418'), panel = hexC(o.panel, null), border = hexC(o.border || o.panelBorder, null);
+  const text = hexC(o.text, null), muted = hexC(o.muted, null);
+  const shadow = ['hard', 'soft', 'none'].includes(o.shadow) ? o.shadow : null;
+  const fonts = { mono: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace', serif: 'Georgia, "Times New Roman", serif', display: 'var(--font-display)', default: null };
+  const font = fonts[o.font] || null;
+  let css = ':root{';
+  if (acc) css += '--ember:' + acc + ';--ember-deep:' + hexMul(acc, 0.78) + ';';
+  if (panel) css += '--glass:' + hexA(panel, 0.86) + ';--glass-hi:' + hexA(panel, 0.95) + ';';
+  if (border) css += '--line:' + border + ';';
+  if (text) css += '--text:' + text + ';';
+  if (muted) css += '--muted:' + muted + ';';
+  if (font) css += '--font-ui:' + font + ';';
+  if (shape === 'angular' || shape === 'square') css += '--r:0px;';
+  if (shape === 'round') css += '--r:22px;';
+  css += '}';
+  const B = '.btn,.ibtn,.tab,.field,.slot,.mods-pill,.chip,.res,.tgl,.seg button,.qual button';
+  if (shape === 'angular' || shape === 'square') {
+    css += B + '{border-radius:0!important}';
+    css += '.btn{border-width:2px}.panel,.sheet{border-width:2px}';
+  }
+  if (shape === 'angular') {
+    // abgeschrägte Ecken: Fenster oben rechts, kleine Knöpfe und das Konto-Schild auch unten links
+    css += '.panel:not(.btn):not(.ibtn):not(.chip):not(.res),.sheet{clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}';
+    css += '.chip,.ibtn{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}';
+    css += '.tgl::after{border-radius:0}';
+  }
+  if (shape === 'round') css += '.btn{border-radius:99px}.ibtn{border-radius:50%}.slot{border-radius:16px}';
+  if (acc) {
+    css += '.btn.primary{background:' + acc + ';color:' + accT + ';border-color:transparent}.btn.primary:hover{background:' + hexMul(acc, 1.08) + '}';
+    css += '.tab[aria-selected="true"],.seg button[aria-pressed="true"]{background:' + acc + ';color:' + accT + '}';
+    css += '.slot.sel{border-color:' + acc + ';background:' + hexA(acc, 0.18) + '}.field:focus{border-color:' + acc + '}';
+    css += '.tgl[aria-checked="true"]{background:' + hexMul(acc, 0.8) + '}';
+  }
+  if (panel) css += '.btn:not(.primary):not(.danger){background:' + hexA(hexMul(panel, 0.7), 0.92) + '}';
+  if (shadow === 'hard') css += '.btn:not(.ghost):not(.link){box-shadow:5px 5px 0 rgba(0,0,0,.5)}.btn:active{box-shadow:2px 2px 0 rgba(0,0,0,.5);transform:translate(3px,3px)}.ibtn,.slot{box-shadow:3px 3px 0 rgba(0,0,0,.45)}.panel{box-shadow:none}';
+  if (shadow === 'none') css += '.btn,.panel,.ibtn{box-shadow:none}';
+  if (o.uppercase) css += '.btn,.tab{text-transform:uppercase;letter-spacing:.06em}';
+  // Hintergrund des Startmenüs: eine Farbe oder ein Verlauf über der Welt
+  const bg = Array.isArray(o.menuBg) ? o.menuBg.map((c) => hexC(c, null)).filter(Boolean).slice(0, 4) : hexC(o.menuBg, null) ? [o.menuBg] : [];
+  if (bg.length) {
+    const a = clamp(o.menuBgAlpha === undefined ? 0.6 : +o.menuBgAlpha || 0, 0, 1);
+    const cols = bg.length === 1 ? [hexA(bg[0], a), hexA(bg[0], a)] : bg.map((c) => hexA(c, a));
+    css += '.menu{background:linear-gradient(160deg,' + cols.join(',') + ')}';
+  }
+  return css;
+}
+/* eigenes CSS einer Mod: keine Dateien von außen, nichts, was Code ausführt */
+function themeSanitize(css) {
+  css = String(css || '').slice(0, 20000);
+  css = css.replace(/<\/?style/gi, '').replace(/@import[^;]*;?/gi, '').replace(/expression\s*\(/gi, '(').replace(/javascript:/gi, '').replace(/behavior\s*:/gi, '');
+  css = css.replace(/url\(\s*(['"]?)(?!data:image\/)[^)]*\)/gi, 'none');
+  return css;
+}
+function themeApply() {
+  let el = $('modThemeCss');
+  // ganz ans Ende der Seite, damit es nach dem Stil des Spiels kommt und gewinnt
+  if (!el) { el = document.createElement('style'); el.id = 'modThemeCss'; }
+  if (el.parentNode !== document.body || el !== document.body.lastElementChild) document.body.appendChild(el);
+  let css = ''; for (const v of THEMES.values()) css += v + '\n';
+  if (el.textContent !== css) el.textContent = css;
+}
+function themeSet(layer, part, css) {
+  const cur = THEMES.get(layer) || '';
+  const parts = THEMES._parts || (THEMES._parts = new Map());
+  const p = parts.get(layer) || {}; p[part] = css; parts.set(layer, p);
+  THEMES.set(layer, (p.theme || '') + (p.css || ''));
+  if (cur !== THEMES.get(layer)) themeApply();
+}
+function themeDrop(layer) { if (THEMES.delete(layer)) { if (THEMES._parts) THEMES._parts.delete(layer); themeApply(); } }
+/* Befehle zum Aussehen (aus einer Client-Mod oder einer Mod in der Welt) */
+function themeCmd(layer, c, a) {
+  if (c === 'theme') themeSet(layer, 'theme', themeFromOpts(a[0]));
+  else if (c === 'css') themeSet(layer, 'css', themeSanitize(a[0]));
+}
+
+/* ---------- die Client-Mods laufen lassen ---------- */
+function clientModsSync() {
+  const want = new Map();
+  for (const id of MODS.installedIds()) { const m = MODS.get(id); if (isClientMod(m) && !MODS.hidden(id)) want.set(id, m); }
+  for (const [id, rec] of CLIENTRT.recs) {
+    const m = want.get(id);
+    if (!m || m.code !== rec.m.code) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } CLIENTRT.recs.delete(id); themeDrop('c:' + id); if (!m) themeDrop('w:' + id); }
+  }
+  for (const [id, m] of want) if (!CLIENTRT.recs.has(id)) clientModStart(m);
+}
+function clientModStart(m) {
+  let worker;
+  try { worker = new Worker(modWorkerURL()); } catch (e) { return; }
+  const rec = { m, worker, n: 0, t: performance.now() };
+  worker.onmessage = (ev) => {
+    const msg = ev.data;
+    if (!msg || typeof msg.c !== 'string' || !Array.isArray(msg.a) || CLIENTRT.recs.get(m.id) !== rec) return;
+    const now = performance.now(); if (now - rec.t > 1000) { rec.t = now; rec.n = 0; } if (++rec.n > 300) return;
+    if (msg.c === 'theme' || msg.c === 'css') themeCmd('c:' + m.id, msg.c, msg.a);
+    else if (msg.c === 'toast' && G.state === 'menu') UI.toast('[' + m.name + '] ' + String(msg.a[0]).slice(0, 160), 'info', 3200, 'cmod' + m.id);
+    // alles andere nur in deinen eigenen Welten (dort läuft die Mod zusätzlich als normale Mod)
+  };
+  CLIENTRT.recs.set(m.id, rec);
+  worker.postMessage({ t: 'init', code: String(m.code || ''), id: modSlug(m.id), data: {}, host: true });
+  worker.postMessage({ t: 'ev', ev: 'start', d: { client: true, menu: G.state === 'menu' } });
+}
+/* Client-Mods in deinen eigenen Welten: zusätzlich als normale Mods (nicht auf Servern, nicht als Gast) */
+function clientWorldMods() {
+  if (MP.isClient() || modServerMode() || !WORLDS.current) return [];
+  return MODS.installedIds().map((id) => MODS.get(id)).filter((m) => isClientMod(m) && !MODS.hidden(m.id)).map((m) => MODS.slim(m));
+}
+function bindClientMods() {
+  const inst = MODS.install.bind(MODS), un = MODS.uninstall.bind(MODS);
+  MODS.install = function (m) { const r = inst(m); clientModsSync(); return r; };
+  MODS.uninstall = function (id, q) { const r = un(id, q); clientModsSync(); return r; };
+  clientModsSync();
 }
 
 /* ---- 19u_dims.js ---- */
@@ -24246,7 +24430,7 @@ function modFlyDraw() {
    Verbindung, wird es langsamer und man kommt in der Welt des Servers an.
    (Eigene Welten laden wie immer.)
    ========================================================================= */
-const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 1.5, arriveDur: 1.9, wait: null, name: '' };
+const WARP = { phase: 'off', t0: 0, k: 0, cancel: false, cv: null, ctx: null, stars: null, speed: 0, last: 0, raf: 0, accelDur: 2.6, arriveDur: 1.1, wait: null, name: '' };
 
 function warpOn() { return WARP.phase !== 'off'; }
 function warpCanvas() {
@@ -24328,7 +24512,9 @@ function warpLoop() {
   let alpha = 1, target = 1;
   if (WARP.phase === 'accel') {
     const k = clamp(tt / WARP.accelDur, 0, 1);
-    target = 0.05 + k * k * 0.95; alpha = clamp((k - 0.3) / 0.6, 0, 1);
+    // die Welt fliegt lange vorbei, der Weltraum kommt erst in der letzten Sekunde
+    const left = WARP.accelDur - tt;
+    target = 0.05 + k * k * 0.95; alpha = clamp(1 - left, 0, 1); alpha = alpha * alpha * (3 - 2 * alpha);
     if (k >= 1) { WARP.phase = 'cruise'; WARP.t0 = now; $('warpBox').hidden = false; if (WARP.wait) { WARP.wait(); WARP.wait = null; } }
   } else if (WARP.phase === 'cruise') {
     target = 1 + Math.sin(tt * 2.1) * 0.06;
@@ -24399,6 +24585,134 @@ function bindWarp() {
     WARP.cancel = true;
     $('warpCancel').disabled = true; $('warpCancel').textContent = 'Wird abgebrochen …';
   });
+}
+
+/* ---- 19zc_intro.js ---- */
+/* =========================================================================
+   Start-Animation beim Öffnen der App (abschaltbar in den Einstellungen):
+   Nacht über der Welt, die Kamera schwebt, ein Blutmond geht auf (mit dem
+   echten Himmel des Spiels). Oben angekommen wird er immer größer, bis der
+   ganze Bildschirm rot ist, dann kommt das Hauptmenü.
+   Antippen oder eine Taste überspringt sie.
+   ========================================================================= */
+const INTRO = { on: false, t0: 0, time: null, cv: null, ctx: null, skip: false, end: 0, moonPx: null };
+const INTRO_T = { rise0: 0.1, rise1: 1.05, zoom1: 1.55, hold: 1.65, fade: 2.0 };
+function introWanted() { return SETTINGS.intro !== false && !(navigator.webdriver && !window.__introTest); }
+function introCanvas() {
+  let cv = $('introFx');
+  if (!cv) {
+    cv = document.createElement('canvas'); cv.id = 'introFx'; document.body.appendChild(cv);
+    const hint = document.createElement('p'); hint.id = 'introSkip'; hint.textContent = 'Tippen zum Überspringen'; hint.hidden = true; document.body.appendChild(hint);
+    const skip = (e) => { if (!INTRO.on) return; if (e && e.type === 'keydown' && e.code === 'F12') return; INTRO.skip = true; };
+    cv.addEventListener('pointerdown', skip); window.addEventListener('keydown', skip, true);
+  }
+  INTRO.cv = cv; INTRO.ctx = cv.getContext('2d');
+  return cv;
+}
+/* beim Start statt des Ladebildschirms: schwarz, bis die Welt da ist, dann der Mondaufgang */
+function introBoot() {
+  if (!introWanted()) return;
+  INTRO.boot = true;
+  const cv = introCanvas(); cv.hidden = false;
+  cv.style.background = '#000';
+  $('scrLoad').hidden = true;
+}
+function introBootFail() { INTRO.boot = false; if (INTRO.cv) { INTRO.cv.hidden = true; INTRO.cv.style.background = ''; } }
+function introStart() {
+  INTRO.boot = false;
+  if (INTRO.cv) INTRO.cv.style.background = '';
+  if (!introWanted() || INTRO.on) { if (INTRO.cv) INTRO.cv.hidden = true; return; }
+  INTRO.on = true; INTRO.t0 = performance.now(); INTRO.skip = false; INTRO.time = G.time; INTRO.full = false;
+  // ein paar Bilder zum Aufwärmen (Shader, Puffer), erst dann läuft die Zeit: kein Ruckeln am Anfang
+  INTRO.warm = 4;
+  G.time = { phase: 'night', t: 0, day: 1, night: 1, blood: true, bloodTonight: false, afterBlood: false };
+  $('scrMenu').hidden = true;
+  const cv = introCanvas();
+  cv.hidden = false; $('introSkip').hidden = false;
+}
+function introTime() { return INTRO.warm > 0 ? 0 : (performance.now() - INTRO.t0) / 1000; }
+/* der Mond: von knapp unter dem Horizont nach oben */
+function introMoonS(t) {
+  const k = clamp((t - INTRO_T.rise0) / (INTRO_T.rise1 - INTRO_T.rise0), 0, 1);
+  const e = k * k * (3 - 2 * k);
+  return lerp(0.0, 0.16, e);
+}
+/* die Kamera schwebt und schaut zum Mond, beim Aufgehen ein wenig mit nach oben */
+function introCam(eye, target) {
+  if (!INTRO.on) return;
+  const t = introTime();
+  if (G.time === INTRO.time) return;   // schon vorbei: die echte Tageszeit bleibt
+  G.time.t = introMoonS(Math.min(t, INTRO_T.rise1 + 5)) * BLOOD_LEN;
+  const md = [0, 0, 0]; dirFromAngle(sunAngles(G.time).moonA, md);
+  const hl = Math.hypot(md[0], md[2]) || 1, hx = md[0] / hl, hz = md[2] / hl;
+  const gx = PL.x - hx * 30, gz = PL.z - hz * 30;
+  const gy = Math.max(colTop(Math.floor(gx), Math.floor(gz)), SEA);
+  const bob = Math.sin(t * 2.2) * 0.6, sway = Math.sin(t * 1.4) * 1.2;
+  eye[0] = gx - hz * sway; eye[1] = gy + 14 + bob + t * 1.8; eye[2] = gz + hx * sway;
+  const pitch = 0.06 + Math.max(0, md[1]) * 0.5;
+  // beim Zoomen geht die Kamera noch etwas auf den Mond zu
+  const zk = clamp((t - INTRO_T.rise1) / (INTRO_T.zoom1 - INTRO_T.rise1), 0, 1);
+  eye[0] += hx * zk * 6; eye[2] += hz * zk * 6;
+  target[0] = eye[0] + hx * 100; target[1] = eye[1] + pitch * 100; target[2] = eye[2] + hz * 100;
+  CAM.fov = (52 - zk * 8) * Math.PI / 180;
+  MENU_CAM.snap = true;
+}
+/* jedes Bild: der Mond wird groß und rot, dann wieder ausblenden zum Menü */
+function updateIntro() {
+  if (!INTRO.on) return;
+  if (INTRO.warm > 0) { INTRO.warm--; INTRO.t0 = performance.now(); }
+  let t = introTime();
+  if (INTRO.skip && t < INTRO_T.hold) { INTRO.t0 = performance.now() - INTRO_T.hold * 1000; t = INTRO_T.hold; INTRO.skip = false; }
+  const cv = INTRO.cv, ctx = INTRO.ctx;
+  // weiche Verläufe brauchen keine volle Auflösung: weniger Pixel, flüssiger
+  const dpr = Math.min(1, window.devicePixelRatio || 1), Wd = window.innerWidth, Ht = window.innerHeight;
+  if (cv.width !== Math.round(Wd * dpr) || cv.height !== Math.round(Ht * dpr)) { cv.width = Math.round(Wd * dpr); cv.height = Math.round(Ht * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, Wd, Ht);
+  // wo der Mond gerade im Bild ist (aus der Kamera)
+  const md = [0, 0, 0]; dirFromAngle(sunAngles(G.time).moonA, md);
+  const p = [0, 0, 0];
+  if (projectToScreen(CAM.vp, CAM.eye[0] + md[0] * 1000, CAM.eye[1] + md[1] * 1000, CAM.eye[2] + md[2] * 1000, Wd, Ht, p)) INTRO.moonPx = [p[0], p[1]];
+  const mp = INTRO.moonPx || [Wd / 2, Ht * 0.35];
+  const r0 = Math.tan(0.054) / Math.tan(CAM.fov / 2) * Ht / 2;
+  // Ränder: ein Hauch Kino (dunkle Balken oben und unten), am Anfang dunkel einblenden
+  const fadeIn = clamp(1 - t / 0.35, 0, 1);
+  if (fadeIn > 0) { ctx.fillStyle = 'rgba(0,0,0,' + fadeIn + ')'; ctx.fillRect(0, 0, Wd, Ht); }
+  const zk = clamp((t - INTRO_T.rise1) / (INTRO_T.zoom1 - INTRO_T.rise1), 0, 1);
+  if (zk > 0 || t >= INTRO_T.zoom1) {
+    // der Mond wächst, bis er alles bedeckt
+    const R = Math.hypot(Math.max(mp[0], Wd - mp[0]), Math.max(mp[1], Ht - mp[1]));
+    const e = Math.pow(zk, 2.6);
+    const r = r0 * 1.04 * Math.pow(R / r0 * 1.15, e);
+    // bedeckt der Mond alles, muss die Welt dahinter nicht mehr gezeichnet werden
+    INTRO.full = a0full(r, mp, Wd, Ht) && zk > 0.5;
+    // glatt und blass rot wie der Mond am Himmel, ohne Krater; er wird einfach größer
+    const g = ctx.createRadialGradient(mp[0] - r * 0.18, mp[1] - r * 0.18, r * 0.05, mp[0], mp[1], r);
+    g.addColorStop(0, '#ffcdb8'); g.addColorStop(0.7, '#f7aa92'); g.addColorStop(1, '#ee9078');
+    const a = clamp(zk * 6, 0, 1);
+    ctx.globalAlpha = a;
+    const halo = ctx.createRadialGradient(mp[0], mp[1], r * 0.95, mp[0], mp[1], r * 1.7);
+    halo.addColorStop(0, 'rgba(255,120,90,0.45)'); halo.addColorStop(1, 'rgba(255,80,60,0)');
+    ctx.fillStyle = halo; ctx.fillRect(0, 0, Wd, Ht);
+    ctx.beginPath(); ctx.arc(mp[0], mp[1], r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  if (t >= INTRO_T.zoom1) {
+    // ganz rot, dann blendet das Rot aus und das Menü ist da
+    const f = clamp((t - INTRO_T.hold) / (INTRO_T.fade - INTRO_T.hold), 0, 1);
+    if (f > 0 && G.time !== INTRO.time) { INTRO.full = false; G.time = INTRO.time; MENU_CAM.snap = true; CAM.fov = 52 * Math.PI / 180; $('scrMenu').hidden = false; $('introSkip').hidden = true; MENU_CAM.blend = false; }
+    ctx.clearRect(0, 0, Wd, Ht);
+    ctx.fillStyle = 'rgba(238,144,120,' + (1 - f * f) + ')'; ctx.fillRect(0, 0, Wd, Ht);
+    if (f >= 1) introEnd();
+  }
+}
+function a0full(r, mp, Wd, Ht) { return Math.hypot(Math.max(mp[0], Wd - mp[0]), Math.max(mp[1], Ht - mp[1])) < r; }
+function introEnd() {
+  INTRO.full = false;
+  INTRO.on = false;
+  if (INTRO.time && G.time !== INTRO.time) G.time = INTRO.time;
+  if (INTRO.cv) INTRO.cv.hidden = true;
+  if ($('introSkip')) $('introSkip').hidden = true;
+  if (G.state === 'menu') $('scrMenu').hidden = !(MODALS.every((id) => $(id).hidden));
 }
 
 /* ---- 99_start.js ---- */
