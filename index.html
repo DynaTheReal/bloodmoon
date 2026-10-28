@@ -1966,8 +1966,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.0';
+const GAME_VERSION = '2.37.1';
 const GAME_NOTES = [
+  ['2.37.1', 'Server schneller betreten: die Verbindung wird schon aufgebaut und die Welt heruntergeladen, während die Kamera losfährt. Server verlassen ohne Standbild: du bist sofort im Hauptmenü, das Speichern und Aufräumen läuft im Hintergrund weiter.'],
   ['2.37.0', 'Neue Art von Mods: Client-Mods (eigene Kategorie, auf der Karte steht „Client-Mod“). Einmal installiert laufen sie überall, im Startmenü, in den Menüs und in jeder Welt, und können das Aussehen ändern: Knöpfe, Fenster, Felder, den Hintergrund des Startmenüs (mod.theme, mod.css). In deinen eigenen Welten laufen sie zusätzlich wie normale Mods. Neue Client-Mod „Peak Buttons and GUIs“: kantige Fenster mit abgeschrägten Ecken, türkise Hauptknöpfe in Großbuchstaben mit harten Schatten.'],
   ['2.36.2', 'Start-Animation flüssiger: während sie läuft, werden keine neuen Chunks gebaut, Schatten und Bewegungsunschärfe sind aus, die Welt wird nicht gezeichnet, sobald der Mond alles bedeckt, und sie beginnt erst nach ein paar Bildern zum Aufwärmen.'],
   ['2.36.1', 'Start-Animation: ersetzt jetzt den Ladebildschirm und dauert nur noch 2 Sekunden. Der Mond ist glatt und blass rot, ohne Krater, und wird sauber größer.'],
@@ -15925,9 +15926,15 @@ const MP = {
     this.closing = true;
     this.offAll();
     this.unwatchConn();
-    // a server world: what happened in it stays on the server
-    if (this.srv && G.server) await SERVER.save(true);
-    try { await this.ref('info/open').onDisconnect().cancel(); await this.ref('info').update({ open: false, bye: true }); await this.ref().remove(); } catch (e) { /* ignore */ }
+    // a server world: what happened in it stays on the server (the world is packed right now,
+    // the upload runs on in the background, so leaving does not freeze the picture)
+    if (this.srv && G.server) SERVER.save(true).catch(() => { });
+    // close the room in the background too (the writes go out in this order, nothing waits for them)
+    try {
+      this.ref('info/open').onDisconnect().cancel().catch(() => { });
+      this.ref('info').update({ open: false, bye: true }).catch(() => { });
+      this.ref().remove().catch(() => { });
+    } catch (e) { /* ignore */ }
     this.reset();
     NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false, r: null });
   },
@@ -16099,8 +16106,9 @@ const MP = {
       // (not when the host has closed the world: that would leave data behind in the deleted room)
       if (!this.roomGone) this.sendPdata(true);
       this.offAll();
-      await this.ref('players/' + me).remove();
-      if (!wasSpec) await this.ref('p/' + me).remove();
+      // nicht darauf warten: sonst steht das Bild beim Verlassen ein, zwei Sekunden still
+      this.ref('players/' + me).remove().catch(() => { });
+      if (!wasSpec) this.ref('p/' + me).remove().catch(() => { });
     } catch (e) { /* ignore */ }
     this.reset();
     this.leaving = false;
@@ -16765,21 +16773,31 @@ async function playServer(srv, keep) {
   let info = null;
   // öffentliche Server (mit IP): dort laufen keine Mods
   MODRT.srvPublic = false;
-  try { MODRT.srvPublic = (await withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/public').once('value'), 8000)).val() === true; } catch (e) { /* not readable: members only */ }
-  try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); }
+  // beides gleichzeitig fragen, während die Kamera noch anfährt
+  const pubP = withTimeout(NET.db.ref('srvmeta/' + srv.owner + '/' + srv.wid + '/public').once('value'), 8000).then((v) => v.val() === true, () => false);
+  try { info = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 12000)).val(); MODRT.srvPublic = await pubP; }
   catch (e) {
     if (warp) { await warpAccelDone(); warpStop(); }
     showMenu();
     UI.toast(/PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message))) ? (srv.ownerName || 'Der Besitzer') + ' muss dich zuerst zum Server hinzufügen.' : 'Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600);
     return;
   }
-  if (warp) { await warpAccelDone(); if (await warpAborted()) return; G.state = 'loading'; G.loadT = performance.now(); setLoad(0.08, 'Server gefunden'); }
+  // verbunden und heruntergeladen wird schon, während die Kamera anfährt; erst die Welt selbst
+  // wird geladen, wenn die Kamera schnell genug ist (dann sieht man nur noch die Lichtstreifen)
+  const ready = async () => {
+    if (!warp) return true;
+    await warpAccelDone();
+    if (await warpAborted()) return false;
+    G.state = 'loading'; G.loadT = performance.now();
+    return true;
+  };
+  if (warp) { if (await warpAborted()) return; setLoad(0.08, 'Server gefunden'); }
   // somebody runs it already: join them
   if (info && info.open && info.hostUid && info.hostUid !== NET.uid()) {
     try {
       setLoad(0.15, 'Verbinde mit ' + (info.host || 'dem Server'));
       const { snap } = await MP.join(info.hostUid, info.host || 'Server', srv);
-      if (warp && await warpAborted()) return;
+      if (!(await ready())) return;
       const data = JSON.parse(snap.d);
       WORLDS.current = null; G.loadedWorld = null; G.server = null;
       await loadWorld(data.seed, data, { client: true, host: MP.hostName, you: mine || data.you });
@@ -16804,8 +16822,8 @@ async function playServer(srv, keep) {
     save = raw ? JSON.parse(raw) : null;
   }
   catch (e) { if (warp) warpStop(); showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
-  if (warp && await warpAborted()) return;
   if (!save) { if (warp) warpStop(); showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
+  if (!(await ready())) return;
   WORLDS.current = null; G.loadedWorld = null;
   G.server = srv;
   SERVER.lastUp = performance.now();
