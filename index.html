@@ -728,6 +728,36 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(4, 8, 9, 0.5); padding-block: var(--safe-t) var(--safe-b); padding-left: var(--safe-l); padding-right: var(--safe-r); animation: deathIn 0.18s ease; }
 .sheet { width: min(760px, 100%); max-height: min(86vh, 760px); display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; background: var(--glass-hi); }
 .sheet.narrow { width: min(460px, 100%); }
+.set-sheet { width: min(820px, 100%); height: min(86vh, 640px); grid-template-rows: auto 1fr; }
+.set-wrap { display: grid; grid-template-columns: 190px 1fr; min-height: 0; border-top: 1px solid var(--line); }
+.set-nav { display: grid; align-content: start; gap: 4px; padding: 12px 10px; border-right: 1px solid var(--line); background: rgba(0, 0, 0, 0.12); overflow-y: auto; }
+.set-nav button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid transparent; border-radius: var(--r, 12px); background: transparent; color: var(--muted); font-size: 14px; font-weight: 800; text-align: left; transition: background 0.15s, color 0.15s; }
+.set-nav button i { font-style: normal; font-size: 17px; width: 22px; text-align: center; }
+.set-nav button:hover { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+.set-nav button[aria-current="true"] { background: rgba(255, 177, 92, 0.12); border-color: var(--ember); color: var(--text); }
+.sheet-b.set-body { padding: 16px 18px 18px; display: block; }
+.set-card .seg { display: flex; width: 100%; }
+.set-card .seg button { flex: 1 1 0; padding: 8px 6px; min-width: 0; }
+.set-pane { display: grid; gap: 12px; align-content: start; animation: setIn 0.16s ease; }
+.set-pane[hidden] { display: none; }
+@keyframes setIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.set-card { padding: 4px 14px; border: 1px solid var(--line); border-radius: var(--r, 14px); background: rgba(255, 255, 255, 0.035); }
+.set-card .qual { margin: 4px 0 12px; }
+.set-card > .hint { margin: 12px 0 10px; }
+.set-card > .btnrow { margin-bottom: 12px; }
+.set-card .ver { padding: 12px 0; }
+.set-ct { margin: 12px 0 4px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); font-weight: 800; }
+@media (max-width: 640px) {
+  .set-sheet { height: min(90vh, 760px); }
+  .set-wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .set-nav { display: flex; gap: 6px; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .set-nav button { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; }
+  .set-nav button i { font-size: 15px; width: auto; }
+  .sheet-b.set-body { padding: 12px 12px 16px; }
+  .set-card .seg button { font-size: 12px; padding: 8px 2px; }
+  .set-card { padding: 2px 12px; }
+  .set-card .qual { grid-template-columns: 1fr; }
+}
 .sheet-h { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; }
 .sheet-h h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: 0.01em; }
 .sheet-h p { margin: 2px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; }
@@ -1354,51 +1384,73 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlSettings" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle">
-  <div class="sheet narrow panel">
-    <div class="sheet-h"><div class="grow"><h2 id="setTitle">Einstellungen</h2></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="sheet-b">
-      <p class="sec-t">Grafik</p>
-      <div class="qual" id="setQuality" role="radiogroup" aria-label="Grafik">
-        <button type="button" data-v="low" role="radio"><b>Low</b><span>Texturen wie Mittel, einfaches Licht, läuft überall flüssig</span></button>
-        <button type="button" data-v="medium" role="radio"><b>Mittel</b><span>8×8-Texturen, Schatten und Fackellicht</span></button>
-        <button type="button" data-v="high" role="radio"><b>High</b><span>16×16-Texturen, volle Auflösung, Leuchten, Lichtstrahlen, weiche Schatten</span></button>
-      </div>
-      <div class="rows">
-        <div class="row"><label for="setView">Sichtweite<small>Wie viele Chunks um dich herum gezeichnet werden (1 Chunk = 16 Blöcke)</small></label><div class="rng"><input id="setView" type="range" min="4" max="14" step="1"><output id="setViewO"></output></div></div>
-      </div>
-      <div class="rows">
-        <div class="row"><div class="lbl">Start-Animation<small>Beim Öffnen der App geht ein Blutmond auf. Aus: das Menü kommt sofort.</small></div><button class="tgl" id="setIntro" type="button" role="switch" aria-checked="true" aria-label="Start-Animation"></button></div>
-      </div>
-      <div id="farBox" hidden>
-      <p class="sec-t">🔭 Advanced Render Distance</p>
-      <div class="rows">
-        <div class="row"><label for="setFar">Sichtweite<small id="farNote"></small></label><div class="rng"><input id="setFar" type="range" min="0" max="100" step="1"><output id="setFarO"></output></div></div>
-        <div class="row ctl-row"><div class="lbl">Detail<small id="farHint"></small></div><div class="seg" id="setFarQ"><button data-v="1" type="button">Low</button><button data-v="2" type="button">Mittel</button><button data-v="3" type="button">High</button></div></div>
-      </div>
-      </div>
-      <p class="sec-t">Steuerung</p>
-      <div class="rows">
-        <div class="row ctl-row"><div class="lbl">Steuerungsart<small id="touchHint">Automatisch: Touch, wenn keine Tastatur da ist</small></div><div class="seg" id="setTouch"><button data-v="auto" type="button">Auto</button><button data-v="off" type="button">Tastatur</button><button data-v="on" type="button">Touch</button><button data-v="cross" type="button">Fadenkreuz</button></div></div>
-        <div class="row ctl-row"><div class="lbl">Meldungen<small>Größe der Hinweise und Texte in der Mitte. Auto: am Handy kleiner</small></div><div class="seg" id="setMsg"><button data-v="auto" type="button">Auto</button><button data-v="s" type="button">Klein</button><button data-v="m" type="button">Normal</button><button data-v="l" type="button">Groß</button></div></div>
-        <div class="row"><label for="setSens">Kamera-Empfindlichkeit</label><div class="rng"><input id="setSens" type="range" min="0.3" max="2.5" step="0.05"><output id="setSensO"></output></div></div>
-        <div class="row"><label for="setFov">Sichtfeld<small>Ego-Perspektive</small></label><div class="rng"><input id="setFov" type="range" min="60" max="100" step="1"><output id="setFovO"></output></div></div>
-        <div class="row"><div class="lbl">Auto-Springen<small>Automatisch auf Blöcke steigen</small></div><button class="tgl" id="setStep" role="switch" aria-label="Auto-Springen" type="button"></button></div>
-        <div class="row"><div class="lbl">Y-Achse umkehren</div><button class="tgl" id="setInvert" role="switch" aria-label="Y-Achse umkehren" type="button"></button></div>
-      </div>
-      <p class="sec-t">Sonstiges</p>
-      <div class="rows">
-        <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
-        <div class="row"><div class="lbl">Motion Blur<small>Bewegungsunschärfe beim Umschauen, Laufen, Springen und Bauen</small></div><button class="tgl" id="setMB" role="switch" aria-label="Motion Blur" type="button"></button></div>
-        <div class="row" id="mbRow"><label for="setMBS">Motion-Blur-Stärke</label><div class="rng"><input id="setMBS" type="range" min="0.1" max="1" step="0.05"><output id="setMBSO"></output></div></div>
-        <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
-        <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
-      </div>
-      <p class="sec-t">Version</p>
-      <div class="ver"><b id="verNow"></b><ul id="verNotes"></ul></div>
-      <div id="testBox">
-        <p class="sec-t">Testen</p>
-        <p class="hint">Admin: zum Ausprobieren, ohne zehn Nächte zu warten. Geht in jeder Welt, auch als Gast, auf Servern und im Zuschauer-Modus.</p>
-        <div class="btnrow"><button class="btn" id="dbgNight" type="button">Zur Nacht springen</button><button class="btn" id="dbgDay" type="button">Zum Morgen springen</button><button class="btn danger" id="dbgBlood" type="button">Blood Moon heute Nacht</button><button class="btn" id="dbgWood" type="button">+20 Holz, +5 Wolle, Erze</button><button class="btn" id="dbgWeather" type="button">Wetter wechseln</button><button class="btn danger" id="dbgTornado" type="button">Tornado jetzt</button><button class="btn" id="dbgClear" type="button">Alle Kreaturen weg</button><button class="btn" id="dbgHeal" type="button">Volle Leben</button></div>
+  <div class="sheet panel set-sheet">
+    <div class="sheet-h"><div class="grow"><h2 id="setTitle">Einstellungen</h2><p id="setSub">Grafik, Steuerung und alles andere</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="set-wrap">
+      <nav class="set-nav" id="setNav" aria-label="Bereiche">
+        <button type="button" data-sec="gfx" aria-current="true"><i>🎨</i><span>Grafik</span></button>
+        <button type="button" data-sec="ctl"><i>🎮</i><span>Steuerung</span></button>
+        <button type="button" data-sec="game"><i>⚙️</i><span>Allgemein</span></button>
+        <button type="button" data-sec="ver"><i>📜</i><span>Version</span></button>
+        <button type="button" data-sec="test" id="setNavTest"><i>🛠️</i><span>Testen</span></button>
+      </nav>
+      <div class="sheet-b set-body">
+        <section class="set-pane" data-sec="gfx">
+          <div class="set-card">
+            <p class="set-ct">Qualität</p>
+            <div class="qual" id="setQuality" role="radiogroup" aria-label="Grafik">
+              <button type="button" data-v="low" role="radio"><b>Low</b><span>Texturen wie Mittel, einfaches Licht, läuft überall flüssig</span></button>
+              <button type="button" data-v="medium" role="radio"><b>Mittel</b><span>8×8-Texturen, Schatten und Fackellicht</span></button>
+              <button type="button" data-v="high" role="radio"><b>High</b><span>16×16-Texturen, volle Auflösung, Leuchten, Lichtstrahlen, weiche Schatten</span></button>
+            </div>
+          </div>
+          <div class="set-card rows">
+            <div class="row"><label for="setView">Sichtweite<small>Wie viele Chunks um dich herum gezeichnet werden (1 Chunk = 16 Blöcke)</small></label><div class="rng"><input id="setView" type="range" min="4" max="14" step="1"><output id="setViewO"></output></div></div>
+            <div class="row"><div class="lbl">Motion Blur<small>Bewegungsunschärfe beim Umschauen, Laufen, Springen und Bauen</small></div><button class="tgl" id="setMB" role="switch" aria-label="Motion Blur" type="button"></button></div>
+            <div class="row" id="mbRow"><label for="setMBS">Motion-Blur-Stärke</label><div class="rng"><input id="setMBS" type="range" min="0.1" max="1" step="0.05"><output id="setMBSO"></output></div></div>
+          </div>
+          <div id="farBox" hidden>
+            <div class="set-card rows">
+              <p class="set-ct">🔭 Advanced Render Distance</p>
+              <div class="row"><label for="setFar">Sichtweite<small id="farNote"></small></label><div class="rng"><input id="setFar" type="range" min="0" max="100" step="1"><output id="setFarO"></output></div></div>
+              <div class="row ctl-row"><div class="lbl">Detail<small id="farHint"></small></div><div class="seg" id="setFarQ"><button data-v="1" type="button">Low</button><button data-v="2" type="button">Mittel</button><button data-v="3" type="button">High</button></div></div>
+            </div>
+          </div>
+        </section>
+        <section class="set-pane" data-sec="ctl" hidden>
+          <div class="set-card rows">
+            <div class="row ctl-row"><div class="lbl">Steuerungsart<small id="touchHint">Automatisch: Touch, wenn keine Tastatur da ist</small></div><div class="seg" id="setTouch"><button data-v="auto" type="button">Auto</button><button data-v="off" type="button">Tastatur</button><button data-v="on" type="button">Touch</button><button data-v="cross" type="button">Fadenkreuz</button></div></div>
+            <div class="row"><label for="setSens">Kamera-Empfindlichkeit</label><div class="rng"><input id="setSens" type="range" min="0.3" max="2.5" step="0.05"><output id="setSensO"></output></div></div>
+            <div class="row"><label for="setFov">Sichtfeld<small>Ego-Perspektive</small></label><div class="rng"><input id="setFov" type="range" min="60" max="100" step="1"><output id="setFovO"></output></div></div>
+          </div>
+          <div class="set-card rows">
+            <div class="row"><div class="lbl">Auto-Springen<small>Automatisch auf Blöcke steigen</small></div><button class="tgl" id="setStep" role="switch" aria-label="Auto-Springen" type="button"></button></div>
+            <div class="row"><div class="lbl">Y-Achse umkehren</div><button class="tgl" id="setInvert" role="switch" aria-label="Y-Achse umkehren" type="button"></button></div>
+            <div class="row ctl-row"><div class="lbl">Meldungen<small>Größe der Hinweise und Texte in der Mitte. Auto: am Handy kleiner</small></div><div class="seg" id="setMsg"><button data-v="auto" type="button">Auto</button><button data-v="s" type="button">Klein</button><button data-v="m" type="button">Normal</button><button data-v="l" type="button">Groß</button></div></div>
+          </div>
+        </section>
+        <section class="set-pane" data-sec="game" hidden>
+          <div class="set-card rows">
+            <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
+          </div>
+          <div class="set-card rows">
+            <div class="row"><div class="lbl">Fast Join<small>An: die Server-Welt lädt schon, während die Kamera losfährt. Ist sie früh fertig, fliegst du gleich hinein. Aus: sie lädt erst im Weltraum.</small></div><button class="tgl" id="setFastJoin" role="switch" aria-label="Fast Join" type="button"></button></div>
+            <div class="row"><div class="lbl">Start-Animation<small>Beim Öffnen der App geht ein Blutmond auf. Aus: das Menü kommt sofort.</small></div><button class="tgl" id="setIntro" type="button" role="switch" aria-checked="true" aria-label="Start-Animation"></button></div>
+          </div>
+          <div class="set-card rows">
+            <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
+            <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
+          </div>
+        </section>
+        <section class="set-pane" data-sec="ver" hidden>
+          <div class="set-card"><div class="ver"><b id="verNow"></b><ul id="verNotes"></ul></div></div>
+        </section>
+        <section class="set-pane" data-sec="test" id="testBox" hidden>
+          <div class="set-card">
+            <p class="hint">Admin: zum Ausprobieren, ohne zehn Nächte zu warten. Geht in jeder Welt, auch als Gast, auf Servern und im Zuschauer-Modus.</p>
+            <div class="btnrow"><button class="btn" id="dbgNight" type="button">Zur Nacht springen</button><button class="btn" id="dbgDay" type="button">Zum Morgen springen</button><button class="btn danger" id="dbgBlood" type="button">Blood Moon heute Nacht</button><button class="btn" id="dbgWood" type="button">+20 Holz, +5 Wolle, Erze</button><button class="btn" id="dbgWeather" type="button">Wetter wechseln</button><button class="btn danger" id="dbgTornado" type="button">Tornado jetzt</button><button class="btn" id="dbgClear" type="button">Alle Kreaturen weg</button><button class="btn" id="dbgHeal" type="button">Volle Leben</button></div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -1966,8 +2018,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.37.11';
+const GAME_VERSION = '2.38.0';
 const GAME_NOTES = [
+  ['2.38.0', 'Einstellungen neu gestaltet: Bereiche links (am Handy oben) für Grafik, Steuerung, Allgemein und Version, die Einstellungen in übersichtlichen Karten. Neue Einstellung „Fast Join“ (Allgemein): an lädt die Server-Welt schon während die Kamera losfährt, aus erst im Weltraum.'],
   ['2.37.11', 'Server betreten: die Kamera fährt gleich mit etwas Schwung los und kommt dadurch weiter über die Welt. Der Weltraum kommt zur gleichen Zeit wie vorher.'],
   ['2.37.10', 'Server betreten ohne Ruckeln: während die Welt des Servers gebaut wird, fährt die Kamera über die alte Welt weiter. Die neue Welt wird in kleinen Stücken gebaut (darf dafür etwas länger dauern), damit das Bild flüssig bleibt.'],
   ['2.37.9', 'Server betreten: die Welt wird sofort geladen, nicht erst im Weltraum. Ist sie fertig, bevor der Weltraum kommt, fliegst du gleich in die Welt des Servers, sonst kommt der Weltraum, bis sie fertig ist.'],
@@ -8281,7 +8334,7 @@ const QUALITY = {
 /* every device starts on Mittel */
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2, intro: true,
+  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2, intro: true, fastJoin: true,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
@@ -13978,9 +14031,19 @@ function bindSettingsUI() {
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
     $('setMBS').value = SETTINGS.mbStrength; $('setMBSO').textContent = Math.round(SETTINGS.mbStrength * 100) + '%'; $('mbRow').hidden = !SETTINGS.motionBlur;
-    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
-    $('testBox').hidden = !isOwner();
+    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro'], ['setFastJoin', 'fastJoin']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
+    $('setNavTest').hidden = !isOwner();
+    if (!isOwner() && UI.setSec === 'test') UI.setSection('gfx');
   };
+  // Bereiche links (am Handy oben): immer nur einer ist zu sehen
+  UI.setSec = 'gfx';
+  UI.setSection = (sec) => {
+    UI.setSec = sec;
+    $('setNav').querySelectorAll('button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.sec === sec)));
+    $('mdlSettings').querySelectorAll('.set-pane').forEach((p) => { p.hidden = p.dataset.sec !== sec; });
+    $('mdlSettings').querySelector('.set-body').scrollTop = 0;
+  };
+  $('setNav').addEventListener('click', (e) => { const b = e.target.closest('button[data-sec]'); if (b) UI.setSection(b.dataset.sec); });
   UI.settingsRefresh = refresh;
   $('setQuality').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b || b.dataset.v === SETTINGS.quality) return;
@@ -14007,7 +14070,7 @@ function bindSettingsUI() {
   rng('setSens', 'sens', (v) => v);
   rng('setVol', 'volume', (v) => v);
   rng('setMBS', 'mbStrength', (v) => v);
-  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro']]) {
+  for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro'], ['setFastJoin', 'fastJoin']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
   // nobody but the owner can use them, even if the box were shown
@@ -16830,8 +16893,10 @@ async function playServer(srv, keep) {
   }
   // nicht auf den Weltraum warten: die Welt wird sofort geladen; ist sie fertig, bevor der Weltraum
   // kommt, geht es gleich mit dem Hineinfliegen weiter (der Weltraum fällt dann einfach weg)
+  // (Fast Join aus: wie früher erst laden, wenn der Weltraum da ist)
   const ready = async () => {
     if (!warp) return true;
+    if (!SETTINGS.fastJoin) await warpAccelDone();
     if (await warpAborted()) return false;
     G.state = 'loading'; G.loadT = performance.now();
     return true;
