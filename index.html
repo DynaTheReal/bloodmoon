@@ -2106,8 +2106,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.46.1';
+const GAME_VERSION = '2.46.2';
 const GAME_NOTES = [
+  ['2.46.2', 'Energieerz: nur noch die Zombies der Nacht (nicht die im Schattenwald am Tag) und die Skelette auf den Türmen lassen es fallen, jeweils zu 50 % eins. Wölfe nicht mehr. In den Turmtruhen liegen 0 bis 3 Energieerz.'],
   ['2.46.1', 'Energieerz: Zombies (überall) und Wölfe lassen es zu 50 % fallen, Turmwächter immer 2. Auf Servern und bei Freunden entscheidet der Gastgeber über die Beute, er braucht also die neue Version.'],
   ['2.46.0', 'Der Sprachchat ist keine Mod mehr, sondern fest eingebaut: er läuft in jeder Welt mit anderen Spielern und in den Sprach-Lobbys, das Lobby-Fenster ist immer im Hauptmenü. In den Einstellungen (Allgemein → Sprachchat) kannst du ihn ausschalten, das Lobby-Fenster am Handy einschalten und Mikrofon und Lautsprecher wählen.'],
   ['2.45.0', 'Energie (wie Redstone): Zombies lassen zu 50 % Energieerz fallen. Beim Händler (Bauen → Energie): Energiefackeln (immer Energie 15), Hebel (an 15 / aus 0), analoge Hebel (0 bis 15, Rechtsklick dreht weiter, mit Schleichen zurück) und den Schraubenschlüssel. Energie wirkt auf die Blöcke direkt daneben. Speed-Schienen brauchen jetzt Energie: im Schub-Modus (türkis) gibt es Schub je nach Stufe, ohne Energie sind sie normale Schienen. Im Brems-Modus (rot, mit dem Schraubenschlüssel umstellen) hält der Wagen ohne Energie sofort an, mit wenig Energie wird er fast gestoppt und rollt langsam weiter.'],
@@ -10217,8 +10218,8 @@ function damageZombie(z, dmg, kx, kz, kb) {
   if (z.hp <= 0) {
     z.state = 'die'; z.t = 0; if (z.md) SFX.pop && SFX.pop(); else SFX.zombieDie();
     // Energieerz (der Host entscheidet, alle sehen es)
-    // Zombies (überall, auch im Schattenwald) und Wölfe zu 50 % eins, Turmwächter immer zwei
-    const en = z.md || MP.isClient() ? 0 : z.type === 'archer' ? 2 : (z.type === 'zombie' || z.type === 'wolf') && Math.random() < 0.5 ? 1 : 0;
+    // nur die Zombies der Nacht und die Skelette auf den Türmen, jeweils zu 50 % eins
+    const en = z.md || MP.isClient() ? 0 : ((z.type === 'zombie' && z.night) || z.type === 'archer') && Math.random() < 0.5 ? 1 : 0;
     if (en) { const d = dropItem('energy', en, z.x, z.y + 0.6, z.z, (Math.random() - 0.5) * 2, 3.2, (Math.random() - 0.5) * 2); sendDrop(d); }
   }
 }
@@ -10290,6 +10291,7 @@ function updateSpawns(dt) {
     if (!blood) for (const o of OBJS.values()) if (o.id === B.TORCH && o.lit > 0.3 && Math.hypot(o.x - x, o.z - z) < 6) { nearTorch = true; break; }
     if (nearTorch) continue;
     spawnZombie(x + 0.5, si.y + 1, z + 0.5);
+    G.zombies[G.zombies.length - 1].night = true;   // ein Zombie der Nacht (nur die lassen Energieerz fallen)
     G.nightSpawned = (G.nightSpawned || 0) + 1;
     break;
   }
@@ -11669,6 +11671,7 @@ function chestLoot(x, y, z) {
     if (r() < 0.6) loot.crystal = 1 + Math.floor(r() * 2);
     loot.torch = 4;
     loot.paper = 1 + Math.floor(r() * 2);
+    const en = Math.floor(r() * 4); if (en) loot.energy = en;   // 0 bis 3 Energieerz
   } else if (y < SEA - 4) {
     loot.iron = 2 + Math.floor(r() * 5); loot.torch = 2 + Math.floor(r() * 5);
     if (r() < 0.4) loot.apple = 1;
