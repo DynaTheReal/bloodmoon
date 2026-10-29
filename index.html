@@ -2106,8 +2106,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.46.2';
+const GAME_VERSION = '2.46.3';
 const GAME_NOTES = [
+  ['2.46.3', 'Sprach-Lobbys: H (stumm) und J (die anderen stumm) gehen auch im Hauptmenü. Beim Start des Spiels kommst du sofort wieder in die Lobby, in der du zuletzt warst (bis du sie verlässt).'],
   ['2.46.2', 'Energieerz: nur noch die Zombies der Nacht (nicht die im Schattenwald am Tag) und die Skelette auf den Türmen lassen es fallen, jeweils zu 50 % eins. Wölfe nicht mehr. In den Turmtruhen liegen 0 bis 3 Energieerz.'],
   ['2.46.1', 'Energieerz: Zombies (überall) und Wölfe lassen es zu 50 % fallen, Turmwächter immer 2. Auf Servern und bei Freunden entscheidet der Gastgeber über die Beute, er braucht also die neue Version.'],
   ['2.46.0', 'Der Sprachchat ist keine Mod mehr, sondern fest eingebaut: er läuft in jeder Welt mit anderen Spielern und in den Sprach-Lobbys, das Lobby-Fenster ist immer im Hauptmenü. In den Einstellungen (Allgemein → Sprachchat) kannst du ihn ausschalten, das Lobby-Fenster am Handy einschalten und Mikrofon und Lautsprecher wählen.'],
@@ -24234,8 +24235,11 @@ function bindVoice() {
   window.addEventListener('keydown', (e) => {
     if ((e.code !== 'KeyH' && e.code !== 'KeyJ') || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !voiceEnabled()) return;
     const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
-    if (G.state !== 'playing') return;
+    // im Spiel, und im Hauptmenü, solange du in einer Sprach-Lobby bist
+    const inMenuLobby = G.state === 'menu' && LOB.id && VOICE.on && !UI.anyModal();
+    if (G.state !== 'playing' && !inMenuLobby) return;
     if (e.code === 'KeyH') voiceToggle(); else voiceSetDeaf(!VOICE.deaf);
+    if (inMenuLobby) lobRender();
   });
   // die Seite wird geschlossen: den anderen Bescheid sagen
   window.addEventListener('pagehide', () => { if (VOICE.on) { voiceSend({ k: 'bye' }); voiceStopMic(); } });
@@ -24740,7 +24744,7 @@ function bindPing() {
    Das Passwort prüft Firebase selbst (vlob/key ist für niemanden lesbar,
    der eingegebene Hash steht unter vlob/pass/<lobby>/<du>).
    ========================================================================= */
-const LOB = { id: null, name: '', members: new Map(), list: [], counts: {}, refs: [], listRefs: [], busy: false, ask: null, err: '', creating: false, joinT: 0 };
+const LOB = { id: null, name: '', members: new Map(), list: [], counts: {}, refs: [], listRefs: [], busy: false, ask: null, err: '', creating: false, joinT: -1e9 };   // joinT: gleich beim Start wieder in die letzte Lobby
 const LOB_KEY = 'bloodmoon-vlobby';
 function voiceInstalled() { return voiceEnabled(); }
 function lobPhone() { return touchUI() && Math.min(screen.width || innerWidth, screen.height || innerHeight) < 600; }
