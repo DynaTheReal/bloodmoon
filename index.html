@@ -742,6 +742,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 .t-atk { right: calc(var(--safe-r) + 104px); bottom: calc(var(--safe-b) + 100px); width: 80px; height: 80px; font-size: 11.5px; line-height: 1.15; background: rgba(200, 60, 60, 0.55); }
 .t-use { right: calc(var(--safe-r) + 104px); bottom: calc(var(--safe-b) + 192px); width: 66px; height: 66px; font-size: 11px; line-height: 1.15; background: rgba(60, 130, 200, 0.5); }
 .t-atk.on { background: rgba(232, 72, 77, 0.9); }
+.lock-hint { position: fixed; left: 50%; top: 58%; transform: translateX(-50%); z-index: 6; padding: 10px 16px; border-radius: 99px; font-weight: 800; font-size: 14px; pointer-events: none; }
+.lock-hint[hidden] { display: none; }
 .t-sneak { right: calc(var(--safe-r) + 22px); bottom: calc(var(--safe-b) + 264px); width: 52px; height: 52px; font-size: 10px; line-height: 1.1; padding: 0 3px; }
 .t-sneak[aria-pressed="true"] { background: rgba(90, 160, 220, 0.86); border-color: rgba(190, 225, 255, 0.6); }
 .cross-mode .t-down { bottom: calc(var(--safe-b) + 330px); }
@@ -1295,6 +1297,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     </div>
   </div>
   <div id="cross" class="cross" hidden></div>
+  <div id="lockHint" class="lock-hint panel" hidden>🖱️ Klick ins Bild, um weiterzuspielen</div>
   <div id="touchUi" class="touch" hidden>
     <div id="joyBase" class="joy" hidden><div id="joyKnob" class="joy-k"></div></div>
     <button id="tJump" class="tbtn t-jump">Springen</button>
@@ -2097,8 +2100,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.44.0';
+const GAME_VERSION = '2.44.2';
 const GAME_NOTES = [
+  ['2.44.2', 'Kämpfen: Linksklick gedrückt halten schlägt nicht mehr dauernd zu, jeder Schlag ist ein Klick (Abbauen geht weiter mit Halten). Rechtsklick gedrückt halten setzt immer wieder, z. B. Fackeln beim Laufen durch einen Tunnel.'],
+  ['2.44.1', 'Fehler behoben: verlässt der Gastgeber eines Servers das Spiel, übernimmt der nächste erst, wenn die Welt fertig gespeichert ist (vorher bekam er eine ältere Welt, ohne deinen Tunnel, und wurde nach oben gesetzt). Nach dem Laden zählt keine alte Fallhöhe mehr (kein plötzlicher Tod im Tunnel). Die Kamera springt beim Umsehen nicht mehr zurück, und ohne gefangene Maus dreht sie sich nicht mehr wild: einmal ins Spiel klicken. Die Hand wackelt nach dem Betreten nicht mehr. Auf dem Todesbildschirm steht jetzt, woran du gestorben bist. Fackeln sind nur noch so dick wie sie aussehen: daneben und dahinter kann man bauen und zielen, abbauen geht weiter. Im Minenwagen sitzt man tiefer drin (kein Kopf mehr durch die Decke im 2 Blöcke hohen Tunnel).'],
   ['2.44.0', 'Sprachchat-Mod: Sprach-Lobbys im Hauptmenü (links neben „Server“, am PC und Tablet; am Handy in den Sprachchat-Einstellungen einschaltbar). Lobbys erstellen, mit oder ohne Passwort (einmal eingegeben, wird es gemerkt), und schon im Hauptmenü miteinander reden. Wer in derselben Lobby ist, hört sich überall, auch in verschiedenen Welten und auf verschiedenen Servern. In einer Welt hörst du zusätzlich die Spieler dort, die hören aber deine Lobby nicht.'],
   ['2.43.2', 'Minenwagen: Rechtsklick auf den Wagen setzt dich hinein (auch mit etwas in der Hand), die E-Anzeige springt nicht mehr hin und her. Speed-Schienen machen den Wagen sanft schneller statt auf einen Schlag, in schneller Fahrt geht das Sichtfeld etwas weiter, der Wagen dreht sich in Kurven weich. Schienen: kein grauer Rahmen mehr, und nur die flache Schiene selbst ist anklickbar, durch die Luft darüber kann man bauen und zielen.'],
   ['2.43.1', 'Fehler behoben: wenn zwei fast gleichzeitig einem leeren Server beitreten (oder einer eine ältere Version hat), wurden beide Gastgeber und haben sich gegenseitig immer wieder rausgeworfen und neu geladen. Jetzt bleibt einer Gastgeber und der andere spielt bei ihm mit.'],
@@ -9211,6 +9216,8 @@ function raycast(ox, oy, oz, dx, dy, dz, maxDist, test) {
     if (id !== B.AIR && test(id, x, y, z)) {
       // eine Schiene ist flach: nur sie selbst trifft man, nicht die Luft darüber
       if (id === B.RAIL || id === B.SPEED_RAIL) { const tr = rayAabb(ox, oy, oz, dx, dy, dz, x, y, z, x + 1, y + 0.14, z + 1); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
+      // eine Fackel ist dünn: nur sie selbst trifft man, daneben und dahinter kann man bauen
+      else if (id === B.TORCH) { const b = torchBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       else return { x, y, z, nx, ny, nz, t, id };
     }
     if (tmx < tmy && tmx < tmz) { x += sx; t = tmx; tmx += tdx; nx = -sx; ny = 0; nz = 0; }
@@ -9253,8 +9260,18 @@ function respawnPlayer() {
   PL.hp = PL.maxHp; PL.dead = false; PL.invuln = 5; PL.stepOffset = 0;
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
 }
+/* wo die Fackel in ihrer Zelle steht (am Boden oder schräg an der Wand) */
+function torchBox(x, y, z) {
+  const m = W.meta.get(I(x, y, z)) || 0;
+  let cx = x + 0.5, cz = z + 0.5, y0 = y, y1 = y + 0.75;
+  if (m >= 1 && m <= 4) { const o = [[-0.3, 0], [0.3, 0], [0, -0.3], [0, 0.3]][m - 1]; cx += o[0]; cz += o[1]; y0 = y + 0.15; y1 = y + 0.95; }
+  return [cx - 0.16, y0, cz - 0.16, cx + 0.16, y1, cz + 0.16];
+}
+/* Schaden mit Grund (der steht dann auf dem Todesbildschirm) */
+function hurtBy(cause, dmg, fromX, fromZ, noPush, armorK) { PL.nextCause = cause; hurtPlayer(dmg, fromX, fromZ, noPush, armorK); PL.nextCause = null; }
 function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   if (PL.dead || PL.invuln > 0 || G.sleep || MODFX.godmode) return;
+  const cause = PL.nextCause || null;
   dmg *= 1 - armorReduce() * (armorK === undefined ? 1 : armorK);
   PL.hp = Math.max(0, PL.hp - dmg);
   PL.lastHurt = G.playTime; PL.hurtT = 0.35;
@@ -9264,6 +9281,7 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.55);
   UI.hurt(); SFX.hurt();
   if (PL.hp <= 0) {
+    PL.deathCause = cause || (PL.lastHitBy && G.playTime - PL.lastHitBy.t < 3 ? PL.lastHitBy.name : null);
     PL.dead = true; PL.deadT = 0; modEmit('death', {}); modPlayerDied();
     wpOnDeath();
     dropEverything();
@@ -9377,7 +9395,7 @@ function updatePlayer(dt) {
   // lava: thick, slow and burning hot
   if (PL.inLava) {
     PL.lavaT = (PL.lavaT || 0) - dt;
-    if (PL.lavaT <= 0) { PL.lavaT = 0.55; hurtPlayer(7, PL.x, PL.z); }
+    if (PL.lavaT <= 0) { PL.lavaT = 0.55; hurtBy('lava', 7, PL.x, PL.z); }
     if (Math.random() < dt * 14) spawnPart({ x: PL.x + (Math.random() - 0.5) * 0.6, y: PL.y + 0.6 + Math.random(), z: PL.z + (Math.random() - 0.5) * 0.6, vx: 0, vy: 1.6, vz: 0, life: 0.5, size: 0.12, r: 1, g: 0.5, b: 0.1, kind: 0, grav: -1, drag: 1, em: 1 });
   } else PL.lavaT = 0;
   const ctrl = INPUT.down('ControlLeft') || INPUT.down('ControlRight') || INPUT.sneakBtn;
@@ -9422,7 +9440,7 @@ function updatePlayer(dt) {
     const fall = (PL.fallTopPrev === undefined ? PL.y : PL.fallTopPrev) - PL.y;
     const wet = getB(Math.floor(PL.x), Math.floor(PL.y + 0.1), Math.floor(PL.z)) === B.WATER;
     // 30 blocks kill you; with boots on you survive up to about 50 (other armor does not help)
-    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead && !MODFX.noFall) { const boots = (G.tools.boots | 0) > 0 ? 0.56 : 1; hurtPlayer((fall - 3) * 3.75 * boots, PL.x, PL.z, true, 0); SFX.land(); }
+    if (fall > 3.5 && !wet && W.rules.fall !== false && !PL.dead && !MODFX.noFall) { const boots = (G.tools.boots | 0) > 0 ? 0.56 : 1; hurtBy('fall', (fall - 3) * 3.75 * boots, PL.x, PL.z, true, 0); SFX.land(); }
   }
   PL.fallTopPrev = PL.fallTop;
   if (!wasGround && PL.onGround && PL.airT > 0.35) { SFX.land(); for (let k = 0; k < 4; k++) spawnPart({ x: PL.x, y: PL.y + 0.05, z: PL.z, vx: (Math.random() - 0.5) * 2, vy: 0.6, vz: (Math.random() - 0.5) * 2, life: 0.6, size: 0.18, r: 0.75, g: 0.72, b: 0.66, kind: 1, grav: 0, drag: 2, alpha: 0.35, grow: 1.5 }); }
@@ -10369,7 +10387,7 @@ function updateZombies(dt) {
         z.atkT -= dt;
         if (z.atkT <= 0) {
           // a blood moon zombie poisons whoever it hits
-          if (dist < 1.6) { const dmg = blood ? 14 + bl.dmgAdd : 10; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, inf: blood ? 1 : null }); else { hurtPlayer(dmg, z.x, z.z); if (blood) infect(); } }
+          if (dist < 1.6) { const dmg = blood ? 14 + bl.dmgAdd : 10; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, inf: blood ? 1 : null, c: blood ? 'bzombie' : 'zombie' }); else { hurtBy(blood ? 'bzombie' : 'zombie', dmg, z.x, z.z); if (blood) infect(); } }
           z.atkCd = 1.15;
         }
       }
@@ -10732,7 +10750,7 @@ function updateBat(z, dt, tgt, dist) {
     if (tgt.none || z.diveT > 3.5 || SOLID[ahead] || (z.diveT > 0.6 && Math.floor(z.diveT * 5) !== Math.floor((z.diveT - dt) * 5) && !underOpenSky(tgt, Math.floor(z.y)))) { z.mode = 'climb'; z.atkCd = 2; }
     else if (d3 < 1.15) {
       const dmg = 6 + Math.round(bl.dmgAdd / 2);
-      if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z }); else hurtPlayer(dmg, z.x, z.z);
+      if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, c: 'bat' }); else hurtBy('bat', dmg, z.x, z.z);
       z.atkT = 0.42; z.mode = 'climb';
       z.atkCd = Math.max(2.2, 6 - n * 0.6) + Math.random() * 2.5;
       SFX.batBite();
@@ -10955,7 +10973,7 @@ function poisonDeath() {
   G.stats.inf = null;
   G._curse = true;
   PL.invuln = 0;
-  hurtPlayer(99999, PL.x, PL.z);
+  hurtBy('poison', 99999, PL.x, PL.z);
   G._curse = false;
   uiPoison();
   for (let k = 0; k < 40; k++) spawnPart({ x: PL.x + (Math.random() - 0.5), y: PL.y + Math.random() * 1.8, z: PL.z + (Math.random() - 0.5), vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2, vz: (Math.random() - 0.5) * 2, life: 1.6, size: 0.12, r: 0.45, g: 0.9, b: 0.2, em: 0.6, grav: -0.5, drag: 1 });
@@ -11163,7 +11181,7 @@ function updateWolf(z, dt, tgt, dist, fires) {
     if (z.atkT > 0) {
       z.atkT -= dt;
       if (z.atkT <= 0) {
-        if (dist < 1.8) { const dmg = 8; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z }); else hurtPlayer(dmg, z.x, z.z); }
+        if (dist < 1.8) { const dmg = 8; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, c: 'wolf' }); else hurtBy('wolf', dmg, z.x, z.z); }
         z.atkCd = 0.95 + Math.random() * 0.3; z.side = Math.random() < 0.5 ? -1 : 1;
       }
     } else if (z.atkCd <= 0) { z.atkT = 0.24; SFX.growl(Math.hypot(z.x - PL.x, z.z - PL.z)); }
@@ -11204,7 +11222,7 @@ function updateArcher(z, dt, tgt, dist) {
     // close up: a bony punch
     z.drawT = 0;
     z.atkCd -= dt;
-    if (z.atkCd <= 0) { z.atkCd = 1.2; z.atkT = 0.3; const dmg = 5; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z }); else hurtPlayer(dmg, z.x, z.z); }
+    if (z.atkCd <= 0) { z.atkCd = 1.2; z.atkT = 0.3; const dmg = 5; if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg, fx: z.x, fz: z.z, c: 'skel' }); else hurtBy('skel', dmg, z.x, z.z); }
   } else if (inRange && z.cd <= 0 && canSee(ex, ey, ez, tx, ty, tz)) {
     z.drawT += dt;
     if (z.drawT > 0.95) { shootArrow(z, tgt); z.drawT = 0; z.cd = 2.1 + Math.random() * 0.9; }
@@ -11252,7 +11270,7 @@ function updateArrows(dt) {
       if (SOLID[getB(Math.floor(a.x), Math.floor(a.y), Math.floor(a.z))]) { a.stuck = true; a.t = 0; gone = true; SFX.thunk(Math.hypot(a.x - PL.x, a.z - PL.z)); break; }
       // the host decides hits; everybody sees the arrow stop in the body
       if (!PL.dead && bodyHit(PL.x, PL.y, PL.z, a.x, a.y, a.z)) {
-        if (a.real || !MP.isClient()) hurtPlayer(7, a.x - a.vx * 0.05, a.z - a.vz * 0.05);
+        if (a.real || !MP.isClient()) hurtBy('arrow', 7, a.x - a.vx * 0.05, a.z - a.vz * 0.05);
         ARROWS.splice(k, 1); gone = true; break;
       }
       for (const uid in REMOTE) {
@@ -12008,7 +12026,7 @@ function stormPush(e, dt, isPlayer) {
   if (isPlayer) {
     if (SETTINGS.camShake) CAMC.shake = Math.min(0.8, CAMC.shake + k * dt * 2);
     G._torHurt = (G._torHurt || 0) - dt;
-    if (d < T.r && G._torHurt <= 0) { G._torHurt = 0.9; hurtPlayer(2 + T.lv * 1.5, T.x, T.z); }
+    if (d < T.r && G._torHurt <= 0) { G._torHurt = 0.9; hurtBy('tornado', 2 + T.lv * 1.5, T.x, T.z); }
   }
 }
 function drawTornado(t) {
@@ -12090,7 +12108,7 @@ function strikeAt(x, y, z, seed, remote) {
   if (SCAR[id] && !W.changes.has(i)) setBlock(x, y, z, B.DIRT);
   // too close: it hurts
   const pd = Math.hypot(PL.x - (x + 0.5), PL.z - (z + 0.5));
-  if (!PL.dead && pd < 3.4 && PL.y > y - 1.5 && PL.y < y + 6) hurtPlayer(pd < 1.5 ? 9 : 5, x + 0.5, z + 0.5);
+  if (!PL.dead && pd < 3.4 && PL.y > y - 1.5 && PL.y < y + 6) hurtBy('bolt', pd < 1.5 ? 9 : 5, x + 0.5, z + 0.5);
   if (remote) return;
   // the host: trees can come down, monsters get hit
   if (TREEBLOCK[id]) {
@@ -12455,7 +12473,7 @@ function edgeBox(Bt, x0, y0, z0, x1, y1, z1, th, r, g, b, a) {
 }
 function blockBounds(id, x, y, z) {
   if (KIND[id] === K_PLANT) return [x + 0.15, y, z + 0.15, x + 0.85, y + 0.7, z + 0.85];
-  if (id === B.TORCH) return [x + 0.36, y, z + 0.36, x + 0.64, y + 0.8, z + 0.64];
+  if (id === B.TORCH) return torchBox(x, y, z);
   if (id === B.RAIL || id === B.SPEED_RAIL) return [x, y, z, x + 1, y + 0.13, z + 1];
   if (id === B.CAMPFIRE) return [x + 0.06, y, z + 0.06, x + 0.94, y + 0.45, z + 0.94];
   if (id === B.BED) return [x, y, z, x + 1, y + 0.6, z + 1];
@@ -12565,7 +12583,7 @@ function drawViewModel(t) {
   const swap = 1 - easeOutBack(VM.swapT);
   if (tool === 'map') return;   // die Karte halten beide Hände (19x_map.js)
   // landing dip
-  if (!VM.ground && PL.onGround) VM.land = clamp(VM.air * 1.3, 0.12, 0.7);
+  if (!VM.ground && PL.onGround && VM.air > 0.18) VM.land = clamp(VM.air * 1.3, 0.12, 0.7);
   VM.air = PL.onGround ? 0 : VM.air + dt; VM.ground = PL.onGround;
   VM.land = damp(VM.land, 0, 6, dt);
   VM.sprint = damp(VM.sprint, PL.sprint && PL.onGround && PL.walkAmt > 0.3 && PL.chopping <= 0 && PL.swingT >= 1 ? 1 : 0, 7, dt);
@@ -12695,7 +12713,7 @@ const INPUT = {
   down(c) { return this.keys.has(c); },
   endFrame() { this.primaryPressed = false; this.secondaryPressed = false; this.interactPressed = false; },
   clear() {
-    this.keys.clear(); this.primaryHeld = false; this.drag = null;
+    this.keys.clear(); this.primaryHeld = false; this.secondaryHeld = false; this.drag = null;
     this.joy.active = false; this.joy.x = this.joy.y = 0; this.jump = false; this.flyDown = false; this.touches.clear();
     if (typeof UI !== 'undefined' && UI.joy) UI.joy(false);
   },
@@ -12909,9 +12927,10 @@ function initInput() {
     INPUT.pointer = [e.clientX, e.clientY]; INPUT.hasPointer = true;
     SFX.unlock();
     if (CAMC.mode === 'fp') {
-      if (!INPUT.locked && !INPUT.lockFailed) requestLock('fp', true);
+      // der Klick fängt erst die Maus (und schlägt nicht gleich zu)
+      if (!INPUT.locked && !INPUT.lockFailed) { requestLock('fp', true); return; }
       if (e.button === 0) { INPUT.primaryHeld = true; INPUT.primaryPressed = true; }
-      else if (e.button === 2) INPUT.secondaryPressed = true;
+      else if (e.button === 2) { INPUT.secondaryPressed = true; INPUT.secondaryHeld = true; INPUT.useT = 0.28; }
       return;
     }
     if (e.button === 0) {
@@ -12919,6 +12938,7 @@ function initInput() {
       if (!G.hover || (!G.hover.inReach && G.hover.type === 'block')) INPUT.drag = { btn: 0, moved: 0, started: false, pdx: 0, pdy: 0 };
       else { INPUT.primaryHeld = true; INPUT.primaryPressed = true; }
     } else if (e.button === 2 || e.button === 1) {
+      if (e.button === 2) { INPUT.secondaryHeld = true; INPUT.useT = 0.32; }
       INPUT.drag = { btn: e.button, moved: 0, started: e.button === 1, pdx: 0, pdy: 0 };
       if (e.button === 1) { e.preventDefault(); requestLock('drag'); }
     }
@@ -12926,6 +12946,7 @@ function initInput() {
   window.addEventListener('mouseup', (e) => {
     const d = INPUT.drag;
     if (e.button === 0) INPUT.primaryHeld = false;
+    if (e.button === 2) INPUT.secondaryHeld = false;
     if (d && d.btn === e.button) {
       // a right click without dragging places a block or uses something
       if (e.button === 2 && !d.started && playing()) INPUT.secondaryPressed = true;
@@ -12936,11 +12957,16 @@ function initInput() {
     if (e.pointerType === 'touch' || (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents)) return;
     if (!INPUT.locked) { INPUT.pointer = [e.clientX, e.clientY]; INPUT.hasPointer = true; }
     if (!playing()) return;
-    const mx = e.movementX || 0, my = e.movementY || 0;
+    let mx = e.movementX || 0, my = e.movementY || 0;
+    // Browser-Fehler: beim Wiederkommen der Maus (oder mit der Maussperre am Fensterrand) kommt manchmal
+    // ein riesiger Sprung zurück. Der dreht die Kamera auf den Anfang zurück: solche Sprünge ignorieren
+    const big = INPUT.locked ? 380 : 120;
+    if (Math.abs(mx) > big || Math.abs(my) > big) { mx = 0; my = 0; }
     if (CAMC.mode === 'fp') {
       // first person: just move the mouse to look around (locked pointer, or plain movement as fallback)
       // (soft mode: anywhere over the page, so it feels exactly like after closing with the X)
-      if (INPUT.locked || ((INPUT.lockFailed || INPUT.lockSoft) && !UI.anyModal())) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
+      // ohne gefangene Maus schaut man nur, wenn der Browser das Fangen gar nicht erlaubt (sonst: klicken zum Fangen)
+      if (INPUT.locked || (INPUT.lockFailed && !UI.anyModal())) { INPUT.lastSource = 'mouse'; lookDelta(mx, my, 1); }
       return;
     }
     const d = INPUT.drag;
@@ -13542,7 +13568,9 @@ UI.joy = function (on, x, y, dx, dy) {
   if (on) { b.style.left = x + 'px'; b.style.top = y + 'px'; $('joyKnob').style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; }
 };
 UI.death = function () {
-  $('deathTxt').textContent = G.time.phase === 'night' ? (G.time.blood ? 'Der Blood Moon hat dich erwischt.' : 'Die Zombies haben dich in Nacht ' + G.time.night + ' erwischt.') : 'Du hast es nicht geschafft.';
+  const c = PL.deathCause || '';
+  const why = { fall: 'Du bist zu tief gefallen.', lava: 'Du bist in der Lava verbrannt.', zombie: 'Ein Zombie hat dich erschlagen.', bzombie: 'Ein Blood-Moon-Zombie hat dich erschlagen.', bat: 'Eine Fledermaus hat dich erwischt.', poison: 'Das Zombie-Gift hat dich erwischt.', wolf: 'Ein Wolf hat dich gebissen.', skel: 'Ein Skelett hat dich erschlagen.', arrow: 'Dich hat ein Pfeil getroffen.', tornado: 'Der Tornado hat dich erwischt.', bolt: 'Dich hat ein Blitz getroffen.', boom: 'Du bist in einer Explosion gestorben.', shot: 'Dich hat ein Geschoss getroffen.', mod: 'Eine Mod hat dir Schaden gemacht.', mob: 'Eine Kreatur hat dich erwischt.' }[c];
+  $('deathTxt').textContent = why || (c.startsWith('m:') ? 'Dich hat „' + c.slice(2) + '“ erwischt.' : c ? c + ' hat dich besiegt.' : (G.time.phase === 'night' ? (G.time.blood ? 'Der Blood Moon hat dich erwischt.' : 'Die Zombies haben dich in Nacht ' + G.time.night + ' erwischt.') : 'Du hast es nicht geschafft.'));
   setTimeout(() => { if (PL.dead) { $('scrDeath').hidden = false; if (document.pointerLockElement) document.exitPointerLock(); } }, 900);
 };
 /* schlafen: die Augen fallen zu, ein Nachthimmel mit Zzz, „Du schläfst …“; am Morgen „Guten Morgen!“ */
@@ -13561,6 +13589,7 @@ UI.sleepMorning = function () {
 /* per frame HUD update */
 const _scr = [0, 0, 0];
 UI.frame = function (dt) {
+  { const lh = $('lockHint'); if (lh) { const show = CAMC.mode === 'fp' && G.state === 'playing' && !INPUT.locked && !INPUT.lockFailed && !touchUI() && INPUT.lastSource !== 'touch' && !UI.anyModal(); if (lh.hidden === show) lh.hidden = !show; } }
   const vw = window.innerWidth, vh = window.innerHeight;
   const T = G.time;
   UI._clockT = (UI._clockT || 0) - dt;
@@ -15162,6 +15191,7 @@ async function loadWorld(seed, save, opts = {}) {
     if (performance.now() - tl > (GHOST.chm ? 9 : 80)) { setLoad(0.05 + 0.65 * n / offs.length, 'Erschaffe Landschaft'); await nextFrame(); tl = performance.now(); }
   }
   fixPlayerPos();
+  PL.vy = 0; PL.fallTop = PL.y; PL.deathCause = null;   // keine Fallhöhe von vorher mitnehmen
   initMerchant();
   CAMC.focus = [PL.x, PL.y + 1.25, PL.z];
   updateFarFog(0, PL.x, PL.z);
@@ -15450,8 +15480,10 @@ function handleActionsCore(dt) {
     PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = PL.charge > 0.92; SFX.swish(PL.atkFull ? 1.2 : 0.8);
   }
   if (INPUT.primaryHeld) G.holdT = (G.holdT || 0) + dt; else G.holdT = 0;
-  if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
-  if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'player' && target.inReach) attackPlayer(target.e, true);
+  // gedrückt halten schlägt nicht immer weiter zu (jeder Schlag ist ein Klick); nur am Handy bleibt Halten ein Angriff
+  const holdHits = INPUT.lastSource === 'touch';
+  if (holdHits && INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
+  if (holdHits && INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'player' && target.inReach) attackPlayer(target.e, true);
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
   updateBreaking(dt, INPUT.primaryHeld && breakable, target);
   if (INPUT.secondaryPressed && target && target.type === 'cart' && target.inReach && !PL.cart) enterCart(target.e);   // Rechtsklick auf den Wagen: einsteigen
@@ -15459,6 +15491,12 @@ function handleActionsCore(dt) {
     if (modInteract(rawTarget)) { /* a mod block that does something */ }
     else if (item) placeSelected(rawTarget);
     else if (target && (isInteractBlock(target) || target.type !== 'block')) primaryOn(target);
+  }
+  // Rechtsklick gedrückt halten: immer wieder setzen (z. B. Fackeln beim Laufen durch den Tunnel)
+  if (INPUT.secondaryHeld && !INPUT.secondaryPressed && item && !(INPUT.drag && INPUT.drag.started) && !UI.anyModal()) {
+    const pd = placeDef(item);
+    INPUT.useT = (INPUT.useT || 0) - dt;
+    if (pd && pd.place && pd.place !== 'cart' && INPUT.useT <= 0) { INPUT.useT = 0.2; placeSelected(rawTarget); }
   }
   // a placement that was blocked by the player itself is retried while jumping
   if (G.placeBuf) {
@@ -16305,14 +16343,18 @@ const MP = {
     this.offAll();
     this.unwatchConn();
     // a server world: what happened in it stays on the server (the world is packed right now,
-    // the upload runs on in the background, so leaving does not freeze the picture)
-    if (this.srv && G.server) SERVER.save(true).catch(() => { });
-    // close the room in the background too (the writes go out in this order, nothing waits for them)
-    try {
-      this.ref('info/open').onDisconnect().cancel().catch(() => { });
-      this.ref('info').update({ open: false, bye: true }).catch(() => { });
-      this.ref().remove().catch(() => { });
-    } catch (e) { /* ignore */ }
+    // the upload runs on in the background, so leaving does not freeze the picture).
+    // The room closes only once the world is saved: the guests take over right after the room closes
+    // and download the world, so they must get the newest one (not one without your tunnel).
+    const saving = this.srv && G.server ? SERVER.save(true).catch(() => { }) : Promise.resolve();
+    const rOpen = this.ref('info/open'), rInfo = this.ref('info'), rRoom = this.ref();
+    saving.then(() => {
+      try {
+        rOpen.onDisconnect().cancel().catch(() => { });
+        rInfo.update({ open: false, bye: true }).catch(() => { });
+        rRoom.remove().catch(() => { });
+      } catch (e) { /* ignore */ }
+    });
     this.reset();
     NET.setActivity({ w: WORLDS.current ? WORLDS.current.name : null, h: false, r: null });
   },
@@ -16912,7 +16954,7 @@ function applyNetEvent(v) {
     case 'adm': adminFromNet(v); break;
     case 'mmsg': case 'mkill': case 'mgive': case 'mhurt': case 'mtp': case 'mdim': modNetEvent(v); break;
     case 'pvp': if (v.to === NET.uid() && pvpOn() && !PL.dead) { if (v.n) PL.lastHitBy = { name: v.n, t: G.playTime }; hurtPlayer(+v.dmg || 0, +v.fx, +v.fz); if (PL.dead && v.n) UI.toast(v.n + ' hat dich besiegt.', 'warn', 4200); } break;
-    case 'hurt': if (v.to === NET.uid()) { hurtPlayer(v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
+    case 'hurt': if (v.to === NET.uid()) { hurtBy(typeof v.c === 'string' ? v.c.slice(0, 20) : 'mob', v.dmg, v.fx, v.fz); if (v.inf) infect(); } break;
     case 'shear': if (MP.isHost()) { const s = G.sheep.find((q) => q.id === v.id); if (s && s.wool) { W.sheepState.set(s.id, [0, Math.round(G.playTime + 230)]); s.wool = false; s.regrowAt = G.playTime + 200 + Math.random() * 60; s.state = 'flee'; s.t = 0; s.fleeT = 1.6; burst(s.x, s.y + 0.9, s.z, 18, [SHEEP_COL.wool, SHEEP_COL.woolShade], { speed: 2.5, up: 3, life: 1.2, size: 0.1, grav: 6, drag: 2.5 }); } } break;
   }
 }
@@ -19285,7 +19327,7 @@ function modCmd(rec, msg) {
       break;
     }
     case 'heal': if (!PL.dead) { const n = +a[0]; if (isFinite(n)) PL.hp = clamp(PL.hp + clamp(n, -1000, 1000), 0, PL.maxHp); } break;
-    case 'hurt': { const n = +a[0]; if (isFinite(n) && n > 0) hurtPlayer(Math.min(n, 1000), PL.x, PL.z, true); break; }
+    case 'hurt': { const n = +a[0]; if (isFinite(n) && n > 0) hurtBy('mod', Math.min(n, 1000), PL.x, PL.z, true); break; }
     case 'tp': {
       const [x, y, z] = a.map(Number);
       if (![x, y, z].every(isFinite) || Math.abs(x) >= WLIM || Math.abs(z) >= WLIM) break;
@@ -19430,7 +19472,7 @@ function modExplode(x, y, z, r) {
   if (SETTINGS.camShake) CAMC.shake = Math.min(1, CAMC.shake + 0.6);
   for (const zb of G.zombies) { const d = Math.hypot(zb.x - x, zb.y - y, zb.z - z); if (d < r + 2 && zb.state !== 'die') modHitMob(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6) || damageZombie(zb, 60 * (1 - d / (r + 2)) + 10, (zb.x - x) / (d || 1), (zb.z - z) / (d || 1), 6); }
   const dp = Math.hypot(PL.x - x, PL.y + 0.9 - y, PL.z - z);
-  if (dp < r + 1.5) hurtPlayer(Math.round(30 * (1 - dp / (r + 1.5))), x, z);
+  if (dp < r + 1.5) hurtBy('boom', Math.round(30 * (1 - dp / (r + 1.5))), x, z);
 }
 /* Unendliche Items (alte Creative-Mods mit infiniteItems, der Zuschauer-Modus) sind nur geliehen:
    das echte Inventar wird vorher weggelegt, gespeichert wird immer nur das echte, und am Ende
@@ -20426,7 +20468,7 @@ function updateModMob(z, dt, tgt, dist) {
     speed *= 0.2; z.atkCd -= dt;
     if (z.atkCd <= 0) {
       z.atkCd = 1.1; z.atkT = 0.35;
-      if (d.damage > 0) { if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg: d.damage, fx: z.x, fz: z.z }); else hurtPlayer(d.damage, z.x, z.z); }
+      if (d.damage > 0) { if (tgt.uid) MP.send({ t: 'hurt', to: tgt.uid, dmg: d.damage, fx: z.x, fz: z.z, c: 'm:' + String(d.name || 'Kreatur').slice(0, 16) }); else hurtBy('m:' + String(d.name || 'Kreatur').slice(0, 16), d.damage, z.x, z.z); }
       modEmit('mobattack', { mob: d.key, id: z.id });
     }
   }
@@ -21000,7 +21042,7 @@ function updateModShots(dt) {
       // players: yourself (not right after the shot leaves) and the others in the world
       if (!done && s.hurtsPlayer && s.age > 0.25 && !PL.dead && Math.abs(s.x - PL.x) < 0.4 + s.size && Math.abs(s.z - PL.z) < 0.4 + s.size && s.y > PL.y && s.y < PL.y + 1.8) {
         PL.lastHitBy = { name: NET.name || 'Du', t: G.playTime };
-        hurtPlayer(s.dmg, s.x - s.vx, s.z - s.vz); done = true;
+        hurtBy('shot', s.dmg, s.x - s.vx, s.z - s.vz); done = true;
         modPost(s.rec, { t: 'ev', ev: 'hit', d: { shot: s.id, type: 'player', name: NET.name || 'Du', me: true, x: +s.x.toFixed(2), y: +s.y.toFixed(2), z: +s.z.toFixed(2) } });
       }
       if (!done && s.hurtsPlayer && MP.active()) {
@@ -25126,7 +25168,8 @@ function rideUpdate(dt) {
     else if (dot > 0.1 && c.s < 5) c.s = Math.min(5, c.s + 4 * dt * amt);
   }
   cartStep(c, dt);
-  PL.x = c.x; PL.y = c.y + 0.22; PL.z = c.z;
+  // tief im Wagen sitzen: der Kopf bleibt auch in einem 2 Blöcke hohen Tunnel unter der Decke
+  PL.x = c.x; PL.y = c.y - 0.28; PL.z = c.z;
   PL.vx = PL.vy = PL.vz = 0; PL.onGround = true; PL.fallTop = PL.y; PL.inWater = false; PL.sneak = false; PL.sprint = false;
   PL.walkAmt = damp(PL.walkAmt || 0, 0, 8, dt);
   CART.sendT -= dt;
