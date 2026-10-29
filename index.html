@@ -2106,8 +2106,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.46.3';
+const GAME_VERSION = '2.46.4';
 const GAME_NOTES = [
+  ['2.46.4', 'Handy: Minenwagen gedrückt halten baut ihn ab (er fällt als Gegenstand heraus, auch am PC mit Linksklick). Hebel und analoge Hebel lassen sich durch Antippen umstellen (am PC auch mit Linksklick).'],
   ['2.46.3', 'Sprach-Lobbys: H (stumm) und J (die anderen stumm) gehen auch im Hauptmenü. Beim Start des Spiels kommst du sofort wieder in die Lobby, in der du zuletzt warst (bis du sie verlässt).'],
   ['2.46.2', 'Energieerz: nur noch die Zombies der Nacht (nicht die im Schattenwald am Tag) und die Skelette auf den Türmen lassen es fallen, jeweils zu 50 % eins. Wölfe nicht mehr. In den Turmtruhen liegen 0 bis 3 Energieerz.'],
   ['2.46.1', 'Energieerz: Zombies (überall) und Wölfe lassen es zu 50 % fallen, Turmwächter immer 2. Auf Servern und bei Freunden entscheidet der Gastgeber über die Beute, er braucht also die neue Version.'],
@@ -15490,7 +15491,7 @@ function hoverFromPointer(noWater) {
   return pickRay(r.o, r.d, noWater);
 }
 function normDir(a, b) { const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]; const l = Math.hypot(dx, dy, dz) || 1; return [dx / l, dy / l, dz / l]; }
-function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST); }
+function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST || h.id === B.LEVER || h.id === B.ALEVER); }
 function primaryOn(h) {
   if (!h) return;
   if (!h.inReach) { if (h.type === 'merchant') hint('mreach', 'Geh näher zum Händler.'); return; }
@@ -15503,6 +15504,7 @@ function primaryOn(h) {
   else if (h.type === 'block') {
     if (h.id === B.DOOR) toggleDoor(h.x, h.y, h.z);
     else if (h.id === B.BED) trySleep(h.x, h.y, h.z);
+    else if (h.id === B.LEVER || h.id === B.ALEVER) useLever(h.x, h.y, h.z);
     else if (h.id === B.CHEST) { if (isStoreChest(h.x, h.y, h.z)) UI.openStore(h.x, h.y, h.z); else openChest(h.x, h.y, h.z); }
   }
 }
@@ -15533,6 +15535,9 @@ function handleActionsCore(dt) {
     PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = PL.charge > 0.92; SFX.swish(PL.atkFull ? 1.2 : 0.8);
   }
   if (INPUT.primaryHeld) G.holdT = (G.holdT || 0) + dt; else G.holdT = 0;
+  // Minenwagen gedrückt halten (am Handy): abbauen, er fällt heraus
+  if (INPUT.primaryHeld && target && target.type === 'cart' && target.inReach && !target.e.rider) { G.cartHoldT = (G.cartHoldT || 0) + dt; if (G.cartHoldT > 0.45) { G.cartHoldT = 0; cartPickUp(target.e); } }
+  else G.cartHoldT = 0;
   // gedrückt halten schlägt nicht immer weiter zu (jeder Schlag ist ein Klick); nur am Handy bleibt Halten ein Angriff
   const holdHits = INPUT.lastSource === 'touch';
   if (holdHits && INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'zombie' && target.inReach) attackZombie(target.e, true);
@@ -25196,7 +25201,9 @@ function cartPickUp(c) {
   if (c.rider) { hint('cartbusy', 'Da sitzt gerade jemand drin.'); return; }
   const L = cartsOf(), k = L.indexOf(c); if (k < 0) return;
   L.splice(k, 1);
-  addItem('minecart', 1); UI.hotbar();
+  // er fällt als Gegenstand heraus (alle sehen ihn), man sammelt ihn gleich ein
+  const d = dropItem('minecart', 1, c.x, c.y + 0.5, c.z, (Math.random() - 0.5) * 1.5, 3, (Math.random() - 0.5) * 1.5); if (d) { d.delay = 0.5; sendDrop(d); }
+  burst(c.x, c.y + 0.4, c.z, 10, [0.55, 0.57, 0.6], { speed: 2, up: 2.5, life: 0.6, size: 0.08, spread: 0.6 });
   SFX.breakB(B.PLANKS);
   cartSend('del', c);
   saveGame();
