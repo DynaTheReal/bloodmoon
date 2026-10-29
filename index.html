@@ -1515,6 +1515,12 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
             <div class="row"><label for="setVol">Lautstärke</label><div class="rng"><input id="setVol" type="range" min="0" max="1" step="0.05"><output id="setVolO"></output></div></div>
           </div>
           <div class="set-card rows">
+            <p class="set-ct">🎙️ Sprachchat</p>
+            <div class="row"><div class="lbl">Sprachchat<small>Mit den anderen in derselben Welt und in den Sprach-Lobbys reden (H: dich stumm schalten, J: die anderen). Nichts wird aufgenommen.</small></div><button class="tgl" id="setVoice" role="switch" aria-label="Sprachchat" type="button"></button></div>
+            <div class="row"><div class="lbl">Sprach-Lobbys am Handy<small>Das Lobby-Fenster im Hauptmenü auch am Handy zeigen (am PC und Tablet ist es immer da)</small></div><button class="tgl" id="setVoiceLob" role="switch" aria-label="Sprach-Lobbys am Handy" type="button"></button></div>
+            <div class="row"><div class="lbl">Mikrofon und Lautsprecher<small>Geht, sobald der Sprachchat läuft (in einer Welt mit anderen oder in einer Lobby)</small></div><button class="btn" id="setVoiceDev" type="button">Einstellen</button></div>
+          </div>
+          <div class="set-card rows">
             <div class="row"><div class="lbl">Fast Join<small>An: die Server-Welt lädt schon, während die Kamera losfährt. Ist sie früh fertig, fliegst du gleich hinein. Aus: sie lädt erst im Weltraum.</small></div><button class="tgl" id="setFastJoin" role="switch" aria-label="Fast Join" type="button"></button></div>
             <div class="row"><div class="lbl">Start-Animation<small>Beim Öffnen der App geht ein Blutmond auf. Aus: das Menü kommt sofort.</small></div><button class="tgl" id="setIntro" type="button" role="switch" aria-checked="true" aria-label="Start-Animation"></button></div>
           </div>
@@ -2100,8 +2106,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.45.0';
+const GAME_VERSION = '2.46.1';
 const GAME_NOTES = [
+  ['2.46.1', 'Energieerz: Zombies (überall) und Wölfe lassen es zu 50 % fallen, Turmwächter immer 2. Auf Servern und bei Freunden entscheidet der Gastgeber über die Beute, er braucht also die neue Version.'],
+  ['2.46.0', 'Der Sprachchat ist keine Mod mehr, sondern fest eingebaut: er läuft in jeder Welt mit anderen Spielern und in den Sprach-Lobbys, das Lobby-Fenster ist immer im Hauptmenü. In den Einstellungen (Allgemein → Sprachchat) kannst du ihn ausschalten, das Lobby-Fenster am Handy einschalten und Mikrofon und Lautsprecher wählen.'],
   ['2.45.0', 'Energie (wie Redstone): Zombies lassen zu 50 % Energieerz fallen. Beim Händler (Bauen → Energie): Energiefackeln (immer Energie 15), Hebel (an 15 / aus 0), analoge Hebel (0 bis 15, Rechtsklick dreht weiter, mit Schleichen zurück) und den Schraubenschlüssel. Energie wirkt auf die Blöcke direkt daneben. Speed-Schienen brauchen jetzt Energie: im Schub-Modus (türkis) gibt es Schub je nach Stufe, ohne Energie sind sie normale Schienen. Im Brems-Modus (rot, mit dem Schraubenschlüssel umstellen) hält der Wagen ohne Energie sofort an, mit wenig Energie wird er fast gestoppt und rollt langsam weiter.'],
   ['2.44.3', 'Minenwagen: schöneres Modell, oben offen mit Rand (kein Deckel mehr), Räder mit Achsen. Speed-Schienen geben Schub nach und nach: eine macht schnell, drei viel schneller, fünf bis zehn super schnell, auch mit normalen Schienen dazwischen. Kurven sind echte Viertelkreise (gleichmäßig und weich). Bei Höchstgeschwindigkeit ziehen ein paar Fahrtwind-Streifen am Bildrand vorbei.'],
   ['2.44.2', 'Kämpfen: Linksklick gedrückt halten schlägt nicht mehr dauernd zu, jeder Schlag ist ein Klick (Abbauen geht weiter mit Halten). Rechtsklick gedrückt halten setzt immer wieder, z. B. Fackeln beim Laufen durch einen Tunnel.'],
@@ -8448,7 +8456,7 @@ const QUALITY = {
 /* every device starts on Mittel */
 const SETTINGS_VERSION = 3;
 const SETTINGS = {
-  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2, intro: true, fastJoin: true, sharpTex: false,
+  quality: 'medium', viewDist: 9, fov: 72, farView: 64, farDetail: 2, intro: true, fastJoin: true, sharpTex: false, voice: true,
   sens: 1, volume: 0.75, autoStep: true, camShake: !REDUCED_MOTION, invertY: false, ghost: false, showServers: true, motionBlur: false, mbStrength: 0.6, camPref: null,
   touchMode: 'auto', msgSize: 'auto', skin: 'ranger', allowFriends: true, sv: SETTINGS_VERSION,
 };
@@ -10208,8 +10216,10 @@ function damageZombie(z, dmg, kx, kz, kb) {
   }
   if (z.hp <= 0) {
     z.state = 'die'; z.t = 0; if (z.md) SFX.pop && SFX.pop(); else SFX.zombieDie();
-    // Zombies lassen zu 50 % ein Energieerz fallen (der Host entscheidet, alle sehen es)
-    if (z.type === 'zombie' && !z.md && !MP.isClient() && Math.random() < 0.5) { const d = dropItem('energy', 1, z.x, z.y + 0.6, z.z, (Math.random() - 0.5) * 2, 3.2, (Math.random() - 0.5) * 2); sendDrop(d); }
+    // Energieerz (der Host entscheidet, alle sehen es)
+    // Zombies (überall, auch im Schattenwald) und Wölfe zu 50 % eins, Turmwächter immer zwei
+    const en = z.md || MP.isClient() ? 0 : z.type === 'archer' ? 2 : (z.type === 'zombie' || z.type === 'wolf') && Math.random() < 0.5 ? 1 : 0;
+    if (en) { const d = dropItem('energy', en, z.x, z.y + 0.6, z.z, (Math.random() - 0.5) * 2, 3.2, (Math.random() - 0.5) * 2); sendDrop(d); }
   }
 }
 
@@ -14290,7 +14300,7 @@ UI.pause = function (on) {
 /* Tasten der eingebauten Mods, wenn sie gerade laufen */
 function modKeysHelp(k, touch) {
   let s = '';
-  if (MODFX.voiceChat) s += touch ? k(['🎤'], 'Dich stumm schalten') + k(['🔊'], 'Die anderen stumm schalten') : k(['H'], 'Dich stumm schalten (Sprachchat)') + k(['J'], 'Die anderen stumm schalten');
+  if (voiceEnabled()) s += touch ? k(['🎤'], 'Dich stumm schalten') + k(['🔊'], 'Die anderen stumm schalten') : k(['H'], 'Dich stumm schalten (Sprachchat)') + k(['J'], 'Die anderen stumm schalten');
   if (MODFX.waypoints) s += touch ? k(['📍'], 'Wegpunkte') + k(['🔔'], 'Pingen') : k(['P'], 'Wegpunkte') + k(['B'], 'Pingen');
   if (MODFX.worldMap) s += touch ? k(['🗺️'], 'Weltkarte') : k(['M'], 'Weltkarte');
   return s;
@@ -14324,8 +14334,10 @@ function bindSettingsUI() {
     $('setSens').value = SETTINGS.sens; $('setSensO').textContent = SETTINGS.sens.toFixed(2) + '×';
     $('setVol').value = SETTINGS.volume; $('setVolO').textContent = Math.round(SETTINGS.volume * 100) + '%';
     $('setMBS').value = SETTINGS.mbStrength; $('setMBSO').textContent = Math.round(SETTINGS.mbStrength * 100) + '%'; $('mbRow').hidden = !SETTINGS.motionBlur;
-    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro'], ['setFastJoin', 'fastJoin']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
+    for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro'], ['setFastJoin', 'fastJoin'], ['setVoice', 'voice']]) $(id).setAttribute('aria-checked', String(!!SETTINGS[key]));
     $('setSharp').setAttribute('aria-checked', String(!!SETTINGS.sharpTex));
+    $('setVoiceLob').setAttribute('aria-checked', String(!!VOICE.cfg.lobbyPhone));
+    $('setVoiceDev').disabled = !VOICE.on;
     $('setNavTest').hidden = !isOwner();
     if (!isOwner() && UI.setSec === 'test') UI.setSection('gfx');
   };
@@ -14367,6 +14379,14 @@ function bindSettingsUI() {
   for (const [id, key] of [['setStep', 'autoStep'], ['setShake', 'camShake'], ['setInvert', 'invertY'], ['setGhost', 'ghost'], ['setMB', 'motionBlur'], ['setIntro', 'intro'], ['setFastJoin', 'fastJoin']]) {
     $(id).addEventListener('click', () => { SETTINGS[key] = !SETTINGS[key]; saveSettings(); refresh(); });
   }
+  $('setVoice').addEventListener('click', () => {
+    SETTINGS.voice = SETTINGS.voice === false; saveSettings();
+    if (SETTINGS.voice) { VOICE.declined = false; VOICE.begun = false; UI.toast('🎙️ Sprachchat an: in Welten mit anderen Spielern und in den Lobbys.', 'good', 3000, 'vo'); }
+    else { voiceEnd(); UI.toast('Sprachchat aus.', 'info', 2000, 'vo'); }
+    refresh(); lobRender();
+  });
+  $('setVoiceLob').addEventListener('click', () => { VOICE.cfg.lobbyPhone = !VOICE.cfg.lobbyPhone; voiceSaveCfg(); refresh(); lobRender(); });
+  $('setVoiceDev').addEventListener('click', () => { if (VOICE.on) { UI.closeModal('mdlSettings'); UI.openVoiceSetup(); } });
   $('setSharp').addEventListener('click', () => {
     SETTINGS.sharpTex = !SETTINGS.sharpTex; saveSettings(); refresh();
     buildTextureArray(QP().tex, W.seed || 1); TILE_CANVAS.clear(); resize(true);
@@ -19127,9 +19147,6 @@ mod.button('open', '📜 Aufträge');
 mod.on('key', open);
 mod.on('button', open);
 mod.on('ui', (e) => { if (e.button === 'skip') { mod.data.job++; mod.data.got = 0; mod.save(); show(); } });` },
-  { id: 'voice', name: 'Sprachchat', icon: '🎙️', author: 'Blood Moon', cat: 'fun', rec: true,
-    desc: 'Mit deinen Freunden in derselben Welt sprechen. H (am Handy der Knopf 🔇/🎤 oben) schaltet dein Mikrofon an und aus. Beim Start wählst du Mikrofon und Lautsprecher. Vorher stimmst du dem Datenschutz zu. Nichts wird aufgenommen.',
-    code: `mod.set('voiceChat', true);` },
   { id: 'waypoints', name: 'Wegpunkte', icon: '📍', author: 'Blood Moon', cat: 'easy', rec: true,
     desc: 'P (oder 📍 oben) öffnet das Wegpunkt-Menü: Wegpunkt an deinem Standort setzen, benennen, Farbe wählen, löschen, mit Lichtstrahl und Entfernung. Wenn du stirbst, zeigt ein schwarzer Wegpunkt „Letzter Tod“, wo deine Sachen liegen. Temporäre Wegpunkte (über die Weltkarte oder durch Antippen der Karte in der Hand) verschwinden, sobald du dort bist. Pingen: B (am Handy 🔔) und auf eine Stelle tippen, alle in der Welt sehen den Ping eine Minute lang, auch am Bildschirmrand.',
     code: `mod.set('waypoints', true);` },
@@ -21303,7 +21320,7 @@ mod.set('speed', 1.5)   // speed 0.2-4, jump 0.5-3, gravity 0-2, reach 1-4, magn
 mod.set('fly', true)    // fly, godmode, instaBreak, infiniteItems, creativeMenu, waypoints, worldMap, voiceChat, noFall, noNight, peaceful, nightVision, keepInventory
   // creativeMenu: Knopf 🎨 oben (Taste K) mit allen Items zum Nehmen; infiniteItems: füllt alles von selbst auf
   // waypoints: Wegpunkte mit Lichtstrahl (Taste P); worldMap: Weltkarte als Vollbild (Taste M);
-  // voiceChat: Sprachchat mit den anderen Spielern (Taste H, jeder stimmt vorher dem Datenschutz zu)
+  // voiceChat: ohne Wirkung (der Sprachchat ist jetzt fest im Spiel eingebaut)
 // ---------- Aussehen: Client-Mods (Kategorie „Client-Mods“) ----------
 // Eine Client-Mod läuft nach dem Installieren überall: im Startmenü, in den Menüs und in jeder Welt.
 // In deinen eigenen Welten läuft sie außerdem wie eine normale Mod (dann gehen auch alle anderen Befehle hier).
@@ -23610,7 +23627,8 @@ function bindWorldMap() {
 
 /* ---- 19xc_voice.js ---- */
 /* =========================================================================
-   Sprachchat (eingebaute Mod „Sprachchat“, mod.set('voiceChat', true)).
+   Sprachchat (fest eingebaut; in den Einstellungen abschaltbar). Läuft in jeder Welt mit
+   anderen Spielern und in den Sprach-Lobbys (19xf_vlobby.js).
    - Vor dem ersten Mal: Datenschutz lesen und zustimmen (beim Installieren
      und bei jedem, der die Mod in einer Welt zum ersten Mal erlebt).
    - Beim Start der Welt: Mikrofon und Lautsprecher wählen (beides steht
@@ -23658,7 +23676,8 @@ function voiceLoadCfg() { try { Object.assign(VOICE.cfg, JSON.parse(localStorage
 function voiceSaveCfg() { try { localStorage.setItem(VOICE_CFG_KEY, JSON.stringify(VOICE.cfg)); } catch (e) { /* ignore */ } }
 function voiceConsented() { try { return localStorage.getItem(VOICE_OK_KEY) === '1'; } catch (e) { return false; } }
 function voiceSupported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
-function voiceWorldOn() { return !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading'; }
+function voiceEnabled() { return SETTINGS.voice !== false; }
+function voiceWorldOn() { return voiceEnabled() && MP.active() && !G.spectator && G.state !== 'menu' && G.state !== 'loading'; }
 /* an: in einer Welt mit der Mod, oder in einer Sprach-Lobby (19xf_vlobby.js), auch im Hauptmenü */
 function voiceWanted() { return voiceWorldOn() || (!!LOB.id && voiceInstalled()); }
 /* mit wem soll eine Sprachverbindung bestehen: Spieler in der Welt (mit Sprachchat-Mod) und alle in der Lobby */
@@ -23708,7 +23727,7 @@ function voiceHide() {
   if (VOICE._consent) voiceConsentAnswer(false);
 }
 UI.openVoiceSetup = async function () {
-  if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat) { VOICE.declined = false; VOICE.begun = false; } return; }
+  if (!VOICE.on) { if (VOICE.declined && voiceEnabled()) { VOICE.declined = false; VOICE.begun = false; } return; }
   voiceView('setup');
   $('voVol').value = Math.round(VOICE.cfg.vol * 100);
   $('voRange').value = VOICE.cfg.range;
@@ -23847,7 +23866,7 @@ async function voiceBegin() {
   if (!voiceConsented()) {
     const ok = await voiceAskConsent();
     if (!voiceWanted()) { voiceHide(); return; }
-    if (!ok) { voiceHide(); VOICE.declined = true; UI.toast('Sprachchat bleibt aus. Willst du doch, tipp oben auf den Mikrofon-Knopf.', 'info', 4200, 'vo'); syncVoiceBtn(); return; }
+    if (!ok) { voiceHide(); VOICE.declined = true; SETTINGS.voice = false; saveSettings(); UI.toast('Sprachchat ist aus. Einschalten kannst du ihn in den Einstellungen (Allgemein).', 'info', 4800, 'vo'); syncVoiceBtn(); return; }
   }
   VOICE.on = true; VOICE.muted = true; VOICE.deaf = !!VOICE.cfg.deaf; VOICE.sid = Math.random().toString(36).slice(2, 10);
   VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.rst.clear(); VOICE.base = MP.base;
@@ -23871,7 +23890,7 @@ function voiceStopMic() {
   for (const p of VOICE.peers.values()) { const tr = voiceTrans(p.pc); if (tr) tr.sender.replaceTrack(null).catch(() => { }); }
 }
 function voiceToggle() {
-  if (!VOICE.on) { if (VOICE.declined && MODFX.voiceChat && !G.spectator) { VOICE.declined = false; VOICE.begun = false; } return; }
+  if (!VOICE.on) { if (VOICE.declined && voiceEnabled() && !G.spectator) { VOICE.declined = false; VOICE.begun = false; } return; }
   voiceSetMute(!VOICE.muted);
 }
 /* dich selbst stumm schalten (m = true) oder wieder an; quiet: ohne Meldung (beim Start) */
@@ -23923,7 +23942,7 @@ const VO_SLASH = '<path class="sl" d="M3.5 3.5l17 17"/>', VO_X = '<path class="s
 function voSvg(inner) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; }
 function syncVoiceBtn() {
   const b = $('btnVoice'), bd = $('btnDeaf'); if (!b) return;
-  const show = !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading';
+  const show = voiceWorldOn();
   if (b.hidden === show) b.hidden = !show;
   const showD = show && VOICE.on;
   if (bd.hidden === showD) bd.hidden = !showD;
@@ -24210,7 +24229,7 @@ function bindVoice() {
   const kick = () => { if (!VOICE.gestureWait) return; VOICE.gestureWait = false; for (const p of VOICE.peers.values()) voicePlay(p.audio); };
   window.addEventListener('pointerdown', kick, true); window.addEventListener('keydown', kick, true);
   window.addEventListener('keydown', (e) => {
-    if ((e.code !== 'KeyH' && e.code !== 'KeyJ') || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !MODFX.voiceChat) return;
+    if ((e.code !== 'KeyH' && e.code !== 'KeyJ') || e.repeat || e.ctrlKey || e.metaKey || e.altKey || !voiceEnabled()) return;
     const t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
     if (G.state !== 'playing') return;
     if (e.code === 'KeyH') voiceToggle(); else voiceSetDeaf(!VOICE.deaf);
@@ -24720,7 +24739,7 @@ function bindPing() {
    ========================================================================= */
 const LOB = { id: null, name: '', members: new Map(), list: [], counts: {}, refs: [], listRefs: [], busy: false, ask: null, err: '', creating: false, joinT: 0 };
 const LOB_KEY = 'bloodmoon-vlobby';
-function voiceInstalled() { try { return MODS.installedIds().includes('voice') && !MODS.hidden('voice'); } catch (e) { return false; } }
+function voiceInstalled() { return voiceEnabled(); }
 function lobPhone() { return touchUI() && Math.min(screen.width || innerWidth, screen.height || innerHeight) < 600; }
 function lobWidgetOn() { return voiceInstalled() && !!NET.uid() && (!lobPhone() || !!VOICE.cfg.lobbyPhone); }
 function lobSaved() { try { return JSON.parse(localStorage.getItem(LOB_KEY) || '{}') || {}; } catch (e) { return {}; } }
