@@ -1445,7 +1445,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
     </div>
     <div class="sheet-b"><p class="shop-tip" id="shopTip"></p><div id="shopGrid"></div></div>
-    <div class="sheet-f"><span>Dein Vorrat</span><div class="wallet"><span><canvas id="walWood" width="40" height="40"></canvas><b id="walWoodN">0</b> Holz</span><span><canvas id="walWool" width="40" height="40"></canvas><b id="walWoolN">0</b> Wolle</span><span hidden><canvas id="walIron" width="40" height="40"></canvas><b id="walIronN">0</b> Eisen</span><span hidden><canvas id="walDia" width="40" height="40"></canvas><b id="walDiaN">0</b> Diamanten</span><span hidden><canvas id="walCry" width="40" height="40"></canvas><b id="walCryN">0</b> Kristalle</span><span hidden><canvas id="walRuby" width="40" height="40"></canvas><b id="walRubyN">0</b> Rubine</span><span hidden><canvas id="walMyth" width="40" height="40"></canvas><b id="walMythN">0</b> Mythril</span></div></div>
+    <div class="sheet-f"><span>Dein Vorrat</span><div class="wallet"><span><canvas id="walWood" width="40" height="40"></canvas><b id="walWoodN">0</b> Holz</span><span><canvas id="walWool" width="40" height="40"></canvas><b id="walWoolN">0</b> Wolle</span><span hidden><canvas id="walIron" width="40" height="40"></canvas><b id="walIronN">0</b> Eisen</span><span hidden><canvas id="walDia" width="40" height="40"></canvas><b id="walDiaN">0</b> Diamanten</span><span hidden><canvas id="walCry" width="40" height="40"></canvas><b id="walCryN">0</b> Kristalle</span><span hidden><canvas id="walRuby" width="40" height="40"></canvas><b id="walRubyN">0</b> Rubine</span><span hidden><canvas id="walMyth" width="40" height="40"></canvas><b id="walMythN">0</b> Mythril</span><span hidden><canvas id="walEn" width="40" height="40"></canvas><b id="walEnN">0</b> Energieerz</span></div></div>
   </div>
 </div>
 
@@ -2100,8 +2100,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.44.2';
+const GAME_VERSION = '2.45.0';
 const GAME_NOTES = [
+  ['2.45.0', 'Energie (wie Redstone): Zombies lassen zu 50 % Energieerz fallen. Beim Händler (Bauen → Energie): Energiefackeln (immer Energie 15), Hebel (an 15 / aus 0), analoge Hebel (0 bis 15, Rechtsklick dreht weiter, mit Schleichen zurück) und den Schraubenschlüssel. Energie wirkt auf die Blöcke direkt daneben. Speed-Schienen brauchen jetzt Energie: im Schub-Modus (türkis) gibt es Schub je nach Stufe, ohne Energie sind sie normale Schienen. Im Brems-Modus (rot, mit dem Schraubenschlüssel umstellen) hält der Wagen ohne Energie sofort an, mit wenig Energie wird er fast gestoppt und rollt langsam weiter.'],
+  ['2.44.3', 'Minenwagen: schöneres Modell, oben offen mit Rand (kein Deckel mehr), Räder mit Achsen. Speed-Schienen geben Schub nach und nach: eine macht schnell, drei viel schneller, fünf bis zehn super schnell, auch mit normalen Schienen dazwischen. Kurven sind echte Viertelkreise (gleichmäßig und weich). Bei Höchstgeschwindigkeit ziehen ein paar Fahrtwind-Streifen am Bildrand vorbei.'],
   ['2.44.2', 'Kämpfen: Linksklick gedrückt halten schlägt nicht mehr dauernd zu, jeder Schlag ist ein Klick (Abbauen geht weiter mit Halten). Rechtsklick gedrückt halten setzt immer wieder, z. B. Fackeln beim Laufen durch einen Tunnel.'],
   ['2.44.1', 'Fehler behoben: verlässt der Gastgeber eines Servers das Spiel, übernimmt der nächste erst, wenn die Welt fertig gespeichert ist (vorher bekam er eine ältere Welt, ohne deinen Tunnel, und wurde nach oben gesetzt). Nach dem Laden zählt keine alte Fallhöhe mehr (kein plötzlicher Tod im Tunnel). Die Kamera springt beim Umsehen nicht mehr zurück, und ohne gefangene Maus dreht sie sich nicht mehr wild: einmal ins Spiel klicken. Die Hand wackelt nach dem Betreten nicht mehr. Auf dem Todesbildschirm steht jetzt, woran du gestorben bist. Fackeln sind nur noch so dick wie sie aussehen: daneben und dahinter kann man bauen und zielen, abbauen geht weiter. Im Minenwagen sitzt man tiefer drin (kein Kopf mehr durch die Decke im 2 Blöcke hohen Tunnel).'],
   ['2.44.0', 'Sprachchat-Mod: Sprach-Lobbys im Hauptmenü (links neben „Server“, am PC und Tablet; am Handy in den Sprachchat-Einstellungen einschaltbar). Lobbys erstellen, mit oder ohne Passwort (einmal eingegeben, wird es gemerkt), und schon im Hauptmenü miteinander reden. Wer in derselben Lobby ist, hört sich überall, auch in verschiedenen Welten und auf verschiedenen Servern. In einer Welt hörst du zusätzlich die Spieler dort, die hören aber deine Lobby nicht.'],
@@ -2476,7 +2478,7 @@ const B = {
   CRYSTAL: 47, GLOW_SHROOM: 48,
   TORCH: 50, CAMPFIRE: 51, BED: 52, DOOR: 53, CHEST: 54,
   RUBY_ORE: 55, MYTHRIL_ORE: 56, LAVA: 57, DEEPSLATE: 58, ICE: 59, MOSS: 60,
-  RAIL: 61, SPEED_RAIL: 62,
+  RAIL: 61, SPEED_RAIL: 62, ENERGY_TORCH: 63, LEVER: 64, ALEVER: 65,
 };
 const K_AIR = 0, K_CUBE = 1, K_WATER = 2, K_GLASS = 3, K_PLANT = 4, K_OBJ = 5;
 const KIND = new Uint8Array(256);
@@ -2555,6 +2557,9 @@ defB(B.DOOR, 'Tür', K_OBJ, null, { hard: 0.9, drop: 'door', solid: 0 });
 defB(B.CHEST, 'Truhe', K_OBJ, null, { hard: 99, solid: 0 });
 defB(B.RAIL, 'Schiene', K_OBJ, null, { hard: 0.35, drop: 'rail', solid: 0 });
 defB(B.SPEED_RAIL, 'Speed-Schiene', K_OBJ, null, { hard: 0.35, drop: 'speed_rail', solid: 0 });
+defB(B.ENERGY_TORCH, 'Energiefackel', K_OBJ, null, { hard: 0.15, drop: 'energy_torch', solid: 0 });
+defB(B.LEVER, 'Hebel', K_OBJ, null, { hard: 0.3, drop: 'lever', solid: 0 });
+defB(B.ALEVER, 'Analoger Hebel', K_OBJ, null, { hard: 0.3, drop: 'alever', solid: 0 });
 defB(B.IRON_ORE, 'Eisenerz', K_CUBE, 'iron_ore', { hard: 2.2, pick: 1, drop: 'iron' });
 defB(B.DIAMOND_ORE, 'Diamanterz', K_CUBE, 'diamond_ore', { hard: 3.0, pick: 2, drop: 'diamond' });
 defB(B.RUBY_ORE, 'Rubinerz', K_CUBE, 'ruby_ore', { hard: 3.6, pick: 3, drop: 'ruby', emit: 5 });
@@ -7271,8 +7276,8 @@ function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if
 function keptDrops() { return DROPS.filter((d) => d.keep && !d.life).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
 function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]] || TOOL_MAX[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
-const DROP_COLOR = { rail: [0.6, 0.55, 0.5], speed_rail: [0.45, 0.9, 1.0], minecart: [0.5, 0.52, 0.56], chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], lava_bucket: [1.0, 0.45, 0.1], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
-const DROP_GLOW = { diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
+const DROP_COLOR = { energy: [1.0, 0.85, 0.25], energy_torch: [1.0, 0.85, 0.25], lever: [0.55, 0.45, 0.35], alever: [0.5, 0.5, 0.55], wrench: [0.65, 0.68, 0.72], rail: [0.6, 0.55, 0.5], speed_rail: [0.45, 0.9, 1.0], minecart: [0.5, 0.52, 0.56], chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], lava_bucket: [1.0, 0.45, 0.1], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
+const DROP_GLOW = { energy: 0.8, diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
 
 /* ---------- placed objects (torch, campfire, bed, door) ---------- */
 const OBJS = new Map(); // cell -> obj
@@ -7304,6 +7309,8 @@ function drawObject(o, solid, t, blood) {
   const ms = _oms;
   const meta = W.meta.get(o.i) || 0;
   if (o.id === B.RAIL || o.id === B.SPEED_RAIL) { drawRail(o, solid, sky); return; }
+  if (o.id === B.ENERGY_TORCH) { drawEnergyTorch(o, solid, t, sky, meta); return; }
+  if (o.id === B.LEVER || o.id === B.ALEVER) { drawLever(o, solid, t, sky, meta); return; }
   if (o.id === B.TORCH) {
     ms.reset().t(o.x + 0.5, o.y, o.z + 0.5);
     if (meta >= 1 && meta <= 4) {
@@ -8495,6 +8502,10 @@ const ITEMS = {
   rail: { name: 'Schiene', block: B.RAIL, place: 'rail' },
   speed_rail: { name: 'Speed-Schiene', block: B.SPEED_RAIL, place: 'rail' },
   minecart: { name: 'Minenwagen', place: 'cart' },
+  energy_torch: { name: 'Energiefackel', block: B.ENERGY_TORCH, place: 'torch' },
+  lever: { name: 'Hebel', block: B.LEVER, place: 'lever' },
+  alever: { name: 'Analoger Hebel', block: B.ALEVER, place: 'lever' },
+  wrench: { name: 'Schraubenschlüssel' },
   bucket: { name: 'Eimer', place: 'bucket' },
   water_bucket: { name: 'Wassereimer', place: 'water' },
   lava_bucket: { name: 'Lavaeimer', place: 'lava' },
@@ -8558,9 +8569,9 @@ const TOOL_LEVEL_NAMES = {
   shovel: ['Schaufel', 'Steinschaufel', 'Eisenschaufel', 'Diamantschaufel'],
 };
 /* raw materials: counted, not placed */
-const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal', 'ruby', 'mythril'];
-const RES_NAME = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamanten', crystal: 'Kristalle', ruby: 'Rubine', mythril: 'Mythril' };
-const RES_ONE = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant', crystal: 'Kristall', ruby: 'Rubin', mythril: 'Mythril' };
+const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal', 'ruby', 'mythril', 'energy'];
+const RES_NAME = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamanten', crystal: 'Kristalle', ruby: 'Rubine', mythril: 'Mythril', energy: 'Energieerz' };
+const RES_ONE = { wood: 'Holz', wool: 'Wolle', iron: 'Eisen', diamond: 'Diamant', crystal: 'Kristall', ruby: 'Rubin', mythril: 'Mythril', energy: 'Energieerz' };
 function resName(k, n) { return n === 1 ? RES_ONE[k] : RES_NAME[k]; }
 function emptyInv() { return { wood: 0, wool: 0, iron: 0, diamond: 0, crystal: 0, ruby: 0, mythril: 0, items: {} }; }
 /* prices are raw materials, and sometimes an item (a crystal apple needs an apple) */
@@ -8619,6 +8630,10 @@ const SHOP = [
   { id: 'rail', tab: 'build', group: 'Schienen', item: 'rail', qty: 10, cost: { wood: 5, iron: 1 }, name: '10 Schienen', desc: 'Leg sie auf den Boden, sie verbinden sich von selbst: gerade, als Kurve oder einen Block hoch. Passen auch durch einen Tunnel.' },
   { id: 'speed_rail', tab: 'build', group: 'Schienen', item: 'speed_rail', qty: 6, cost: { wood: 5, crystal: 1 }, name: '6 Speed-Schienen', desc: 'Geben dem Minenwagen einen Schub. Danach rollt er auch auf normalen Schienen schnell weiter.' },
   { id: 'minecart', tab: 'build', group: 'Schienen', item: 'minecart', qty: 1, cost: { iron: 5 }, name: 'Minenwagen', desc: 'Auf eine Schiene stellen, mit E einsteigen (Aussteigen: E oder Schleichen). Bergab rollt er von selbst, mit W schiebst du an. Linksklick nimmt ihn wieder mit.' },
+  { id: 'energy_torch', tab: 'build', group: 'Energie', item: 'energy_torch', qty: 2, cost: { energy: 2, wood: 1 }, name: '2 Energiefackeln', desc: 'Geben immer Energie 15 an die Blöcke direkt daneben ab, z. B. an eine Speed-Schiene. Energieerz lassen Zombies fallen.' },
+  { id: 'lever', tab: 'build', group: 'Energie', item: 'lever', qty: 1, cost: { energy: 1, wood: 2 }, name: 'Hebel', desc: 'An: Energie 15, aus: 0. Rechtsklick (oder E) legt ihn um.' },
+  { id: 'alever', tab: 'build', group: 'Energie', item: 'alever', qty: 1, cost: { energy: 2, iron: 1 }, name: 'Analoger Hebel', desc: 'Stellbar von 0 bis 15: Rechtsklick dreht eine Stufe weiter, mit Schleichen zurück. Wenig Energie heißt wenig Schub.' },
+  { id: 'wrench', tab: 'build', group: 'Energie', item: 'wrench', qty: 1, cost: { iron: 3, energy: 1 }, name: 'Schraubenschlüssel', desc: 'Rechtsklick auf eine Speed-Schiene stellt um: Schub-Modus (türkis) oder Brems-Modus (rot). Bremse ohne Energie hält den Wagen sofort an.' },
   { id: 'planks', tab: 'build', item: 'planks', qty: 10, cost: { wood: 3 }, name: '10 Holzbretter', desc: 'Günstiges Baumaterial für Wände, Böden und Dächer.' },
   { id: 'bricks', tab: 'build', item: 'bricks', qty: 10, cost: { wood: 6 }, name: '10 Steinziegel', desc: 'Robust: Zombies brauchen beim Blood Moon mehr als doppelt so lange.' },
   { id: 'glass', tab: 'build', item: 'glass', qty: 4, cost: { wood: 3 }, name: '4 Glas', desc: 'Fenster lassen Tageslicht ins Haus.' },
@@ -9217,7 +9232,8 @@ function raycast(ox, oy, oz, dx, dy, dz, maxDist, test) {
       // eine Schiene ist flach: nur sie selbst trifft man, nicht die Luft darüber
       if (id === B.RAIL || id === B.SPEED_RAIL) { const tr = rayAabb(ox, oy, oz, dx, dy, dz, x, y, z, x + 1, y + 0.14, z + 1); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       // eine Fackel ist dünn: nur sie selbst trifft man, daneben und dahinter kann man bauen
-      else if (id === B.TORCH) { const b = torchBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
+      else if (id === B.LEVER || id === B.ALEVER) { const b = leverBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
+      else if (id === B.TORCH || id === B.ENERGY_TORCH) { const b = torchBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       else return { x, y, z, nx, ny, nz, t, id };
     }
     if (tmx < tmy && tmx < tmz) { x += sx; t = tmx; tmx += tdx; nx = -sx; ny = 0; nz = 0; }
@@ -9891,10 +9907,12 @@ function placementFor(target, item) {
     return { x, y, z, id: def.block, meta: yawDir() & 1 };
   }
   if (def.place === 'torch') {
-    if (target.ny === 1 && SOLID[below]) return { x, y, z, id: B.TORCH, meta: 0 };
-    if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: B.TORCH, meta: m }; }
+    const tid = def.block || B.TORCH;
+    if (target.ny === 1 && SOLID[below]) return { x, y, z, id: tid, meta: 0 };
+    if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: tid, meta: m }; }
     return null;
   }
+  if (def.place === 'lever') { if (!SOLID[below] || entityBlocksCell(x, y, z, true)) return null; return { x, y, z, id: def.block, meta: 0 }; }
   if (def.place === 'campfire') {
     // only one campfire per world: a second one (from an old save) can't be set up
     for (const o of OBJS.values()) if (o.id === B.CAMPFIRE) { hint('fire1', 'In dieser Welt brennt schon ein Lagerfeuer. Pro Welt gibt es nur eins.'); return null; }
@@ -9996,6 +10014,8 @@ function placeSelected(target, retry) {
   if (FOOD[item]) return eatSelected();
   if (item && ITEMS[item] && ITEMS[item].wear) return wearArmor(item);
   if (item === 'minecart') return placeCart(target);
+  if (item === 'wrench') return useWrench(target);
+  if (target && target.type === 'block' && target.inReach && isLever(target.id)) { useLever(target.x, target.y, target.z); return true; }
   if (item === 'bucket') return useBucket(target);
   const p = placementFor(target, item);
   if (p && p.blockedByPlayer) {
@@ -10054,6 +10074,7 @@ function interactTargets() {
   const px = Math.floor(PL.x), py = Math.floor(PL.y), pz = Math.floor(PL.z);
   for (let x = px - 2; x <= px + 2; x++) for (let z = pz - 2; z <= pz + 2; z++) for (let y = py - 1; y <= py + 2; y++) {
     const id = getB(x, y, z);
+    if (id === B.LEVER || id === B.ALEVER) { const d0 = Math.hypot(x + 0.5 - PL.x, z + 0.5 - PL.z) + Math.abs(y + 0.5 - PL.y - 0.8) * 0.3; if (d0 <= 2.6) { const lv = leverLevel(x, y, z); out.push({ kind: 'lever', x, y, z, d: d0, label: id === B.LEVER ? (lv ? 'Hebel ausschalten' : 'Hebel einschalten') : 'Energie: ' + lv + ' (weiterdrehen)' }); } continue; }
     if (id !== B.BED && id !== B.DOOR && id !== B.CHEST && id !== B.CAMPFIRE) continue;
     const d = Math.hypot(x + 0.5 - PL.x, z + 0.5 - PL.z) + Math.abs(y + 0.5 - PL.y - 0.8) * 0.3;
     if (d > 2.6) continue;
@@ -10077,6 +10098,7 @@ function doInteract(t) {
   else if (t.kind === 'camp') UI.openCamp(t.x, t.y, t.z);
   else if (t.kind === 'cart') { if (!t.c.rider) enterCart(t.c); }
   else if (t.kind === 'cartOut') exitCart();
+  else if (t.kind === 'lever') useLever(t.x, t.y, t.z);
 }
 function trySleep(x, y, z) {
   const m = W.meta.get(I(x, y, z)) || 0;
@@ -10184,7 +10206,11 @@ function damageZombie(z, dmg, kx, kz, kb) {
     z.vx += kx * kb; z.vz += kz * kb; z.vy = Math.max(z.vy, Math.min(3, 1.4 + kb * 0.3));
     z.stun = 0.12 + kb * 0.04;
   }
-  if (z.hp <= 0) { z.state = 'die'; z.t = 0; if (z.md) SFX.pop && SFX.pop(); else SFX.zombieDie(); }
+  if (z.hp <= 0) {
+    z.state = 'die'; z.t = 0; if (z.md) SFX.pop && SFX.pop(); else SFX.zombieDie();
+    // Zombies lassen zu 50 % ein Energieerz fallen (der Host entscheidet, alle sehen es)
+    if (z.type === 'zombie' && !z.md && !MP.isClient() && Math.random() < 0.5) { const d = dropItem('energy', 1, z.x, z.y + 0.6, z.z, (Math.random() - 0.5) * 2, 3.2, (Math.random() - 0.5) * 2); sendDrop(d); }
+  }
 }
 
 /* ---------- zombies ---------- */
@@ -12208,6 +12234,7 @@ function updateObjects(dt, t) {
 function collectLights(t) {
   LIGHTS.list.length = 0;
   for (const o of OBJS.values()) {
+    if (o.id === B.ENERGY_TORCH) { addLight(o.x + 0.5, o.y + 0.75, o.z + 0.5, 5, 0.9, 0.75, 0.2); continue; }
     if ((o.id !== B.TORCH && o.id !== B.CAMPFIRE) || o.lit < 0.02) continue;
     const fl = 0.86 + 0.14 * vnoise1(t * 8 + o.phase * 7, 2) + 0.06 * Math.sin(t * 23 + o.phase);
     if (o.id === B.TORCH) {
@@ -12473,7 +12500,8 @@ function edgeBox(Bt, x0, y0, z0, x1, y1, z1, th, r, g, b, a) {
 }
 function blockBounds(id, x, y, z) {
   if (KIND[id] === K_PLANT) return [x + 0.15, y, z + 0.15, x + 0.85, y + 0.7, z + 0.85];
-  if (id === B.TORCH) return torchBox(x, y, z);
+  if (id === B.TORCH || id === B.ENERGY_TORCH) return torchBox(x, y, z);
+  if (id === B.LEVER || id === B.ALEVER) return leverBox(x, y, z);
   if (id === B.RAIL || id === B.SPEED_RAIL) return [x, y, z, x + 1, y + 0.13, z + 1];
   if (id === B.CAMPFIRE) return [x + 0.06, y, z + 0.06, x + 0.94, y + 0.45, z + 0.94];
   if (id === B.BED) return [x, y, z, x + 1, y + 0.6, z + 1];
@@ -13324,6 +13352,7 @@ function drawItemIcon(canvasEl, key) {
   if (key === 'wood') { drawIsoBlock(ctx, B.OAK_LOG, S); return; }
   if (key === 'wool') { drawIsoBlock(ctx, B.WOOL_WHITE, S); return; }
   if (key === 'rail' || key === 'speed_rail' || key === 'minecart') { drawRailIcon(ctx, key, S); return; }
+  if (key === 'energy' || key === 'energy_torch' || key === 'lever' || key === 'alever' || key === 'wrench') { drawEnergyIcon(ctx, key, S); return; }
   if (key === 'iron' || key === 'diamond' || key === 'crystal' || key === 'ruby' || key === 'mythril') { drawResIcon(ctx, key, S); return; }
   const am = /^(helmet|chestplate|leggings|boots)(\d)?$/.exec(key);
   if (am) { drawArmorIcon(ctx, am[1], parseInt(am[2] || String(Math.max(1, G.tools[am[1]] | 0)), 10), S); return; }
@@ -13380,7 +13409,7 @@ function drawClockIcon(c, phaseProg, isNightNow, blood) {
 }
 
 /* ---------- HUD ---------- */
-const RES_UI = { wood: ['resWoodBox', 'resWood', 'walWoodN'], wool: ['resWoolBox', 'resWool', 'walWoolN'], iron: ['resIronBox', 'resIron', 'walIronN'], diamond: ['resDiaBox', 'resDia', 'walDiaN'], crystal: ['resCryBox', 'resCry', 'walCryN'], ruby: ['resRubyBox', 'resRuby', 'walRubyN'], mythril: ['resMythBox', 'resMyth', 'walMythN'] };
+const RES_UI = { wood: ['resWoodBox', 'resWood', 'walWoodN'], wool: ['resWoolBox', 'resWool', 'walWoolN'], iron: ['resIronBox', 'resIron', 'walIronN'], diamond: ['resDiaBox', 'resDia', 'walDiaN'], crystal: ['resCryBox', 'resCry', 'walCryN'], ruby: ['resRubyBox', 'resRuby', 'walRubyN'], mythril: ['resMythBox', 'resMyth', 'walMythN'], energy: ['resEnBox', 'resEn', 'walEnN'] };
 UI.res = function () {
   for (const k of RES_KEYS) {
     const v = G.inv[k] || 0, ids = RES_UI[k];
@@ -13738,7 +13767,7 @@ UI.openShop = function () {
   $('mdlShop').hidden = false;
   G.state = 'shop';
   drawMerchantFace($('shopFace'));
-  for (const [id, k] of [['walWood', 'wood'], ['walWool', 'wool'], ['walIron', 'iron'], ['walDia', 'diamond'], ['walCry', 'crystal'], ['walRuby', 'ruby'], ['walMyth', 'mythril']]) drawItemIcon($(id), k);
+  for (const [id, k] of [['walWood', 'wood'], ['walWool', 'wool'], ['walIron', 'iron'], ['walDia', 'diamond'], ['walCry', 'crystal'], ['walRuby', 'ruby'], ['walMyth', 'mythril'], ['walEn', 'energy']]) drawItemIcon($(id), k);
   const lines = ['Holz gegen Waren. Faire Preise.', 'Ein Lagerfeuer zuerst, glaub mir.', 'Für Wolle musst du weit raus.', 'Ziegel halten mehr aus als Bretter.', 'Eisen steckt in den kleinen Höhlen hier in der Gegend.', W.mode === 'island' ? 'An der Küste hinter dem Schattenwald wachsen leuchtende Kristalle …' : 'Der Nebel draußen? Ein stärkeres Lagerfeuer vertreibt ihn.', 'Hinter dem Schattenwald soll es leuchtende Kristalle geben …'];
   $('shopLine').textContent = G.inv.wood < 5 && G.goal <= 2 ? 'Komm wieder, wenn du 5 Holz hast. Dann gibt es ein Lagerfeuer.' : lines[Math.floor(Math.random() * lines.length)];
   UI.shopRefresh(true);
@@ -15487,6 +15516,8 @@ function handleActionsCore(dt) {
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
   updateBreaking(dt, INPUT.primaryHeld && breakable, target);
   if (INPUT.secondaryPressed && target && target.type === 'cart' && target.inReach && !PL.cart) enterCart(target.e);   // Rechtsklick auf den Wagen: einsteigen
+  else if (INPUT.secondaryPressed && target && target.type === 'block' && target.inReach && isLever(target.id)) useLever(target.x, target.y, target.z);   // Hebel, auch mit etwas in der Hand
+  else if (INPUT.secondaryPressed && item === 'wrench') useWrench(rawTarget);
   else if (INPUT.secondaryPressed) {
     if (modInteract(rawTarget)) { /* a mod block that does something */ }
     else if (item) placeSelected(rawTarget);
@@ -15496,7 +15527,7 @@ function handleActionsCore(dt) {
   if (INPUT.secondaryHeld && !INPUT.secondaryPressed && item && !(INPUT.drag && INPUT.drag.started) && !UI.anyModal()) {
     const pd = placeDef(item);
     INPUT.useT = (INPUT.useT || 0) - dt;
-    if (pd && pd.place && pd.place !== 'cart' && INPUT.useT <= 0) { INPUT.useT = 0.2; placeSelected(rawTarget); }
+    if (pd && pd.place && pd.place !== 'cart' && pd.place !== 'lever' && INPUT.useT <= 0 && !(target && target.type === 'block' && isLever(target.id))) { INPUT.useT = 0.2; placeSelected(rawTarget); }
   }
   // a placement that was blocked by the player itself is retried while jumping
   if (G.placeBuf) {
@@ -16908,6 +16939,7 @@ function applyNetEvent(v) {
     case 'vo': voiceOnSignal(v); break;
     case 'ping': if (REMOTE[v.u]) pingAdd(v, false); break;
     case 'cart': applyCartEvent(v); break;
+    case 'emeta': applyEnergyMeta(v); break;
     case 'brk': if (getB(v.x, v.y, v.z) !== B.AIR) breakBlockAt(v.x, v.y, v.z, false, true); break;
     case 'plc': {
       if (!inWorld(v.x, v.y, v.z)) break;
@@ -25013,7 +25045,9 @@ function bindCreative() {
    von selbst, mit W (vorwärts) schiebst du ein wenig an.
    ========================================================================= */
 const RAIL_D = [[0, 1], [1, 0], [0, -1], [-1, 0]];   // 0: +z, 1: +x, 2: -z, 3: -x
-const CART = { g: 9.8 * 0.72, max: 26, boostTo: 22, boostAcc: 9, boostTime: 1.6, sendT: 0, lastSend: '', fovK: 0 };
+const CART = { g: 9.8 * 0.72, max: 26, powAcc: 7, sendT: 0, lastSend: '', fovK: 0, fx: null };
+/* wie schnell der Wagen mit so viel Schub werden kann: 1 Speed-Schiene schnell, 3 viel schneller, 5 bis 10 super schnell */
+function cartPowSpeed(pow) { return 6 + 20 * (1 - Math.exp(-pow / 3.5)); }
 function isRail(id) { return id === B.RAIL || id === B.SPEED_RAIL; }
 function railAt(x, y, z) { return isRail(getB(x, y, z)); }
 
@@ -25044,7 +25078,12 @@ function railPoint(x, y, z, sh, a, b, t, out) {
   const cx = x + 0.5, cz = z + 0.5;
   const ax = cx + RAIL_D[a][0] * 0.5, az = cz + RAIL_D[a][1] * 0.5, bx = cx + RAIL_D[b][0] * 0.5, bz = cz + RAIL_D[b][1] * 0.5;
   if (sh.straight) { out[0] = ax + (bx - ax) * t; out[2] = az + (bz - az) * t; }
-  else { const u = 1 - t; out[0] = u * u * ax + 2 * u * t * cx + t * t * bx; out[2] = u * u * az + 2 * u * t * cz + t * t * bz; }
+  else {
+    // Kurve: ein echter Viertelkreis um die Ecke (gleichmäßig schnell, sieht weich aus)
+    const kx = cx + (RAIL_D[a][0] + RAIL_D[b][0]) * 0.5, kz = cz + (RAIL_D[a][1] + RAIL_D[b][1]) * 0.5;
+    const an = t * Math.PI / 2, co = Math.cos(an), si = Math.sin(an);
+    out[0] = kx - 0.5 * (RAIL_D[b][0] * co + RAIL_D[a][0] * si); out[2] = kz - 0.5 * (RAIL_D[b][1] * co + RAIL_D[a][1] * si);
+  }
   const ha = sh.up === a ? 1 : 0, hb = sh.up === b ? 1 : 0;
   out[1] = y + 0.0625 + ha + (hb - ha) * t;
   return out;
@@ -25070,7 +25109,13 @@ function drawRail(o, solid, sky) {
     const pitch = sh.up >= 0 ? Math.atan2(_rq[1] - _rp[1], Math.hypot(_rq[0] - _rp[0], _rq[2] - _rp[2])) : 0;
     ms.reset().t(_rp[0], _rp[1] - 0.03, _rp[2]).ry(yaw).rx(-pitch);
     solid.box(ms.m, 0.86, 0.05, 0.16, 0, 0, 0, RAIL_COL.wood[0], RAIL_COL.wood[1], RAIL_COL.wood[2], 0, sky);
-    if (fast && k % 2 === 0) solid.box(ms.m, 0.18, 0.06, 0.18, 0, 0.02, 0, RAIL_COL.speed[0], RAIL_COL.speed[1], RAIL_COL.speed[2], 0.9, 1);
+    if (fast && k % 2 === 0) {
+      // die Mitte zeigt Modus und Energie: türkis = Schub, rot = Bremse; hell mit Energie, dunkel ohne
+      const brake = railBrake(o.x, o.y, o.z), p = energyAt(o.x, o.y, o.z), on = p / 15;
+      const col = brake ? [0.95, 0.25, 0.22] : RAIL_COL.speed, lo = brake ? [0.4, 0.12, 0.1] : [0.15, 0.3, 0.38];
+      const mix = (i) => lo[i] + (col[i] - lo[i]) * (p ? 0.35 + 0.65 * on : 0);
+      solid.box(ms.m, 0.18, 0.06, 0.18, 0, 0.02, 0, mix(0), mix(1), mix(2), p ? 0.4 + 0.6 * on : 0, p ? 1 : sky);
+    }
   }
   const M = sh.straight ? 1 : 6;
   for (let k = 0; k < M; k++) {
@@ -25184,9 +25229,15 @@ function cartStep(c, dt) {
   sh = railShape(c.cx, c.cy, c.cz);
   // bergab schneller, bergauf langsamer
   if (sh.up >= 0) { if (sh.up === c.b) c.s -= CART.g * dt; else if (sh.up === c.a) c.s += CART.g * dt; }
-  // Speed-Schiene: der Schub hält noch etwas an, so wird der Wagen sanft (nicht auf einen Schlag) schnell
-  if (sh.speed) { c.boostT = CART.boostTime; c.boosted = true; if (c.s < 2) c.s = 2; }
-  if (c.boostT > 0) { c.boostT -= dt; if (c.s < CART.boostTo) c.s = Math.min(CART.boostTo, c.s + CART.boostAcc * dt * (0.6 + 0.4 * (1 - c.s / CART.boostTo))); }
+  // Speed-Schiene mit Energie im Schub-Modus: ein stehender Wagen wird angeschoben
+  if (sh.speed && !railBrake(c.cx, c.cy, c.cz) && c.s < 1) { const p = energyAt(c.cx, c.cy, c.cz); if (p > 0) { c.s = 1 + 2 * p / 15; c.powLv = p; if (!c.pow) c.pow = p / 15; } }
+  // Schub: jede Speed-Schiene mit Energie gibt etwas dazu (je mehr Energie, desto mehr), sanft, auch mit Pausen dazwischen
+  c.boosted = (c.pow || 0) > 0;
+  if (c.pow > 0) {
+    const tgt = cartPowSpeed(c.pow);
+    if (c.s < tgt) c.s = Math.min(tgt, c.s + CART.powAcc * dt * clamp((c.powLv || 15) / 15, 0.08, 1));
+    c.pow = Math.max(0, c.pow - (c.s < 4 ? 1.5 : 0.1) * dt);
+  }
   // normale Schienen bremsen kaum (nach einem Schub bleibt er schnell)
   else if (sh.up < 0 && !sh.speed) c.s -= (0.12 + c.s * 0.015) * dt * (c.rider ? 1 : 3);
   if (c.s < 0) { if (sh.up >= 0) cartReverse(c); else c.s = 0; }
@@ -25195,6 +25246,8 @@ function cartStep(c, dt) {
   for (let guard = 0; guard < 6 && move > 0; guard++) {
     sh = railShape(c.cx, c.cy, c.cz); if (!sh) break;
     const L = railLen(sh), left = (1 - c.t) * L;
+    // Brems-Schiene ohne Energie: in der Mitte sofort stehen bleiben
+    if (c.stopAt && c.t <= 0.5) { const toMid = (0.5 - c.t) * L; if (move >= toMid) { c.t = 0.5; c.s = 0; c.pow = 0; c.stopAt = false; move = 0; break; } }
     if (move < left) { c.t += move / L; move = 0; break; }
     move -= left; c.t = 1;
     // in die nächste Zelle
@@ -25205,8 +25258,24 @@ function cartStep(c, dt) {
     const ent = (d + 2) & 3;
     if (!nsh || !nsh.e.includes(ent)) { cartEnd(c); break; }
     c.cx = nx; c.cy = ny; c.cz = nz; c.a = ent; c.b = nsh.e[0] === ent ? nsh.e[1] : nsh.e[0]; c.t = 0;
+    c.stopAt = false;
+    if (nsh.speed) cartEnterSpeed(c, nx, ny, nz);
   }
   cartPos(c);
+}
+/* der Wagen fährt auf eine Speed-Schiene */
+function cartEnterSpeed(c, x, y, z) {
+  const p = energyAt(x, y, z);
+  if (railBrake(x, y, z)) {
+    // Brems-Modus: ohne Energie sofort anhalten, mit wenig Energie fast anhalten und langsam weiter
+    if (p === 0) c.stopAt = true;
+    else { c.s = Math.min(c.s, 0.5 + p * 0.55); c.pow = 0; }
+    return;
+  }
+  if (p === 0) return;   // ohne Energie: eine ganz normale Schiene
+  c.s = Math.min(CART.max, c.s + 0.25 + 0.05 * p);   // gleich ein kleiner Stoß (bei Stufe 1 nur ein bisschen)
+  c.pow = Math.min(10, (c.pow || 0) + p / 15);
+  c.powLv = p;
 }
 /* das Ende der Strecke: der Wagen bleibt stehen */
 function cartEnd(c) { if (c.s > 4) SFX.bang && SFX.bang(Math.hypot(c.x - PL.x, c.z - PL.z)); c.s = 0; c.t = 1; }
@@ -25219,6 +25288,7 @@ function cartLost(c) {
   cartSend('del', c);
 }
 function updateCarts(dt) {
+  cartSpeedFx(dt);
   const L = cartsOf(); if (!L.length) return;
   cartsSettle();
   for (const c of L.slice()) {
@@ -25250,13 +25320,25 @@ function drawCarts(t) {
     c.dyaw += wrapAngle((c.yaw || 0) - c.dyaw) * 0.25;
     c.dpitch = (c.dpitch || 0) + ((c.pitch || 0) - (c.dpitch || 0)) * 0.25;
     ms.reset().t(c.x, c.y + 0.12, c.z).ry(c.dyaw).rx(-c.dpitch);
+    const hi = [0.7, 0.72, 0.76], ins = [0.2, 0.2, 0.23], rv = [0.85, 0.86, 0.9];
+    // Boden (innen dunkel) und Unterbau
     S.box(ms.m, 0.82, 0.08, 1.06, 0, 0.12, 0, dk[0], dk[1], dk[2], 0, sky);
+    S.box(ms.m, 0.68, 0.02, 0.92, 0, 0.17, 0, ins[0], ins[1], ins[2], 0, sky);
+    // vier Wände mit einem helleren Rand oben, oben offen: man sitzt im Loch
     S.box(ms.m, 0.08, 0.5, 1.06, -0.41, 0.4, 0, ir[0], ir[1], ir[2], 0, sky);
     S.box(ms.m, 0.08, 0.5, 1.06, 0.41, 0.4, 0, ir[0], ir[1], ir[2], 0, sky);
     S.box(ms.m, 0.82, 0.5, 0.08, 0, 0.4, 0.53, ir[0], ir[1], ir[2], 0, sky);
     S.box(ms.m, 0.82, 0.5, 0.08, 0, 0.4, -0.53, ir[0], ir[1], ir[2], 0, sky);
-    S.box(ms.m, 0.9, 0.06, 1.14, 0, 0.66, 0, dk[0], dk[1], dk[2], 0, sky);
-    for (const [wx, wz] of [[-0.42, 0.34], [0.42, 0.34], [-0.42, -0.34], [0.42, -0.34]]) S.box(ms.m, 0.06, 0.2, 0.2, wx * 1.08, 0.05, wz, wh[0], wh[1], wh[2], 0, sky);
+    S.box(ms.m, 0.12, 0.06, 1.14, -0.43, 0.67, 0, hi[0], hi[1], hi[2], 0, sky);
+    S.box(ms.m, 0.12, 0.06, 1.14, 0.43, 0.67, 0, hi[0], hi[1], hi[2], 0, sky);
+    S.box(ms.m, 0.98, 0.06, 0.12, 0, 0.67, 0.55, hi[0], hi[1], hi[2], 0, sky);
+    S.box(ms.m, 0.98, 0.06, 0.12, 0, 0.67, -0.55, hi[0], hi[1], hi[2], 0, sky);
+    // Verstärkungen und Nieten an den Seiten
+    for (const sx of [-0.455, 0.455]) { S.box(ms.m, 0.02, 0.38, 0.06, sx, 0.4, 0.3, dk[0], dk[1], dk[2], 0, sky); S.box(ms.m, 0.02, 0.38, 0.06, sx, 0.4, -0.3, dk[0], dk[1], dk[2], 0, sky); for (const rz of [-0.45, 0, 0.45]) S.box(ms.m, 0.03, 0.05, 0.05, sx, 0.55, rz, rv[0], rv[1], rv[2], 0, sky); }
+    for (const sz of [-0.575, 0.575]) S.box(ms.m, 0.6, 0.06, 0.02, 0, 0.3, sz, dk[0], dk[1], dk[2], 0, sky);
+    // Räder mit Achsen
+    for (const wz of [0.34, -0.34]) S.box(ms.m, 0.98, 0.05, 0.05, 0, 0.06, wz, dk[0], dk[1], dk[2], 0, sky);
+    for (const [wx, wz] of [[-0.42, 0.34], [0.42, 0.34], [-0.42, -0.34], [0.42, -0.34]]) { S.box(ms.m, 0.06, 0.22, 0.22, wx * 1.1, 0.05, wz, wh[0], wh[1], wh[2], 0, sky); S.box(ms.m, 0.07, 0.07, 0.07, wx * 1.12, 0.05, wz, rv[0], rv[1], rv[2], 0, sky); }
     // nach einem Schub glüht er ein bisschen
     if (c.boosted && (c.s || 0) > 12) S.box(ms.m, 0.5, 0.04, 0.5, 0, 0.17, -0.2, RAIL_COL.speed[0], RAIL_COL.speed[1], RAIL_COL.speed[2], 0.8, 1);
   }
@@ -25319,6 +25401,188 @@ function drawRailIcon(ctx, key, S) {
     ctx.fillStyle = '#6e4b2e'; for (let y = 8; y < 60; y += 12) ctx.fillRect(10, y, 44, 6);
     ctx.fillStyle = fast ? '#6ff2ff' : '#b9bcc2'; ctx.fillRect(16, 4, 6, 56); ctx.fillRect(42, 4, 6, 56);
     if (fast) { ctx.fillStyle = 'rgba(120,240,255,0.55)'; ctx.fillRect(26, 6, 12, 52); ctx.fillStyle = '#e8ffff'; ctx.fillRect(30, 26, 4, 12); }
+  }
+  ctx.restore();
+}
+
+/* ---------- super schnell: ein paar Fahrtwind-Streifen am Bildrand ---------- */
+function cartSpeedFx(dt) {
+  const c = PL.cart, sp = c ? (c.s || 0) : 0;
+  const want = clamp((sp - 19) / 6, 0, 1);
+  let F = CART.fx;
+  if (!F) {
+    if (want <= 0) return;
+    const cv = document.createElement('canvas'); cv.id = 'speedFx'; cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4';
+    document.body.appendChild(cv);
+    const st = []; for (let i = 0; i < 26; i++) st.push({ a: Math.random() * Math.PI * 2, z: Math.random(), h: Math.random() });
+    F = CART.fx = { cv, ctx: cv.getContext('2d'), st, k: 0 };
+  }
+  F.k += (want - F.k) * Math.min(1, dt * 3);
+  const cv = F.cv, ctx = F.ctx, W0 = innerWidth, H0 = innerHeight;
+  if (F.k < 0.01 || G.state !== 'playing') { if (!cv.hidden) { ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; } return; }
+  cv.hidden = false;
+  if (cv.width !== W0 || cv.height !== H0) { cv.width = W0; cv.height = H0; }
+  ctx.clearRect(0, 0, W0, H0);
+  const cx = W0 / 2, cy = H0 / 2, R = Math.hypot(cx, cy);
+  ctx.lineCap = 'round';
+  for (const s of F.st) {
+    s.z += dt * (1.4 + s.h) * (0.6 + sp / 26);
+    if (s.z > 1) { s.z -= 1; s.a = Math.random() * Math.PI * 2; s.h = Math.random(); }
+    // nur am Rand: von 60 % bis zum Bildrand
+    const r1 = R * (0.6 + 0.45 * s.z), r0 = r1 - R * (0.06 + 0.1 * s.z);
+    const ca = Math.cos(s.a), sa = Math.sin(s.a);
+    ctx.strokeStyle = 'rgba(235,245,255,' + (0.28 * F.k * (0.4 + 0.6 * s.z)).toFixed(3) + ')';
+    ctx.lineWidth = 1 + s.z * 1.6;
+    ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
+  }
+}
+
+/* ---- 19yb_energy.js ---- */
+/* =========================================================================
+   Energie (wie Redstone, nur „Energie“): Energieerz lassen Zombies fallen
+   (zu 50 %). Beim Händler gibt es dafür Energiefackeln (geben immer Stufe 15
+   ab), Hebel (aus 0 / an 15), analoge Hebel (0 bis 15 einstellbar) und den
+   Schraubenschlüssel. Energie wirkt auf direkt angrenzende Blöcke.
+   Speed-Schienen brauchen jetzt Energie:
+   - Schub-Modus (normal): mit Energie Schub (je höher die Stufe, desto mehr),
+     ohne Energie wie eine normale Schiene.
+   - Brems-Modus: ohne Energie hält der Wagen sofort an, mit wenig Energie
+     wird er fast gestoppt und rollt langsam weiter.
+   Den Modus stellt der Schraubenschlüssel um (Rechtsklick auf die Schiene).
+   ========================================================================= */
+const ENERGY_COL = [1.0, 0.86, 0.22], ENERGY_DARK = [0.42, 0.34, 0.12];
+const RAIL_BRAKE = 2;   // Bit in der Meta einer Speed-Schiene (Bit 1 ist die Grundrichtung)
+function isLever(id) { return id === B.LEVER || id === B.ALEVER; }
+function leverLevel(x, y, z) {
+  const id = getB(x, y, z), m = W.meta.get(I(x, y, z)) || 0;
+  if (id === B.LEVER) return (m & 8) ? 15 : 0;
+  if (id === B.ALEVER) return (m >> 3) & 15;
+  return 0;
+}
+/* wie viel Energie ein Block abgibt */
+function energyOut(x, y, z) {
+  const id = getB(x, y, z);
+  if (id === B.ENERGY_TORCH) return 15;
+  if (isLever(id)) return leverLevel(x, y, z);
+  return 0;
+}
+/* wie viel Energie bei einem Block ankommt (von allen sechs Nachbarn die stärkste) */
+function energyAt(x, y, z) {
+  let p = 0;
+  for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0]]) { const e = energyOut(x + dx, y + dy, z + dz); if (e > p) p = e; }
+  return p;
+}
+function railBrake(x, y, z) { return ((W.meta.get(I(x, y, z)) || 0) & RAIL_BRAKE) !== 0; }
+
+/* ---------- umschalten ---------- */
+function setEnergyMeta(x, y, z, m) {
+  setMeta(x, y, z, m);
+  if (MP.active()) MP.send({ t: 'emeta', x, y, z, m });
+}
+function applyEnergyMeta(v) {
+  if (!v || !Number.isInteger(v.x) || !Number.isInteger(v.y) || !Number.isInteger(v.z)) return;
+  const id = getB(v.x, v.y, v.z);
+  if (!isLever(id) && id !== B.SPEED_RAIL) return;
+  setMeta(v.x, v.y, v.z, (v.m | 0) & 255);
+}
+/* Hebel umlegen / analogen Hebel weiterdrehen (mit Schleichen zurück) */
+function useLever(x, y, z) {
+  const id = getB(x, y, z), m = W.meta.get(I(x, y, z)) || 0;
+  if (id === B.LEVER) {
+    const on = !(m & 8);
+    setEnergyMeta(x, y, z, (m & 7) | (on ? 8 : 0));
+    SFX.door && SFX.door(on);
+    hint('lever', on ? 'Hebel an: Energie 15' : 'Hebel aus: Energie 0');
+  } else if (id === B.ALEVER) {
+    const back = INPUT.down('ControlLeft') || INPUT.down('ControlRight') || INPUT.sneakBtn;
+    const lv = ((((m >> 3) & 15) + (back ? 15 : 1)) % 16);
+    setEnergyMeta(x, y, z, (m & 7) | (lv << 3));
+    SFX.ui();
+    UI.toast('⚡ Energie: ' + lv + ' / 15' + (back ? '' : ' (mit Schleichen zurückdrehen)'), 'info', 1300, 'alever');
+  }
+}
+/* Schraubenschlüssel: Modus der Speed-Schiene umstellen */
+function useWrench(target) {
+  if (!target || target.type !== 'block' || !target.inReach) return false;
+  const { x, y, z } = target;
+  if (getB(x, y, z) !== B.SPEED_RAIL) { hint('wrench', 'Rechtsklick mit dem Schraubenschlüssel auf eine Speed-Schiene stellt ihren Modus um.'); return false; }
+  const m = W.meta.get(I(x, y, z)) || 0, brake = !(m & RAIL_BRAKE);
+  setEnergyMeta(x, y, z, brake ? (m | RAIL_BRAKE) : (m & ~RAIL_BRAKE));
+  SFX.place && SFX.place(B.PLANKS);
+  PL.swingT = 0; PL.swingKind = 'hit';
+  UI.toast(brake ? '🛑 Brems-Modus: ohne Energie hält der Wagen hier an, mit wenig Energie rollt er langsam weiter.' : '⚡ Schub-Modus: mit Energie gibt es Schub, ohne Energie ist es eine normale Schiene.', 'info', 3600, 'wrench');
+  return true;
+}
+
+/* ---------- zeichnen ---------- */
+function drawEnergyTorch(o, solid, t, sky, meta) {
+  const ms = _oms;
+  ms.reset().t(o.x + 0.5, o.y, o.z + 0.5);
+  if (meta >= 1 && meta <= 4) {
+    const off = [[-0.38, 0], [0.38, 0], [0, -0.38], [0, 0.38]][meta - 1];
+    ms.t(off[0], 0.18, off[1]);
+    if (meta === 1) ms.rz(-0.42); else if (meta === 2) ms.rz(0.42); else if (meta === 3) ms.rx(0.42); else ms.rx(-0.42);
+  }
+  solid.box(ms.m, 0.11, 0.56, 0.11, 0, 0.28, 0, 0.32, 0.3, 0.3, 0, sky);
+  solid.box(ms.m, 0.15, 0.08, 0.15, 0, 0.58, 0, ENERGY_DARK[0], ENERGY_DARK[1], ENERGY_DARK[2], 0.3, sky);
+  const fl = 0.85 + 0.15 * Math.sin(t * 11 + o.phase);
+  ms.push().t(0, 0.69, 0).ry(t * 2 + o.phase);
+  solid.box(ms.m, 0.15 * fl, 0.15 * fl, 0.15 * fl, 0, 0, 0, ENERGY_COL[0], ENERGY_COL[1], ENERGY_COL[2], 1, 1);
+  solid.box(ms.m, 0.08, 0.2, 0.08, 0, 0.02, 0, 1, 1, 0.85, 1, 1);
+  ms.pop();
+}
+function drawLever(o, solid, t, sky, meta) {
+  const ms = _oms, an = o.id === B.ALEVER;
+  const lv = an ? (meta >> 3) & 15 : (meta & 8 ? 15 : 0);
+  ms.reset().t(o.x + 0.5, o.y, o.z + 0.5);
+  // Sockel aus Stein
+  solid.box(ms.m, 0.44, 0.1, 0.56, 0, 0.05, 0, 0.55, 0.56, 0.58, 0, sky);
+  if (!an) {
+    const on = lv > 0;
+    ms.push().t(0, 0.1, 0).rx(on ? 0.65 : -0.65);
+    solid.box(ms.m, 0.08, 0.44, 0.08, 0, 0.22, 0, 0.55, 0.38, 0.22, 0, sky);
+    solid.box(ms.m, 0.12, 0.1, 0.12, 0, 0.45, 0, on ? ENERGY_COL[0] : 0.35, on ? ENERGY_COL[1] : 0.3, on ? ENERGY_COL[2] : 0.25, on ? 1 : 0, on ? 1 : sky);
+    ms.pop();
+  } else {
+    // ein Drehknopf mit Zeiger, und 15 Lämpchen, so viele leuchten wie die Stufe
+    ms.push().t(0, 0.13, 0).ry(-lv / 15 * Math.PI * 1.5 + Math.PI * 0.75);
+    solid.box(ms.m, 0.22, 0.08, 0.22, 0, 0, 0, 0.3, 0.3, 0.34, 0, sky);
+    solid.box(ms.m, 0.04, 0.05, 0.14, 0, 0.06, 0.06, ENERGY_COL[0], ENERGY_COL[1], ENERGY_COL[2], lv ? 0.9 : 0.2, lv ? 1 : sky);
+    ms.pop();
+    for (let k = 0; k < 15; k++) {
+      const a = Math.PI * 0.75 - (k + 0.5) / 15 * Math.PI * 1.5;
+      const on = k < lv;
+      solid.box(ms.m, 0.035, 0.03, 0.035, Math.sin(a) * 0.19, 0.115, Math.cos(a) * 0.19 * 1.15, on ? ENERGY_COL[0] : 0.25, on ? ENERGY_COL[1] : 0.22, on ? ENERGY_COL[2] : 0.2, on ? 1 : 0, on ? 1 : sky);
+    }
+  }
+}
+function leverBox(x, y, z) { return [x + 0.27, y, z + 0.2, x + 0.73, y + 0.5, z + 0.8]; }
+
+/* ---------- Symbole ---------- */
+function drawEnergyIcon(ctx, key, S) {
+  const k = S / 64; ctx.save(); ctx.scale(k, k);
+  if (key === 'energy') {
+    const g = ctx.createRadialGradient(32, 32, 4, 32, 32, 30); g.addColorStop(0, 'rgba(255,225,60,0.55)'); g.addColorStop(1, 'rgba(255,225,60,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = '#a07a12'; ctx.beginPath(); ctx.moveTo(32, 6); ctx.lineTo(54, 22); ctx.lineTo(48, 52); ctx.lineTo(16, 52); ctx.lineTo(10, 22); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffd43a'; ctx.beginPath(); ctx.moveTo(32, 10); ctx.lineTo(48, 23); ctx.lineTo(43, 46); ctx.lineTo(21, 46); ctx.lineTo(16, 23); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff6b8'; ctx.beginPath(); ctx.moveTo(35, 14); ctx.lineTo(24, 33); ctx.lineTo(31, 33); ctx.lineTo(27, 46); ctx.lineTo(40, 27); ctx.lineTo(33, 27); ctx.closePath(); ctx.fill();
+  } else if (key === 'energy_torch') {
+    ctx.fillStyle = '#55504c'; ctx.fillRect(28, 24, 8, 34);
+    const g = ctx.createRadialGradient(32, 18, 2, 32, 18, 16); g.addColorStop(0, 'rgba(255,240,140,1)'); g.addColorStop(1, 'rgba(255,210,40,0)');
+    ctx.fillStyle = g; ctx.fillRect(14, 2, 36, 34);
+    ctx.fillStyle = '#ffd43a'; ctx.fillRect(26, 12, 12, 12); ctx.fillStyle = '#fffbe0'; ctx.fillRect(30, 15, 4, 6);
+  } else if (key === 'lever' || key === 'alever') {
+    ctx.fillStyle = '#8d9398'; ctx.fillRect(14, 44, 36, 12);
+    if (key === 'lever') { ctx.save(); ctx.translate(32, 46); ctx.rotate(0.55); ctx.fillStyle = '#8a5e3b'; ctx.fillRect(-3, -32, 6, 32); ctx.fillStyle = '#ffd43a'; ctx.fillRect(-5, -38, 10, 9); ctx.restore(); }
+    else { ctx.fillStyle = '#3c3c44'; ctx.beginPath(); ctx.arc(32, 36, 14, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#ffd43a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(32, 36, 18, Math.PI * 0.75, Math.PI * 1.9); ctx.stroke(); ctx.fillStyle = '#ffd43a'; ctx.fillRect(30, 22, 4, 14); }
+  } else if (key === 'wrench') {
+    ctx.save(); ctx.translate(32, 32); ctx.rotate(-0.78);
+    ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-4, -6, 8, 34);
+    ctx.beginPath(); ctx.arc(0, -14, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.globalCompositeOperation = 'destination-out'; ctx.fillRect(-4, -28, 8, 14); ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#d6dadf'; ctx.fillRect(-2, -4, 3, 30);
+    ctx.restore();
   }
   ctx.restore();
 }
