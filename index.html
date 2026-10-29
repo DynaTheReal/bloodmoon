@@ -165,6 +165,51 @@
         ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.child('authorUid').val() === auth.uid && (!newData.exists() || newData.child('authorUid').val() === auth.uid)) || (!newData.exists() && root.child('usernames/dynathereal').val() === auth.uid))",
         ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 30 && newData.child('mods').exists() && (!newData.child('img').exists() || (newData.child('img').isString() && newData.child('img').val().beginsWith('data:image/') && newData.child('img').val().length <= 60000)))"
       }
+    },
+    "vlob": {
+      "pub": {
+        ".read": "auth != null",
+        "$lid": {
+          ".write": "auth != null && !root.child('bans/' + auth.uid).exists() && ((!data.exists() && newData.child('owner').val() === auth.uid) || (data.child('owner').val() === auth.uid && (!newData.exists() || newData.child('owner').val() === auth.uid)) || (!newData.exists() && root.child('usernames/dynathereal').val() === auth.uid))",
+          ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 30)"
+        }
+      },
+      "key": {
+        "$lid": {
+          ".write": "auth != null && (root.child('vlob/pub/' + $lid + '/owner').val() === auth.uid || (!newData.exists() && root.child('usernames/dynathereal').val() === auth.uid))",
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 100)"
+        }
+      },
+      "pass": {
+        "$lid": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 100)"
+          }
+        }
+      },
+      "m": {
+        ".read": "auth != null",
+        "$lid": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && (!newData.exists() || (root.child('vlob/pub/' + $lid).exists() && !root.child('bans/' + auth.uid).exists() && (!root.child('vlob/key/' + $lid).exists() || root.child('vlob/pass/' + $lid + '/' + auth.uid).val() === root.child('vlob/key/' + $lid).val())))",
+            ".validate": "!newData.exists() || (newData.child('n').isString() && newData.child('n').val().length <= 24)"
+          }
+        }
+      },
+      "sig": {
+        "$lid": {
+          "$to": {
+            ".read": "auth != null && auth.uid === $to",
+            ".write": "auth != null && auth.uid === $to && !newData.exists()",
+            "$msg": {
+              ".write": "auth != null && ((auth.uid === $to && !newData.exists()) || (!data.exists() && newData.child('u').val() === auth.uid && root.child('vlob/m/' + $lid + '/' + auth.uid).exists() && root.child('vlob/m/' + $lid + '/' + $to).exists()))",
+              ".validate": "!newData.exists() || !newData.child('sdp').exists() || (newData.child('sdp').isString() && newData.child('sdp').val().length <= 20000)"
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -373,6 +418,21 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 #zoomNote button { flex: none; border: 0; border-radius: 8px; padding: 5px 10px; background: rgba(255, 255, 255, 0.14); color: #fff; font: inherit; cursor: pointer; }
 .ms-ip .btn { padding: 8px 10px; font-size: 13px; flex: none; }
 .ms-star { color: #ffd36b; }
+.menu-vlob { position: absolute; right: calc(var(--safe-r) + 24px + min(340px, 34vw) + 28px + 12px); top: calc(var(--safe-t) + 84px); width: min(290px, 28vw); max-height: calc(100% - 200px); overflow: auto; padding: 14px; border-radius: 18px; display: grid; gap: 8px; align-content: start; }
+.menu-vlob .ms-row { flex-wrap: wrap; }
+.vl-cur { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(120, 200, 140, 0.1); border: 1px solid rgba(120, 220, 150, 0.35); margin-bottom: 6px; }
+.vl-ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.vl-ch b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vl-ch .btn, .vl-btns .btn { padding: 6px 10px; font-size: 12.5px; }
+.vl-mem { display: grid; gap: 3px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.vl-mem span.talk, .vl-me { color: var(--text); }
+.vl-mem span.talk::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 8px var(--leaf); margin-right: 6px; }
+.vl-empty { font-weight: 600; }
+.vl-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.vl-new { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 6px; }
+.vl-new .field { padding: 8px 10px; font-size: 13px; }
+.vl-err { color: #ff9b8f; font-size: 12.5px; font-weight: 700; margin: 0; }
+@media (max-width: 640px) { .menu-vlob { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(var(--safe-b) + 12px); max-height: 34vh; padding: 10px; z-index: 2; } }
 .ms-h b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
 .ms-row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 6px; }
 .ms-row .ms-m { flex: 1; min-width: 0; }
@@ -1265,6 +1325,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <form class="ms-ip" id="msIpForm" autocomplete="off"><input class="field" id="msIp" maxlength="20" placeholder="Server-IP, z. B. Brickstein" aria-label="Server-IP" autocapitalize="off" spellcheck="false"><button class="btn primary" type="submit">Verbinden</button><button class="btn" id="msIpFav" type="button" title="In die Favoriten" aria-label="In die Favoriten">☆</button></form>
     <div id="msList"></div>
   </aside>
+  <aside class="menu-vlob panel" id="menuVlob" aria-label="Sprach-Lobbys" hidden>
+    <div class="ms-h"><b>🎙️ Lobbys</b><button class="link" id="vlNew" type="button">+ Neue Lobby</button></div>
+    <div id="vlBody"></div>
+  </aside>
   <div class="menu-inner">
     <p class="eyebrow">Überlebe die Nächte</p>
     <h1 class="title">Blood Moon</h1>
@@ -1946,7 +2010,8 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
           <div class="vo-dev"><label class="flabel" for="voMic">🎤 Mikrofon</label><select class="field" id="voMic"><option value="">Automatisch (Standard)</option></select><button class="btn primary" id="voAllow" type="button" hidden>🎤 Mikrofon erlauben</button><div class="vo-lvl"><i id="voLvl"></i></div><small class="vo-note" id="voMicNote"></small></div>
           <div class="vo-dev"><label class="flabel" for="voSpk">🔊 Lautsprecher</label><select class="field" id="voSpk"><option value="">Automatisch (Standard)</option></select><small class="vo-note" id="voSpkNote" hidden>Dein Browser spielt immer über den Standard-Lautsprecher ab.</small></div>
           <div class="row"><label for="voVol">Lautstärke der anderen</label><div class="rng"><input id="voVol" type="range" min="0" max="100" step="5"></div></div>
-          <div class="row"><label for="voRange">Hören<small>Nach Entfernung: wer nah ist, ist laut</small></label><select class="field vo-sel" id="voRange"><option value="near">Nach Entfernung</option><option value="all">Überall gleich laut</option></select></div>
+          <div class="row"><label for="voRange">Hören<small>Nach Entfernung: wer nah ist, ist laut (die Lobby hörst du immer gleich laut)</small></label><select class="field vo-sel" id="voRange"><option value="near">Nach Entfernung</option><option value="all">Überall gleich laut</option></select></div>
+          <div class="row"><div class="lbl">Sprach-Lobbys am Handy<small>Das Lobby-Fenster im Hauptmenü auch am Handy zeigen (am PC und Tablet ist es immer da)</small></div><button class="tgl" id="voLobPhone" role="switch" aria-label="Sprach-Lobbys am Handy" type="button"></button></div>
         </div>
         <p class="sec-t">Mitspieler</p>
         <div id="voPeers" class="vo-peers"></div>
@@ -2032,8 +2097,11 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.43.0';
+const GAME_VERSION = '2.44.0';
 const GAME_NOTES = [
+  ['2.44.0', 'Sprachchat-Mod: Sprach-Lobbys im Hauptmenü (links neben „Server“, am PC und Tablet; am Handy in den Sprachchat-Einstellungen einschaltbar). Lobbys erstellen, mit oder ohne Passwort (einmal eingegeben, wird es gemerkt), und schon im Hauptmenü miteinander reden. Wer in derselben Lobby ist, hört sich überall, auch in verschiedenen Welten und auf verschiedenen Servern. In einer Welt hörst du zusätzlich die Spieler dort, die hören aber deine Lobby nicht.'],
+  ['2.43.2', 'Minenwagen: Rechtsklick auf den Wagen setzt dich hinein (auch mit etwas in der Hand), die E-Anzeige springt nicht mehr hin und her. Speed-Schienen machen den Wagen sanft schneller statt auf einen Schlag, in schneller Fahrt geht das Sichtfeld etwas weiter, der Wagen dreht sich in Kurven weich. Schienen: kein grauer Rahmen mehr, und nur die flache Schiene selbst ist anklickbar, durch die Luft darüber kann man bauen und zielen.'],
+  ['2.43.1', 'Fehler behoben: wenn zwei fast gleichzeitig einem leeren Server beitreten (oder einer eine ältere Version hat), wurden beide Gastgeber und haben sich gegenseitig immer wieder rausgeworfen und neu geladen. Jetzt bleibt einer Gastgeber und der andere spielt bei ihm mit.'],
   ['2.43.0', 'Schienen und Minenwagen (Händler → Bauen → Schienen): 10 Schienen für 5 Holz + 1 Eisen, 6 Speed-Schienen für 5 Holz + 1 Kristall, Minenwagen für 5 Eisen. Schienen verbinden sich von selbst (gerade, Kurven, einen Block hoch) und passen durch einen Tunnel. Minenwagen auf eine Schiene stellen, mit E einsteigen, aussteigen mit E oder Schleichen. Bergab rollt er von selbst, mit W schiebst du an, Speed-Schienen geben Schub und danach bleibt er auch auf normalen Schienen schnell. Linksklick nimmt den Wagen wieder mit.'],
   ['2.42.0', 'Neu: die linke Hand (Offhand). Links neben der Hotbar ist ein eigener Platz; F tauscht das, was du in der Hand hast, mit der linken Hand (am Handy: auf den Platz tippen). Eine Fackel in der linken Hand leuchtet, während du mit dem Schwert kämpfst. Fackeln in der Hand oder linken Hand leuchten jetzt auch bei den anderen Spielern. Am Handy gibt es einen Knopf zum Schleichen. E ist jetzt allein für Aktionen da.'],
   ['2.41.0', 'Neue Beta-Einstellung „Scharfe Texturen“ (Einstellungen → Grafik): Texturen werden in der Ferne und auf schrägen Flächen nicht mehr so verschwommen, das Bild wird in voller Bildschirmauflösung gezeichnet.'],
@@ -9140,7 +9208,11 @@ function raycast(ox, oy, oz, dx, dy, dz, maxDist, test) {
   let nx = 0, ny = 0, nz = 0, t = 0;
   for (let k = 0; k < 400 && t <= maxDist; k++) {
     const id = getB(x, y, z);
-    if (id !== B.AIR && test(id, x, y, z)) return { x, y, z, nx, ny, nz, t, id };
+    if (id !== B.AIR && test(id, x, y, z)) {
+      // eine Schiene ist flach: nur sie selbst trifft man, nicht die Luft darüber
+      if (id === B.RAIL || id === B.SPEED_RAIL) { const tr = rayAabb(ox, oy, oz, dx, dy, dz, x, y, z, x + 1, y + 0.14, z + 1); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
+      else return { x, y, z, nx, ny, nz, t, id };
+    }
     if (tmx < tmy && tmx < tmz) { x += sx; t = tmx; tmx += tdx; nx = -sx; ny = 0; nz = 0; }
     else if (tmy < tmz) { y += sy; t = tmy; tmy += tdy; nx = 0; ny = -sy; nz = 0; }
     else { z += sz; t = tmz; tmz += tdz; nx = 0; ny = 0; nz = -sz; }
@@ -9443,6 +9515,8 @@ function updateCamera(dt) {
     CAM.fov = SETTINGS.fov * Math.PI / 180;
     CAM.near = 0.06;
   }
+  // schnell im Minenwagen: das Sichtfeld wird sanft etwas weiter
+  CAM.fov += cartFov(dt) * 14 * Math.PI / 180;
   // smooth transition between camera modes
   if (CAMC.trans < 1 && CAMC.from) {
     CAMC.trans = Math.min(1, CAMC.trans + dt / (CAMC.transDur || 0.45));
@@ -12382,6 +12456,7 @@ function edgeBox(Bt, x0, y0, z0, x1, y1, z1, th, r, g, b, a) {
 function blockBounds(id, x, y, z) {
   if (KIND[id] === K_PLANT) return [x + 0.15, y, z + 0.15, x + 0.85, y + 0.7, z + 0.85];
   if (id === B.TORCH) return [x + 0.36, y, z + 0.36, x + 0.64, y + 0.8, z + 0.64];
+  if (id === B.RAIL || id === B.SPEED_RAIL) return [x, y, z, x + 1, y + 0.13, z + 1];
   if (id === B.CAMPFIRE) return [x + 0.06, y, z + 0.06, x + 0.94, y + 0.45, z + 0.94];
   if (id === B.BED) return [x, y, z, x + 1, y + 0.6, z + 1];
   return [x, y, z, x + 1, y + 1, z + 1];
@@ -12391,7 +12466,7 @@ function drawSelection(t) {
   if (!h || h.type !== 'block' || !h.inReach) return;
   const bb = blockBounds(h.id, h.x, h.y, h.z);
   const e = 0.003;
-  edgeBox(BATCH.trans, bb[0] - e, bb[1] - e, bb[2] - e, bb[3] + e, bb[4] + e, bb[5] + e, 0.012, 0.04, 0.05, 0.05, 0.55);
+  if (h.id !== B.RAIL && h.id !== B.SPEED_RAIL) edgeBox(BATCH.trans, bb[0] - e, bb[1] - e, bb[2] - e, bb[3] + e, bb[4] + e, bb[5] + e, 0.012, 0.04, 0.05, 0.05, 0.55);
   const b = G.breaking;
   if (b && b.x === h.x && b.y === h.y && b.z === h.z) {
     const p = clamp(b.p / b.need, 0, 1);
@@ -14762,7 +14837,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods(); bindVlobby();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -15379,7 +15454,8 @@ function handleActionsCore(dt) {
   if (INPUT.primaryHeld && !INPUT.primaryPressed && target && target.type === 'player' && target.inReach) attackPlayer(target.e, true);
   const breakable = target && target.type === 'block' && (!isInteractBlock(target) || G.holdT > 0.6);
   updateBreaking(dt, INPUT.primaryHeld && breakable, target);
-  if (INPUT.secondaryPressed) {
+  if (INPUT.secondaryPressed && target && target.type === 'cart' && target.inReach && !PL.cart) enterCart(target.e);   // Rechtsklick auf den Wagen: einsteigen
+  else if (INPUT.secondaryPressed) {
     if (modInteract(rawTarget)) { /* a mod block that does something */ }
     else if (item) placeSelected(rawTarget);
     else if (target && (isInteractBlock(target) || target.type !== 'block')) primaryOn(target);
@@ -15395,8 +15471,9 @@ function handleActionsCore(dt) {
   if (target && target.inReach) {
     if (target.type === 'merchant' && !isNight()) it = { kind: 'merchant', label: 'Mit dem Händler handeln' };
     else if (target.type === 'sheep') it = { kind: 'sheep', s: target.e, label: target.e.wool ? 'Schaf scheren' : 'Wolle wächst nach' };
-    else if (target.type === 'cart' && !PL.cart) it = { kind: 'cart', c: target.e, label: target.e.rider ? 'Besetzt' : 'In den Minenwagen einsteigen' };
   }
+  // der Minenwagen in der Nähe (nicht nur, wenn man genau draufzeigt: sonst springt die Anzeige hin und her)
+  if (!it && !PL.cart) { const nc = nearCart(); if (nc) it = { kind: 'cart', c: nc, label: nc.rider ? 'Besetzt' : 'Einsteigen' }; }
   if (PL.cart) it = { kind: 'cartOut', label: 'Aussteigen' };
   if (!it) it = interactTargets();
   G.prompt = it;
@@ -16186,6 +16263,17 @@ const MP = {
     if (this.active() || !NET.uid() || G.state === 'menu') return;
     if (!srv && (!SETTINGS.allowFriends || !WORLDS.current)) return;
     const uid = NET.uid();
+    // Server: lässt ihn inzwischen schon jemand laufen (zwei sind fast gleichzeitig beigetreten)?
+    // Dann nicht seinen Raum löschen, sondern bei ihm mitspielen (sonst werfen sich beide immer wieder raus)
+    if (srv) {
+      let v = null;
+      try { v = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 8000)).val(); } catch (e) { /* weiter wie bisher */ }
+      if (v && v.open && v.hostUid && v.hostUid !== uid) {
+        if (G.server === srv) G.server = null;   // nicht speichern, die Welt läuft beim anderen
+        setTimeout(() => { if (!MP.active() && G.state !== 'menu') playServer(srv, true); }, 200 + Math.random() * 600);
+        return;
+      }
+    }
     this.srv = srv || null;
     this.role = 'host'; this.hostUid = uid; this.hostName = NET.name; this.base = srv ? srvRoomPath(srv) : 'rooms/' + uid; this.ready = true;
     this.applied.clear();
@@ -16209,7 +16297,7 @@ const MP = {
     UI.mpChip();
   },
   worldName() { return this.srv ? this.srv.name : WORLDS.current ? WORLDS.current.name : ''; },
-  roomInfo() { return { host: NET.name, hostUid: NET.uid(), world: this.worldName(), seed: W.seed, mode: W.mode, srv: this.srv ? 1 : 0, open: true, v: 1, at: NET.TS() }; },
+  roomInfo() { return { host: NET.name, hostUid: NET.uid(), world: this.worldName(), seed: W.seed, mode: W.mode, srv: this.srv ? 1 : 0, open: true, v: 2, at: NET.TS() }; },
   hostEntry() { return { name: NET.name, skin: SETTINGS.skin, host: true, at: NET.TS() }; },
   async closeRoom() {
     if (!this.isHost()) return;
@@ -16299,13 +16387,27 @@ const MP = {
      leftover "closed" write must not lock friends out while the host is playing */
   healRoom(v) {
     if (!this.isHost() || this.online !== true || this.leaving || this.closing) return;
-    if (this.srv && v && v.open && v.hostUid && v.hostUid !== NET.uid()) { this.yieldServer(); return; }
+    if (this.srv && v && v.open && v.hostUid && v.hostUid !== NET.uid()) {
+      // zwei lassen denselben Server laufen: nur einer gibt nach, sonst wechseln sie sich endlos ab.
+      // Eine ältere Version gibt immer nach, also bleiben wir dann; unter neuen gewinnt die kleinere Kennung.
+      if ((v.v | 0) < 2 || NET.uid() < v.hostUid) { clearTimeout(this.claimT); this.claimT = setTimeout(() => { if (this.isHost() && !this.closing) this.ref('info').set(this.roomInfo()).catch(() => { }); }, 250); return; }
+      this.yieldServer(); return;
+    }
     if (!v || !v.open) this.ref('info').set(this.roomInfo()).catch(() => { });
   },
   /* server world: somebody else runs it now, so join them */
   async yieldServer() {
-    const srv = this.srv; if (!srv || this.leaving) return;
-    if (G.server) await SERVER.save(true);
+    const srv = this.srv; if (!srv || this.leaving || this.yielding) return;
+    this.yielding = true;
+    // kurz und zufällig warten (damit nicht beide gleichzeitig wechseln), dann nachsehen, ob es dabei bleibt
+    await new Promise((r) => setTimeout(r, 300 + Math.random() * 900));
+    this.yielding = false;
+    if (!this.isHost() || this.srv !== srv || this.leaving) return;
+    let v = null;
+    try { v = (await withTimeout(this.ref('info').once('value'), 6000)).val(); } catch (e) { /* ignore */ }
+    if (!v || !v.open || !v.hostUid || v.hostUid === NET.uid()) { if (!v || !v.open) this.ref('info').set(this.roomInfo()).catch(() => { }); return; }
+    // nicht mehr speichern: die Welt des anderen ist die aktuelle (sonst hält jeder die andere für veraltet)
+    if (G.server === srv) G.server = null;
     await this.leave(true);
     playServer(srv, true);
   },
@@ -17123,6 +17225,15 @@ async function playServer(srv, keep) {
   catch (e) { if (warp) warpStop(); showMenu(); UI.toast('Der Server ist nicht erreichbar. ' + netMsg(e), 'warn', 5600); return; }
   if (!save) { if (warp) warpStop(); showMenu(); UI.toast('Diesen Server gibt es nicht mehr.', 'warn', 5200); return; }
   if (warp) { setLoad(0.5, 'Heruntergeladen, Welt wird geladen'); }
+  // ist inzwischen jemand anderes Gastgeber geworden (fast gleichzeitig beigetreten)? dann zu ihm
+  try {
+    const now = (await withTimeout(NET.db.ref(srvRoomPath(srv) + '/info').once('value'), 6000)).val();
+    if (now && now.open && now.hostUid && now.hostUid !== NET.uid() && !(info && info.open && info.hostUid === now.hostUid)) {
+      if (warp) warpStop();
+      G.state = 'menu';
+      return playServer(srv, false);
+    }
+  } catch (e) { /* weiter */ }
   if (!(await ready())) return;
   WORLDS.current = null; G.loadedWorld = null;
   G.server = srv;
@@ -23473,7 +23584,12 @@ function voiceLoadCfg() { try { Object.assign(VOICE.cfg, JSON.parse(localStorage
 function voiceSaveCfg() { try { localStorage.setItem(VOICE_CFG_KEY, JSON.stringify(VOICE.cfg)); } catch (e) { /* ignore */ } }
 function voiceConsented() { try { return localStorage.getItem(VOICE_OK_KEY) === '1'; } catch (e) { return false; } }
 function voiceSupported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
-function voiceWanted() { return !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading'; }
+function voiceWorldOn() { return !!MODFX.voiceChat && !G.spectator && G.state !== 'menu' && G.state !== 'loading'; }
+/* an: in einer Welt mit der Mod, oder in einer Sprach-Lobby (19xf_vlobby.js), auch im Hauptmenü */
+function voiceWanted() { return voiceWorldOn() || (!!LOB.id && voiceInstalled()); }
+/* mit wem soll eine Sprachverbindung bestehen: Spieler in der Welt (mit Sprachchat-Mod) und alle in der Lobby */
+function voicePeerWanted(uid) { return (LOB.id && LOB.members.has(uid)) || (voiceWorldOn() && voiceCanSend() && !!REMOTE[uid]); }
+function voicePeerName(uid) { const r = REMOTE[uid], m = LOB.members.get(uid); return (r && r.name) || (m && m.n) || 'einem Spieler'; }
 
 /* ---------- Datenschutz ---------- */
 /* zeigt die Zustimmung; true, wenn zugestimmt */
@@ -23522,6 +23638,7 @@ UI.openVoiceSetup = async function () {
   voiceView('setup');
   $('voVol').value = Math.round(VOICE.cfg.vol * 100);
   $('voRange').value = VOICE.cfg.range;
+  $('voLobPhone').setAttribute('aria-checked', String(!!VOICE.cfg.lobbyPhone));
   voiceShow();
   $('mdlVoice').querySelector('.sheet-b').scrollTop = 0;
   voicePeerList();
@@ -23667,7 +23784,7 @@ async function voiceBegin() {
   else { voiceHide(); if (!VOICE.cfg.muted) voiceSetMute(false, true); }
 }
 function voiceEnd() {
-  if (VOICE.on && MP.active()) voiceSend({ k: 'bye' });
+  if (VOICE.on) voiceSend({ k: 'bye' });
   for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid);
   voiceStopMic();
   VOICE.on = false; VOICE.begun = false; VOICE.muted = true; VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.rst.clear();
@@ -23720,7 +23837,7 @@ function voiceSetDeaf(d) {
 /* den anderen sagen, ob du stumm bist / sie stumm geschaltet hast */
 function voiceStatus() {
   const k = (VOICE.muted ? 1 : 0) + (VOICE.deaf ? 2 : 0);
-  if (VOICE.stSent === k + ':' + VOICE.sid || !voiceCanSend()) return;
+  if (VOICE.stSent === k + ':' + VOICE.sid || (!voiceCanSend() && !LOB.id)) return;
   VOICE.stSent = k + ':' + VOICE.sid;
   voiceSend({ k: 'st' });
 }
@@ -23778,7 +23895,15 @@ function voiceTagHtml(k) {
 }
 
 /* ---------- Verbindungen ---------- */
-function voiceSend(o) { if (!MP.active() || !NET.uid()) return; o.t = 'vo'; o.sid = VOICE.sid; o.s = (VOICE.muted ? 1 : 0) + (VOICE.deaf ? 2 : 0); MP.send(o); }
+function voiceSend(o) {
+  if (!NET.uid()) return;
+  o.t = 'vo'; o.sid = VOICE.sid; o.s = (VOICE.muted ? 1 : 0) + (VOICE.deaf ? 2 : 0);
+  const world = MP.active() && voiceWorldOn();
+  // an einen: über die Lobby, wenn er dort ist, sonst über die Welt; an alle: an beide
+  if (o.to) { if (LOB.id && LOB.members.has(o.to)) lobSig(o.to, o); else if (world) MP.send(o); return; }
+  if (world) MP.send(Object.assign({}, o));
+  if (LOB.id) for (const u of LOB.members.keys()) lobSig(u, o);
+}
 function voiceHi(to, re) { const o = { k: 'hi' }; if (to) o.to = to; if (re) o.re = 1; voiceSend(o); }
 function voiceTrans(pc) { try { return pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio') || pc.getTransceivers()[0] || null; } catch (e) { return null; } }
 function voiceWaitIce(pc, ms) {
@@ -23807,7 +23932,7 @@ function voiceNewPeer(uid, ice) {
     const s = pc.connectionState;
     if (VOICE.peers.get(uid) !== p) return;
     if (s === 'connected') {
-      if (p.state !== 'ok') { const r = REMOTE[uid]; UI.toast('🎙️ Sprachverbindung mit ' + ((r && r.name) || 'einem Spieler') + ' steht.', 'good', 2400, 'vo' + uid); }
+      if (p.state !== 'ok') UI.toast('🎙️ Sprachverbindung mit ' + voicePeerName(uid) + ' steht.', 'good', 2400, 'vo' + uid);
       p.state = 'ok'; p.tries = 0;
       pc.getStats().then((st) => { st.forEach((r) => { if (r.type === 'candidate-pair' && r.nominated && r.state === 'succeeded') { const l = st.get(r.localCandidateId); p.relay = !!(l && l.candidateType === 'relay'); } }); }).catch(() => { });
     } else if (s === 'failed') { p.state = 'fail'; p.failT = performance.now(); }
@@ -23832,7 +23957,7 @@ async function voiceOffer(uid) {
   VOICE.offering.add(uid);
   let ice;
   try { ice = await voiceIce(); } finally { VOICE.offering.delete(uid); }
-  if (!VOICE.on || !REMOTE[uid]) return;
+  if (!VOICE.on || !voicePeerWanted(uid)) return;
   const p = voiceNewPeer(uid, ice);
   p.tries++;
   p.oid = Math.random().toString(36).slice(2, 9);
@@ -23864,9 +23989,10 @@ async function voiceAnswer(v) {
 }
 /* eine Nachricht für den Sprachchat aus der Welt */
 function voiceOnSignal(v) {
-  if (!VOICE.on || !v || !v.u || v.u === NET.uid() || G.spectator) return;
+  if (!VOICE.on || !v || !v.u || v.u === NET.uid()) return;
   if (v.to && v.to !== NET.uid()) return;
-  if (!REMOTE[v.u]) return;   // nur sichtbare Spieler (nie ein unsichtbarer Zuschauer)
+  const inLob = !!(LOB.id && LOB.members.has(v.u));
+  if (!inLob && (G.spectator || !voiceWorldOn() || !REMOTE[v.u])) return;   // in der Welt nur sichtbare Spieler (nie ein unsichtbarer Zuschauer)
   const uid = v.u;
   if (v.k !== 'bye') VOICE.rst.set(uid, (v.s | 0) & 3);
   if (v.k === 'st') VOICE.ready.set(uid, v.sid);
@@ -23894,18 +24020,24 @@ function updateVoice(dt) {
   if (want) VOICE.offT = 0; else VOICE.offT = (VOICE.offT || 0) + dt;
   if (want && !VOICE.begun && !VOICE.declined) voiceBegin();
   if (!want && (VOICE.begun || VOICE.on) && (VOICE.offT > 2 || G.state === 'menu' || G.spectator)) { voiceEnd(); VOICE.declined = false; }
-  if (!MODFX.voiceChat) VOICE.declined = false;
+  if (!voiceWanted()) VOICE.declined = false;
   if (!VOICE.on) return;
   const me = NET.uid();
-  // eine andere Welt / kein Multiplayer mehr: alles neu
-  if (VOICE.base !== MP.base) { for (const uid of [...VOICE.peers.keys()]) voiceClosePeer(uid); VOICE.ready.clear(); VOICE.hiTo.clear(); VOICE.base = MP.base; }
+  // eine andere Welt / kein Multiplayer mehr: neu verbinden (nur die Lobby bleibt verbunden)
+  if (VOICE.base !== MP.base) {
+    for (const uid of [...VOICE.peers.keys()]) if (!(LOB.id && LOB.members.has(uid))) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
+    VOICE.base = MP.base; VOICE.stSent = '';
+  }
   VOICE.t -= dt;
   // erst wenn die Welt fertig geladen ist, kommen Nachrichten an (auf Servern dauert das länger)
-  if (VOICE.t <= 0 && voiceCanSend()) {
+  if (VOICE.t <= 0 && (voiceCanSend() || LOB.id)) {
     VOICE.t = 1;
     const now = performance.now();
     voiceStatus();
-    for (const uid in REMOTE) {
+    const want = new Set();
+    if (voiceWorldOn() && voiceCanSend()) for (const uid in REMOTE) want.add(uid);
+    if (LOB.id) for (const uid of LOB.members.keys()) want.add(uid);
+    for (const uid of want) {
       // „hallo, ich habe Sprachchat“: bis der andere antwortet, alle 6 Sekunden nochmal (höchstens 8-mal)
       const h = VOICE.hiTo.get(uid);
       if (!h || (!VOICE.ready.has(uid) && now - h.t > 6000 && h.n < 8)) { VOICE.hiTo.set(uid, { t: now, n: h ? h.n + 1 : 1, f: h ? h.f : now }); voiceHi(uid); }
@@ -23915,15 +24047,15 @@ function updateVoice(dt) {
       // klappt es nicht: nochmal versuchen, erst schnell, dann jede Minute (Netze ändern sich)
       else if ((p.state === 'fail' || (p.state === 'wait' && now - p.t > 25000)) && now - (p.failT || p.t) > (p.tries < 4 ? 6000 : 60000)) voiceOffer(uid);
     }
-    for (const uid of [...VOICE.peers.keys()]) if (!REMOTE[uid]) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
-    for (const uid of [...VOICE.hiTo.keys()]) if (!REMOTE[uid]) VOICE.hiTo.delete(uid);
+    for (const uid of [...VOICE.peers.keys()]) if (!want.has(uid)) { voiceClosePeer(uid); VOICE.ready.delete(uid); VOICE.hiTo.delete(uid); }
+    for (const uid of [...VOICE.hiTo.keys()]) if (!want.has(uid)) VOICE.hiTo.delete(uid);
   }
   // wie laut: nach Entfernung, und wer gerade spricht
   const now = performance.now();
   for (const p of VOICE.peers.values()) {
     const r = REMOTE[p.uid];
     let f = 1;
-    if (VOICE.cfg.range === 'near' && r) {
+    if (VOICE.cfg.range === 'near' && r && !(LOB.id && LOB.members.has(p.uid))) {
       const d = Math.hypot(r.x - PL.x, r.y - PL.y, r.z - PL.z);
       const k = clamp(1 - (d - 10) / 80, 0, 1);
       f = k * k * (3 - 2 * k);
@@ -23991,6 +24123,7 @@ function bindVoice() {
   $('voSpk').addEventListener('change', () => { VOICE.cfg.spk = $('voSpk').value; voiceSaveCfg(); for (const p of VOICE.peers.values()) if (p.audio.setSinkId) p.audio.setSinkId(VOICE.cfg.spk).catch(() => { }); });
   $('voVol').addEventListener('input', () => { VOICE.cfg.vol = clamp(+$('voVol').value / 100, 0, 1); voiceSaveCfg(); });
   $('voRange').addEventListener('change', () => { VOICE.cfg.range = $('voRange').value === 'all' ? 'all' : 'near'; voiceSaveCfg(); });
+  $('voLobPhone').addEventListener('click', () => { VOICE.cfg.lobbyPhone = !VOICE.cfg.lobbyPhone; voiceSaveCfg(); $('voLobPhone').setAttribute('aria-checked', String(!!VOICE.cfg.lobbyPhone)); });
   $('voRevoke').addEventListener('click', async () => {
     const ok = await UI.confirm({ title: 'Sprachchat ausschalten?', text: 'Der Sprachchat geht sofort aus und deine Zustimmung wird zurückgenommen. Willst du ihn wieder, tippst du auf den Mikrofon-Knopf oben.', yes: 'Ausschalten' });
     $('mdlVoice').hidden = false;
@@ -24499,6 +24632,223 @@ function bindPing() {
   }, { capture: true, passive: true });
 }
 
+/* ---- 19xf_vlobby.js ---- */
+/* =========================================================================
+   Sprach-Lobbys (gehören zur Sprachchat-Mod): ein Fenster im Hauptmenü links
+   neben „Server“ (am PC und auf dem Tablet; am Handy nur, wenn man es in den
+   Sprachchat-Einstellungen einschaltet). Lobbys erstellen (mit oder ohne
+   Passwort), beitreten, schon im Hauptmenü miteinander reden. Wer in derselben
+   Lobby ist, hört sich überall: im Menü, in verschiedenen Welten, auf
+   verschiedenen Servern. In der Welt hört man zusätzlich die Spieler dort
+   (die hören aber die Lobby nicht, jeder ist nur mit dir verbunden).
+   Das Passwort prüft Firebase selbst (vlob/key ist für niemanden lesbar,
+   der eingegebene Hash steht unter vlob/pass/<lobby>/<du>).
+   ========================================================================= */
+const LOB = { id: null, name: '', members: new Map(), list: [], counts: {}, refs: [], listRefs: [], busy: false, ask: null, err: '', creating: false, joinT: 0 };
+const LOB_KEY = 'bloodmoon-vlobby';
+function voiceInstalled() { try { return MODS.installedIds().includes('voice') && !MODS.hidden('voice'); } catch (e) { return false; } }
+function lobPhone() { return touchUI() && Math.min(screen.width || innerWidth, screen.height || innerHeight) < 600; }
+function lobWidgetOn() { return voiceInstalled() && !!NET.uid() && (!lobPhone() || !!VOICE.cfg.lobbyPhone); }
+function lobSaved() { try { return JSON.parse(localStorage.getItem(LOB_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function lobSave(o) { try { localStorage.setItem(LOB_KEY, JSON.stringify(o)); } catch (e) { /* ignore */ } }
+async function lobHash(lid, pw) {
+  const data = new TextEncoder().encode('bm-vlob:' + lid + ':' + pw);
+  const h = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ---------- beitreten, verlassen, erstellen ---------- */
+async function lobCreate(name, pw) {
+  name = String(name || '').trim().slice(0, 30);
+  if (!name) { LOB.err = 'Gib der Lobby einen Namen.'; lobRender(); return; }
+  if (LOB.busy) return;
+  LOB.busy = true; LOB.err = ''; lobRender();
+  try {
+    const ref = NET.db.ref('vlob/pub').push();
+    const lid = ref.key;
+    await ref.set({ name, owner: NET.uid(), oname: NET.name, pw: !!pw, at: NET.TS() });
+    if (pw) await NET.db.ref('vlob/key/' + lid).set(await lobHash(lid, pw));
+    LOB.creating = false;
+    LOB.busy = false;
+    await lobJoin(lid, pw || null);
+  } catch (e) { LOB.err = 'Lobby konnte nicht erstellt werden. ' + netMsg(e); }
+  LOB.busy = false; lobRender(); lobListLoad();
+}
+async function lobJoin(lid, pw) {
+  if (LOB.busy) return;
+  const info = LOB.list.find((l) => l.id === lid) || (await NET.db.ref('vlob/pub/' + lid).once('value')).val();
+  if (!info) { LOB.err = 'Diese Lobby gibt es nicht mehr.'; lobRender(); return; }
+  LOB.busy = true; LOB.err = ''; lobRender();
+  if (LOB.id) await lobLeave(true);
+  const me = NET.uid(), saved = lobSaved();
+  try {
+    if (info.pw) {
+      // einmal eingegeben: der Hash steht bei dir (und in Firebase) und muss nicht nochmal getippt werden
+      const h = pw ? await lobHash(lid, pw) : (saved.pw && saved.pw[lid]) || null;
+      if (!h) { LOB.ask = lid; LOB.busy = false; lobRender(); return; }
+      await NET.db.ref('vlob/pass/' + lid + '/' + me).set(h);
+      saved.pw = saved.pw || {}; saved.pw[lid] = h;
+    }
+    const mref = NET.db.ref('vlob/m/' + lid + '/' + me);
+    mref.onDisconnect().remove();
+    await mref.set({ n: NET.name || 'Spieler', at: NET.TS() });
+  } catch (e) {
+    LOB.busy = false;
+    if (info.pw && /PERMISSION|permission/.test(String(e && (e.code || e.message)))) {
+      if (saved.pw) { delete saved.pw[lid]; lobSave(saved); }
+      LOB.ask = lid; LOB.err = 'Falsches Passwort.';
+    } else LOB.err = 'Beitreten ging nicht. ' + netMsg(e);
+    lobRender(); return;
+  }
+  saved.last = lid; lobSave(saved);
+  LOB.id = lid; LOB.name = info.name || 'Lobby'; LOB.ask = null; LOB.members.clear();
+  // wer ist drin
+  const mr = NET.db.ref('vlob/m/' + lid);
+  const onM = (s) => {
+    const v = s.val() || {};
+    LOB.members.clear();
+    for (const u in v) if (u !== me) LOB.members.set(u, { n: String((v[u] && v[u].n) || 'Spieler').slice(0, 24) });
+    if (!v[me] && LOB.id === lid && !LOB.leaving) { mr.child(me).set({ n: NET.name || 'Spieler', at: NET.TS() }).catch(() => { }); }
+    lobRender();
+  };
+  mr.on('value', onM); LOB.refs.push([mr, 'value', onM]);
+  // Nachrichten für den Sprachchat an dich
+  const sr = NET.db.ref('vlob/sig/' + lid + '/' + me);
+  sr.remove().catch(() => { });
+  const onS = (s) => {
+    const v = s.val(); sr.child(s.key).remove().catch(() => { });
+    if (!v || LOB.id !== lid || !v.u || v.u === me) return;
+    voiceOnSignal(v);
+  };
+  sr.on('child_added', onS); LOB.refs.push([sr, 'child_added', onS]);
+  LOB.busy = false;
+  UI.toast('🎙️ Du bist in der Lobby „' + LOB.name + '“.' + (voiceConsented() ? '' : ' Erlaube zuerst den Sprachchat.'), 'good', 3200, 'vlob');
+  lobRender();
+}
+async function lobLeave(quiet) {
+  const lid = LOB.id; if (!lid) return;
+  LOB.leaving = true;
+  // ein letztes „tschüss“ an alle in der Lobby
+  if (VOICE.on) for (const u of LOB.members.keys()) lobSig(u, { k: 'bye', sid: VOICE.sid, s: 0 });
+  for (const [r, ev, cb] of LOB.refs) r.off(ev, cb);
+  LOB.refs = [];
+  const me = NET.uid();
+  try { NET.db.ref('vlob/m/' + lid + '/' + me).onDisconnect().cancel(); await NET.db.ref('vlob/m/' + lid + '/' + me).remove(); } catch (e) { /* ignore */ }
+  const gone = [...LOB.members.keys()];
+  LOB.id = null; LOB.name = ''; LOB.members.clear(); LOB.leaving = false;
+  // Verbindungen zu Leuten, die nur in der Lobby waren, abbauen
+  for (const u of gone) if (!REMOTE[u]) { voiceClosePeer(u); VOICE.ready.delete(u); VOICE.hiTo.delete(u); VOICE.rst.delete(u); }
+  const s = lobSaved(); if (!quiet) { delete s.last; lobSave(s); }
+  if (!quiet) UI.toast('Lobby verlassen.', 'info', 1600, 'vlob');
+  lobRender();
+}
+async function lobDelete(lid) {
+  const ok = await UI.confirm({ title: 'Lobby löschen?', text: 'Die Lobby verschwindet für alle.', yes: 'Löschen' });
+  if (!ok) return;
+  if (LOB.id === lid) await lobLeave();
+  try { await NET.db.ref('vlob/key/' + lid).remove().catch(() => { }); await NET.db.ref('vlob/pub/' + lid).remove(); } catch (e) { UI.toast('Löschen ging nicht. ' + netMsg(e), 'warn', 3000); }
+  lobListLoad();
+}
+/* eine Nachricht für den Sprachchat an einen in der Lobby */
+function lobSig(to, o) {
+  if (!LOB.id || !NET.uid()) return;
+  const m = Object.assign({}, o, { u: NET.uid() });
+  delete m.t;
+  NET.db.ref('vlob/sig/' + LOB.id + '/' + to).push().set(m).catch(() => { });
+}
+
+/* ---------- die Liste der Lobbys (nur, solange das Fenster zu sehen ist) ---------- */
+function lobListOn(on) {
+  if (on && !LOB.listRefs.length && NET.uid()) {
+    const pr = NET.db.ref('vlob/pub'), mr = NET.db.ref('vlob/m');
+    const onP = (s) => { const v = s.val() || {}; LOB.list = Object.keys(v).map((id) => Object.assign({ id }, v[id])).filter((l) => l && typeof l.name === 'string').sort((a, b) => (b.at || 0) - (a.at || 0)); lobRender(); };
+    const onC = (s) => { const v = s.val() || {}; LOB.counts = {}; for (const id in v) LOB.counts[id] = Object.values(v[id] || {}).map((x) => String((x && x.n) || '')); lobRender(); };
+    pr.on('value', onP); mr.on('value', onC);
+    LOB.listRefs = [[pr, 'value', onP], [mr, 'value', onC]];
+  } else if (!on && LOB.listRefs.length) {
+    for (const [r, ev, cb] of LOB.listRefs) r.off(ev, cb);
+    LOB.listRefs = [];
+  }
+}
+function lobListLoad() { if (LOB.listRefs.length) return; lobListOn(true); }
+
+/* ---------- das Fenster im Hauptmenü ---------- */
+function lobRender() {
+  const box = $('menuVlob'); if (!box) return;
+  const show = G.state === 'menu' && !$('scrMenu').hidden && lobWidgetOn();
+  box.hidden = !show;
+  lobListOn(show);
+  if (!show) return;
+  const L = $('vlBody');
+  const esc2 = (s) => esc(String(s || ''));
+  let h = '';
+  if (LOB.id) {
+    const me = (VOICE.on ? (VOICE.muted ? '🔇 stumm' : (VOICE.lv && VOICE.lv.read() > 0.12 ? '🗣️ spricht' : '🎤 an')) : 'Sprachchat startet …');
+    h += '<div class="vl-cur"><div class="vl-ch"><b>🔊 ' + esc2(LOB.name) + '</b><button class="btn ghost" data-a="leave" type="button">Verlassen</button></div>';
+    h += '<div class="vl-mem"><span class="vl-me">Du · ' + me + '</span>';
+    for (const [u, m] of LOB.members) {
+      const p = VOICE.peers.get(u), rs = VOICE.rst.get(u) || 0;
+      const st = !VOICE.ready.has(u) ? 'kein Sprachchat an' : p && p.state === 'ok' ? (voiceSpeaking(u) ? '🗣️ spricht' : (rs & 1 ? '🔇 stumm' : 'verbunden')) : p && p.state === 'fail' ? 'keine Verbindung' : 'verbindet …';
+      h += '<span class="' + (voiceSpeaking(u) ? 'talk' : '') + '">' + esc2(m.n) + ' · ' + st + '</span>';
+    }
+    if (!LOB.members.size) h += '<span class="vl-empty">Noch niemand sonst hier. Lade Freunde ein, dieser Lobby beizutreten.</span>';
+    if (VOICE.declined) h += '</div><div class="vl-btns"><button class="btn primary" data-a="allow" type="button">🎙️ Sprachchat erlauben</button>';
+    h += '</div><div class="vl-btns"><button class="btn" data-a="mute" type="button">' + (VOICE.on && !VOICE.muted ? '🎤 Stumm' : '🎤 Mikro an') + '</button><button class="btn" data-a="deaf" type="button">' + (VOICE.deaf ? '🔈 Hören an' : '🔇 Nichts hören') + '</button>' + (VOICE.on ? '<button class="btn ghost" data-a="setup" type="button" title="Mikrofon und Lautsprecher">⚙️</button>' : '') + '</div></div>';
+  }
+  if (LOB.creating) {
+    h += '<form class="vl-new" data-f="new"><input class="field" name="n" maxlength="30" placeholder="Name der Lobby"><input class="field" name="p" maxlength="40" type="password" placeholder="Passwort (leer = ohne)" autocomplete="new-password"><div class="vl-btns"><button class="btn primary" type="submit">Erstellen</button><button class="btn ghost" data-a="cancel" type="button">Abbrechen</button></div></form>';
+  }
+  if (LOB.ask) {
+    const l = LOB.list.find((q) => q.id === LOB.ask);
+    h += '<form class="vl-new" data-f="pw"><b>🔒 ' + esc2(l ? l.name : 'Lobby') + '</b><input class="field" name="p" maxlength="40" type="password" placeholder="Passwort" autocomplete="off"><div class="vl-btns"><button class="btn primary" type="submit">Beitreten</button><button class="btn ghost" data-a="cancel" type="button">Abbrechen</button></div></form>';
+  }
+  if (LOB.err) h += '<p class="vl-err">' + esc2(LOB.err) + '</p>';
+  const others = LOB.list.filter((l) => l.id !== LOB.id);
+  if (!others.length && !LOB.id && !LOB.creating) h += '<p class="ms-empty">Noch keine Lobbys. Erstell eine, dann können deine Freunde beitreten und ihr redet überall miteinander, auch in verschiedenen Welten.</p>';
+  for (const l of others) {
+    const ms = LOB.counts[l.id] || [];
+    h += '<div class="ms-row vl-row"><i class="' + (ms.length ? 'ms-on' : 'ms-off') + '"></i><div class="ms-m"><b>' + (l.pw ? '🔒 ' : '') + esc2(l.name) + '</b><span>' + (ms.length ? esc2(ms.slice(0, 4).join(', ')) + (ms.length > 4 ? ' +' + (ms.length - 4) : '') : 'leer') + ' · von ' + esc2(l.oname) + '</span></div><button class="btn primary" data-a="join" data-id="' + esc2(l.id) + '" type="button">Beitreten</button>' + (l.owner === NET.uid() || isOwner() ? '<button class="btn ghost" data-a="del" data-id="' + esc2(l.id) + '" type="button" title="Lobby löschen">✕</button>' : '') + '</div>';
+  }
+  if (L.dataset.h !== h) {
+    const f = document.activeElement && L.contains(document.activeElement) && document.activeElement.tagName === 'INPUT';
+    if (f) return;   // nicht neu zeichnen, während jemand tippt
+    L.innerHTML = h; L.dataset.h = h;
+  }
+}
+function bindVlobby() {
+  const box = $('menuVlob'); if (!box) return;
+  $('vlNew').addEventListener('click', () => { LOB.creating = !LOB.creating; LOB.ask = null; LOB.err = ''; lobRender(); if (LOB.creating) setTimeout(() => { const i = box.querySelector('[data-f="new"] input'); if (i) i.focus(); }, 30); });
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const a = b.dataset.a;
+    if (a === 'join') lobJoin(b.dataset.id);
+    else if (a === 'leave') lobLeave();
+    else if (a === 'del') lobDelete(b.dataset.id);
+    else if (a === 'cancel') { LOB.creating = false; LOB.ask = null; LOB.err = ''; lobRender(); }
+    else if (a === 'mute') { if (VOICE.on) voiceSetMute(!VOICE.muted); }
+    else if (a === 'deaf') { if (VOICE.on) voiceSetDeaf(!VOICE.deaf); }
+    else if (a === 'allow') { VOICE.declined = false; VOICE.begun = false; }
+    else if (a === 'setup') UI.openVoiceSetup();
+    SFX.ui();
+  });
+  box.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target, kind = f.dataset.f;
+    const n = f.querySelector('[name="n"]'), p = f.querySelector('[name="p"]');
+    if (kind === 'new') lobCreate(n && n.value, p && p.value);
+    else if (kind === 'pw' && LOB.ask) { const lid = LOB.ask; LOB.ask = null; lobJoin(lid, p ? p.value : ''); }
+  });
+  // gleich wieder in die Lobby von vorhin (nach dem Neuladen)
+  setInterval(() => {
+    lobRender();
+    if (!LOB.id && !LOB.busy && NET.uid() && voiceInstalled() && performance.now() - LOB.joinT > 20000) {
+      const s = lobSaved();
+      if (s.last) { LOB.joinT = performance.now(); lobJoin(s.last).catch(() => { }); }
+    }
+    if (LOB.id && !voiceInstalled()) lobLeave();
+  }, 1000);
+}
+
 /* ---- 19y_creative.js ---- */
 /* =========================================================================
    Kreativ-Menü (nur mit einer Mod, die mod.set('creativeMenu', true) setzt,
@@ -24621,7 +24971,7 @@ function bindCreative() {
    von selbst, mit W (vorwärts) schiebst du ein wenig an.
    ========================================================================= */
 const RAIL_D = [[0, 1], [1, 0], [0, -1], [-1, 0]];   // 0: +z, 1: +x, 2: -z, 3: -x
-const CART = { g: 9.8 * 0.72, max: 30, boost: 10, boostAcc: 16, sendT: 0, lastSend: '' };
+const CART = { g: 9.8 * 0.72, max: 26, boostTo: 22, boostAcc: 9, boostTime: 1.6, sendT: 0, lastSend: '', fovK: 0 };
 function isRail(id) { return id === B.RAIL || id === B.SPEED_RAIL; }
 function railAt(x, y, z) { return isRail(getB(x, y, z)); }
 
@@ -24791,10 +25141,11 @@ function cartStep(c, dt) {
   sh = railShape(c.cx, c.cy, c.cz);
   // bergab schneller, bergauf langsamer
   if (sh.up >= 0) { if (sh.up === c.b) c.s -= CART.g * dt; else if (sh.up === c.a) c.s += CART.g * dt; }
-  // Speed-Schiene: Schub
-  if (sh.speed) { c.s = Math.max(c.s, CART.boost); c.s = Math.min(CART.max, c.s + CART.boostAcc * dt); c.boosted = true; }
+  // Speed-Schiene: der Schub hält noch etwas an, so wird der Wagen sanft (nicht auf einen Schlag) schnell
+  if (sh.speed) { c.boostT = CART.boostTime; c.boosted = true; if (c.s < 2) c.s = 2; }
+  if (c.boostT > 0) { c.boostT -= dt; if (c.s < CART.boostTo) c.s = Math.min(CART.boostTo, c.s + CART.boostAcc * dt * (0.6 + 0.4 * (1 - c.s / CART.boostTo))); }
   // normale Schienen bremsen kaum (nach einem Schub bleibt er schnell)
-  else if (sh.up < 0) c.s -= (0.12 + c.s * 0.015) * dt * (c.rider ? 1 : 3);
+  else if (sh.up < 0 && !sh.speed) c.s -= (0.12 + c.s * 0.015) * dt * (c.rider ? 1 : 3);
   if (c.s < 0) { if (sh.up >= 0) cartReverse(c); else c.s = 0; }
   c.s = Math.min(CART.max, c.s);
   let move = c.s * dt;
@@ -24851,7 +25202,11 @@ function drawCarts(t) {
     const sky = skyAt(c.x, c.y + 0.5, c.z);
     const ms = _oms, S = BATCH.solid;
     const ir = [0.55, 0.57, 0.6], dk = [0.32, 0.33, 0.36], wh = [0.18, 0.18, 0.2];
-    ms.reset().t(c.x, c.y + 0.12, c.z).ry(c.yaw || 0).rx(-(c.pitch || 0));
+    // die Richtung sanft nachführen (in Kurven dreht er sich weich)
+    if (c.dyaw === undefined) c.dyaw = c.yaw || 0;
+    c.dyaw += wrapAngle((c.yaw || 0) - c.dyaw) * 0.25;
+    c.dpitch = (c.dpitch || 0) + ((c.pitch || 0) - (c.dpitch || 0)) * 0.25;
+    ms.reset().t(c.x, c.y + 0.12, c.z).ry(c.dyaw).rx(-c.dpitch);
     S.box(ms.m, 0.82, 0.08, 1.06, 0, 0.12, 0, dk[0], dk[1], dk[2], 0, sky);
     S.box(ms.m, 0.08, 0.5, 1.06, -0.41, 0.4, 0, ir[0], ir[1], ir[2], 0, sky);
     S.box(ms.m, 0.08, 0.5, 1.06, 0.41, 0.4, 0, ir[0], ir[1], ir[2], 0, sky);
@@ -24862,6 +25217,19 @@ function drawCarts(t) {
     // nach einem Schub glüht er ein bisschen
     if (c.boosted && (c.s || 0) > 12) S.box(ms.m, 0.5, 0.04, 0.5, 0, 0.17, -0.2, RAIL_COL.speed[0], RAIL_COL.speed[1], RAIL_COL.speed[2], 0.8, 1);
   }
+}
+
+/* der nächste Minenwagen, in den man einsteigen kann */
+function nearCart() {
+  let best = null, bd = 2.6;
+  for (const c of cartsOf()) { const d = Math.hypot(c.x - PL.x, c.y + 0.4 - PL.y - 0.9, c.z - PL.z); if (d < bd) { bd = d; best = c; } }
+  return best;
+}
+/* wie weit das Sichtfeld wegen der Geschwindigkeit aufgeht (0..1), sanft */
+function cartFov(dt) {
+  const c = PL.cart, want = c ? clamp(((c.s || 0) - 6) / 16, 0, 1) : 0;
+  CART.fovK += (want - CART.fovK) * Math.min(1, dt * 2.2);
+  return CART.fovK * CART.fovK * (3 - 2 * CART.fovK);
 }
 
 /* ---------- mit den anderen ---------- */
