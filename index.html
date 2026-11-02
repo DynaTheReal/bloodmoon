@@ -622,9 +622,21 @@ select.field { appearance: auto; }
 .cos-streak { color: #ffc531 !important; }
 .cos-pts { margin: 0 0 12px; font-weight: 800; color: var(--muted); } .cos-pts b { color: #ffc531; font-size: 1.2em; }
 .cos-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 10px; }
-.cos-box { display: grid; justify-items: center; gap: 4px; padding: 14px 12px; border-radius: 18px; border: 2px solid var(--bc); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--bc) 28%, transparent), rgba(255,255,255,0.02) 70%); text-align: center; }
-.cos-box canvas { width: 110px; height: 110px; animation: cosBob 2.6s ease-in-out infinite; }
-.cos-box b { font-size: 16px; } .cos-box small { color: var(--muted); font-weight: 800; }
+.cos-box { position: relative; display: grid; justify-items: center; gap: 4px; padding: 0 12px 14px; border-radius: 20px; border: 2px solid var(--bc); background: linear-gradient(180deg, color-mix(in srgb, var(--bc) 22%, #15131c), #100e16); text-align: center; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 22px color-mix(in srgb, var(--bc) 30%, transparent); transition: transform 0.15s; }
+.cos-box:not(.poor):hover { transform: translateY(-4px); }
+.cos-box-art { position: relative; width: calc(100% + 24px); height: 150px; margin-bottom: 6px; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--bc) 75%, #fff) 0%, var(--bc) 38%, color-mix(in srgb, var(--bc) 45%, #000) 100%); }
+.cos-box-rays { position: absolute; left: 50%; top: 55%; width: 340px; height: 340px; margin: -170px 0 0 -170px; background: repeating-conic-gradient(rgba(255,255,255,0.22) 0 10deg, transparent 10deg 24deg); animation: cosSpinR 14s linear infinite; }
+@keyframes cosSpinR { to { transform: rotate(360deg); } }
+.cos-box-gift { position: relative; font-size: 86px; line-height: 1; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.35)); animation: cosGift 2.2s ease-in-out infinite; }
+@keyframes cosGift { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg) scale(1.05); } }
+.cos-box-b1 .cos-box-gift { filter: hue-rotate(200deg) saturate(1.2) drop-shadow(0 8px 6px rgba(0,0,0,0.35)); }
+.cos-box-b2 .cos-box-gift { filter: hue-rotate(255deg) saturate(1.3) drop-shadow(0 8px 6px rgba(0,0,0,0.35)); }
+.cos-box-b3 .cos-box-gift { filter: hue-rotate(40deg) saturate(1.6) brightness(1.15) drop-shadow(0 0 14px rgba(255, 220, 90, 0.9)); }
+.cos-box-shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%); background-size: 250% 100%; animation: cosShine 2.6s linear infinite; }
+.cos-box b { font-size: 17px; } .cos-box small { color: var(--muted); font-weight: 800; }
+.cos-box .btn { width: 100%; }
+.cos-box.poor .cos-box-art { filter: grayscale(0.7) brightness(0.65); }
+.cos-box.poor .cos-box-gift, .cos-box.poor .cos-box-rays, .cos-box.poor .cos-box-shine { animation: none; }
 .cos-box-r { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 4px 0 8px; }
 .cos-box-r span { font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 99px; background: var(--rc); color: #fff; }
 .cos-box-r .r-l { color: #4a3000; background: linear-gradient(90deg, #ffc531, #fff3b0, #ffc531); }
@@ -2238,8 +2250,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.49.0';
+const GAME_VERSION = '2.49.1';
 const GAME_NOTES = [
+  ['2.49.1', 'Die Tage-Erfolge (50, 100, 250) zählen jetzt auch, wenn du in einer Welt oder auf einem Server bist, die schon so weit ist, z. B. auf einem Server an Tag 60. Kreativ und Unsterblichkeit zählen weiter nicht. Die Kosmetik-Boxen im Shop sehen neu aus: großes Geschenk 🎁 in der Farbe der Box, das wippt, mit drehenden Strahlen und Glanz; die Mega-Box leuchtet golden.'],
   ['2.49.0', 'Erfolge sind jetzt sehr schwer: z. B. 50, 100 oder 250 Tage am Stück überleben, ohne zu sterben, 10 oder 25 Blood Moons hintereinander, 10.000 Zombies, 200 Stunden Spielzeit, alle vier Rubin-Werkzeuge gleichzeitig. Kreativ und Unsterblichkeit zählen nicht. Jeder Erfolg gibt 1 Erfolgspunkt. Neu im Menü Erfolge: der Shop mit Kosmetik-Boxen (Kosmetik-Box 1 Punkt, Super-Box 3, Mega-Box 6). Beim Öffnen kommt im Vollbild der Glücksdreh: eine gebogene Reihe großer Karten saust unter dem Pin durch und bleibt langsam stehen, danach kommt die große Meldung COMMON, RARE!, EPIC!, MYTHIC!! oder LEGENDARY!!! mit Konfetti, direkt anziehen oder nochmal öffnen.'],
   ['2.48.0', 'Erfolge, Glücksrad und Kosmetik: Erfolge zählen in allen Welten (z. B. Überlebe 50 Tage), jeder gibt einen Dreh am Glücksrad (Common, Rare, Epic, Mythic, Legendary). Zu gewinnen: Flügel, Mini-Schaf und mehr auf dem Kopf, Partikel, Schwert- und Spitzhacken-Skins und Schwert-Hiebe, andere Spieler sehen sie. Neu: Schilder (an die Wand oder mit Stab auf den Boden, mit Text), Rubinspitzhacke und Rubinschaufel, ein Kristallapfel macht 5 Minuten immun gegen das Gift. Normale Wegpunkte teilen sich jetzt alle Spieler einer Welt.'],
   ['2.47.0', 'Riesige Höhlen sind zurück: hinter dem Schattenwald liegt selten (in etwa 6 % der Gegend) eine weite Höhlenlandschaft mit Säulen und Lava am Boden, an einigen Stellen führt ein großes Loch hinunter. Nur in Gegenden, in denen du noch nie warst (deine Bauten bleiben, wie sie sind).'],
@@ -26098,9 +26111,9 @@ const COS_BY = {}; for (const c of COS_LIST) COS_BY[c.id] = c;
 /* ---------- Erfolge (absichtlich sehr schwer) ---------- */
 const RUBY_TOOLS = ['sword4', 'axe4', 'pickaxe4', 'shovel4'];
 const ACH = [
-  { id: 'd50', name: 'Überlebe 50 Tage', desc: '50 Tage am Stück, ohne ein einziges Mal zu sterben.', n: () => COS.st.best, goal: 50 },
-  { id: 'd100', name: 'Überlebe 100 Tage', desc: '100 Tage am Stück, ohne zu sterben.', n: () => COS.st.best, goal: 100 },
-  { id: 'd250', name: 'Unsterblich', desc: '250 Tage am Stück, ohne zu sterben.', n: () => COS.st.best, goal: 250 },
+  { id: 'd50', name: 'Überlebe 50 Tage', desc: 'Sei in einer Welt oder auf einem Server an Tag 50 (oder überlebe 50 Tage am Stück).', n: () => cosDayN(), goal: 50 },
+  { id: 'd100', name: 'Überlebe 100 Tage', desc: 'Sei in einer Welt oder auf einem Server an Tag 100 (oder überlebe 100 Tage am Stück).', n: () => cosDayN(), goal: 100 },
+  { id: 'd250', name: 'Unsterblich', desc: 'Sei in einer Welt oder auf einem Server an Tag 250 (oder überlebe 250 Tage am Stück).', n: () => cosDayN(), goal: 250 },
   { id: 'bm10', name: 'Herr der Blutmonde', desc: '10 Blood Moons hintereinander überleben, ohne zu sterben.', n: () => COS.st.bestBlood, goal: 10 },
   { id: 'bm25', name: 'Der Mond fürchtet dich', desc: '25 Blood Moons hintereinander überleben, ohne zu sterben.', n: () => COS.st.bestBlood, goal: 25 },
   { id: 'k2500', name: 'Zombieschreck', desc: 'Besiege 2.500 Zombies.', n: () => COS.st.kills, goal: 2500 },
@@ -26113,13 +26126,20 @@ const ACH = [
   { id: 'ruby100', name: 'Schatzkammer', desc: 'Hab 100 Rubine auf einmal.', n: () => G.inv.ruby || 0, goal: 100 },
   { id: 'armor', name: 'Gepanzert', desc: 'Trag die beste Rüstung: alle vier Teile auf höchster Stufe.', n: () => ['helmet', 'chestplate', 'leggings', 'boots'].filter((k) => (G.tools[k] | 0) >= 3).length, goal: 4 },
 ];
+/* der Tag der Welt, in der du gerade lebst (auch auf Servern), oder deine längste Serie */
+function cosDayN() {
+  const inWorld = (G.state === 'playing' || G.state === 'inv' || G.state === 'paused') && cosFair() && !PL.dead;
+  const d = inWorld && G.time ? (G.time.day | 0) : 0;
+  if (d > (COS.st.maxDay | 0)) COS.st.maxDay = d;
+  return Math.max(COS.st.best, COS.st.maxDay | 0, d);
+}
 const ACH_IDS = new Set(ACH.map((a) => a.id));
 /* Kreativ, Unsterblichkeit oder Zuschauer zählen nicht */
 function cosFair() { return !G.spectator && !MODFX.godmode && !(typeof creativeOn === 'function' && creativeOn()); }
 
 const COS_KEY = 'bloodmoon-cos';
 const COS = {
-  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0 },
+  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0, maxDay: 0 },
   base: null, t: 0, saveT: 0, cloudT: 0, eqObj: null, eqStr: '',
   wheel: { prize: null, reveal: false, conf: [], flash: 0, flashCol: '#fff', col: '#fff' }, reel: null, fsOpen: false,
 };
@@ -26468,9 +26488,8 @@ function cosRenderShop() {
   const box = $('cosShop'); box.innerHTML = '';
   for (const bx of COS_BOX) {
     const can = cosSpins() >= bx.cost;
-    const el = document.createElement('div'); el.className = 'cos-box' + (can ? '' : ' poor'); el.style.setProperty('--bc', bx.col);
-    el.innerHTML = '<canvas width="160" height="160"></canvas><b></b><small></small><div class="cos-box-r"></div><button class="btn primary" type="button"></button>';
-    cosDrawBox(el.querySelector('canvas').getContext('2d'), bx, 160);
+    const el = document.createElement('div'); el.className = 'cos-box cos-box-' + bx.id + (can ? '' : ' poor'); el.style.setProperty('--bc', bx.col);
+    el.innerHTML = '<div class="cos-box-art"><i class="cos-box-rays"></i><span class="cos-box-gift">🎁</span><i class="cos-box-shine"></i></div><b></b><small></small><div class="cos-box-r"></div><button class="btn primary" type="button"></button>';
     el.querySelector('b').textContent = bx.name;
     el.querySelector('small').textContent = bx.sub;
     const rr = el.querySelector('.cos-box-r');
@@ -26481,19 +26500,6 @@ function cosRenderShop() {
     btn.addEventListener('click', () => cosBuyBox(bx));
     box.appendChild(el);
   }
-}
-/* eine Geschenk-Box als Bild */
-function cosDrawBox(ctx, bx, S) {
-  ctx.save(); ctx.clearRect(0, 0, S, S); ctx.scale(S / 64, S / 64);
-  const g = ctx.createRadialGradient(32, 34, 2, 32, 34, 30); g.addColorStop(0, cosAlpha(bx.col, 0.55)); g.addColorStop(1, cosAlpha(bx.col, 0));
-  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-  ctx.fillStyle = cosShade(bx.col, -0.25); ctx.fillRect(12, 28, 40, 26);
-  ctx.fillStyle = bx.col; ctx.fillRect(10, 20, 44, 10);
-  ctx.fillStyle = '#fff'; ctx.fillRect(29, 20, 6, 34);
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(10, 24, 44, 3);
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(25, 16, 7, 4.5, -0.5, 0, TAU); ctx.ellipse(39, 16, 7, 4.5, 0.5, 0, TAU); ctx.fill();
-  ctx.fillStyle = cosShade(bx.col, 0.3); ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText('?', 32, 48);
-  ctx.restore();
 }
 function cosBuyBox(bx) {
   if (COS.reel && COS.reel.run) return;
@@ -26538,7 +26544,7 @@ function cosReelOpen(bx) {
   const fs = $('cosFs'); fs.hidden = false; COS.fsOpen = true;
   fs.style.setProperty('--bc', bx.col);
   $('cosReveal').hidden = true; $('cosReveal').classList.remove('in');
-  $('cosFsTitle').textContent = 'GLÜCKSDREH';
+  $('cosFsTitle').textContent = '🎁 GLÜCKSDREH';
   $('cosFsSub').textContent = bx.name + ' · ' + bx.sub;
   const strip = $('cosStrip'); strip.innerHTML = '';
   cards.forEach((k, i) => {
