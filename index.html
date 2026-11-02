@@ -470,6 +470,8 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .poison-fx.strong { animation-duration: 1.6s; backdrop-filter: blur(1.2px) saturate(1.4) hue-rotate(35deg); -webkit-backdrop-filter: blur(1.2px) saturate(1.4) hue-rotate(35deg); }
 @keyframes poisonPulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
 .poison-chip { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; color: #b8ff8a; border-color: rgba(120, 220, 80, 0.5); }
+.immune-chip { color: #bfe6ff; border-color: rgba(120, 190, 255, 0.5); }
+.immune-chip i { background: #6fc3ff !important; box-shadow: 0 0 10px #6fc3ff !important; }
 .poison-chip i { width: 9px; height: 9px; border-radius: 50%; background: #6fe03a; box-shadow: 0 0 10px #6fe03a; }
 .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dl-card { display: grid; gap: 4px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); text-decoration: none; }
@@ -577,6 +579,48 @@ select.field { appearance: auto; }
 .wp-dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 10px currentColor; border: 2px solid rgba(0, 0, 0, 0.3); }
 .wp-empty, .wp-hint { color: var(--muted); font-size: 13px; }
 .wp-hint { margin-top: 12px; }
+.cos-sheet { max-width: 760px; }
+.ach-row { position: relative; display: flex; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.ach-row b { display: block; font-size: 14px; } .ach-row small { color: var(--muted); font-weight: 700; font-size: 12px; }
+.ach-row.ok { border-color: rgba(95, 214, 107, 0.5); background: rgba(95, 214, 107, 0.07); }
+.ach-chk { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; border: 2px solid var(--line); font-weight: 900; color: #fff; }
+.ach-row.ok .ach-chk, .ach-pop .ach-chk { background: #3fbf5a; border-color: #3fbf5a; }
+.ach-prog { font-weight: 900; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ach-row.ok .ach-prog { color: #7be38c; }
+.ach-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--p) * 100%); background: var(--ember); }
+.ach-pop { position: fixed; z-index: 90; left: 50%; top: 10px; transform: translate(-50%, -140%); display: flex; gap: 12px; align-items: center; padding: 10px 16px; min-width: 280px; border-radius: 14px; text-align: left; border: 1px solid rgba(255, 197, 49, 0.6); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 197, 49, 0.25); transition: transform 0.45s cubic-bezier(.2, 1.4, .4, 1); cursor: pointer; color: var(--text); }
+.ach-pop.on { transform: translate(-50%, 0); }
+.ach-pop small { display: block; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #ffc531; }
+.ach-pop b { display: block; font-size: 16px; } .ach-pop em { display: block; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 700; }
+.cos-wheel-wrap { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; }
+#cosWheel { width: min(360px, 82vw); height: auto; }
+.cos-side { display: grid; gap: 10px; justify-items: center; min-width: 190px; }
+.cos-prev { display: grid; justify-items: center; gap: 4px; padding: 12px; width: 180px; border-radius: 14px; border: 2px solid var(--line); background: rgba(255, 255, 255, 0.03); text-align: center; }
+.cos-prev canvas { width: 112px; height: 112px; }
+.cos-prev small { color: var(--muted); font-weight: 800; font-size: 12px; }
+.cos-prev.show.r-c { border-color: #8f949c; } .cos-prev.show.r-r { border-color: #3f7dff; box-shadow: 0 0 18px rgba(63, 125, 255, 0.35); }
+.cos-prev.show.r-e { border-color: #a24dff; box-shadow: 0 0 20px rgba(162, 77, 255, 0.4); } .cos-prev.show.r-m { border-color: #ff2f4a; box-shadow: 0 0 24px rgba(255, 47, 74, 0.45); }
+.cos-prev.show.r-l { border-color: #ffc531; box-shadow: 0 0 30px rgba(255, 197, 49, 0.6); background: linear-gradient(120deg, rgba(255, 197, 49, 0.08), rgba(255, 247, 200, 0.22), rgba(255, 197, 49, 0.08)); background-size: 200% 100%; animation: cosShine 1.6s linear infinite; }
+.cos-prev.boom { animation: cosBoom 0.6s ease-out; }
+@keyframes cosShine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes cosBoom { 0% { transform: scale(0.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.cos-spins { margin: 0; font-weight: 800; color: var(--muted); }
+.cos-leg { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 200px; }
+.cos-leg span { font-size: 10.5px; font-weight: 900; padding: 2px 7px; border-radius: 99px; color: #fff; }
+.r-c { --rc: #8f949c; } .r-r { --rc: #3f7dff; } .r-e { --rc: #a24dff; } .r-m { --rc: #ff2f4a; } .r-l { --rc: #ffc531; }
+.cos-leg span { background: var(--rc); } .cos-leg .r-l { color: #4a3000; background: linear-gradient(90deg, #ffc531, #fff3b0, #ffc531); }
+.cos-g { margin-bottom: 14px; }
+.cos-g > h4 { margin: 0 0 8px; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); }
+.cos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.cos-card { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; border: 2px solid var(--rc); background: rgba(255, 255, 255, 0.03); color: var(--text); text-align: center; }
+.cos-card canvas { width: 64px; height: 64px; }
+.cos-card b { font-size: 12px; line-height: 1.2; } .cos-card small { font-size: 10.5px; font-weight: 900; color: var(--rc); }
+.cos-card.locked { opacity: 0.45; border-style: dashed; cursor: default; }
+.cos-card.on { background: rgba(255, 255, 255, 0.12); box-shadow: 0 0 0 2px #fff inset; }
+.cos-card.r-l:not(.locked) { background: linear-gradient(120deg, rgba(255, 197, 49, 0.06), rgba(255, 247, 200, 0.2), rgba(255, 197, 49, 0.06)); background-size: 200% 100%; animation: cosShine 2.2s linear infinite; }
+#signtags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.signtag { position: absolute; left: 0; top: 0; width: 180px; margin-left: -90px; margin-top: -52px; height: 104px; display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre-wrap; word-break: break-word; font: 800 19px/1.2 system-ui, sans-serif; color: #2a1a0b; transform-origin: 50% 50%; }
+.sign-ta { width: 100%; min-height: 120px; resize: none; text-align: center; font: 700 18px/1.3 system-ui, sans-serif; background: #b98a55; color: #2a1a0b; border: 4px solid #7f5a33; border-radius: 8px; padding: 10px; }
 #wptags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .wptag { margin-left: -80px; width: 160px; display: grid; justify-items: center; gap: 1px; transform-origin: 50% 100%; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
 .wptag i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 8px var(--wc, #fff); order: 3; margin-top: 2px; }
@@ -1263,6 +1307,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="mp panel" id="mpChip" hidden><i class="mp-dot"></i><span id="mpTxt"></span></div>
     <div class="goal panel" id="goalBox"><span class="goal-k">Ziel</span><span class="goal-t" id="goalTxt"></span><span class="goal-dir" id="goalDir" hidden><svg viewBox="0 0 16 16" id="goalArrow" aria-hidden="true"><path d="M8 1.5 13.5 12 8 9.6 2.5 12Z" fill="currentColor"></path></svg><b id="goalDist"></b></span></div>
     <div class="poison-chip panel" id="poisonChip" hidden><i></i><span id="poisonTxt"></span></div>
+    <div class="poison-chip immune-chip panel" id="immuneChip" hidden><i></i><span id="immuneTxt"></span></div>
     <div class="goal tip panel" id="tipBox" hidden><span class="goal-k">Tipp</span><span class="goal-t" id="tipTxt"></span><button class="tip-x" id="tipX" type="button" aria-label="Tipp schließen">✕</button></div>
   </div>
   <div class="hud-tr">
@@ -1341,6 +1386,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button id="btnWorlds" class="btn" type="button">Welten</button>
       <button id="btnFriends" class="btn" type="button">Sozial<span class="badge" id="friendBadge" hidden>1</span></button>
       <button id="btnSkins" class="btn" type="button">Skins</button>
+      <button id="btnCos" class="btn" type="button">🏆 Erfolge<span class="badge" id="cosBadge" hidden>1</span></button>
       <button id="btnMods" class="btn" type="button">Mods</button>
       <button id="btnSrvToggle" class="btn tgl-btn" type="button" aria-pressed="true" title="Serverliste ein- oder ausblenden">Server</button>
       <button id="btnDownload" class="btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>App herunterladen</button>
@@ -1549,6 +1595,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     <div class="sheet-b"><div class="stack">
       <button class="btn primary" id="btnResume" type="button">Weiterspielen</button>
       <button class="btn" id="btnInv" type="button">Inventar</button>
+      <button class="btn" id="btnPauseCos" type="button">🏆 Erfolge &amp; Kosmetik<span class="badge" id="cosBadgeP" hidden>1</span></button>
       <button class="btn" id="btnPauseFriends" type="button">Sozial<span class="badge" id="pauseFriendBadge" hidden>1</span></button>
       <button class="btn" id="btnPauseSettings" type="button">Einstellungen</button>
       <button class="btn" id="btnPauseVoice" type="button" hidden>🎙️ Sprachchat</button>
@@ -1970,7 +2017,43 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <div class="row wp-opt"><div class="lbl">💀 Todespunkt<small>Wenn du stirbst, ein schwarzer Wegpunkt „Letzter Tod“. Er verschwindet, wenn du auf 10 Blöcke heran bist.</small></div><button class="tgl" id="wpDeath" type="button" role="switch" aria-checked="true" aria-label="Todespunkt"></button></div>
       <p class="sec-t">Deine Wegpunkte <small id="wpCount"></small></p>
       <div id="wpList"></div>
-      <p class="wp-hint">Taste P öffnet und schließt dieses Menü. Mit der Weltkarte (M) setzt du Wegpunkte auch weit weg, auch temporäre (⏱), die verschwinden, sobald du dort bist. Mit der Karte in der Hand: auf die Karte tippen (PC: Linksklick) setzt einen temporären Wegpunkt. Pingen: B (am Handy 🔔) und auf eine Stelle tippen, alle sehen ihn eine Minute lang.</p>
+      <p class="wp-hint">Taste P öffnet und schließt dieses Menü. Mit der Weltkarte (M) setzt du Wegpunkte auch weit weg, auch temporäre (⏱), die verschwinden, sobald du dort bist. Mit der Karte in der Hand: auf die Karte tippen (PC: Linksklick) setzt einen temporären Wegpunkt. Pingen: B (am Handy 🔔) und auf eine Stelle tippen, alle sehen ihn eine Minute lang. Normale Wegpunkte sehen alle Spieler in dieser Welt (Todespunkt und ⏱ nur du).</p>
+    </div>
+  </div>
+</div>
+
+<div id="mdlCos" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="cosTitle">
+  <div class="sheet panel cos-sheet">
+    <div class="sheet-h"><div class="grow"><h2 id="cosTitle">🏆 Erfolge &amp; Kosmetik</h2><p>Erfolge zählen in allen Welten. Jeder gibt dir einen Dreh am Glücksrad.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="tabs" id="cosTabs" role="tablist">
+      <button class="tab" role="tab" data-tab="ach" aria-selected="true" type="button">🏆 Erfolge <small id="cosAchN"></small></button>
+      <button class="tab" role="tab" data-tab="wheel" aria-selected="false" type="button">🎡 Glücksrad</button>
+      <button class="tab" role="tab" data-tab="items" aria-selected="false" type="button">✨ Kosmetik <small id="cosItemsN"></small></button>
+    </div>
+    <div class="sheet-b">
+      <div id="cosP_ach"><div id="cosAch"></div></div>
+      <div id="cosP_wheel" hidden>
+        <div class="cos-wheel-wrap">
+          <canvas id="cosWheel" width="360" height="360"></canvas>
+          <div class="cos-side">
+            <div class="cos-prev" id="cosPrevBox"><canvas id="cosPrev" width="128" height="128"></canvas><b id="cosPrevName">?</b><small id="cosPrevRar">Dreh am Rad!</small></div>
+            <p class="cos-spins">Drehungen übrig: <b id="cosSpinsN">0</b></p>
+            <button class="btn primary" id="cosSpinBtn" type="button">🎡 Drehen</button>
+            <div class="cos-leg"><span class="r-c">Common</span><span class="r-r">Rare</span><span class="r-e">Epic</span><span class="r-m">Mythic</span><span class="r-l">Legendary</span></div>
+          </div>
+        </div>
+      </div>
+      <div id="cosP_items" hidden><p class="shop-tip">Tipp etwas an, um es zu tragen (nochmal: ablegen). Andere Spieler sehen es auch.</p><div id="cosItems"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="mdlSign" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="signTitle">
+  <div class="sheet narrow panel">
+    <div class="sheet-h"><div class="grow"><h2 id="signTitle">🪧 Schild beschriften</h2><p>Bis zu 4 Zeilen, alle in der Welt können es lesen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-b">
+      <textarea class="sign-ta" id="signTxt" rows="4" maxlength="64" spellcheck="false" aria-label="Text auf dem Schild"></textarea>
+      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="signOk" type="button">Fertig</button></div>
     </div>
   </div>
 </div>
@@ -2106,8 +2189,10 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.46.4';
+const GAME_VERSION = '2.48.0';
 const GAME_NOTES = [
+  ['2.48.0', 'Erfolge, Glücksrad und Kosmetik: Erfolge zählen in allen Welten (z. B. Überlebe 50 Tage), jeder gibt einen Dreh am Glücksrad (Common, Rare, Epic, Mythic, Legendary). Zu gewinnen: Flügel, Mini-Schaf und mehr auf dem Kopf, Partikel, Schwert- und Spitzhacken-Skins und Schwert-Hiebe, andere Spieler sehen sie. Neu: Schilder (an die Wand oder mit Stab auf den Boden, mit Text), Rubinspitzhacke und Rubinschaufel, ein Kristallapfel macht 5 Minuten immun gegen das Gift. Normale Wegpunkte teilen sich jetzt alle Spieler einer Welt.'],
+  ['2.47.0', 'Riesige Höhlen sind zurück: hinter dem Schattenwald liegt selten (in etwa 6 % der Gegend) eine weite Höhlenlandschaft mit Säulen und Lava am Boden, an einigen Stellen führt ein großes Loch hinunter. Nur in Gegenden, in denen du noch nie warst (deine Bauten bleiben, wie sie sind).'],
   ['2.46.4', 'Handy: Minenwagen gedrückt halten baut ihn ab (er fällt als Gegenstand heraus, auch am PC mit Linksklick). Hebel und analoge Hebel lassen sich durch Antippen umstellen (am PC auch mit Linksklick).'],
   ['2.46.3', 'Sprach-Lobbys: H (stumm) und J (die anderen stumm) gehen auch im Hauptmenü. Beim Start des Spiels kommst du sofort wieder in die Lobby, in der du zuletzt warst (bis du sie verlässt).'],
   ['2.46.2', 'Energieerz: nur noch die Zombies der Nacht (nicht die im Schattenwald am Tag) und die Skelette auf den Türmen lassen es fallen, jeweils zu 50 % eins. Wölfe nicht mehr. In den Turmtruhen liegen 0 bis 3 Energieerz.'],
@@ -2489,7 +2574,7 @@ const B = {
   CRYSTAL: 47, GLOW_SHROOM: 48,
   TORCH: 50, CAMPFIRE: 51, BED: 52, DOOR: 53, CHEST: 54,
   RUBY_ORE: 55, MYTHRIL_ORE: 56, LAVA: 57, DEEPSLATE: 58, ICE: 59, MOSS: 60,
-  RAIL: 61, SPEED_RAIL: 62, ENERGY_TORCH: 63, LEVER: 64, ALEVER: 65,
+  RAIL: 61, SPEED_RAIL: 62, ENERGY_TORCH: 63, LEVER: 64, ALEVER: 65, SIGN: 66,
 };
 const K_AIR = 0, K_CUBE = 1, K_WATER = 2, K_GLASS = 3, K_PLANT = 4, K_OBJ = 5;
 const KIND = new Uint8Array(256);
@@ -2571,6 +2656,7 @@ defB(B.SPEED_RAIL, 'Speed-Schiene', K_OBJ, null, { hard: 0.35, drop: 'speed_rail
 defB(B.ENERGY_TORCH, 'Energiefackel', K_OBJ, null, { hard: 0.15, drop: 'energy_torch', solid: 0 });
 defB(B.LEVER, 'Hebel', K_OBJ, null, { hard: 0.3, drop: 'lever', solid: 0 });
 defB(B.ALEVER, 'Analoger Hebel', K_OBJ, null, { hard: 0.3, drop: 'alever', solid: 0 });
+defB(B.SIGN, 'Schild', K_OBJ, null, { hard: 0.35, drop: 'sign', solid: 0 });
 defB(B.IRON_ORE, 'Eisenerz', K_CUBE, 'iron_ore', { hard: 2.2, pick: 1, drop: 'iron' });
 defB(B.DIAMOND_ORE, 'Diamanterz', K_CUBE, 'diamond_ore', { hard: 3.0, pick: 2, drop: 'diamond' });
 defB(B.RUBY_ORE, 'Rubinerz', K_CUBE, 'ruby_ore', { hard: 3.6, pick: 3, drop: 'ruby', emit: 5 });
@@ -3813,7 +3899,7 @@ const W = {
   rules: { fall: true },   // world rules (server owners can switch fall damage off)
   campLv: 1,               // best campfire level reached (clears the fog further out)
   mode: 'endless',         // 'endless' or 'island'
-  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), gen5: false, g5: new Set(), gen6: false, g6: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [],   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
+  gen: 2, gen3: new Set(), cave: 3, cave4: new Set(), gen5: false, g5: new Set(), gen6: false, g6: new Set(), gen7: false, g7: new Set(), modOres: [], oreCh: new Map(), oreEp: 0, modData: {}, modBlocks: {}, modMobs: {}, wmods: [], wps: [], signs: {},   // cave 4 = neue Höhlen (neue Welten); cave4 = Chunks mit den neuen Höhlen in älteren Welten
     // gen 3 = neue Weltgenerierung; gen3 = Chunks mit den neuen Höhlen (in alten Welten)
   spawn: [CX + 0.5, SEA + 6, CZ + 3.5],
   merchantPos: [CX + 0.5, SEA + 6, CZ - 1.6],
@@ -3827,6 +3913,8 @@ const ckey = (cx, cz) => (cx + 65536) * 131072 + (cz + 65536);
 /* Welt-Version 5 (2.21): mehr Dörfer, mehr Höhlen ohne Schluchten, weniger Berge.
    Neue Welten überall, ältere Welten nur in Chunks, die noch nie generiert wurden. */
 function chunkV5(key) { return W.gen5 || W.g5.has(key) || (!W.explored.has(key) && !W.genOld.has(key)); }
+/* Version 7 (2.47): selten riesige Höhlen hinter dem Schattenwald, nur in Chunks, die noch nie generiert wurden */
+function chunkV7(key) { return W.gen7 || W.g7.has(key) || (!W.explored.has(key) && !W.genOld.has(key)); }
 const V5W = new Map();
 /* how much of the new terrain a column gets: 1 = all, near chunks of the old version it fades out (no cliffs at the border) */
 function v5Weight(x, z) {
@@ -4666,6 +4754,8 @@ function generateChunk(cx, cz) {
   if (useV4 && W.cave < 4) W.cave4.add(c.key);
   const useV5 = chunkV5(c.key);
   if (useV5 && !W.gen5) W.g5.add(c.key);
+  const useV7 = useV5 && chunkV7(c.key);
+  if (useV7 && !W.gen7) W.g7.add(c.key);
   if (!W.gen6 && chunkV6(c.key)) W.g6.add(c.key);
   const N = W.N, seed = W.seed;
   const bl = c.blocks;
@@ -4709,7 +4799,7 @@ function generateChunk(cx, cz) {
     for (let y = top + 1; y <= SEA; y++) bl[base + y] = B.WATER;
     if (o.frozen && top < SEA) bl[base + SEA] = B.ICE;   // Eisebene und Schneewald: zugefrorene Seen und Flüsse
   }
-  if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV5) carveCaves4(c, H, info, true); else if (useV4) carveCaves4(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
+  if (W.genOld.has(c.key)) carveCaves(c, H, info); else if (useV5) carveCaves4(c, H, info, true, useV7); else if (useV4) carveCaves4(c, H, info); else if (useV3) carveCaves3(c, H, info); else carveCaves2(c, H, info);
   modOresChunk(c);
   // structures
   const structs = structuresFor(cx, cz, useV3 || useV4);
@@ -5347,7 +5437,7 @@ function resetWorld(seed, mode, gen) {
   SEA = W.gen >= 3 ? 106 : 30;
   RING_OUT = W.gen >= 3 ? 560 : 375;
   VILLAGE_RING = W.gen >= 3 ? 1000 : 2000; VILLAGE_N = W.gen >= 3 ? 4 : 3;
-  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ W.gen5 = true; W.g5.clear(); V5W.clear(); WORM5_CACHE.clear(); W.gen6 = true; W.g6.clear(); V6W.clear(); V6CELL.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
+  W.gen3.clear(); WORM_CACHE.clear(); W.cave4.clear(); WORM4_CACHE.clear(); W.cave = 4; /* a save sets it back (applySave) */ W.gen5 = true; W.g5.clear(); V5W.clear(); WORM5_CACHE.clear(); W.gen6 = true; W.g6.clear(); V6W.clear(); V6CELL.clear(); W.gen7 = true; W.g7.clear(); restoreDims(null); W.portals = []; W.dimReturn = null; resetModBlocks(); restoreModMobs(null); W.modOres = []; W.oreCh = new Map(); W.oreEp = 0; W.modData = {}; W.wmods = []; W.wps = []; W.signs = {}; restoreModItems(null); for (const k in ITEMS) if (k.startsWith('x_')) { delete ITEMS[k]; delete FOOD[k]; }
   for (const c of CHM.values()) { freeMesh(c, 'o'); freeMesh(c, 't'); }
   CHM.clear(); resetChunkCache();
   dirtyChunks.clear();
@@ -5593,7 +5683,7 @@ function carveWorms4(c, H, bl, lava, cb, v5) {
       }
     }
 }
-function carveCaves4(c, H, info, v5) {
+function carveCaves4(c, H, info, v5, v7) {
   const N = W.N, seed = W.seed, bl = c.blocks;
   const lava = caveLavaY(), deepY = caveDeepY();
   const cb = new Uint8Array(CS * CS * WY);
@@ -5620,6 +5710,8 @@ function carveCaves4(c, H, info, v5) {
       if (carve) { bl[base + y] = y <= lava && far > 0.1 ? B.LAVA : B.AIR; cb[base + y] = far > 0.3 && y < deepY ? CB.MAGMA : CB.PLAIN; }
     }
   }
+  // 2b) Version 7: selten eine riesige Höhle (weite Hallen mit Säulen, unten Lava), hinter dem Schattenwald
+  if (v7) carveGiant7(c, H, info, bl, cb, lava);
   // 3) die Höhlen mit Eingang
   carveWorms4(c, H, bl, lava, cb, v5);
   // 4) Höhlenbiome, Erze
@@ -5669,6 +5761,40 @@ function carveCaves4(c, H, info, v5) {
       if (far > 0.4 && y < lava + 10 && (exp || bl[base + y - 1] === B.LAVA) && RND(x, y, z, 33) < 0.0035 * far) bl[base + y] = B.MYTHRIL_ORE;
       // Kristallhöhlen: Wände mit leuchtenden Adern
       if (exp && cb[base + y + 1] === CB.CRYSTAL && RND(x, y, z, 34) < 0.05) bl[base + y] = B.GLASS;
+    }
+  }
+}
+
+/* riesige Höhlen (Version 7): in seltenen Gebieten hinter dem Schattenwald (etwa 6 % der Fläche) liegt
+   unter der Erde eine weite Höhlenlandschaft mit Säulen; an einigen Stellen führt ein großes Loch hinauf */
+function caveGiantK(x, z, far) {
+  if (far < 0.18) return 0;
+  const zone = W.N.c3(x / 260 + 113.7, 7.3, z / 260 - 41.1);
+  return smoothstep(0.66, 0.8, zone) * smoothstep(0.18, 0.3, far);
+}
+function carveGiant7(c, H, info, bl, cb, lava) {
+  const N = W.N;
+  for (let lx = 0; lx < CS; lx++) for (let lz = 0; lz < CS; lz++) {
+    const x = c.x0 + lx, z = c.z0 + lz, ci = (lx << 4) | lz, o = info[lx * CS + lz];
+    const top = H[ci], far = caveFar(o.dd);
+    const k = caveGiantK(x, z, far);
+    if (k <= 0) continue;
+    const base = ci * WY;
+    const ceil = Math.min(top - 14, SEA - 8) - 6 * N.c2(x / 30, 11.1, z / 30), floor = lava + 3 + 4 * N.c2(x / 24, 21.7, z / 24);
+    if (ceil - floor < 8) continue;
+    const mid = (ceil + floor) / 2, half = (ceil - floor) / 2;
+    for (let y = Math.max(3, Math.floor(floor)); y <= Math.ceil(ceil); y++) {
+      const dv = (y - mid) / half;                       // -1 unten … 1 oben: zum Rand hin enger
+      const v = N.c1(x / 34, y / 16, z / 34) + (k - 0.45) * 0.9 - dv * dv * 0.35;
+      if (v <= 0.05) continue;
+      const id = bl[base + y];
+      if (id === B.BEDROCK || id === B.WATER) continue;
+      bl[base + y] = y <= lava ? B.LAVA : B.AIR;
+      cb[base + y] = far > 0.45 && y < lava + 12 ? CB.MAGMA : far > 0.3 ? CB.DRIP : CB.PLAIN;
+    }
+    // ein großes Loch hinauf, damit man die Höhle findet (nur mitten im Gebiet, nie unter Wasser)
+    if (k > 0.85 && top > SEA + 1 && N.c4(x / 22, 3.1, z / 22) > 0.62) {
+      for (let y = Math.floor(ceil) - 2; y <= top + 1; y++) { const id = bl[base + y]; if (id !== B.BEDROCK && id !== B.WATER) { bl[base + y] = B.AIR; cb[base + y] = CB.PLAIN; } }
     }
   }
 }
@@ -7287,7 +7413,7 @@ function removeDropById(id) { const k = DROPS.findIndex((d) => d.nid === id); if
 function keptDrops() { return DROPS.filter((d) => d.keep && !d.life).map((d) => [d.nid, d.kind, d.n, Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10, Math.round(d.z * 10) / 10]); }
 function restoreDrops(list) { for (const a of list || []) { if (!a || !(ITEMS[a[1]] || RES_NAME[a[1]] || TOOL_MAX[a[1]])) continue; const d = dropItem(a[1], a[2], a[3], a[4], a[5], 0, 0, 0, a[0]); if (d) { d.delay = 0.5; d.rest = true; } } }
 const DROP_BLOCK = { wood: B.OAK_LOG, wool: B.WOOL_WHITE, planks: B.PLANKS, bricks: B.BRICKS, glass: B.GLASS, cobble: B.COBBLE, dirt: B.DIRT, sand: B.SAND, gravel: B.GRAVEL };
-const DROP_COLOR = { energy: [1.0, 0.85, 0.25], energy_torch: [1.0, 0.85, 0.25], lever: [0.55, 0.45, 0.35], alever: [0.5, 0.5, 0.55], wrench: [0.65, 0.68, 0.72], rail: [0.6, 0.55, 0.5], speed_rail: [0.45, 0.9, 1.0], minecart: [0.5, 0.52, 0.56], chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], lava_bucket: [1.0, 0.45, 0.1], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
+const DROP_COLOR = { sign: [0.72, 0.53, 0.32], energy: [1.0, 0.85, 0.25], energy_torch: [1.0, 0.85, 0.25], lever: [0.55, 0.45, 0.35], alever: [0.5, 0.5, 0.55], wrench: [0.65, 0.68, 0.72], rail: [0.6, 0.55, 0.5], speed_rail: [0.45, 0.9, 1.0], minecart: [0.5, 0.52, 0.56], chest: [0.56, 0.36, 0.21], bucket: [0.72, 0.74, 0.78], water_bucket: [0.38, 0.58, 0.9], lava_bucket: [1.0, 0.45, 0.1], torch: [0.85, 0.6, 0.3], campfire: [0.55, 0.35, 0.2], bed: [0.85, 0.3, 0.3], door: [0.78, 0.58, 0.35], iron: [0.86, 0.66, 0.5], diamond: [0.35, 0.9, 0.95], crystal: [0.62, 0.78, 1.0], ruby: [1.0, 0.23, 0.36], mythril: [0.65, 0.48, 1.0] };
 const DROP_GLOW = { energy: 0.8, diamond: 0.35, crystal: 0.7, ruby: 0.6, mythril: 0.8 };
 
 /* ---------- placed objects (torch, campfire, bed, door) ---------- */
@@ -7322,6 +7448,7 @@ function drawObject(o, solid, t, blood) {
   if (o.id === B.RAIL || o.id === B.SPEED_RAIL) { drawRail(o, solid, sky); return; }
   if (o.id === B.ENERGY_TORCH) { drawEnergyTorch(o, solid, t, sky, meta); return; }
   if (o.id === B.LEVER || o.id === B.ALEVER) { drawLever(o, solid, t, sky, meta); return; }
+  if (o.id === B.SIGN) { drawSign(o, solid, sky); return; }
   if (o.id === B.TORCH) {
     ms.reset().t(o.x + 0.5, o.y, o.z + 0.5);
     if (meta >= 1 && meta <= 4) {
@@ -7423,14 +7550,14 @@ function drawTool(Bt, ms, tool, level, sky, item) {
   // things from mods: their own picture, or the normal tool in the mod's color
   const mt = item && tool !== 'block' && ITEMS[item] && ITEMS[item].mod ? MODITEMTEX.get(item) : null;
   if (mt) { drawModSprite(Bt, ms, mt.small || mt, sky, !!ITEMS[item].tool); return; }
-  const toolColor = (lv) => (item && ITEMS[item] && ITEMS[item].mod && DROP_COLOR[item] ? DROP_COLOR[item] : toolColorOf(lv));
+  const toolColor = (lv) => (item && ITEMS[item] && ITEMS[item].mod && DROP_COLOR[item] ? DROP_COLOR[item] : cosToolCol(tool) || toolColorOf(lv));
   if (tool === 'axe') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
     const c = toolColor(level);
     box(0.07, 0.22, 0.2, 0, 0.47, 0.09, c);
     box(0.08, 0.26, 0.05, 0, 0.47, 0.2, [c[0] * 1.08, c[1] * 1.08, c[2] * 1.08]);
   } else if (tool === 'sword') {
-    const c = toolColor(level), em = level >= 4 ? 0.45 : 0;
+    const c = toolColor(level), em = Math.max(level >= 4 ? 0.45 : 0, cosToolEm(tool));
     box(0.06, 0.2, 0.06, 0, 0.0, 0, COL.handle);
     box(0.22, 0.05, 0.08, 0, 0.12, 0, level >= 4 ? COL.gold : COL.charcoal);
     box(0.08, 0.66, 0.03, 0, 0.47, 0, c, em);
@@ -7438,7 +7565,7 @@ function drawTool(Bt, ms, tool, level, sky, item) {
     if (level >= 4) box(0.025, 0.6, 0.036, 0, 0.47, 0, [1, 0.75, 0.8], 0.8);
   } else if (tool === 'pickaxe') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
-    box(0.07, 0.07, 0.56, 0, 0.53, 0, toolColor(level));
+    box(0.07, 0.07, 0.56, 0, 0.53, 0, toolColor(level), Math.max(level >= 4 ? 0.3 : 0, cosToolEm(tool)));
   } else if (tool === 'shovel') {
     box(0.06, 0.72, 0.06, 0, 0.2, 0, COL.handle);
     const c = toolColor(level);
@@ -8400,8 +8527,11 @@ function drawSkin64(ms, layer, P, sky, t, tint) {
 }
 /* eingebaut oder eigen: die richtige Figur */
 function drawAnyCharacter(Bt, ms, skinId, P, sky, t, uid) {
-  if (isCustomSkin(skinId)) { drawSkin64(ms, skin64Layer(skinId, uid), P, sky, t, P.tint); return; }
-  drawCharacter(Bt, ms, skinId, P, sky, t);
+  COSDRAW = P.cos || null;
+  if (isCustomSkin(skinId)) drawSkin64(ms, skin64Layer(skinId, uid), P, sky, t, P.tint);
+  else drawCharacter(Bt, ms, skinId, P, sky, t);
+  if (P.cos) drawCosmetics(Bt, ms, P, sky, t);
+  COSDRAW = null;
 }
 
 /* Farben für den Arm in der Ego-Ansicht: bei eigenem Skin aus dem Bild (Ärmel oben, Hand unten) */
@@ -8516,6 +8646,7 @@ const ITEMS = {
   energy_torch: { name: 'Energiefackel', block: B.ENERGY_TORCH, place: 'torch' },
   lever: { name: 'Hebel', block: B.LEVER, place: 'lever' },
   alever: { name: 'Analoger Hebel', block: B.ALEVER, place: 'lever' },
+  sign: { name: 'Schild', block: B.SIGN, place: 'sign' },
   wrench: { name: 'Schraubenschlüssel' },
   bucket: { name: 'Eimer', place: 'bucket' },
   water_bucket: { name: 'Wassereimer', place: 'water' },
@@ -8575,9 +8706,9 @@ function armorReduce() { return Math.min(0.84, armorPoints() * 0.035); }
 const TOOL_LEVEL_NAMES = {
   axe: ['Axt', 'Steinaxt', 'Eisenaxt', 'Diamantaxt', 'Rubinaxt'],
   sword: ['Schwert', 'Steinschwert', 'Eisenschwert', 'Diamantschwert', 'Rubinschwert'],
-  pickaxe: ['Spitzhacke', 'Spitzhacke', 'Eisenspitzhacke', 'Diamantspitzhacke'],
+  pickaxe: ['Spitzhacke', 'Spitzhacke', 'Eisenspitzhacke', 'Diamantspitzhacke', 'Rubinspitzhacke'],
   shears: ['Schere', 'Schere'],
-  shovel: ['Schaufel', 'Steinschaufel', 'Eisenschaufel', 'Diamantschaufel'],
+  shovel: ['Schaufel', 'Steinschaufel', 'Eisenschaufel', 'Diamantschaufel', 'Rubinschaufel'],
 };
 /* raw materials: counted, not placed */
 const RES_KEYS = ['wood', 'wool', 'iron', 'diamond', 'crystal', 'ruby', 'mythril', 'energy'];
@@ -8610,10 +8741,10 @@ function itemName(k) {
 }
 const TOOL_KEYS = ['axe', 'sword', 'pickaxe', 'shovel', 'shears'];
 /* shovels dig these faster (stone level, iron, diamond) */
-const SHOVEL_SPEED = [1, 2.2, 3.2, 4.6];
+const SHOVEL_SPEED = [1, 2.2, 3.2, 4.6, 7.5];
 const SOFT = new Set([B.GRASS, B.DIRT, B.SAND, B.GRAVEL, B.SNOW, B.PATH, B.MYCEL, B.DARK_GRASS]);
 /* every tool tier is its own item ('sword3' = Diamantschwert): you can have many, they stack */
-const TOOL_MAX = { axe: 4, sword: 4, pickaxe: 3, shovel: 3, shears: 1 };
+const TOOL_MAX = { axe: 4, sword: 4, pickaxe: 4, shovel: 4, shears: 1 };
 for (const t in TOOL_MAX) for (let lv = 1; lv <= TOOL_MAX[t]; lv++) ITEMS[t + lv] = { name: TOOL_LEVEL_NAMES[t][lv], tool: t, level: lv };
 for (const t in TOOL_MAX) delete ITEMS[t];
 function toolKey(t, lv) { return t + clamp(lv | 0 || 1, 1, TOOL_MAX[t] || 1); }
@@ -8648,6 +8779,7 @@ const SHOP = [
   { id: 'planks', tab: 'build', item: 'planks', qty: 10, cost: { wood: 3 }, name: '10 Holzbretter', desc: 'Günstiges Baumaterial für Wände, Böden und Dächer.' },
   { id: 'bricks', tab: 'build', item: 'bricks', qty: 10, cost: { wood: 6 }, name: '10 Steinziegel', desc: 'Robust: Zombies brauchen beim Blood Moon mehr als doppelt so lange.' },
   { id: 'glass', tab: 'build', item: 'glass', qty: 4, cost: { wood: 3 }, name: '4 Glas', desc: 'Fenster lassen Tageslicht ins Haus.' },
+  { id: 'sign', tab: 'build', item: 'sign', qty: 2, cost: { wood: 2 }, name: '2 Schilder', desc: 'An eine Wand oder mit Stab auf den Boden. Danach schreibst du etwas drauf (bis 4 Zeilen), alle sehen es. Rechtsklick (oder E) ändert den Text.' },
   { id: 'door', tab: 'build', item: 'door', qty: 1, cost: { wood: 3 }, name: 'Tür', desc: 'Öffnen und schließen mit E oder einem Klick.' },
   { id: 'chest', tab: 'build', item: 'chest', qty: 1, cost: { wood: 4 }, name: 'Truhe', desc: 'Zum Einlagern von Holz, Wolle, Erzen und Blöcken. Mit E oder einem Klick öffnen.' },
   { id: 'bucket', tab: 'build', item: 'bucket', qty: 1, cost: { wood: 5 }, name: 'Eimer', desc: 'In die Hand nehmen und auf Wasser oder Lava klicken. Mit Wasser baust du Brunnen und Gräben, mit Lava Fallen: Zombies verbrennen darin.' },
@@ -8665,6 +8797,8 @@ const SHOP = [
   { id: 'shovel1', tab: 'tools', tool: 'shovel', level: 1, cost: { wood: 4 }, name: 'Steinschaufel', desc: 'Gräbt Erde, Gras, Sand, Kies und Schnee gut doppelt so schnell.' },
   { id: 'shovel2', tab: 'tools', tool: 'shovel', level: 2, cost: { wood: 6, iron: 3 }, name: 'Eisenschaufel', desc: 'Gräbt Erde und Sand dreimal so schnell.' },
   { id: 'shovel3', tab: 'tools', tool: 'shovel', level: 3, cost: { wood: 10, diamond: 2 }, name: 'Diamantschaufel', desc: 'Erde, Sand und Kies sind fast sofort weg.' },
+  { id: 'pickaxe4', tab: 'tools', tool: 'pickaxe', level: 4, cost: { wood: 16, ruby: 4 }, name: 'Rubinspitzhacke', desc: 'Die schnellste Spitzhacke: Stein, Erze und Tiefenschiefer sind ruckzuck weg. Glüht rot.' },
+  { id: 'shovel4', tab: 'tools', tool: 'shovel', level: 4, cost: { wood: 10, ruby: 2 }, name: 'Rubinschaufel', desc: 'Erde, Sand, Kies und Schnee sind sofort weg.' },
   { id: 'shears', tab: 'tools', tool: 'shears', level: 1, cost: { wood: 4 }, name: 'Schere', desc: 'In die Hand nehmen und Schafe scheren. Schafe leben weit weg vom Spawn.' },
 ];
 /* armor: helmet 5, chestplate 8, leggings 7, boots 4 (like Minecraft) in iron, diamond or mythril */
@@ -8906,6 +9040,7 @@ function startDay() {
   T.afterBlood = wasBlood; T.blood = false;
   T.bloodTonight = T.day % 10 === 0;
   modEmit('day', { day: T.day });
+  cosNewDay(wasBlood);
   for (const z of G.zombies) if (z.state !== 'die' && z.type === 'zombie') { z.burning = 2.5 + Math.random() * 1.5; }
   G.relight = wasBlood ? 1 : 0;
   UI.banner('Tag ' + T.day, T.bloodTonight ? 'Heute Nacht kommt der Blood Moon. Bau dich ein!' : (wasBlood ? 'Du hast den Blood Moon überlebt.' : 'Die Sonne geht auf.'), T.bloodTonight ? 'blood' : 'day');
@@ -8980,7 +9115,7 @@ function makeSave() {
   const sheep = [];
   for (const [id, st] of W.sheepState) if (!st[0] && st[1] > G.playTime) sheep.push(id, st[1]);
   return {
-    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], g6w: W.gen6 ? 1 : 0, g6: W.gen6 ? [] : [...W.g6], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
+    v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], g6w: W.gen6 ? 1 : 0, g6: W.gen6 ? [] : [...W.g6], g7w: W.gen7 ? 1 : 0, g7: W.gen7 ? [] : [...W.g7], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
     inv: realInv().inv, tools: realInv().tools, hotbar: realInv().hotbar, bag: realInv().bag, off: realInv().offhand || null, sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
@@ -8988,7 +9123,7 @@ function makeSave() {
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
     chests: [...W.chests].filter(([, c]) => chestCount(c) > 0), carts: cartsForSave(),
     vis: G.visitors || {},
-    dims: dimsForSave(), portals: W.portals || [], dimRet: W.dimReturn || null, mitems: W.modItems || {}, mblocks: W.modBlocks || {}, mmobs: W.modMobs || {}, mores: W.modOres || [], oreCh: oreChPack(), oreEp: W.oreEp | 0, mdata: W.modData || {}, wmods: W.wmods || [],
+    dims: dimsForSave(), portals: W.portals || [], dimRet: W.dimReturn || null, mitems: W.modItems || {}, mblocks: W.modBlocks || {}, mmobs: W.modMobs || {}, mores: W.modOres || [], oreCh: oreChPack(), oreEp: W.oreEp | 0, mdata: W.modData || {}, wmods: W.wmods || [], wps: W.wps || [], signs: W.signs || {},
   };
 }
 /* own world: save locally (and to the cloud when logged in); guest: send inventory to the host */
@@ -9056,7 +9191,7 @@ function applySave(s, convert) {
   // Mods: Dimensionen, Portale und eigene Items gehören zur Welt
   restoreDims(s.dims); W.portals = Array.isArray(s.portals) ? s.portals.slice(0, 64) : []; W.dimReturn = s.dimRet || null;
   restoreModBlocks(s.mblocks); restoreModItems(s.mitems); restoreModMobs(s.mmobs);
-  W.modOres = Array.isArray(s.mores) ? s.mores.slice(0, 24) : []; W.oreCh = oreChUnpack(s.oreCh); W.oreEp = s.oreEp | 0; W.modData = s.mdata && typeof s.mdata === 'object' ? s.mdata : {}; W.wmods = modSlimList(Array.isArray(s.wmods) ? s.wmods : []);
+  W.modOres = Array.isArray(s.mores) ? s.mores.slice(0, 24) : []; W.oreCh = oreChUnpack(s.oreCh); W.oreEp = s.oreEp | 0; W.modData = s.mdata && typeof s.mdata === 'object' ? s.mdata : {}; W.wmods = modSlimList(Array.isArray(s.wmods) ? s.wmods : []); W.signs = cleanSigns(s.signs); W.wps = (Array.isArray(s.wps) ? s.wps : []).map(wpClean).filter(Boolean).slice(0, 60);
   const v2 = s.v === 2;
   // an old island (or an island the update made endless): the buildings move to the new island
   const fix = !v2 || !!convert;
@@ -9071,6 +9206,7 @@ function applySave(s, convert) {
     for (const k of s.ex || []) W.explored.add(k);
     mapSeenLoad(s.msn);
     markOldChunks(s);
+    W.gen7 = !!s.g7w; W.g7 = new Set(Array.isArray(s.g7) ? s.g7 : []);
     W.gen5 = !!s.g5w; W.g5 = new Set(Array.isArray(s.g5) ? s.g5 : []); V5W.clear(); WORM5_CACHE.clear(); STRUCT_CACHE.clear();
     W.gen6 = !!s.g6w; W.g6 = new Set(Array.isArray(s.g6) ? s.g6 : []); V6W.clear(); V6CELL.clear();
     if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
@@ -9244,6 +9380,7 @@ function raycast(ox, oy, oz, dx, dy, dz, maxDist, test) {
       if (id === B.RAIL || id === B.SPEED_RAIL) { const tr = rayAabb(ox, oy, oz, dx, dy, dz, x, y, z, x + 1, y + 0.14, z + 1); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       // eine Fackel ist dünn: nur sie selbst trifft man, daneben und dahinter kann man bauen
       else if (id === B.LEVER || id === B.ALEVER) { const b = leverBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
+      else if (id === B.SIGN) { const b = signBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       else if (id === B.TORCH || id === B.ENERGY_TORCH) { const b = torchBox(x, y, z); const tr = rayAabb(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (tr >= 0 && tr <= maxDist) return { x, y, z, nx, ny, nz, t: tr, id }; }
       else return { x, y, z, nx, ny, nz, t, id };
     }
@@ -9833,7 +9970,7 @@ function updateBreaking(dt, holding, target) {
     const ht = heldToolKind();
     const hl = heldToolLevel();
     const si = ITEMS[selectedItem()];
-    const speed = (NEEDPICK[id] && ht === 'pickaxe' ? (hl >= 3 ? 3.2 : hl >= 2 ? 2.3 : 1.5)
+    const speed = (NEEDPICK[id] && ht === 'pickaxe' ? (hl >= 4 ? 5.2 : hl >= 3 ? 3.2 : hl >= 2 ? 2.3 : 1.5)
       : SOFT.has(id) && ht === 'shovel' ? SHOVEL_SPEED[hl] || 1 : 1) * (si && si.mod && si.mine ? si.mine : 1);
     // only chests you built can be broken; built logs break like wood
     const hard = id === B.CHEST ? 1.1 : TREEBLOCK[id] && !W.treeAt.has(I(x, y, z)) ? 1.2 : HARD[id];
@@ -9858,6 +9995,7 @@ function breakBlockAt(x, y, z, byPlayer, remote, nested) {
   if (id === B.AIR) return;
   if (!remote && !nested && MP.active()) MP.send({ t: 'brk', x, y, z });
   const meta = W.meta.get(i) || 0;
+  if (id === B.SIGN && W.signs) delete W.signs[signKey(x, y, z)];
   const store = id === B.CHEST && isStoreMeta(meta);
   const drop = store ? 'chest' : TREEBLOCK[id] && !W.treeAt.has(i) ? (ISLOG[id] ? 'wood' : null) : BDROP[id];
   if (store) { if (remote) { W.chests.delete(i); if (UI._chest && UI._chest.i === i) UI.closeModal('mdlChest'); } else chestBroken(i, x, y, z, !!byPlayer); }
@@ -9921,6 +10059,11 @@ function placementFor(target, item) {
     const tid = def.block || B.TORCH;
     if (target.ny === 1 && SOLID[below]) return { x, y, z, id: tid, meta: 0 };
     if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: tid, meta: m }; }
+    return null;
+  }
+  if (def.place === 'sign') {
+    if (target.ny === 1 && SOLID[below] && !entityBlocksCell(x, y, z, true)) return { x, y, z, id: B.SIGN, meta: 8 | ((yawDir() + 2) & 3) };
+    if (target.ny === 0 && SOLID[target.id]) { const m = target.nx === 1 ? 1 : target.nx === -1 ? 2 : target.nz === 1 ? 3 : 4; return { x, y, z, id: B.SIGN, meta: m }; }
     return null;
   }
   if (def.place === 'lever') { if (!SOLID[below] || entityBlocksCell(x, y, z, true)) return null; return { x, y, z, id: def.block, meta: 0 }; }
@@ -10027,6 +10170,7 @@ function placeSelected(target, retry) {
   if (item === 'minecart') return placeCart(target);
   if (item === 'wrench') return useWrench(target);
   if (target && target.type === 'block' && target.inReach && isLever(target.id)) { useLever(target.x, target.y, target.z); return true; }
+  if (target && target.type === 'block' && target.inReach && target.id === B.SIGN && !INPUT.sneakBtn && !INPUT.down('ShiftLeft')) { UI.openSign(target.x, target.y, target.z); return true; }
   if (item === 'bucket') return useBucket(target);
   const p = placementFor(target, item);
   if (p && p.blockedByPlayer) {
@@ -10053,6 +10197,8 @@ function placeSelected(target, retry) {
   SFX.place(p.id);
   if (p.cool) { for (let k = 0; k < 14; k++) spawnPart({ x: p.x + Math.random(), y: p.y + 0.9, z: p.z + Math.random(), vx: (Math.random() - 0.5) * 0.6, vy: 1.5 + Math.random(), vz: (Math.random() - 0.5) * 0.6, life: 1.2, size: 0.3, r: 0.85, g: 0.85, b: 0.88, kind: 1, grav: -0.5, drag: 1.5, alpha: 0.5, grow: 1.4 }); UI.toast('Zischend wird die Lava zu Stein.', 'info', 2200); }
   PL.swingT = 0; PL.swingKind = 'hit';
+  cosCount('place');
+  if (p.id === B.SIGN) { cosCount('sign'); signSet(p.x, p.y, p.z, '', true); setTimeout(() => UI.openSign(p.x, p.y, p.z), 60); }
   if (p.id === B.CAMPFIRE) { if (G.goal <= 3) setGoal(4); UI.toast('Lagerfeuer brennt. Zombies meiden jetzt diesen Kreis. Mit E verbesserst du es.', 'good', 4600); }
   return true;
 }
@@ -10170,7 +10316,7 @@ function attackZombie(z, auto) {
   const c = PL.charge;
   PL.charge = 0; PL.attackCd = 0.14; PL.chargeVis = 1;
   // attacks slash in alternating arcs; a fully charged one swings wide
-  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = c > 0.92;
+  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = c > 0.92; cosMySwing();
   if (w.kb > 0) SFX.swish(c > 0.92 ? 1.2 : 0.7);
   PL.faceYaw = Math.atan2(z.x - PL.x, z.z - PL.z); PL.faceT = 0.3;
   const full = c > 0.92;
@@ -10197,7 +10343,7 @@ function attackPlayer(r, auto) {
   if (auto && PL.charge < 1) return;
   const w = weaponStats(), c = PL.charge, full = c > 0.92;
   PL.charge = 0; PL.attackCd = 0.14; PL.chargeVis = 1;
-  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = full;
+  PL.swingT = 0; PL.swingKind = 'atk'; PL.atkSide = -(PL.atkSide || -1); PL.atkFull = full; cosMySwing();
   if (w.kb > 0) SFX.swish(full ? 1.2 : 0.7);
   PL.faceYaw = Math.atan2(r.x - PL.x, r.z - PL.z); PL.faceT = 0.3;
   // players hit each other softer than zombies (a little over half)
@@ -10979,6 +11125,8 @@ function infect() {
   if (PL.dead || MODFX.godmode) return;
   if (!G.stats) G.stats = { trees: 0, zombies: 0 };
   if (G.stats.inf) return;
+  // nach einem Kristallapfel 5 Minuten immun
+  if ((G.stats.immune || 0) > G.playTime) { UI.toast('🛡️ Der Kristallapfel schützt dich: kein Gift!', 'good', 2000, 'immune'); return; }
   G.stats.inf = { lv: 1, t: 0 };
   UI.toast('Ein Blood-Moon-Zombie hat dich gebissen. Du bist vergiftet! Nur ein Kristallapfel heilt dich (Händler: 3 Kristalle und 1 Apfel).', 'warn', 8000, 'inf');
   SFX.poison && SFX.poison(1);
@@ -11040,7 +11188,12 @@ function eatSelected() {
   SFX.eat && SFX.eat();
   PL.swingT = 0; PL.swingKind = 'hit';
   burst(PL.x, PL.y + 1.5, PL.z, 8, k === 'apple' ? [[0.85, 0.15, 0.12], [0.95, 0.9, 0.7]] : [[0.5, 0.85, 1.0], [0.8, 0.7, 1.0]], { speed: 1.2, up: 1.5, life: 0.6, size: 0.06 });
-  if (f.cure) UI.toast(cureInfection() ? 'Der Kristallapfel hat die Vergiftung geheilt!' : 'Lecker! Der Kristallapfel heilt dich ganz.', 'good', 4200);
+  if (f.cure) {
+    const cured = cureInfection();
+    if (!G.stats) G.stats = { trees: 0, zombies: 0 };
+    G.stats.immune = G.playTime + 300; cosCount('apple');   // 5 Minuten immun gegen das Blood-Moon-Gift
+    UI.toast((cured ? 'Der Kristallapfel hat die Vergiftung geheilt!' : 'Lecker! Der Kristallapfel heilt dich ganz.') + ' 🛡️ 5 Minuten bist du immun gegen das Gift.', 'good', 5000);
+  }
   else UI.toast('Apfel gegessen: +' + f.hp + ' Leben.', 'good', 2000, 'eat');
   saveGame();
   return true;
@@ -12372,6 +12525,7 @@ function drawPlayer(t) {
   if (!PL.dead && PL.onGround) blobShadow(PL.x, PL.y, PL.z);
   _ms.reset().t(PL.x, PL.y + PL.stepOffset, PL.z).ry(PL.yaw);
   if (PL.dead) { const k = easeOutCubic(Math.min(1, PL.deadT / 0.7)); _ms.t(0, 0.12 * k, 0).rx(-Math.PI / 2 * k * 0.98); }
+  P.cos = COS.eqObj;
   drawAnyCharacter(BATCH.solid, _ms, SETTINGS.skin, P, sky, t, null);
 }
 const TOOL_NAMES = [null, 'axe', 'sword', 'pickaxe', 'shears', 'torch', 'block', 'shovel', 'bucket'];
@@ -12399,6 +12553,9 @@ function drawRemote(r, t) {
   _ms.reset().t(r.x, r.y, r.z).ry(r.yaw);
   if (f & 16) _ms.t(0, 0.12, 0).rx(-Math.PI / 2 * 0.98);
   else if (f & 8) _ms.t(0, 0.62, 0).rx(-Math.PI / 2);
+  P.cos = remoteCos(r);
+  if (r.swingT < (r._csw === undefined ? 1 : r._csw) - 0.3 && P.tool === 'sword' && P.cos && P.cos.swing) cosSwingFx(r.x, r.y, r.z, r.yaw, P.cos.swing, 1);
+  r._csw = r.swingT;
   drawAnyCharacter(BATCH.solid, _ms, r.skin, P, sky, t, r.uid);
 }
 /* skin preview in the menu: idle animation, slow turn */
@@ -12415,6 +12572,7 @@ function drawPreview(t) {
   if (wv) { P.armR = -2.7; P.armRz = 0.25 + Math.sin(t * 11) * 0.3; }
   PREVIEW.yaw += 0.004;
   _ms.reset().t(p[0], p[1], p[2]).ry(Math.sin(t * 0.25) * 0.55 + 0.2 + (PREVIEW.dragYaw || 0));
+  P.cos = COS.eqObj;
   drawAnyCharacter(BATCH.solid, _ms, PREVIEW.skin || SETTINGS.skin, P, 1, t, null);
 }
 function drawZombie(z, t) {
@@ -12517,6 +12675,7 @@ function blockBounds(id, x, y, z) {
   if (KIND[id] === K_PLANT) return [x + 0.15, y, z + 0.15, x + 0.85, y + 0.7, z + 0.85];
   if (id === B.TORCH || id === B.ENERGY_TORCH) return torchBox(x, y, z);
   if (id === B.LEVER || id === B.ALEVER) return leverBox(x, y, z);
+  if (id === B.SIGN) return signBox(x, y, z);
   if (id === B.RAIL || id === B.SPEED_RAIL) return [x, y, z, x + 1, y + 0.13, z + 1];
   if (id === B.CAMPFIRE) return [x + 0.06, y, z + 0.06, x + 0.94, y + 0.45, z + 0.94];
   if (id === B.BED) return [x, y, z, x + 1, y + 0.6, z + 1];
@@ -12659,7 +12818,7 @@ function drawViewModel(t) {
   box(0.115, 0.115, 0.22, 0, 0, -0.15, armCols().hand);
   if (tool) {
     _ms.push().t(0, 0.03, -0.27).rx(-0.35).sc(0.5, 0.5, 0.5);
-    drawTool(BATCH.view, _ms, tool, lvl, sky, item);
+    COSDRAW = COS.eqObj; drawTool(BATCH.view, _ms, tool, lvl, sky, item); COSDRAW = null;
     _ms.pop();
   }
 }
@@ -13366,6 +13525,7 @@ function drawItemIcon(canvasEl, key) {
   if (!key) return;
   if (key === 'wood') { drawIsoBlock(ctx, B.OAK_LOG, S); return; }
   if (key === 'wool') { drawIsoBlock(ctx, B.WOOL_WHITE, S); return; }
+  if (key === 'sign') { drawSignIcon(ctx, S); return; }
   if (key === 'rail' || key === 'speed_rail' || key === 'minecart') { drawRailIcon(ctx, key, S); return; }
   if (key === 'energy' || key === 'energy_torch' || key === 'lever' || key === 'alever' || key === 'wrench') { drawEnergyIcon(ctx, key, S); return; }
   if (key === 'iron' || key === 'diamond' || key === 'crystal' || key === 'ruby' || key === 'mythril') { drawResIcon(ctx, key, S); return; }
@@ -13633,6 +13793,7 @@ UI.sleepMorning = function () {
 /* per frame HUD update */
 const _scr = [0, 0, 0];
 UI.frame = function (dt) {
+  { const ic = $('immuneChip'); if (ic) { const left = G.stats && G.stats.immune ? G.stats.immune - G.playTime : 0; const show = left > 0 && G.state !== 'menu'; if (ic.hidden === show) ic.hidden = !show; if (show) { const s = Math.ceil(left), txt = '🛡️ Immun ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); if ($('immuneTxt').textContent !== txt) $('immuneTxt').textContent = txt; } } }
   { const lh = $('lockHint'); if (lh) { const show = CAMC.mode === 'fp' && G.state === 'playing' && !INPUT.locked && !INPUT.lockFailed && !touchUI() && INPUT.lastSource !== 'touch' && !UI.anyModal(); if (lh.hidden === show) lh.hidden = !show; } }
   const vw = window.innerWidth, vh = window.innerHeight;
   const T = G.time;
@@ -14233,7 +14394,7 @@ function bindChestUI() {
 /* =========================================================================
    Menus: pause, settings, controls, worlds, friends, account, skins
    ========================================================================= */
-const MODALS = ['mdlStdPack', 'mdlVoice', 'mdlWmap', 'mdlWp', 'mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
+const MODALS = ['mdlCos', 'mdlStdPack', 'mdlVoice', 'mdlWmap', 'mdlWp', 'mdlSign', 'mdlCreative', 'mdlConfirm', 'mdlModUi', 'mdlModPick', 'mdlMods', 'mdlAdmin', 'mdlDownload', 'mdlAccount', 'mdlSettings', 'mdlControls', 'mdlSrvAdmin', 'mdlInvite', 'mdlWorldEdit', 'mdlWorlds', 'mdlServers', 'mdlSupport', 'mdlFriends', 'mdlInv', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlPause'];
 UI.anyModal = function () { return MODALS.some((id) => !$(id).hidden); };
 UI.closeTop = function () {
   if (!$('scrSkins').hidden) { UI.closeSkins(); return true; }
@@ -14250,6 +14411,8 @@ UI.closeModal = function (id) {
   if (id === 'mdlVoice') { voiceHide(); return; }
   if (id === 'mdlStdPack') { stdPackAnswer(false); return; }
   if (id === 'mdlWmap') wmClose();
+  if (id === 'mdlSign') signCommit();
+  if (id === 'mdlCos') { $(id).hidden = true; if (UI._cosFrom === 'pause') { UI._cosFrom = null; $('mdlPause').hidden = false; return; } UI._cosFrom = null; }
   if (id === 'mdlMods' && MODUI.world) { closeModWorld(); return; }
   $(id).hidden = true;
   if (id === 'mdlInv') { UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; }
@@ -14261,7 +14424,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlSupport' && G.state === 'paused') { $('mdlPause').hidden = false; return; }
   if (id === 'mdlFriends') CHAT.close();
   if (id === 'mdlWorldEdit') { UI._edit = null; $('mdlWorlds').hidden = false; UI.worldsRefresh(); return; }
-  if (['mdlWp', 'mdlWmap', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
+  if (['mdlCos', 'mdlWp', 'mdlSign', 'mdlWmap', 'mdlShop', 'mdlCamp', 'mdlChest', 'mdlInv', 'mdlCreative', 'mdlFriends', 'mdlSettings', 'mdlControls'].includes(id) && G.state !== 'menu' && G.state !== 'paused') {
     G.state = 'playing'; INPUT.clear(); updateCursorStyle();
     // first person: the mouse looks around again right away, no extra click needed
     if (CAMC.mode === 'fp' && !touchUI() && INPUT.lastSource !== 'touch') { INPUT.lockSoft = true; requestLock('fp'); }
@@ -14920,7 +15083,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods(); bindVlobby();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods(); bindVlobby(); bindSigns(); bindCosmetics();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -15491,7 +15654,7 @@ function hoverFromPointer(noWater) {
   return pickRay(r.o, r.d, noWater);
 }
 function normDir(a, b) { const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]; const l = Math.hypot(dx, dy, dz) || 1; return [dx / l, dy / l, dz / l]; }
-function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST || h.id === B.LEVER || h.id === B.ALEVER); }
+function isInteractBlock(h) { return h && h.type === 'block' && (h.id === B.DOOR || h.id === B.BED || h.id === B.CHEST || h.id === B.LEVER || h.id === B.ALEVER || h.id === B.SIGN); }
 function primaryOn(h) {
   if (!h) return;
   if (!h.inReach) { if (h.type === 'merchant') hint('mreach', 'Geh näher zum Händler.'); return; }
@@ -15505,6 +15668,7 @@ function primaryOn(h) {
     if (h.id === B.DOOR) toggleDoor(h.x, h.y, h.z);
     else if (h.id === B.BED) trySleep(h.x, h.y, h.z);
     else if (h.id === B.LEVER || h.id === B.ALEVER) useLever(h.x, h.y, h.z);
+    else if (h.id === B.SIGN) UI.openSign(h.x, h.y, h.z);
     else if (h.id === B.CHEST) { if (isStoreChest(h.x, h.y, h.z)) UI.openStore(h.x, h.y, h.z); else openChest(h.x, h.y, h.z); }
   }
 }
@@ -15556,7 +15720,7 @@ function handleActionsCore(dt) {
   if (INPUT.secondaryHeld && !INPUT.secondaryPressed && item && !(INPUT.drag && INPUT.drag.started) && !UI.anyModal()) {
     const pd = placeDef(item);
     INPUT.useT = (INPUT.useT || 0) - dt;
-    if (pd && pd.place && pd.place !== 'cart' && pd.place !== 'lever' && INPUT.useT <= 0 && !(target && target.type === 'block' && isLever(target.id))) { INPUT.useT = 0.2; placeSelected(rawTarget); }
+    if (pd && pd.place && pd.place !== 'cart' && pd.place !== 'lever' && pd.place !== 'sign' && INPUT.useT <= 0 && !(target && target.type === 'block' && isLever(target.id))) { INPUT.useT = 0.2; placeSelected(rawTarget); }
   }
   // a placement that was blocked by the player itself is retried while jumping
   if (G.placeBuf) {
@@ -15687,7 +15851,7 @@ function frame(now) {
   else if (inMenu) guard('Menü', () => menuUpdate(dt));
   else guard('Pause', () => { updateParts(dt); updateObjects(dt, shaderTime); if (CAMC.trans < 1) updateCamera(0); });
   guard('Kartenansicht', () => { updateMapView(); syncCreativeBtn(); updateModFly(dt); });
-  guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); updatePingTags(); });
+  guard('Wegpunkte', () => { syncWpBtns(); syncWmBtn(); updateWaypointTags(); updatePingTags(); updateSignTags(dt); cosTick(dt); });
   guard('Sprachchat', () => updateVoice(dt));
   guard('Start-Animation', () => updateIntro());
   // Notbremse: eine Kamerafahrt darf nie ewig dauern
@@ -16101,6 +16265,7 @@ const NET = {
     }
     this.pendingName = null;
     this.name = p.name;
+    try { cosFromCloud(p.cos); } catch (e) { console.warn('cos', e); }
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
     // ein eigener Skin von einem anderen Gerät: das Bild kommt aus dem Profil
     else if (isCustomSkin(p.skin) && p.skin !== SETTINGS.skin && typeof p.skin64 === 'string' && p.skin64.startsWith('data:image/png')) {
@@ -16396,7 +16561,7 @@ const MP = {
   },
   worldName() { return this.srv ? this.srv.name : WORLDS.current ? WORLDS.current.name : ''; },
   roomInfo() { return { host: NET.name, hostUid: NET.uid(), world: this.worldName(), seed: W.seed, mode: W.mode, srv: this.srv ? 1 : 0, open: true, v: 2, at: NET.TS() }; },
-  hostEntry() { return { name: NET.name, skin: SETTINGS.skin, host: true, at: NET.TS() }; },
+  hostEntry() { return { name: NET.name, skin: SETTINGS.skin, cos: COS.eqStr, host: true, at: NET.TS() }; },
   async closeRoom() {
     if (!this.isHost()) return;
     this.closing = true;
@@ -16471,7 +16636,7 @@ const MP = {
     const me = NET.uid();
     this.ref('players/' + me).onDisconnect().remove();
     this.ref('p/' + me).onDisconnect().remove();
-    this.ref('players/' + me).set(this.spec ? { name: NET.name, spec: true, back: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, back: true, at: NET.TS() }).catch(() => { });
+    this.ref('players/' + me).set(this.spec ? { name: NET.name, spec: true, back: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, cos: COS.eqStr, back: true, at: NET.TS() }).catch(() => { });
     this.lastP = '';
     this.sendPdata();
   },
@@ -16566,7 +16731,7 @@ const MP = {
       if (!spec) this.ref('p/' + me).onDisconnect().remove();
       // spec: der Admin schaut unsichtbar zu (kein Spieler, keine Nachrichten, nichts wird gespeichert)
       this.spec = !!spec; G.spectator = this.spec;
-      await this.ref('players/' + me).set(spec ? { name: NET.name, spec: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, at: NET.TS() });
+      await this.ref('players/' + me).set(spec ? { name: NET.name, spec: true, at: NET.TS() } : { name: NET.name, skin: SETTINGS.skin, cos: COS.eqStr, at: NET.TS() });
       const snap = await snapPromise;
       this.ref('snaps/' + me).remove().catch(() => { });
       this.watchConn();
@@ -16688,7 +16853,7 @@ const MP = {
     this.byeUids.delete(uid);
     const r = REMOTE[uid] || (REMOTE[uid] = back && this.lastRemote[uid] ? this.lastRemote[uid] : { uid, x: 0, y: -100, z: 0, tx: 0, ty: -100, tz: 0, yaw: 0, tyaw: 0, flags: 0, hp: 100, tool: 0, item: 0, walkPhase: 0, walkAmt: 0, swingT: 1, chopT: 0, seen: false, last: 0 });
     delete this.lastRemote[uid];
-    r.name = v.name || 'Spieler'; r.skin = v.skin || 'ranger';
+    r.name = v.name || 'Spieler'; r.skin = v.skin || 'ranger'; r.cos = typeof v.cos === 'string' ? v.cos.slice(0, 120) : '';
     if (isNew && !back && (this.ready || this.isHost())) { UI.toast(r.name + ' ist der Welt beigetreten', 'good'); SFX.greet(); modEmit('join', { name: r.name }); }
     // a new join (also a quick one after leaving) needs the world; a guest that only lost the connection has it
     if (this.isHost() && !v.back) {
@@ -16969,6 +17134,9 @@ function applyNetEvent(v) {
     case 'ping': if (REMOTE[v.u]) pingAdd(v, false); break;
     case 'cart': applyCartEvent(v); break;
     case 'emeta': applyEnergyMeta(v); break;
+    case 'wp': applyWpEvent(v); break;
+    case 'sign': applySignEvent(v); break;
+    case 'cos': applyCosEvent(v); break;
     case 'brk': if (getB(v.x, v.y, v.z) !== B.AIR) breakBlockAt(v.x, v.y, v.z, false, true); break;
     case 'plc': {
       if (!inWorld(v.x, v.y, v.z)) break;
@@ -23014,7 +23182,8 @@ function drawExploreIcon(ctx, key, S) {
    - Jeder Wegpunkt hat einen Lichtstrahl, der in den Himmel geht, und ein
      Schild mit Name und Entfernung.
    - Die Weltkarte (Taste M) setzt auch Wegpunkte.
-   - Gespeichert pro Welt auf deinem Gerät (deine Wegpunkte sieht nur du).
+   - Gespeichert pro Welt. Normale Wegpunkte teilen sich alle Spieler einer
+     Welt (W.wps im Spielstand, Ereignis 'wp'); Todespunkt und ⏱ bleiben privat.
    - Todespunkt: wenn du stirbst, ein schwarzer Wegpunkt „Letzter Tod“; er
      verschwindet, wenn du auf 10 Blöcke heran bist (im Menü abschaltbar).
    - Temporäre Wegpunkte (⏱): aus der Weltkarte oder durch Antippen der
@@ -23039,14 +23208,53 @@ function wpStoreKey() {
   if (MP.isClient()) return 'bloodmoon-wp:f:' + MP.hostUid + ':' + W.seed;
   return 'bloodmoon-wp:w:' + ((WORLDS.current && WORLDS.current.id) || 'x') + ':' + W.seed;
 }
+function wpClean(w) {
+  if (!w || !isFinite(w.x) || !isFinite(w.y) || !isFinite(w.z)) return null;
+  const o = { id: String(w.id || Math.random().toString(36).slice(2, 9)).slice(0, 12), name: String(w.name || 'Wegpunkt').slice(0, 24), x: Math.floor(+w.x), y: Math.floor(+w.y), z: Math.floor(+w.z), c: /^#[0-9a-f]{6}$/i.test(w.c) ? w.c : WP_COLORS[0] };
+  if (w.k === 'death' || w.k === 'temp') o.k = w.k;
+  return o;
+}
 function wpLoad() {
   const k = wpStoreKey();
   if (k === WP.key) return;
   WP.key = k; WP.list = [];
   try {
     const a = JSON.parse(localStorage.getItem(k) || '[]');
-    if (Array.isArray(a)) for (const w of a) if (w && isFinite(w.x) && isFinite(w.y) && isFinite(w.z)) WP.list.push({ id: String(w.id || Math.random().toString(36).slice(2, 9)), name: String(w.name || 'Wegpunkt').slice(0, 24), x: +w.x, y: +w.y, z: +w.z, c: /^#[0-9a-f]{6}$/i.test(w.c) ? w.c : WP_COLORS[0], k: w.k === 'death' || w.k === 'temp' ? w.k : undefined });
+    if (Array.isArray(a)) for (const w of a) { const o = wpClean(w); if (o) WP.list.push(o); }
   } catch (e) { /* kaputt: leer */ }
+  wpMerge();
+}
+/* geteilte Wegpunkte der Welt in die eigene Liste holen; als Host eigene alte dazugeben */
+function wpMerge() {
+  if (!Array.isArray(W.wps)) W.wps = [];
+  let ch = false;
+  for (const w of W.wps) if (!WP.list.some((o) => o.id === w.id) && WP.list.length < WP_MAX) { WP.list.push(Object.assign({}, w)); ch = true; }
+  if (!MP.isClient()) for (const w of WP.list) if (!w.k && !W.wps.some((o) => o.id === w.id) && W.wps.length < WP_MAX) W.wps.push(Object.assign({}, w));
+  if (ch) wpSave();
+}
+function wpShare(a, w) {
+  if (!Array.isArray(W.wps)) W.wps = [];
+  const i = W.wps.findIndex((o) => o.id === w.id);
+  if (a) { if (i < 0 && W.wps.length < WP_MAX) W.wps.push(Object.assign({}, w)); }
+  else if (i >= 0) W.wps.splice(i, 1);
+  if (MP.active()) MP.send(a ? { t: 'wp', a: 1, w: { id: w.id, name: w.name, x: w.x, y: w.y, z: w.z, c: w.c } } : { t: 'wp', a: 0, id: w.id });
+}
+function applyWpEvent(v) {
+  if (!Array.isArray(W.wps)) W.wps = [];
+  const mine = WP.key && WP.key === wpStoreKey();
+  if (v.a) {
+    const w = wpClean(v.w); if (!w || w.k) return;
+    if (!W.wps.some((o) => o.id === w.id) && W.wps.length < WP_MAX) W.wps.push(w);
+    if (mine && !WP.list.some((o) => o.id === w.id) && WP.list.length < WP_MAX) {
+      WP.list.push(Object.assign({}, w)); wpSave();
+      if (wpOn()) UI.toast('📍 Neuer Wegpunkt „' + w.name + '“ für alle.', 'info', 2200, 'wp');
+    }
+  } else {
+    const id = String(v.id || '');
+    const i = W.wps.findIndex((o) => o.id === id); if (i >= 0) W.wps.splice(i, 1);
+    if (mine) { const j = WP.list.findIndex((o) => o.id === id); if (j >= 0) { WP.list.splice(j, 1); wpSave(); } }
+  }
+  if ($('mdlWp') && !$('mdlWp').hidden) UI.wpRefresh();
 }
 function wpSave() { try { localStorage.setItem(WP.key || wpStoreKey(), JSON.stringify(WP.list)); } catch (e) { /* voll */ } }
 function wpSameDim(w) { return (dimAt(w.x, w.z) || null) === (CURDIM || null); }
@@ -23058,7 +23266,7 @@ function wpAdd(name, x, y, z, c, kind) {
   const w = { id: Math.random().toString(36).slice(2, 9), name: (String(name || '').trim() || def).slice(0, 24), x: Math.floor(x), y: Math.floor(y), z: Math.floor(z), c: kind === 'death' ? '#16161c' : c || WP_COLORS[WP.col % WP_COLORS.length] };
   if (kind) w.k = kind;
   WP.list.push(w); wpSave();
-  if (!kind) WP.col++;
+  if (!kind) { WP.col++; wpShare(1, w); }
   if (kind === 'death') return w;
   UI.toast((kind === 'temp' ? '⏱ Temporärer Wegpunkt „' : '📍 Wegpunkt „') + w.name + '“ gesetzt.' + (kind === 'temp' ? ' Er verschwindet, wenn du dort bist.' : ''), 'good', 2600, 'wp');
   SFX.ui();
@@ -23067,6 +23275,7 @@ function wpAdd(name, x, y, z, c, kind) {
 function wpDel(id) {
   const i = WP.list.findIndex((w) => w.id === id); if (i < 0) return;
   const w = WP.list[i]; WP.list.splice(i, 1); wpSave();
+  if (!w.k) wpShare(0, w);
   UI.toast('Wegpunkt „' + w.name + '“ gelöscht.', 'info', 1800, 'wp');
   SFX.ui();
 }
@@ -25212,7 +25421,7 @@ function enterCart(c) {
   if (c.rider && c.rider !== NET.uid() && c.rider !== 'me') { UI.toast('Da sitzt schon jemand drin.', 'info', 1800, 'cart'); return; }
   if (PL.cart) exitCart();
   c.rider = MP.active() ? NET.uid() : 'me'; c.s = c.s || 0;
-  PL.cart = c; PL.vx = PL.vy = PL.vz = 0;
+  PL.cart = c; PL.vx = PL.vy = PL.vz = 0; cosCount('cart');
   SFX.ui();
   UI.toast('Aussteigen: E oder Schleichen. Mit W (vorwärts) schiebst du an.', 'info', 3200, 'cart');
   cartSend('pos', c, true);
@@ -25618,6 +25827,679 @@ function drawEnergyIcon(ctx, key, S) {
     ctx.restore();
   }
   ctx.restore();
+}
+
+/* ---- 19yc_signs.js ---- */
+/* =========================================================================
+   Schilder (B.SIGN): an die Wand (Meta 1-4 wie die Fackel) oder auf den
+   Boden mit Stab (Meta 8 | Blickrichtung 0-3). Der Text steht in W.signs
+   ("x,y,z" -> Text), wird mit der Welt gespeichert und mit 'sign' an alle
+   geschickt. Angezeigt als Schrift-Ebene über dem Bild (wie Namensschilder).
+   ========================================================================= */
+const SIGN_MAX = 64;
+const SIGN_DIR = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+const SIGN = { el: null, at: null, vis: new Map(), t: 0 };
+function signKey(x, y, z) { return x + ',' + y + ',' + z; }
+function signText(x, y, z) { return (W.signs && W.signs[signKey(x, y, z)]) || ''; }
+/* in welche Richtung die Schrift zeigt (0 = +z, 1 = +x, 2 = -z, 3 = -x) */
+function signFace(m) { return m & 8 ? m & 3 : [0, 1, 3, 0, 2][m] || 0; }
+function signGeo(x, y, z) {
+  const m = W.meta.get(I(x, y, z)) || 0, f = signFace(m), d = SIGN_DIR[f];
+  const wall = !(m & 8);
+  const cx = x + 0.5 - (wall ? d[0] * 0.45 : 0), cz = z + 0.5 - (wall ? d[1] * 0.45 : 0);
+  const cy = y + (wall ? 0.5 : 0.78);
+  return { f, d, wall, cx, cy, cz };
+}
+function signBox(x, y, z) {
+  const g = signGeo(x, y, z), side = g.f & 1;
+  const hw = 0.47, ht = 0.06;
+  const ex = side ? ht : hw, ez = side ? hw : ht;
+  return [g.cx - ex, g.wall ? g.cy - 0.27 : y, g.cz - ez, g.cx + ex, g.cy + 0.27, g.cz + ez];
+}
+function drawSign(o, solid, sky) {
+  const g = signGeo(o.x, o.y, o.z), ms = _oms, side = g.f & 1;
+  ms.reset().t(g.cx, g.cy, g.cz);
+  const w = side ? 0.07 : 0.94, d = side ? 0.94 : 0.07;
+  solid.box(ms.m, w, 0.52, d, 0, 0, 0, 0.72, 0.53, 0.32, 0, sky);
+  // dunklerer Rahmen oben und unten
+  solid.box(ms.m, w + 0.012, 0.05, d + 0.012, 0, 0.25, 0, 0.5, 0.35, 0.2, 0, sky);
+  solid.box(ms.m, w + 0.012, 0.05, d + 0.012, 0, -0.25, 0, 0.5, 0.35, 0.2, 0, sky);
+  if (!g.wall) solid.box(ms.m, 0.08, 0.56, 0.08, 0, -0.52, 0, 0.45, 0.32, 0.18, 0, sky);
+}
+function signSet(x, y, z, txt, remote) {
+  if (!W.signs || typeof W.signs !== 'object') W.signs = {};
+  const s = String(txt || '').replace(/\r/g, '').split('\n').slice(0, 4).join('\n').slice(0, SIGN_MAX);
+  const k = signKey(x, y, z);
+  if (s.trim()) W.signs[k] = s; else delete W.signs[k];
+  if (!remote && MP.active()) MP.send({ t: 'sign', x, y, z, s });
+}
+function applySignEvent(v) {
+  if (!isFinite(v.x) || !isFinite(v.y) || !isFinite(v.z)) return;
+  signSet(v.x | 0, v.y | 0, v.z | 0, typeof v.s === 'string' ? v.s : '', true);
+}
+function cleanSigns(o) {
+  const r = {};
+  if (o && typeof o === 'object') for (const k in o) if (/^-?\d+,-?\d+,-?\d+$/.test(k) && typeof o[k] === 'string' && o[k].trim()) r[k] = o[k].slice(0, SIGN_MAX);
+  return r;
+}
+
+/* ---------- Text bearbeiten ---------- */
+UI.openSign = function (x, y, z) {
+  if (getB(x, y, z) !== B.SIGN) return;
+  if (G.state !== 'playing') return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  G.state = 'inv';
+  SIGN.at = [x, y, z];
+  $('signTxt').value = signText(x, y, z);
+  $('mdlSign').hidden = false;
+  SFX.ui();
+  setTimeout(() => { $('signTxt').focus(); }, 30);
+};
+/* beim Schließen (auch Esc) wird der Text übernommen */
+function signCommit() {
+  const a = SIGN.at; if (!a) return;
+  SIGN.at = null;
+  if (getB(a[0], a[1], a[2]) === B.SIGN && $('signTxt').value !== signText(a[0], a[1], a[2])) signSet(a[0], a[1], a[2], $('signTxt').value);
+}
+function signSave() { UI.closeModal('mdlSign'); SFX.ui(); }
+
+/* ---------- Schrift über dem Bild ---------- */
+const _sp0 = [0, 0, 0], _sp1 = [0, 0, 0];
+function updateSignTags(dt) {
+  if (!SIGN.el) {
+    SIGN.el = document.createElement('div'); SIGN.el.id = 'signtags';
+    const nt = $('nametags'); nt.parentNode.insertBefore(SIGN.el, nt);
+  }
+  const box = SIGN.el;
+  const show = (G.state === 'playing' || G.state === 'paused' || G.state === 'inv') && !G.sleep && W.signs;
+  let n = 0;
+  SIGN.t -= dt || 0;
+  const recheck = SIGN.t <= 0; if (recheck) SIGN.t = 0.25;
+  if (show) {
+    const vw = window.innerWidth, vh = window.innerHeight, ex = CAM.eye[0], ey = CAM.eye[1], ez = CAM.eye[2];
+    for (const k in W.signs) {
+      const p = k.split(','), x = +p[0], y = +p[1], z = +p[2];
+      const dx = x + 0.5 - ex, dy = y + 0.6 - ey, dz = z + 0.5 - ez;
+      const dist = Math.hypot(dx, dy, dz);
+      if (dist > 16) continue;
+      if (getB(x, y, z) !== B.SIGN) continue;
+      const g = signGeo(x, y, z);
+      // nur von vorne lesbar
+      const fx = ex - g.cx, fz = ez - g.cz;
+      if (fx * g.d[0] + fz * g.d[1] < 0.04) continue;
+      // hinter einer Wand? (alle 0,25 s neu geprüft)
+      if (recheck) {
+        const L = Math.hypot(g.cx - ex, g.cy - ey, g.cz - ez) || 1;
+        const h = raycast(ex, ey, ez, (g.cx - ex) / L, (g.cy - ey) / L, (g.cz - ez) / L, L + 0.5, (id) => SOLID[id] || id === B.SIGN);
+        SIGN.vis.set(k, !h || (h.x === x && h.y === y && h.z === z) || h.t > L - 0.2);
+      }
+      if (SIGN.vis.get(k) === false) continue;
+      const fy = g.cy + 0.02;
+      const ox = g.d[1] * 0.45, oz = -g.d[0] * 0.45;
+      const cxp = g.cx + g.d[0] * 0.05, czp = g.cz + g.d[1] * 0.05;
+      if (!projectToScreen(CAM.vp, cxp - ox, fy, czp - oz, vw, vh, _sp0)) continue;
+      if (!projectToScreen(CAM.vp, cxp + ox, fy, czp + oz, vw, vh, _sp1)) continue;
+      const mx = (_sp0[0] + _sp1[0]) / 2, my = (_sp0[1] + _sp1[1]) / 2;
+      if (mx < -200 || mx > vw + 200 || my < -100 || my > vh + 100) continue;
+      const wpx = Math.hypot(_sp1[0] - _sp0[0], _sp1[1] - _sp0[1]);
+      if (wpx < 22) continue;
+      let el = box.children[n];
+      if (!el) { el = document.createElement('div'); el.className = 'signtag'; box.appendChild(el); }
+      el.hidden = false;
+      const txt = W.signs[k];
+      if (el.textContent !== txt) el.textContent = txt;
+      const sc = wpx / 180, rot = Math.atan2(_sp1[1] - _sp0[1], _sp1[0] - _sp0[0]);
+      el.style.transform = 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px) rotate(' + rot.toFixed(3) + 'rad) scale(' + sc.toFixed(3) + ')';
+      el.style.opacity = dist > 13 ? ((16 - dist) / 3).toFixed(2) : '';
+      n++;
+    }
+  }
+  for (let k = n; k < box.children.length; k++) if (!box.children[k].hidden) box.children[k].hidden = true;
+}
+
+/* ---------- Symbol ---------- */
+function drawSignIcon(ctx, S) {
+  const k = S / 64; ctx.save(); ctx.scale(k, k);
+  ctx.fillStyle = '#6b4a2a'; ctx.fillRect(29, 34, 6, 26);
+  ctx.fillStyle = '#7f5a33'; ctx.fillRect(6, 10, 52, 30);
+  ctx.fillStyle = '#b98a55'; ctx.fillRect(9, 13, 46, 24);
+  ctx.fillStyle = '#5a3d20'; ctx.fillRect(14, 19, 34, 3); ctx.fillRect(14, 26, 26, 3);
+  ctx.restore();
+}
+
+function bindSigns() {
+  $('signOk').addEventListener('click', signSave);
+  $('signTxt').addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter' && !e.shiftKey && $('signTxt').value.split('\n').length >= 4) { e.preventDefault(); signSave(); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); signSave(); }
+  });
+  $('signTxt').addEventListener('input', () => {
+    const t = $('signTxt'); const lines = t.value.split('\n');
+    if (lines.length > 4) t.value = lines.slice(0, 4).join('\n');
+  });
+}
+
+/* ---- 19yd_cosmetics.js ---- */
+/* =========================================================================
+   Erfolge, Glücksrad und Kosmetik (für alle Welten zusammen).
+   - Erfolge zählen über alle Welten (Tage, Zombies, Bäume, ...). Jeder
+     geschaffte Erfolg gibt einen Dreh am Glücksrad.
+   - Glücksrad: 12 Felder, Common (grau), Rare (blau), Epic (lila),
+     Mythic (rot), Legendary (gold). Landet es auf Legendary, entscheidet
+     heimlich noch einmal 50 %, sonst bleibt es ein Feld davor oder danach.
+   - Kosmetik: Flügel, etwas auf dem Kopf (Mini-Schaf ...), Partikel,
+     Schwert- und Spitzhacken-Skins, Schwert-Hiebe. Rein optisch, andere
+     Spieler sehen sie (Feld 'cos' im Spieler-Eintrag, Ereignis 'cos').
+   - Gespeichert auf dem Gerät und im Profil (users/<uid>/profile/cos).
+   ========================================================================= */
+const COS_RAR = {
+  c: { name: 'Common', col: '#8f949c' },
+  r: { name: 'Rare', col: '#3f7dff' },
+  e: { name: 'Epic', col: '#a24dff' },
+  m: { name: 'Mythic', col: '#ff2f4a' },
+  l: { name: 'Legendary', col: '#ffc531' },
+};
+const COS_SLOT = { wings: 'Flügel', head: 'Kopf', aura: 'Partikel', sword: 'Schwert-Skin', pick: 'Spitzhacken-Skin', swing: 'Schwert-Hieb' };
+const COS_LIST = [
+  // Flügel
+  { id: 'w_feather', slot: 'wings', r: 'r', name: 'Federflügel', col: '#f2f4f7' },
+  { id: 'w_bat', slot: 'wings', r: 'e', name: 'Fledermausflügel', col: '#3a2a4a' },
+  { id: 'w_fire', slot: 'wings', r: 'm', name: 'Feuerflügel', col: '#ff6a1a', em: 0.9 },
+  { id: 'w_bolt', slot: 'wings', r: 'l', name: 'Blitzflügel', col: '#ffe03a', em: 1 },
+  { id: 'w_angel', slot: 'wings', r: 'l', name: 'Goldene Engelsflügel', col: '#ffd76a', em: 0.6 },
+  // Kopf
+  { id: 'h_tophat', slot: 'head', r: 'c', name: 'Zylinder', col: '#1d1d22' },
+  { id: 'h_slime', slot: 'head', r: 'c', name: 'Mini-Schleim', col: '#6fdc5a' },
+  { id: 'h_chick', slot: 'head', r: 'r', name: 'Mini-Küken', col: '#ffe14d' },
+  { id: 'h_sheep', slot: 'head', r: 'e', name: 'Mini-Schaf', col: '#f4f1ea' },
+  { id: 'h_zombie', slot: 'head', r: 'm', name: 'Mini-Zombie', col: '#5f9a4c' },
+  { id: 'h_crown', slot: 'head', r: 'm', name: 'Krone', col: '#ffcf3a' },
+  { id: 'h_halo', slot: 'head', r: 'l', name: 'Heiligenschein', col: '#fff1a0', em: 1 },
+  // Partikel
+  { id: 'a_dust', slot: 'aura', r: 'c', name: 'Staubwolke', col: '#b9b2a6' },
+  { id: 'a_leaf', slot: 'aura', r: 'c', name: 'Blätterwirbel', col: '#5fbf4a' },
+  { id: 'a_heart', slot: 'aura', r: 'r', name: 'Herzen', col: '#ff5a8a' },
+  { id: 'a_spark', slot: 'aura', r: 'e', name: 'Funken', col: '#c47bff', em: 1 },
+  { id: 'a_flame', slot: 'aura', r: 'm', name: 'Flammen', col: '#ff5a1a', em: 1 },
+  { id: 'a_star', slot: 'aura', r: 'l', name: 'Sternenstaub', col: 'rainbow', em: 1 },
+  // Schwert
+  { id: 's_copper', slot: 'sword', r: 'c', name: 'Kupferklinge', col: '#d07a45' },
+  { id: 's_gold', slot: 'sword', r: 'r', name: 'Goldklinge', col: '#ffcc33' },
+  { id: 's_ice', slot: 'sword', r: 'e', name: 'Eisklinge', col: '#a8ecff', em: 0.35 },
+  { id: 's_lava', slot: 'sword', r: 'm', name: 'Lavaklinge', col: '#ff5a10', em: 0.8 },
+  { id: 's_rainbow', slot: 'sword', r: 'l', name: 'Regenbogenklinge', col: 'rainbow', em: 0.7 },
+  // Spitzhacke
+  { id: 'p_copper', slot: 'pick', r: 'c', name: 'Kupfer-Spitzhacke', col: '#d07a45' },
+  { id: 'p_gold', slot: 'pick', r: 'r', name: 'Gold-Spitzhacke', col: '#ffcc33' },
+  { id: 'p_ice', slot: 'pick', r: 'e', name: 'Eis-Spitzhacke', col: '#a8ecff', em: 0.35 },
+  { id: 'p_lava', slot: 'pick', r: 'm', name: 'Lava-Spitzhacke', col: '#ff5a10', em: 0.8 },
+  { id: 'p_rainbow', slot: 'pick', r: 'l', name: 'Regenbogen-Spitzhacke', col: 'rainbow', em: 0.7 },
+  // Hiebe
+  { id: 'sw_wind', slot: 'swing', r: 'c', name: 'Windhieb', col: '#e8eef2' },
+  { id: 'sw_water', slot: 'swing', r: 'r', name: 'Wasserhieb', col: '#3fa9ff', em: 0.5 },
+  { id: 'sw_shadow', slot: 'swing', r: 'e', name: 'Schattenhieb', col: '#8a3fff', em: 0.7 },
+  { id: 'sw_fire', slot: 'swing', r: 'm', name: 'Feuerhieb', col: '#ff5a10', em: 1 },
+  { id: 'sw_bolt', slot: 'swing', r: 'l', name: 'Blitzhieb', col: '#ffe94a', em: 1 },
+];
+const COS_BY = {}; for (const c of COS_LIST) COS_BY[c.id] = c;
+/* die 12 Felder des Rads (Legendary sitzt zwischen Mythic und Epic) */
+const COS_WHEEL = ['c', 'r', 'c', 'e', 'c', 'r', 'm', 'l', 'e', 'c', 'r', 'c'];
+
+/* ---------- Erfolge ---------- */
+const ACH = [
+  { id: 'first', name: 'Willkommen', desc: 'Betritt zum ersten Mal eine Welt.', test: () => true },
+  { id: 'day5', name: 'Überlebe 5 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 5 },
+  { id: 'day20', name: 'Überlebe 20 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 20 },
+  { id: 'day50', name: 'Überlebe 50 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 50 },
+  { id: 'day100', name: 'Überlebe 100 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 100 },
+  { id: 'blood1', name: 'Blutiger Morgen', desc: 'Überlebe einen Blood Moon.', n: () => COS.st.blood, goal: 1 },
+  { id: 'blood10', name: 'Mondjäger', desc: 'Überlebe 10 Blood Moons.', n: () => COS.st.blood, goal: 10 },
+  { id: 'kill10', name: 'Erste Jagd', desc: 'Besiege 10 Zombies.', n: () => COS.st.kills, goal: 10 },
+  { id: 'kill100', name: 'Zombieschreck', desc: 'Besiege 100 Zombies.', n: () => COS.st.kills, goal: 100 },
+  { id: 'kill1000', name: 'Legende der Nacht', desc: 'Besiege 1000 Zombies.', n: () => COS.st.kills, goal: 1000 },
+  { id: 'tree50', name: 'Holzfäller', desc: 'Fälle 50 Bäume.', n: () => COS.st.trees, goal: 50 },
+  { id: 'place500', name: 'Baumeister', desc: 'Setze 500 Blöcke.', n: () => COS.st.place, goal: 500 },
+  { id: 'diamond', name: 'Funkelnd', desc: 'Finde einen Diamanten.', test: () => (G.inv.diamond || 0) > 0 },
+  { id: 'ruby', name: 'Rot wie Blut', desc: 'Finde einen Rubin.', test: () => (G.inv.ruby || 0) > 0 },
+  { id: 'rubytool', name: 'Rubinschmied', desc: 'Hol dir ein Rubin-Werkzeug.', test: () => Object.keys(G.inv.items || {}).some((k) => /^(sword|axe|pickaxe|shovel)4$/.test(k) && G.inv.items[k] > 0) },
+  { id: 'apple', name: 'Gegengift', desc: 'Iss einen Kristallapfel.', n: () => COS.st.apple, goal: 1 },
+  { id: 'cart', name: 'Alle einsteigen', desc: 'Fahr mit dem Minenwagen.', n: () => COS.st.cart, goal: 1 },
+  { id: 'sign', name: 'Wegweiser', desc: 'Stell ein Schild auf.', n: () => COS.st.sign, goal: 1 },
+  { id: 'friend', name: 'Zusammen stark', desc: 'Spiel mit einem Freund in einer Welt.', test: () => MP.active() && Object.keys(REMOTE).length > 0 },
+  { id: 'time1', name: 'Eine Stunde', desc: 'Spiel insgesamt 1 Stunde.', n: () => Math.floor(COS.st.time / 60), goal: 60 },
+  { id: 'time10', name: 'Zehn Stunden', desc: 'Spiel insgesamt 10 Stunden.', n: () => Math.floor(COS.st.time / 60), goal: 600 },
+];
+
+const COS_KEY = 'bloodmoon-cos';
+const COS = {
+  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0 },
+  base: null, t: 0, saveT: 0, cloudT: 0, eqObj: null, eqStr: '',
+  wheel: { a: 0, spin: null, prize: null, raf: 0 },
+};
+function cosLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem(COS_KEY) || '{}');
+    if (s && typeof s === 'object') {
+      if (s.a && typeof s.a === 'object') COS.a = s.a;
+      if (s.o && typeof s.o === 'object') COS.o = s.o;
+      if (s.e && typeof s.e === 'object') COS.e = s.e;
+      COS.used = s.used | 0;
+      if (s.st && typeof s.st === 'object') for (const k in COS.st) COS.st[k] = +s.st[k] || 0;
+    }
+  } catch (e) { /* neu */ }
+  cosEqChanged(true);
+}
+function cosData() { return { a: COS.a, o: COS.o, e: COS.e, used: COS.used, st: COS.st }; }
+function cosSave(cloud) {
+  try { localStorage.setItem(COS_KEY, JSON.stringify(cosData())); } catch (e) { /* voll */ }
+  if (cloud) COS.cloudT = 4;   // gebündelt in die Cloud, nicht bei jedem Schritt
+}
+function cosCloudPush() {
+  const uid = NET.uid && NET.uid(); if (!uid || !NET.db) return;
+  NET.db.ref('users/' + uid + '/profile/cos').set(JSON.parse(JSON.stringify(cosData()))).catch(() => { });
+}
+/* nach dem Anmelden: Stand aus dem Profil mit dem auf dem Gerät zusammenlegen */
+function cosFromCloud(c) {
+  if (!c || typeof c !== 'object') { if (Object.keys(COS.a).length) cosCloudPush(); return; }
+  if (c.a) for (const k in c.a) COS.a[k] = 1;
+  if (c.o) for (const k in c.o) if (COS_BY[k]) COS.o[k] = 1;
+  COS.used = Math.max(COS.used, c.used | 0);
+  if (c.st) for (const k in COS.st) COS.st[k] = Math.max(COS.st[k], +c.st[k] || 0);
+  if (c.e && !Object.keys(COS.e).length) COS.e = c.e;
+  cosSave(); cosEqChanged(); cosCloudPush();
+}
+function cosSpins() { return Math.max(0, Object.keys(COS.a).length - COS.used); }
+/* was jemand trägt: kurze Zeichenkette für das Netz */
+function cosParse(s) {
+  const o = {};
+  if (typeof s === 'string' && s) for (const id of s.split('.').slice(0, 8)) { const c = COS_BY[id]; if (c) o[c.slot] = c; }
+  return o;
+}
+function cosEqChanged(silent) {
+  for (const k in COS.e) if (!COS_BY[COS.e[k]] || !COS.o[COS.e[k]]) delete COS.e[k];
+  COS.eqStr = Object.values(COS.e).join('.');
+  COS.eqObj = cosParse(COS.eqStr);
+  if (!silent && MP.active()) MP.send({ t: 'cos', u: NET.uid(), c: COS.eqStr });
+}
+function applyCosEvent(v) { const r = REMOTE[v.u]; if (r && typeof v.c === 'string') r.cos = v.c.slice(0, 120); }
+function remoteCos(r) { if (r._cosS !== r.cos) { r._cosS = r.cos; r._cosO = cosParse(r.cos); } return r._cosO; }
+
+/* ---------- zählen ---------- */
+function cosCount(k, n) { if (!(k in COS.st)) return; COS.st[k] += n || 1; COS.t = Math.max(COS.t, 0.8); cosSave(); }
+function cosTick(dt) {
+  if (COS.cloudT > 0 && (COS.cloudT -= dt) <= 0) cosCloudPush();
+  const play = G.state === 'playing' || G.state === 'inv' || G.state === 'paused';
+  if (!play || G.spectator) { COS.base = null; return; }
+  if (G.state === 'playing') COS.st.time += dt / 60;   // in Minuten
+  COS.t -= dt; if (COS.t > 0) return;
+  COS.t = 1;
+  // gefällte Bäume und besiegte Zombies: was in dieser Welt dazukommt
+  const key = (WORLDS.current && WORLDS.current.id) + ':' + W.seed + ':' + (MP.hostUid || '');
+  const z = G.stats.zombies | 0, tr = G.stats.trees | 0;
+  if (!COS.base || COS.base.k !== key || z < COS.base.z || tr < COS.base.t) COS.base = { k: key, z, t: tr };
+  if (z > COS.base.z) { COS.st.kills += z - COS.base.z; COS.base.z = z; }
+  if (tr > COS.base.t) { COS.st.trees += tr - COS.base.t; COS.base.t = tr; }
+  COS.saveT += 1; if (COS.saveT >= 10) { COS.saveT = 0; cosSave(); }
+  for (const a of ACH) {
+    if (COS.a[a.id]) continue;
+    let ok = false;
+    try { ok = a.test ? a.test() : a.n() >= a.goal; } catch (e) { ok = false; }
+    if (ok) cosUnlock(a);
+  }
+}
+function cosNewDay(wasBlood) { cosCount('days'); if (wasBlood) cosCount('blood'); }
+function cosUnlock(a) {
+  COS.a[a.id] = 1; cosSave(true);
+  achPop(a);
+}
+/* oben: „Erfolg geschafft“ mit Haken */
+const _achQ = [];
+function achPop(a) {
+  _achQ.push(a);
+  if (_achQ.length === 1) achShowNext();
+}
+function achShowNext() {
+  const a = _achQ[0]; if (!a) return;
+  let el = $('achPop');
+  if (!el) {
+    el = document.createElement('button'); el.id = 'achPop'; el.type = 'button'; el.className = 'ach-pop panel';
+    el.innerHTML = '<span class="ach-chk">✓</span><span class="grow"><small>🏆 Erfolg geschafft</small><b></b><em></em></span>';
+    el.addEventListener('click', () => { el.classList.remove('on'); UI.openCos('wheel'); });
+    document.body.appendChild(el);
+  }
+  el.querySelector('b').textContent = a.name;
+  el.querySelector('em').textContent = 'Belohnung: 1× Glücksrad 🎡 (hier tippen)';
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  SFX.unlock && SFX.unlock();
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => { _achQ.shift(); achShowNext(); }, 450); }, 4600);
+  cosBadge();
+}
+function cosBadge() {
+  const n = cosSpins();
+  for (const id of ['cosBadge', 'cosBadgeP']) { const b = $(id); if (b) { b.hidden = !n; b.textContent = n; } }
+}
+
+/* ---------- 2D-Bildchen ---------- */
+function cosHex(c, t) { return c.col === 'rainbow' ? 'hsl(' + Math.round(((t || performance.now() / 1000) * 90) % 360) + ',90%,60%)' : c.col; }
+function drawCosIcon(ctx, c, S, t) {
+  ctx.save(); ctx.clearRect(0, 0, S, S); ctx.scale(S / 64, S / 64);
+  const col = cosHex(c, t);
+  if (c.em) { const g = ctx.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.globalAlpha = 0.35; ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64); ctx.globalAlpha = 1; }
+  ctx.fillStyle = col;
+  if (c.slot === 'wings') {
+    for (const s of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(32 + s * 3, 26);
+      ctx.lineTo(32 + s * 28, 12); ctx.lineTo(32 + s * 26, 30); ctx.lineTo(32 + s * 20, 44); ctx.lineTo(32 + s * 10, 40); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1.5;
+      for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(32 + s * 4, 27); ctx.lineTo(32 + s * (10 + k * 5), 26 + k * 5); ctx.stroke(); }
+    }
+    if (c.id === 'w_bolt') { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(34, 14); ctx.lineTo(26, 32); ctx.lineTo(32, 32); ctx.lineTo(28, 50); ctx.lineTo(40, 28); ctx.lineTo(34, 28); ctx.closePath(); ctx.fill(); }
+  } else if (c.slot === 'head') {
+    if (c.id === 'h_sheep') { ctx.fillStyle = '#f4f1ea'; ctx.fillRect(12, 24, 34, 22); ctx.fillStyle = '#3b3530'; ctx.fillRect(42, 20, 12, 12); ctx.fillRect(16, 46, 5, 8); ctx.fillRect(38, 46, 5, 8); ctx.fillStyle = '#fff'; ctx.fillRect(46, 23, 3, 3); }
+    else if (c.id === 'h_chick') { ctx.fillRect(18, 26, 26, 22); ctx.fillRect(34, 16, 14, 14); ctx.fillStyle = '#ff8a1a'; ctx.fillRect(48, 22, 7, 4); ctx.fillStyle = '#222'; ctx.fillRect(42, 20, 3, 3); }
+    else if (c.id === 'h_slime') { ctx.globalAlpha = 0.85; ctx.fillRect(14, 18, 36, 32); ctx.globalAlpha = 1; ctx.fillStyle = '#2d6b25'; ctx.fillRect(22, 28, 6, 6); ctx.fillRect(36, 28, 6, 6); ctx.fillRect(28, 40, 8, 3); }
+    else if (c.id === 'h_zombie') { ctx.fillRect(22, 10, 20, 20); ctx.fillStyle = '#3a6fb0'; ctx.fillRect(20, 30, 24, 18); ctx.fillStyle = '#2e3e7a'; ctx.fillRect(22, 48, 8, 10); ctx.fillRect(34, 48, 8, 10); ctx.fillStyle = '#ff3030'; ctx.fillRect(26, 17, 4, 4); ctx.fillRect(35, 17, 4, 4); }
+    else if (c.id === 'h_crown') { ctx.beginPath(); ctx.moveTo(10, 46); ctx.lineTo(10, 20); ctx.lineTo(21, 32); ctx.lineTo(32, 14); ctx.lineTo(43, 32); ctx.lineTo(54, 20); ctx.lineTo(54, 46); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ff2f4a'; ctx.fillRect(29, 34, 6, 6); ctx.fillStyle = '#3f7dff'; ctx.fillRect(16, 36, 5, 5); ctx.fillRect(43, 36, 5, 5); }
+    else if (c.id === 'h_halo') { ctx.strokeStyle = col; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(32, 32, 22, 9, 0, 0, TAU); ctx.stroke(); }
+    else { ctx.fillRect(18, 14, 28, 30); ctx.fillRect(10, 42, 44, 6); ctx.fillStyle = '#b02a2a'; ctx.fillRect(18, 36, 28, 5); }
+  } else if (c.slot === 'aura') {
+    for (let k = 0; k < 9; k++) {
+      const a = k * 2.4, r = 8 + (k % 3) * 8, x = 32 + Math.cos(a) * r, y = 32 + Math.sin(a) * r;
+      ctx.fillStyle = c.col === 'rainbow' ? 'hsl(' + (k * 40) + ',90%,62%)' : col;
+      if (c.id === 'a_heart') { ctx.beginPath(); ctx.arc(x - 2.5, y, 3, 0, TAU); ctx.arc(x + 2.5, y, 3, 0, TAU); ctx.moveTo(x - 5.5, y + 1); ctx.lineTo(x, y + 7); ctx.lineTo(x + 5.5, y + 1); ctx.fill(); }
+      else if (c.id === 'a_star') { ctx.beginPath(); for (let i = 0; i < 8; i++) { const q = i * Math.PI / 4, rr = i % 2 ? 2 : 5; ctx.lineTo(x + Math.cos(q) * rr, y + Math.sin(q) * rr); } ctx.fill(); }
+      else ctx.fillRect(x - 3, y - 3, 6, 6);
+    }
+  } else if (c.slot === 'sword') {
+    ctx.translate(32, 32); ctx.rotate(-Math.PI / 4);
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(-3, 12, 6, 14); ctx.fillStyle = '#333'; ctx.fillRect(-10, 9, 20, 4);
+    ctx.fillStyle = col; ctx.fillRect(-4, -26, 8, 35); ctx.beginPath(); ctx.moveTo(-4, -26); ctx.lineTo(0, -32); ctx.lineTo(4, -26); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-1, -24, 2, 30);
+  } else if (c.slot === 'pick') {
+    ctx.translate(32, 32); ctx.rotate(-Math.PI / 4);
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(-3, -14, 6, 42);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-26, -8); ctx.quadraticCurveTo(0, -24, 26, -8); ctx.lineTo(22, -4); ctx.quadraticCurveTo(0, -16, -22, -4); ctx.closePath(); ctx.fill();
+  } else if (c.slot === 'swing') {
+    ctx.strokeStyle = col; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { ctx.globalAlpha = 1 - k * 0.3; ctx.lineWidth = 7 - k * 2; ctx.beginPath(); ctx.arc(32, 40, 22 - k * 6, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+
+/* ---------- 3D am Spieler ---------- */
+let COSDRAW = null;   // was der gerade gezeichnete Spieler trägt (für die Werkzeug-Farben)
+function cosRgb(c, t) {
+  if (c.col === 'rainbow') { const h = ((t * 0.25) % 1 + 1) % 1; const f = (n) => { const k = (n + h * 12) % 12; return 0.6 - 0.45 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return [f(0), f(8), f(4)]; }
+  return c._rgb || (c._rgb = hexToRgb(c.col));
+}
+function cosToolCol(tool) {
+  const c = COSDRAW && (tool === 'sword' ? COSDRAW.sword : tool === 'pickaxe' ? COSDRAW.pick : null);
+  return c ? cosRgb(c, performance.now() / 1000) : null;
+}
+function cosToolEm(tool) { const c = COSDRAW && (tool === 'sword' ? COSDRAW.sword : tool === 'pickaxe' ? COSDRAW.pick : null); return c ? c.em || 0 : 0; }
+function drawCosmetics(Bt, ms, P, sky, t) {
+  const cos = P.cos; if (!cos) return;
+  const box = (w, h, d, x, y, z, c, em) => Bt.box(ms.m, w, h, d, x, y, z, c[0], c[1], c[2], em || 0, em ? 1 : sky);
+  const m = ms.s ? ms.s[ms.i] : ms.m;
+  const wx = m[12], wy = m[13], wz = m[14], fx = m[8], fz = m[10];
+  const lean = P.lean || 0, bob = P.bob || 0;
+  if (cos.wings) {
+    const c = cos.wings, col = cosRgb(c, t), dark = [col[0] * 0.78, col[1] * 0.78, col[2] * 0.78];
+    const air = P.legL === -0.55 && P.legR === 0.35;
+    const flap = Math.sin(t * (air ? 9 : 2.2)) * (air ? 0.45 : 0.12);
+    ms.push().t(0, 0.78 + bob, 0).rx(lean).t(0, 0.6, -0.24);
+    for (const s of [-1, 1]) {
+      ms.push().t(s * 0.06, 0, 0).ry(s * (0.55 + flap)).rz(s * 0.3);
+      const bat = c.id === 'w_bat';
+      box(0.42, 0.16, 0.035, s * 0.24, 0.1, 0, col, c.em);
+      box(0.36, 0.2, 0.03, s * 0.5, 0.02, 0, bat ? dark : col, c.em);
+      box(0.3, 0.24, 0.03, s * 0.24, -0.08, 0, dark, c.em);
+      box(0.2, 0.2, 0.025, s * 0.7, -0.08, 0, col, c.em);
+      box(0.14, 0.16, 0.025, s * 0.52, -0.22, 0, dark, c.em);
+      ms.pop();
+    }
+    ms.pop();
+    if (c.id === 'w_bolt' && Math.random() < 0.12) spawnPart({ x: wx - fx * 0.35 + (Math.random() - 0.5) * 1.6, y: wy + 1.2 + Math.random() * 0.5, z: wz - fz * 0.35 + (Math.random() - 0.5) * 1.6, vx: 0, vy: -0.4, vz: 0, life: 0.3, size: 0.05, r: 1, g: 0.95, b: 0.5, em: 1, grav: 0, drag: 0, alpha: 0.9 });
+    if (c.id === 'w_fire' && Math.random() < 0.15) spawnPart({ x: wx - fx * 0.4 + (Math.random() - 0.5) * 1.2, y: wy + 1.1 + Math.random() * 0.4, z: wz - fz * 0.4 + (Math.random() - 0.5) * 1.2, vx: 0, vy: 0.8, vz: 0, life: 0.5, size: 0.06, r: 1, g: 0.5, b: 0.1, em: 1, grav: -1, drag: 1, alpha: 0.8 });
+  }
+  if (cos.head) {
+    const c = cos.head, col = cosRgb(c, t);
+    ms.push().t(0, 0.78 + bob, 0).rx(lean).t(0, 0.62, 0).ry(P.headYaw || 0).rx(P.headPitch || 0).t(0, 0.42, 0);
+    const hop = Math.abs(Math.sin(t * 3.1)) * 0.03;
+    if (c.id === 'h_sheep') {
+      ms.push().t(0, 0.02 + hop, 0).ry(Math.sin(t * 0.7) * 0.4);
+      for (const lx of [-0.07, 0.07]) for (const lz of [-0.1, 0.1]) box(0.05, 0.08, 0.05, lx, 0.04, lz, [0.25, 0.22, 0.2]);
+      box(0.22, 0.15, 0.3, 0, 0.15, 0, col);
+      box(0.12, 0.12, 0.1, 0, 0.22, 0.18, [0.24, 0.21, 0.19]);
+      box(0.13, 0.05, 0.06, 0, 0.29, 0.15, col);
+      box(0.03, 0.03, 0.01, -0.035, 0.23, 0.231, [1, 1, 1]); box(0.03, 0.03, 0.01, 0.035, 0.23, 0.231, [1, 1, 1]);
+      ms.pop();
+    } else if (c.id === 'h_chick') {
+      ms.push().t(0, hop, 0).ry(Math.sin(t * 0.9) * 0.6);
+      box(0.16, 0.14, 0.18, 0, 0.08, 0, col);
+      box(0.11, 0.11, 0.11, 0, 0.19, 0.06, col);
+      box(0.05, 0.03, 0.05, 0, 0.18, 0.13, [1, 0.55, 0.1]);
+      box(0.025, 0.025, 0.01, -0.03, 0.21, 0.116, [0.1, 0.1, 0.1]); box(0.025, 0.025, 0.01, 0.03, 0.21, 0.116, [0.1, 0.1, 0.1]);
+      ms.pop();
+    } else if (c.id === 'h_slime') {
+      const sq = 1 + Math.sin(t * 6) * 0.08;
+      box(0.26 / sq, 0.22 * sq, 0.26 / sq, 0, 0.11 * sq, 0, col);
+      box(0.05, 0.05, 0.01, -0.06, 0.14, 0.135, [0.15, 0.4, 0.12]); box(0.05, 0.05, 0.01, 0.06, 0.14, 0.135, [0.15, 0.4, 0.12]);
+    } else if (c.id === 'h_zombie') {
+      ms.push().t(0, 0, 0).ry(Math.sin(t * 0.8) * 0.5);
+      box(0.05, 0.12, 0.05, -0.04, 0.06, 0, [0.2, 0.25, 0.48]); box(0.05, 0.12, 0.05, 0.04, 0.06, 0, [0.2, 0.25, 0.48]);
+      box(0.15, 0.14, 0.08, 0, 0.19, 0, [0.23, 0.44, 0.69]);
+      box(0.13, 0.13, 0.13, 0, 0.33, 0, col);
+      box(0.03, 0.03, 0.01, -0.03, 0.34, 0.066, [1, 0.2, 0.2], 1); box(0.03, 0.03, 0.01, 0.03, 0.34, 0.066, [1, 0.2, 0.2], 1);
+      box(0.04, 0.04, 0.12, -0.1, 0.22, 0.06, col); box(0.04, 0.04, 0.12, 0.1, 0.22, 0.06, col);
+      ms.pop();
+    } else if (c.id === 'h_crown') {
+      box(0.46, 0.1, 0.46, 0, 0.0, 0, col, 0.15);
+      for (const [x, z] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2], [0, 0.2], [0, -0.2], [0.2, 0], [-0.2, 0]]) box(0.06, 0.12, 0.06, x, 0.1, z, col, 0.15);
+      box(0.06, 0.06, 0.02, 0, 0.0, 0.235, [1, 0.18, 0.28], 0.6);
+    } else if (c.id === 'h_halo') {
+      const y = 0.16 + Math.sin(t * 2) * 0.03;
+      box(0.4, 0.03, 0.06, 0, y, 0.18, col, 1); box(0.4, 0.03, 0.06, 0, y, -0.18, col, 1);
+      box(0.06, 0.03, 0.3, 0.18, y, 0, col, 1); box(0.06, 0.03, 0.3, -0.18, y, 0, col, 1);
+    } else {
+      box(0.5, 0.03, 0.5, 0, 0.0, 0, col);
+      box(0.32, 0.3, 0.32, 0, 0.16, 0, col);
+      box(0.33, 0.06, 0.33, 0, 0.05, 0, [0.7, 0.16, 0.16]);
+    }
+    ms.pop();
+  }
+  if (cos.aura && Math.random() < 0.3) {
+    const c = cos.aura, a = Math.random() * TAU, r = 0.35 + Math.random() * 0.25;
+    const col = c.col === 'rainbow' ? cosRgb(c, t + Math.random() * 4) : cosRgb(c, t);
+    const px = wx + Math.cos(a) * r, pz = wz + Math.sin(a) * r;
+    if (c.id === 'a_dust') spawnPart({ x: px, y: wy + 0.05, z: pz, vx: 0, vy: 0.2, vz: 0, life: 0.9, size: 0.12, r: col[0], g: col[1], b: col[2], kind: 1, grav: -0.1, drag: 1.5, alpha: 0.35, grow: 1.3 });
+    else if (c.id === 'a_leaf') spawnPart({ x: px, y: wy + 0.4 + Math.random() * 1.2, z: pz, vx: -Math.sin(a) * 1.2, vy: 0.3, vz: Math.cos(a) * 1.2, life: 0.9, size: 0.06, r: col[0], g: col[1], b: col[2], grav: 0.6, drag: 1.2, alpha: 0.9 });
+    else spawnPart({ x: px, y: wy + 0.2 + Math.random() * 1.4, z: pz, vx: 0, vy: c.id === 'a_flame' ? 1.2 : 0.5, vz: 0, life: c.id === 'a_star' ? 1.2 : 0.8, size: c.id === 'a_heart' ? 0.08 : 0.05, r: col[0], g: col[1], b: col[2], em: c.em || 0, grav: c.id === 'a_flame' ? -1.5 : -0.2, drag: 1, alpha: 0.9 });
+  }
+}
+/* Schwert-Hieb: ein leuchtender Bogen vor dem Spieler */
+function cosSwingFx(x, y, z, yaw, c, side) {
+  if (!c) return;
+  const col = cosRgb(c, performance.now() / 1000);
+  const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+  for (let k = 0; k < 14; k++) {
+    const u = (k / 13 - 0.5) * 2 * (side || 1), a = u * 1.1;
+    const d = 1.05, px = x + fx * Math.cos(a) * d + rx * Math.sin(a) * d, pz = z + fz * Math.cos(a) * d + rz * Math.sin(a) * d;
+    const pc = c.col === 'rainbow' ? cosRgb(c, k * 0.4) : col;
+    spawnPart({ x: px, y: y + 1.25 - u * 0.25, z: pz, vx: fx * 0.6, vy: 0, vz: fz * 0.6, life: 0.28 + Math.random() * 0.12, size: 0.07, r: pc[0], g: pc[1], b: pc[2], em: c.em || 0.3, grav: 0, drag: 3, alpha: 0.95 });
+  }
+  if (c.id === 'sw_bolt') for (let k = 0; k < 6; k++) spawnPart({ x: x + fx * 1.2 + (Math.random() - 0.5), y: y + 1.2 + Math.random() * 0.5, z: z + fz * 1.2 + (Math.random() - 0.5), vx: (Math.random() - 0.5) * 3, vy: Math.random() * 2, vz: (Math.random() - 0.5) * 3, life: 0.25, size: 0.05, r: 1, g: 1, b: 0.7, em: 1, grav: 0, drag: 2, alpha: 1 });
+  if (c.id === 'sw_fire') for (let k = 0; k < 6; k++) spawnPart({ x: x + fx * 1.1 + (Math.random() - 0.5) * 0.8, y: y + 1.1, z: z + fz * 1.1 + (Math.random() - 0.5) * 0.8, vx: 0, vy: 1.5, vz: 0, life: 0.5, size: 0.08, r: 1, g: 0.45, b: 0.1, em: 1, grav: -1, drag: 1, alpha: 0.9 });
+}
+function cosMySwing() {
+  const c = COS.eqObj && COS.eqObj.swing; if (!c) return;
+  const [tool] = heldTool(); if (tool !== 'sword') return;
+  const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw;
+  cosSwingFx(PL.x, PL.y, PL.z, yaw, c, PL.atkSide || 1);
+}
+
+/* ---------- Menü: Erfolge, Glücksrad, Kosmetik ---------- */
+UI.openCos = function (tab, from) {
+  UI._cosFrom = from || null;
+  if (from === 'pause') $('mdlPause').hidden = true;
+  else if (G.state === 'playing') { if (document.pointerLockElement) document.exitPointerLock(); INPUT.clear(); G.state = 'inv'; }
+  $('mdlCos').hidden = false;
+  cosTab(tab || (cosSpins() ? 'wheel' : 'ach'));
+  SFX.ui();
+};
+function cosTab(tab) {
+  COS.tab = tab;
+  for (const b of document.querySelectorAll('#cosTabs .tab')) b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+  for (const id of ['ach', 'wheel', 'items']) $('cosP_' + id).hidden = id !== tab;
+  $('cosSpinsN').textContent = cosSpins();
+  if (tab === 'ach') cosRenderAch();
+  if (tab === 'items') cosRenderItems();
+  if (tab === 'wheel') { cosWheelDraw(); cosWheelLoop(); }
+  cosBadge();
+}
+function cosRenderAch() {
+  const box = $('cosAch'); box.innerHTML = '';
+  const done = ACH.filter((a) => COS.a[a.id]).length;
+  $('cosAchN').textContent = done + ' / ' + ACH.length;
+  for (const a of ACH) {
+    const ok = !!COS.a[a.id];
+    const row = document.createElement('div'); row.className = 'ach-row' + (ok ? ' ok' : '');
+    let prog = '';
+    if (!ok && a.n) { const n = Math.min(a.goal, Math.floor(a.n())); prog = n + ' / ' + a.goal; }
+    row.innerHTML = '<span class="ach-chk"></span><div class="grow"><b></b><small></small></div><span class="ach-prog"></span>';
+    row.querySelector('.ach-chk').textContent = ok ? '✓' : '';
+    row.querySelector('b').textContent = a.name;
+    row.querySelector('small').textContent = a.desc;
+    row.querySelector('.ach-prog').textContent = ok ? '🎡 +1' : prog;
+    if (!ok && a.n) { const bar = document.createElement('i'); bar.className = 'ach-bar'; bar.style.setProperty('--p', Math.min(1, a.n() / a.goal).toFixed(3)); row.appendChild(bar); }
+    box.appendChild(row);
+  }
+}
+function cosRenderItems() {
+  const box = $('cosItems'); box.innerHTML = '';
+  const n = Object.keys(COS.o).length;
+  $('cosItemsN').textContent = n + ' / ' + COS_LIST.length;
+  for (const slot in COS_SLOT) {
+    const g = document.createElement('div'); g.className = 'cos-g';
+    g.innerHTML = '<h4></h4><div class="cos-grid"></div>';
+    g.querySelector('h4').textContent = COS_SLOT[slot];
+    const grid = g.lastChild;
+    for (const c of COS_LIST.filter((x) => x.slot === slot)) {
+      const own = !!COS.o[c.id], on = COS.e[slot] === c.id;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'cos-card r-' + c.r + (own ? '' : ' locked') + (on ? ' on' : '');
+      b.innerHTML = '<canvas width="96" height="96"></canvas><b></b><small></small>';
+      b.querySelector('b').textContent = own ? c.name : '???';
+      b.querySelector('small').textContent = COS_RAR[c.r].name + (on ? ' · an' : '');
+      const cv = b.querySelector('canvas');
+      if (own) drawCosIcon(cv.getContext('2d'), c, 96, 1); else { const x = cv.getContext('2d'); x.fillStyle = 'rgba(255,255,255,0.14)'; x.font = '900 48px system-ui'; x.textAlign = 'center'; x.fillText('?', 48, 64); }
+      if (own) b.addEventListener('click', () => { if (COS.e[slot] === c.id) delete COS.e[slot]; else COS.e[slot] = c.id; cosEqChanged(); cosSave(true); cosRenderItems(); SFX.ui(); });
+      grid.appendChild(b);
+    }
+    box.appendChild(g);
+  }
+}
+/* das Rad */
+function cosWheelDraw() {
+  const cv = $('cosWheel'); if (!cv) return;
+  const ctx = cv.getContext('2d'), S = cv.width, R = S / 2 - 8, n = COS_WHEEL.length, seg = TAU / n, t = performance.now() / 1000;
+  ctx.clearRect(0, 0, S, S);
+  ctx.save(); ctx.translate(S / 2, S / 2); ctx.rotate(COS.wheel.a);
+  for (let i = 0; i < n; i++) {
+    const r = COS_WHEEL[i], a0 = -Math.PI / 2 + i * seg - seg / 2, a1 = a0 + seg;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a0, a1); ctx.closePath();
+    if (r === 'l') {
+      const g = ctx.createLinearGradient(Math.cos(a0) * R, Math.sin(a0) * R, Math.cos(a1) * R, Math.sin(a1) * R);
+      const s = (t * 0.8) % 1.6 - 0.3;
+      g.addColorStop(0, '#c98a10'); g.addColorStop(Math.max(0, Math.min(1, s - 0.15)), '#ffc531'); g.addColorStop(Math.max(0, Math.min(1, s)), '#fff7c8'); g.addColorStop(Math.max(0, Math.min(1, s + 0.15)), '#ffc531'); g.addColorStop(1, '#c98a10');
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = COS_RAR[r].col;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.save(); ctx.rotate(a0 + seg / 2); ctx.fillStyle = r === 'l' ? '#5a3a00' : 'rgba(255,255,255,0.92)'; ctx.font = '900 ' + Math.round(S * 0.04) + 'px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(COS_RAR[r].name.toUpperCase(), R - 10, 0); ctx.restore();
+    if (r === 'l') { // Glitzer
+      for (let k = 0; k < 3; k++) { const q = a0 + seg * (0.25 + k * 0.25), rr = R * (0.45 + ((t * 0.7 + k * 0.37) % 0.5)); const al = 0.5 + 0.5 * Math.sin(t * 6 + k * 2); ctx.fillStyle = 'rgba(255,255,255,' + al.toFixed(2) + ')'; ctx.beginPath(); ctx.arc(Math.cos(q) * rr, Math.sin(q) * rr, 2.2, 0, TAU); ctx.fill(); }
+    }
+  }
+  ctx.restore();
+  // Mitte und Zeiger
+  ctx.fillStyle = '#16181c'; ctx.beginPath(); ctx.arc(S / 2, S / 2, S * 0.08, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(S / 2, S / 2, R, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(S / 2 - 13, 2); ctx.lineTo(S / 2 + 13, 2); ctx.lineTo(S / 2, 30); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Vorschau neben dem Rad
+  const pv = $('cosPrev');
+  if (pv && COS.wheel.prize) drawCosIcon(pv.getContext('2d'), COS.wheel.prize, pv.width, t);
+}
+function cosWheelLoop() {
+  if (COS.wheel.raf) return;
+  const step = () => {
+    COS.wheel.raf = 0;
+    if ($('mdlCos').hidden || COS.tab !== 'wheel') return;
+    const w = COS.wheel, now = performance.now();
+    if (w.spin) {
+      const k = Math.min(1, (now - w.spin.t0) / w.spin.dur), e = 1 - Math.pow(1 - k, 4);
+      const a = w.spin.a0 + (w.spin.a1 - w.spin.a0) * e;
+      const seg = TAU / COS_WHEEL.length, idx = Math.floor((a + seg / 2) / seg);
+      if (idx !== w.spin.last) { w.spin.last = idx; SFX.pop && SFX.pop(); }
+      w.a = a;
+      if (k >= 1) { const s = w.spin; w.spin = null; cosWheelDone(s); }
+    }
+    cosWheelDraw();
+    COS.wheel.raf = requestAnimationFrame(step);
+  };
+  COS.wheel.raf = requestAnimationFrame(step);
+}
+function cosSpin() {
+  if (COS.wheel.spin) return;
+  if (cosSpins() <= 0) { UI.toast('Keine Drehung übrig. Schaff einen Erfolg, dann darfst du wieder drehen.', 'warn', 3200, 'cos'); SFX.deny(); return; }
+  COS.used++; cosSave(true);
+  const n = COS_WHEEL.length;
+  let i = Math.floor(Math.random() * n);
+  // Legendary: heimlich noch einmal 50 %, sonst ein Feld davor oder danach
+  if (COS_WHEEL[i] === 'l' && Math.random() < 0.5) i = (i + (Math.random() < 0.5 ? -1 : 1) + n) % n;
+  const seg = TAU / n;
+  // Feld i steht oben, wenn das Rad um -i*seg gedreht ist; dazu ein paar volle Runden und eine Stelle im Feld
+  const cur = COS.wheel.a, off = (Math.random() - 0.5) * seg * 0.7;
+  let a1 = -i * seg + off;
+  while (a1 > cur - TAU * 5) a1 -= TAU;
+  COS.wheel.prize = null;
+  $('cosPrevName').textContent = '…'; $('cosPrevRar').textContent = ''; $('cosPrevBox').className = 'cos-prev';
+  { const pv = $('cosPrev'); pv.getContext('2d').clearRect(0, 0, pv.width, pv.height); }
+  COS.wheel.spin = { a0: cur, a1, t0: performance.now(), dur: 5200, i, last: null };
+  $('cosSpinBtn').disabled = true;
+  $('cosSpinsN').textContent = cosSpins(); cosBadge();
+  cosWheelLoop();
+}
+function cosWheelDone(s) {
+  const r = COS_WHEEL[s.i];
+  const pool = COS_LIST.filter((c) => c.r === r), fresh = pool.filter((c) => !COS.o[c.id]);
+  const c = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length ? fresh.length : pool.length))];
+  const dup = !fresh.length;
+  COS.o[c.id] = 1;
+  if (!dup && !COS.e[c.slot]) { COS.e[c.slot] = c.id; cosEqChanged(); }
+  cosSave(true);
+  COS.wheel.a = ((COS.wheel.a % TAU) + TAU) % TAU;
+  COS.wheel.prize = c;
+  $('cosPrevName').textContent = c.name;
+  $('cosPrevRar').textContent = COS_RAR[r].name + ' · ' + COS_SLOT[c.slot] + (dup ? ' · hast du schon' : ' · neu!');
+  $('cosPrevBox').className = 'cos-prev show r-' + r;
+  $('cosSpinBtn').disabled = false;
+  $('cosSpinsN').textContent = cosSpins();
+  if (SFX.upgrade) SFX.upgrade();
+  if (r === 'l' || r === 'm') { const box = $('cosPrevBox'); box.classList.remove('boom'); void box.offsetWidth; box.classList.add('boom'); }
+}
+
+function bindCosmetics() {
+  cosLoad();
+  for (const b of document.querySelectorAll('#cosTabs .tab')) b.addEventListener('click', () => cosTab(b.dataset.tab));
+  $('cosSpinBtn').addEventListener('click', cosSpin);
+  $('btnCos').addEventListener('click', () => UI.openCos(null, 'menu'));
+  $('btnPauseCos').addEventListener('click', () => UI.openCos(null, 'pause'));
+  cosBadge();
 }
 
 /* ---- 19z_modfly.js ---- */
