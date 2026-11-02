@@ -629,9 +629,6 @@ select.field { appearance: auto; }
 @keyframes cosSpinR { to { transform: rotate(360deg); } }
 .cos-box-gift { position: relative; font-size: 86px; line-height: 1; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.35)); animation: cosGift 2.2s ease-in-out infinite; }
 @keyframes cosGift { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg) scale(1.05); } }
-.cos-box-b1 .cos-box-gift { filter: hue-rotate(200deg) saturate(1.2) drop-shadow(0 8px 6px rgba(0,0,0,0.35)); }
-.cos-box-b2 .cos-box-gift { filter: hue-rotate(255deg) saturate(1.3) drop-shadow(0 8px 6px rgba(0,0,0,0.35)); }
-.cos-box-b3 .cos-box-gift { filter: hue-rotate(40deg) saturate(1.6) brightness(1.15) drop-shadow(0 0 14px rgba(255, 220, 90, 0.9)); }
 .cos-box-shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%); background-size: 250% 100%; animation: cosShine 2.6s linear infinite; }
 .cos-box b { font-size: 17px; } .cos-box small { color: var(--muted); font-weight: 800; }
 .cos-box .btn { width: 100%; }
@@ -2087,7 +2084,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button class="tab" role="tab" data-tab="items" aria-selected="false" type="button">✨ Kosmetik <small id="cosItemsN"></small></button>
     </div>
     <div class="sheet-b">
-      <div id="cosP_ach"><p class="shop-tip cos-streak" id="cosStreak"></p><div id="cosAch"></div></div>
+      <div id="cosP_ach"><div id="cosAch"></div></div>
       <div id="cosP_shop" hidden><p class="cos-pts">Deine Erfolgspunkte: <b>🏆 <span id="cosPts">0</span></b></p><div class="cos-shop" id="cosShop"></div><p class="shop-tip">Öffne eine Box und dreh am Glücksdreh. Was du schon hast, kann doppelt kommen.</p></div>
       <div id="cosP_items" hidden><p class="shop-tip">Tipp etwas an, um es zu tragen (nochmal: ablegen). Andere Spieler sehen es auch.</p><div id="cosItems"></div></div>
     </div>
@@ -2250,8 +2247,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.49.1';
+const GAME_VERSION = '2.49.2';
 const GAME_NOTES = [
+  ['2.49.2', 'Fehler behoben: Für einen geschafften Erfolg gab es manchmal keinen Erfolgspunkt, weil die Drehungen vom alten Glücksrad noch abgezogen wurden. Jetzt zählt jeder Erfolg wieder 1 Punkt. Das Geschenk auf den Boxen hat wieder seine echten Farben, die gelbe Serien-Zeile über den Erfolgen ist weg.'],
   ['2.49.1', 'Die Tage-Erfolge (50, 100, 250) zählen jetzt auch, wenn du in einer Welt oder auf einem Server bist, die schon so weit ist, z. B. auf einem Server an Tag 60. Kreativ und Unsterblichkeit zählen weiter nicht. Die Kosmetik-Boxen im Shop sehen neu aus: großes Geschenk 🎁 in der Farbe der Box, das wippt, mit drehenden Strahlen und Glanz; die Mega-Box leuchtet golden.'],
   ['2.49.0', 'Erfolge sind jetzt sehr schwer: z. B. 50, 100 oder 250 Tage am Stück überleben, ohne zu sterben, 10 oder 25 Blood Moons hintereinander, 10.000 Zombies, 200 Stunden Spielzeit, alle vier Rubin-Werkzeuge gleichzeitig. Kreativ und Unsterblichkeit zählen nicht. Jeder Erfolg gibt 1 Erfolgspunkt. Neu im Menü Erfolge: der Shop mit Kosmetik-Boxen (Kosmetik-Box 1 Punkt, Super-Box 3, Mega-Box 6). Beim Öffnen kommt im Vollbild der Glücksdreh: eine gebogene Reihe großer Karten saust unter dem Pin durch und bleibt langsam stehen, danach kommt die große Meldung COMMON, RARE!, EPIC!, MYTHIC!! oder LEGENDARY!!! mit Konfetti, direkt anziehen oder nochmal öffnen.'],
   ['2.48.0', 'Erfolge, Glücksrad und Kosmetik: Erfolge zählen in allen Welten (z. B. Überlebe 50 Tage), jeder gibt einen Dreh am Glücksrad (Common, Rare, Epic, Mythic, Legendary). Zu gewinnen: Flügel, Mini-Schaf und mehr auf dem Kopf, Partikel, Schwert- und Spitzhacken-Skins und Schwert-Hiebe, andere Spieler sehen sie. Neu: Schilder (an die Wand oder mit Stab auf den Boden, mit Text), Rubinspitzhacke und Rubinschaufel, ein Kristallapfel macht 5 Minuten immun gegen das Gift. Normale Wegpunkte teilen sich jetzt alle Spieler einer Welt.'],
@@ -26139,7 +26137,7 @@ function cosFair() { return !G.spectator && !MODFX.godmode && !(typeof creativeO
 
 const COS_KEY = 'bloodmoon-cos';
 const COS = {
-  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0, maxDay: 0 },
+  a: {}, o: {}, e: {}, spent: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0, maxDay: 0 },
   base: null, t: 0, saveT: 0, cloudT: 0, eqObj: null, eqStr: '',
   wheel: { prize: null, reveal: false, conf: [], flash: 0, flashCol: '#fff', col: '#fff' }, reel: null, fsOpen: false,
 };
@@ -26150,13 +26148,13 @@ function cosLoad() {
       if (s.a && typeof s.a === 'object') COS.a = s.a;
       if (s.o && typeof s.o === 'object') COS.o = s.o;
       if (s.e && typeof s.e === 'object') COS.e = s.e;
-      COS.used = s.used | 0;
+      COS.spent = s.spent | 0;   // 'used' aus 2.48 (altes Rad) zählt nicht mehr
       if (s.st && typeof s.st === 'object') for (const k in COS.st) COS.st[k] = +s.st[k] || 0;
     }
   } catch (e) { /* neu */ }
   cosEqChanged(true);
 }
-function cosData() { return { a: COS.a, o: COS.o, e: COS.e, used: COS.used, st: COS.st }; }
+function cosData() { return { a: COS.a, o: COS.o, e: COS.e, spent: COS.spent, st: COS.st }; }
 function cosSave(cloud) {
   try { localStorage.setItem(COS_KEY, JSON.stringify(cosData())); } catch (e) { /* voll */ }
   if (cloud) COS.cloudT = 4;   // gebündelt in die Cloud, nicht bei jedem Schritt
@@ -26170,13 +26168,13 @@ function cosFromCloud(c) {
   if (!c || typeof c !== 'object') { if (Object.keys(COS.a).length) cosCloudPush(); return; }
   if (c.a) for (const k in c.a) COS.a[k] = 1;
   if (c.o) for (const k in c.o) if (COS_BY[k]) COS.o[k] = 1;
-  COS.used = Math.max(COS.used, c.used | 0);
+  COS.spent = Math.max(COS.spent, c.spent | 0);
   const fresh = !COS.st.days;
   if (c.st) for (const k in COS.st) if (fresh || (k !== 'streak' && k !== 'bstreak')) COS.st[k] = Math.max(COS.st[k], +c.st[k] || 0);
   if (c.e && !Object.keys(COS.e).length) COS.e = c.e;
   cosSave(); cosEqChanged(); cosCloudPush();
 }
-function cosSpins() { return Math.max(0, Object.keys(COS.a).filter((k) => ACH_IDS.has(k)).length - COS.used); }
+function cosSpins() { return Math.max(0, Object.keys(COS.a).filter((k) => ACH_IDS.has(k)).length - COS.spent); }
 /* was jemand trägt: kurze Zeichenkette für das Netz */
 function cosParse(s) {
   const o = {};
@@ -26439,7 +26437,6 @@ function cosRenderAch() {
   const box = $('cosAch'); box.innerHTML = '';
   const done = ACH.filter((a) => COS.a[a.id]).length;
   $('cosAchN').textContent = done + ' / ' + ACH.length;
-  $('cosStreak').textContent = 'Deine Serie: ' + COS.st.streak + (COS.st.streak === 1 ? ' Tag' : ' Tage') + ' ohne Tod (Rekord ' + COS.st.best + ') · Blood Moons am Stück: ' + COS.st.bstreak + ' (Rekord ' + COS.st.bestBlood + ')';
   for (const a of ACH) {
     const ok = !!COS.a[a.id];
     const row = document.createElement('div'); row.className = 'ach-row' + (ok ? ' ok' : '');
@@ -26504,7 +26501,7 @@ function cosRenderShop() {
 function cosBuyBox(bx) {
   if (COS.reel && COS.reel.run) return;
   if (cosSpins() < bx.cost) { SFX.deny(); UI.toast('Dafür brauchst du ' + bx.cost + ' Erfolgspunkte. Schaff mehr Erfolge!', 'warn', 3000, 'cos'); return; }
-  COS.used += bx.cost; cosSave(true);
+  COS.spent += bx.cost; cosSave(true);
   cosReelOpen(bx);
 }
 
