@@ -593,7 +593,6 @@ select.field { appearance: auto; }
 .ach-pop small { display: block; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #ffc531; }
 .ach-pop b { display: block; font-size: 16px; } .ach-pop em { display: block; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 700; }
 .cos-wheel-wrap { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; }
-#cosWheel { width: min(360px, 82vw); height: auto; }
 .cos-side { display: grid; gap: 10px; justify-items: center; min-width: 190px; }
 .cos-prev { display: grid; justify-items: center; gap: 4px; padding: 12px; width: 180px; border-radius: 14px; border: 2px solid var(--line); background: rgba(255, 255, 255, 0.03); text-align: center; }
 .cos-prev canvas { width: 112px; height: 112px; }
@@ -618,6 +617,51 @@ select.field { appearance: auto; }
 .cos-card.locked { opacity: 0.45; border-style: dashed; cursor: default; }
 .cos-card.on { background: rgba(255, 255, 255, 0.12); box-shadow: 0 0 0 2px #fff inset; }
 .cos-card.r-l:not(.locked) { background: linear-gradient(120deg, rgba(255, 197, 49, 0.06), rgba(255, 247, 200, 0.2), rgba(255, 197, 49, 0.06)); background-size: 200% 100%; animation: cosShine 2.2s linear infinite; }
+.cos-wheel-tab b { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #ff2f4a; color: #fff; font-size: 11px; }
+.cos-wheel-tab b:empty { display: none; }
+.cos-streak { color: #ffc531 !important; }
+.cos-pts { margin: 0 0 12px; font-weight: 800; color: var(--muted); } .cos-pts b { color: #ffc531; font-size: 1.2em; }
+.cos-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 10px; }
+.cos-box { display: grid; justify-items: center; gap: 4px; padding: 14px 12px; border-radius: 18px; border: 2px solid var(--bc); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--bc) 28%, transparent), rgba(255,255,255,0.02) 70%); text-align: center; }
+.cos-box canvas { width: 110px; height: 110px; animation: cosBob 2.6s ease-in-out infinite; }
+.cos-box b { font-size: 16px; } .cos-box small { color: var(--muted); font-weight: 800; }
+.cos-box-r { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 4px 0 8px; }
+.cos-box-r span { font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 99px; background: var(--rc); color: #fff; }
+.cos-box-r .r-l { color: #4a3000; background: linear-gradient(90deg, #ffc531, #fff3b0, #ffc531); }
+.cos-box.poor canvas { filter: grayscale(0.6) brightness(0.8); animation: none; }
+.cosfs { --bc: #3f9bff; position: fixed; inset: 0; z-index: 120; background: linear-gradient(180deg, #5fc8ff 0%, #2f86e8 55%, #1c5bbf 100%); overflow: hidden; color: #fff; font-family: system-ui, sans-serif; }
+.cosfs-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.cosfs-x { position: absolute; top: 14px; right: 14px; z-index: 8; width: 46px; height: 46px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.2); color: #fff; display: grid; place-items: center; }
+.cosfs-head { position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: grid; justify-items: center; gap: 8px; padding-top: clamp(12px, 3vh, 34px); }
+.cosfs-head h2 { margin: 0; padding: 6px 34px 4px; background: #fff; color: #1d1d24; font: 900 clamp(28px, 6vh, 56px)/1.05 system-ui, sans-serif; letter-spacing: 0.02em; transform: rotate(-1.5deg); border-radius: 6px; box-shadow: 0 6px 0 rgba(0,0,0,0.18); }
+.cosfs-head p { margin: 0; padding: 6px 16px; border-radius: 10px; background: #e8d6bd; color: #3d2f22; font-weight: 900; font-size: clamp(13px, 2vh, 18px); }
+.reel { position: absolute; z-index: 2; left: 0; right: 0; top: 50%; height: min(58vh, 520px); transform: translateY(-42%); perspective: 1100px; }
+.reel-track { position: absolute; left: -10%; right: -10%; top: -6%; bottom: -6%; border-radius: 50% / 18%; background: linear-gradient(180deg, #1a6fd6, #0f4fa8); border-top: 10px solid #7fd5ff; box-shadow: inset 0 14px 30px rgba(0,0,0,0.25); }
+.reel-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.reel-card { --rc: #8f949c; position: absolute; left: 0; top: 4%; height: 92%; width: min(30vw, 260px, 44vh); display: grid; grid-template-rows: auto 1fr auto; justify-items: center; align-items: center; padding: 12px 8px 14px; border-radius: 16px; border: 4px solid rgba(0,0,0,0.25); background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rc) 55%, #fff) 0%, var(--rc) 55%, color-mix(in srgb, var(--rc) 70%, #000) 100%); box-shadow: 0 10px 0 rgba(0,0,0,0.2); backface-visibility: hidden; will-change: transform; transition: filter 0.4s, opacity 0.4s; }
+.reel-card.r-c { --rc: #9aa0a8; } .reel-card.r-r { --rc: #3f7dff; } .reel-card.r-e { --rc: #a24dff; } .reel-card.r-m { --rc: #ff2f4a; } .reel-card.r-l { --rc: #ffbf1f; }
+.reel-card.r-l::after { content: ''; position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%); background-size: 250% 100%; animation: cosShine 1.8s linear infinite; pointer-events: none; }
+.reel-rar { font: 900 clamp(16px, 2.8vh, 26px)/1 system-ui, sans-serif; color: #fff; -webkit-text-stroke: 1.5px rgba(0,0,0,0.45); text-shadow: 0 3px 0 rgba(0,0,0,0.3); }
+.reel-card.r-l .reel-rar { color: #fff6c4; }
+.reel-card canvas { width: 82%; max-height: 100%; aspect-ratio: 1; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.35)); }
+.reel-card b { font-size: clamp(13px, 2vh, 18px); text-align: center; text-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+.reel-card.dim { filter: brightness(0.45) saturate(0.6); }
+.reel-card.win { animation: cosWin 0.8s ease-in-out infinite alternate; box-shadow: 0 0 0 5px #fff, 0 0 50px var(--rc); }
+@keyframes cosWin { from { filter: brightness(1); } to { filter: brightness(1.25); } }
+.reel-pin { position: absolute; z-index: 5; left: 50%; top: -9%; width: 64px; height: 84px; transform-origin: 50% 12%; transform: translateX(-50%); }
+.reel-pin i { position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, #ffd27a 0 15%, transparent 16%), linear-gradient(160deg, #ff8a4a, #e3401d); border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%); box-shadow: 0 6px 0 rgba(0,0,0,0.25); }
+.cosfs-reveal { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; background: rgba(0,0,0,0.5); }
+.cosfs-card { --rc: #8f949c; display: grid; justify-items: center; gap: 6px; padding: 26px 34px 22px; min-width: min(380px, 88vw); border-radius: 24px; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rc) 45%, #1b1826), #120f1a 75%); border: 4px solid var(--rc); box-shadow: 0 0 70px var(--rc), 0 30px 80px rgba(0,0,0,0.7); text-align: center; }
+.cosfs-reveal.in .cosfs-card { animation: cosCardIn 0.7s cubic-bezier(.2, 1.5, .4, 1); }
+.cosfs-reveal.r-r .cosfs-card { --rc: #3f7dff; } .cosfs-reveal.r-e .cosfs-card { --rc: #a24dff; } .cosfs-reveal.r-m .cosfs-card { --rc: #ff2f4a; } .cosfs-reveal.r-l .cosfs-card { --rc: #ffc531; }
+@keyframes cosCardIn { 0% { transform: scale(0.3) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+.cosfs-rar { font: 900 clamp(26px, 5vh, 46px)/1 system-ui, sans-serif; letter-spacing: 0.06em; color: var(--rc); -webkit-text-stroke: 1.5px rgba(0,0,0,0.4); text-shadow: 0 0 24px var(--rc); }
+.cosfs-reveal.r-l .cosfs-rar { background: linear-gradient(90deg, #ffc531, #fffbe0, #ffc531); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cosShine 1.4s linear infinite; -webkit-text-stroke: 0; }
+.cosfs-card canvas { width: min(200px, 34vh); height: min(200px, 34vh); filter: drop-shadow(0 0 22px var(--rc)); animation: cosBob 2.4s ease-in-out infinite; }
+@keyframes cosBob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+.cosfs-card b { font-size: clamp(22px, 3.4vh, 30px); }
+.cosfs-card small { font-weight: 800; color: rgba(255,255,255,0.75); }
+.cosfs-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
 #signtags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .signtag { position: absolute; left: 0; top: 0; width: 180px; margin-left: -90px; margin-top: -52px; height: 104px; display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre-wrap; word-break: break-word; font: 800 19px/1.2 system-ui, sans-serif; color: #2a1a0b; transform-origin: 50% 50%; }
 .sign-ta { width: 100%; min-height: 120px; resize: none; text-align: center; font: 700 18px/1.3 system-ui, sans-serif; background: #b98a55; color: #2a1a0b; border: 4px solid #7f5a33; border-radius: 8px; padding: 10px; }
@@ -2024,26 +2068,31 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlCos" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="cosTitle">
   <div class="sheet panel cos-sheet">
-    <div class="sheet-h"><div class="grow"><h2 id="cosTitle">🏆 Erfolge &amp; Kosmetik</h2><p>Erfolge zählen in allen Welten. Jeder gibt dir einen Dreh am Glücksrad.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="sheet-h"><div class="grow"><h2 id="cosTitle">🏆 Erfolge &amp; Kosmetik</h2><p>Sehr schwer, zählt in allen Welten. Jeder Erfolg gibt 🏆 1 Erfolgspunkt für den Shop. Kreativ und Unsterblichkeit zählen nicht.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="tabs" id="cosTabs" role="tablist">
       <button class="tab" role="tab" data-tab="ach" aria-selected="true" type="button">🏆 Erfolge <small id="cosAchN"></small></button>
-      <button class="tab" role="tab" data-tab="wheel" aria-selected="false" type="button">🎡 Glücksrad</button>
+      <button class="tab cos-wheel-tab" role="tab" data-tab="shop" aria-selected="false" type="button">🎁 Shop <b id="cosWheelN"></b></button>
       <button class="tab" role="tab" data-tab="items" aria-selected="false" type="button">✨ Kosmetik <small id="cosItemsN"></small></button>
     </div>
     <div class="sheet-b">
-      <div id="cosP_ach"><div id="cosAch"></div></div>
-      <div id="cosP_wheel" hidden>
-        <div class="cos-wheel-wrap">
-          <canvas id="cosWheel" width="360" height="360"></canvas>
-          <div class="cos-side">
-            <div class="cos-prev" id="cosPrevBox"><canvas id="cosPrev" width="128" height="128"></canvas><b id="cosPrevName">?</b><small id="cosPrevRar">Dreh am Rad!</small></div>
-            <p class="cos-spins">Drehungen übrig: <b id="cosSpinsN">0</b></p>
-            <button class="btn primary" id="cosSpinBtn" type="button">🎡 Drehen</button>
-            <div class="cos-leg"><span class="r-c">Common</span><span class="r-r">Rare</span><span class="r-e">Epic</span><span class="r-m">Mythic</span><span class="r-l">Legendary</span></div>
-          </div>
-        </div>
-      </div>
+      <div id="cosP_ach"><p class="shop-tip cos-streak" id="cosStreak"></p><div id="cosAch"></div></div>
+      <div id="cosP_shop" hidden><p class="cos-pts">Deine Erfolgspunkte: <b>🏆 <span id="cosPts">0</span></b></p><div class="cos-shop" id="cosShop"></div><p class="shop-tip">Öffne eine Box und dreh am Glücksdreh. Was du schon hast, kann doppelt kommen.</p></div>
       <div id="cosP_items" hidden><p class="shop-tip">Tipp etwas an, um es zu tragen (nochmal: ablegen). Andere Spieler sehen es auch.</p><div id="cosItems"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="cosFs" class="cosfs" hidden role="dialog" aria-modal="true" aria-label="Glücksdreh">
+  <canvas id="cosFx" class="cosfs-fx"></canvas>
+  <button class="cosfs-x" id="cosFsX" type="button" aria-label="Schließen"><svg width="20" height="20" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+  <div class="cosfs-head"><h2 id="cosFsTitle">GLÜCKSDREH</h2><p id="cosFsSub"></p></div>
+  <div class="reel"><div class="reel-track"></div><div class="reel-stage" id="cosStrip"></div><div class="reel-pin" id="cosPin"><i></i></div></div>
+  <div class="cosfs-reveal" id="cosReveal" hidden>
+    <div class="cosfs-card">
+      <span class="cosfs-rar" id="cosRevRar"></span>
+      <canvas id="cosRevIc" width="256" height="256"></canvas>
+      <b id="cosRevName"></b><small id="cosRevSlot"></small>
+      <div class="cosfs-btns"><button class="btn primary" id="cosRevWear" type="button">✨ Anziehen</button><button class="btn" id="cosRevAgain" type="button">🎁 Nochmal</button><button class="btn ghost" id="cosRevOk" type="button">Fertig</button></div>
     </div>
   </div>
 </div>
@@ -2189,8 +2238,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.48.0';
+const GAME_VERSION = '2.49.0';
 const GAME_NOTES = [
+  ['2.49.0', 'Erfolge sind jetzt sehr schwer: z. B. 50, 100 oder 250 Tage am Stück überleben, ohne zu sterben, 10 oder 25 Blood Moons hintereinander, 10.000 Zombies, 200 Stunden Spielzeit, alle vier Rubin-Werkzeuge gleichzeitig. Kreativ und Unsterblichkeit zählen nicht. Jeder Erfolg gibt 1 Erfolgspunkt. Neu im Menü Erfolge: der Shop mit Kosmetik-Boxen (Kosmetik-Box 1 Punkt, Super-Box 3, Mega-Box 6). Beim Öffnen kommt im Vollbild der Glücksdreh: eine gebogene Reihe großer Karten saust unter dem Pin durch und bleibt langsam stehen, danach kommt die große Meldung COMMON, RARE!, EPIC!, MYTHIC!! oder LEGENDARY!!! mit Konfetti, direkt anziehen oder nochmal öffnen.'],
   ['2.48.0', 'Erfolge, Glücksrad und Kosmetik: Erfolge zählen in allen Welten (z. B. Überlebe 50 Tage), jeder gibt einen Dreh am Glücksrad (Common, Rare, Epic, Mythic, Legendary). Zu gewinnen: Flügel, Mini-Schaf und mehr auf dem Kopf, Partikel, Schwert- und Spitzhacken-Skins und Schwert-Hiebe, andere Spieler sehen sie. Neu: Schilder (an die Wand oder mit Stab auf den Boden, mit Text), Rubinspitzhacke und Rubinschaufel, ein Kristallapfel macht 5 Minuten immun gegen das Gift. Normale Wegpunkte teilen sich jetzt alle Spieler einer Welt.'],
   ['2.47.0', 'Riesige Höhlen sind zurück: hinter dem Schattenwald liegt selten (in etwa 6 % der Gegend) eine weite Höhlenlandschaft mit Säulen und Lava am Boden, an einigen Stellen führt ein großes Loch hinunter. Nur in Gegenden, in denen du noch nie warst (deine Bauten bleiben, wie sie sind).'],
   ['2.46.4', 'Handy: Minenwagen gedrückt halten baut ihn ab (er fällt als Gegenstand heraus, auch am PC mit Linksklick). Hebel und analoge Hebel lassen sich durch Antippen umstellen (am PC auch mit Linksklick).'],
@@ -9447,7 +9497,7 @@ function hurtPlayer(dmg, fromX, fromZ, noPush, armorK) {
   if (PL.hp <= 0) {
     PL.deathCause = cause || (PL.lastHitBy && G.playTime - PL.lastHitBy.t < 3 ? PL.lastHitBy.name : null);
     PL.dead = true; PL.deadT = 0; modEmit('death', {}); modPlayerDied();
-    wpOnDeath();
+    wpOnDeath(); cosOnDeath();
     dropEverything();
     UI.death(); SFX.death();
   }
@@ -15861,7 +15911,7 @@ function frame(now) {
   // die Weltkarte deckt alles zu: dann die Welt nicht zeichnen (die Karte bekommt die Zeit)
   // (auch wenn der Mond der Start-Animation alles bedeckt)
   const introOn = typeof INTRO !== 'undefined' && INTRO.on;
-  const hidden3d = (typeof WM !== 'undefined' && WM.open) || (introOn && INTRO.full);
+  const hidden3d = (typeof WM !== 'undefined' && WM.open) || (introOn && INTRO.full) || COS.fsOpen;
   if (!hidden3d) guard('Zeichenliste', () => buildDrawLists(shaderTime, inMenu));
   // Start-Animation: ohne Schatten und Bewegungsunschärfe, damit sie flüssig läuft
   RENDER_OPTS.shadows = TEX.shadowSize > 0 && !introOn;
@@ -26044,39 +26094,34 @@ const COS_LIST = [
   { id: 'sw_bolt', slot: 'swing', r: 'l', name: 'Blitzhieb', col: '#ffe94a', em: 1 },
 ];
 const COS_BY = {}; for (const c of COS_LIST) COS_BY[c.id] = c;
-/* die 12 Felder des Rads (Legendary sitzt zwischen Mythic und Epic) */
-const COS_WHEEL = ['c', 'r', 'c', 'e', 'c', 'r', 'm', 'l', 'e', 'c', 'r', 'c'];
 
-/* ---------- Erfolge ---------- */
+/* ---------- Erfolge (absichtlich sehr schwer) ---------- */
+const RUBY_TOOLS = ['sword4', 'axe4', 'pickaxe4', 'shovel4'];
 const ACH = [
-  { id: 'first', name: 'Willkommen', desc: 'Betritt zum ersten Mal eine Welt.', test: () => true },
-  { id: 'day5', name: 'Überlebe 5 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 5 },
-  { id: 'day20', name: 'Überlebe 20 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 20 },
-  { id: 'day50', name: 'Überlebe 50 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 50 },
-  { id: 'day100', name: 'Überlebe 100 Tage', desc: 'Tage zählen über alle Welten.', n: () => COS.st.days, goal: 100 },
-  { id: 'blood1', name: 'Blutiger Morgen', desc: 'Überlebe einen Blood Moon.', n: () => COS.st.blood, goal: 1 },
-  { id: 'blood10', name: 'Mondjäger', desc: 'Überlebe 10 Blood Moons.', n: () => COS.st.blood, goal: 10 },
-  { id: 'kill10', name: 'Erste Jagd', desc: 'Besiege 10 Zombies.', n: () => COS.st.kills, goal: 10 },
-  { id: 'kill100', name: 'Zombieschreck', desc: 'Besiege 100 Zombies.', n: () => COS.st.kills, goal: 100 },
-  { id: 'kill1000', name: 'Legende der Nacht', desc: 'Besiege 1000 Zombies.', n: () => COS.st.kills, goal: 1000 },
-  { id: 'tree50', name: 'Holzfäller', desc: 'Fälle 50 Bäume.', n: () => COS.st.trees, goal: 50 },
-  { id: 'place500', name: 'Baumeister', desc: 'Setze 500 Blöcke.', n: () => COS.st.place, goal: 500 },
-  { id: 'diamond', name: 'Funkelnd', desc: 'Finde einen Diamanten.', test: () => (G.inv.diamond || 0) > 0 },
-  { id: 'ruby', name: 'Rot wie Blut', desc: 'Finde einen Rubin.', test: () => (G.inv.ruby || 0) > 0 },
-  { id: 'rubytool', name: 'Rubinschmied', desc: 'Hol dir ein Rubin-Werkzeug.', test: () => Object.keys(G.inv.items || {}).some((k) => /^(sword|axe|pickaxe|shovel)4$/.test(k) && G.inv.items[k] > 0) },
-  { id: 'apple', name: 'Gegengift', desc: 'Iss einen Kristallapfel.', n: () => COS.st.apple, goal: 1 },
-  { id: 'cart', name: 'Alle einsteigen', desc: 'Fahr mit dem Minenwagen.', n: () => COS.st.cart, goal: 1 },
-  { id: 'sign', name: 'Wegweiser', desc: 'Stell ein Schild auf.', n: () => COS.st.sign, goal: 1 },
-  { id: 'friend', name: 'Zusammen stark', desc: 'Spiel mit einem Freund in einer Welt.', test: () => MP.active() && Object.keys(REMOTE).length > 0 },
-  { id: 'time1', name: 'Eine Stunde', desc: 'Spiel insgesamt 1 Stunde.', n: () => Math.floor(COS.st.time / 60), goal: 60 },
-  { id: 'time10', name: 'Zehn Stunden', desc: 'Spiel insgesamt 10 Stunden.', n: () => Math.floor(COS.st.time / 60), goal: 600 },
+  { id: 'd50', name: 'Überlebe 50 Tage', desc: '50 Tage am Stück, ohne ein einziges Mal zu sterben.', n: () => COS.st.best, goal: 50 },
+  { id: 'd100', name: 'Überlebe 100 Tage', desc: '100 Tage am Stück, ohne zu sterben.', n: () => COS.st.best, goal: 100 },
+  { id: 'd250', name: 'Unsterblich', desc: '250 Tage am Stück, ohne zu sterben.', n: () => COS.st.best, goal: 250 },
+  { id: 'bm10', name: 'Herr der Blutmonde', desc: '10 Blood Moons hintereinander überleben, ohne zu sterben.', n: () => COS.st.bestBlood, goal: 10 },
+  { id: 'bm25', name: 'Der Mond fürchtet dich', desc: '25 Blood Moons hintereinander überleben, ohne zu sterben.', n: () => COS.st.bestBlood, goal: 25 },
+  { id: 'k2500', name: 'Zombieschreck', desc: 'Besiege 2.500 Zombies.', n: () => COS.st.kills, goal: 2500 },
+  { id: 'k10000', name: 'Legende der Nacht', desc: 'Besiege 10.000 Zombies.', n: () => COS.st.kills, goal: 10000 },
+  { id: 't1000', name: 'Kahlschlag', desc: 'Fälle 1.000 Bäume.', n: () => COS.st.trees, goal: 1000 },
+  { id: 'p20000', name: 'Weltenbauer', desc: 'Setze 20.000 Blöcke.', n: () => COS.st.place, goal: 20000 },
+  { id: 'h50', name: 'Kein Zurück', desc: 'Spiel insgesamt 50 Stunden.', n: () => Math.floor(COS.st.time / 60), goal: 50 },
+  { id: 'h200', name: 'Blood Moon ist mein Leben', desc: 'Spiel insgesamt 200 Stunden.', n: () => Math.floor(COS.st.time / 60), goal: 200 },
+  { id: 'ruby4', name: 'Rubinschmied', desc: 'Hab Rubinschwert, Rubinaxt, Rubinspitzhacke und Rubinschaufel gleichzeitig.', n: () => RUBY_TOOLS.filter((k) => ((G.inv.items || {})[k] || 0) > 0).length, goal: 4 },
+  { id: 'ruby100', name: 'Schatzkammer', desc: 'Hab 100 Rubine auf einmal.', n: () => G.inv.ruby || 0, goal: 100 },
+  { id: 'armor', name: 'Gepanzert', desc: 'Trag die beste Rüstung: alle vier Teile auf höchster Stufe.', n: () => ['helmet', 'chestplate', 'leggings', 'boots'].filter((k) => (G.tools[k] | 0) >= 3).length, goal: 4 },
 ];
+const ACH_IDS = new Set(ACH.map((a) => a.id));
+/* Kreativ, Unsterblichkeit oder Zuschauer zählen nicht */
+function cosFair() { return !G.spectator && !MODFX.godmode && !(typeof creativeOn === 'function' && creativeOn()); }
 
 const COS_KEY = 'bloodmoon-cos';
 const COS = {
-  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0 },
+  a: {}, o: {}, e: {}, used: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0 },
   base: null, t: 0, saveT: 0, cloudT: 0, eqObj: null, eqStr: '',
-  wheel: { a: 0, spin: null, prize: null, raf: 0 },
+  wheel: { prize: null, reveal: false, conf: [], flash: 0, flashCol: '#fff', col: '#fff' }, reel: null, fsOpen: false,
 };
 function cosLoad() {
   try {
@@ -26106,11 +26151,12 @@ function cosFromCloud(c) {
   if (c.a) for (const k in c.a) COS.a[k] = 1;
   if (c.o) for (const k in c.o) if (COS_BY[k]) COS.o[k] = 1;
   COS.used = Math.max(COS.used, c.used | 0);
-  if (c.st) for (const k in COS.st) COS.st[k] = Math.max(COS.st[k], +c.st[k] || 0);
+  const fresh = !COS.st.days;
+  if (c.st) for (const k in COS.st) if (fresh || (k !== 'streak' && k !== 'bstreak')) COS.st[k] = Math.max(COS.st[k], +c.st[k] || 0);
   if (c.e && !Object.keys(COS.e).length) COS.e = c.e;
   cosSave(); cosEqChanged(); cosCloudPush();
 }
-function cosSpins() { return Math.max(0, Object.keys(COS.a).length - COS.used); }
+function cosSpins() { return Math.max(0, Object.keys(COS.a).filter((k) => ACH_IDS.has(k)).length - COS.used); }
 /* was jemand trägt: kurze Zeichenkette für das Netz */
 function cosParse(s) {
   const o = {};
@@ -26127,11 +26173,11 @@ function applyCosEvent(v) { const r = REMOTE[v.u]; if (r && typeof v.c === 'stri
 function remoteCos(r) { if (r._cosS !== r.cos) { r._cosS = r.cos; r._cosO = cosParse(r.cos); } return r._cosO; }
 
 /* ---------- zählen ---------- */
-function cosCount(k, n) { if (!(k in COS.st)) return; COS.st[k] += n || 1; COS.t = Math.max(COS.t, 0.8); cosSave(); }
+function cosCount(k, n) { if (!(k in COS.st) || !cosFair()) return; COS.st[k] += n || 1; COS.t = Math.max(COS.t, 0.8); cosSave(); }
 function cosTick(dt) {
   if (COS.cloudT > 0 && (COS.cloudT -= dt) <= 0) cosCloudPush();
   const play = G.state === 'playing' || G.state === 'inv' || G.state === 'paused';
-  if (!play || G.spectator) { COS.base = null; return; }
+  if (!play || !cosFair()) { COS.base = null; return; }
   if (G.state === 'playing') COS.st.time += dt / 60;   // in Minuten
   COS.t -= dt; if (COS.t > 0) return;
   COS.t = 1;
@@ -26149,7 +26195,15 @@ function cosTick(dt) {
     if (ok) cosUnlock(a);
   }
 }
-function cosNewDay(wasBlood) { cosCount('days'); if (wasBlood) cosCount('blood'); }
+function cosNewDay(wasBlood) {
+  if (!cosFair() || PL.dead || G.state === 'menu' || G.state === 'loading') return;
+  const st = COS.st;
+  st.days++; st.streak++; st.best = Math.max(st.best, st.streak);
+  if (wasBlood) { st.blood++; st.bstreak++; st.bestBlood = Math.max(st.bestBlood, st.bstreak); }
+  COS.t = Math.min(COS.t, 0.8); cosSave(true);
+}
+/* gestorben: die Serien fangen von vorne an */
+function cosOnDeath() { COS.st.streak = 0; COS.st.bstreak = 0; cosSave(true); }
 function cosUnlock(a) {
   COS.a[a.id] = 1; cosSave(true);
   achPop(a);
@@ -26166,11 +26220,11 @@ function achShowNext() {
   if (!el) {
     el = document.createElement('button'); el.id = 'achPop'; el.type = 'button'; el.className = 'ach-pop panel';
     el.innerHTML = '<span class="ach-chk">✓</span><span class="grow"><small>🏆 Erfolg geschafft</small><b></b><em></em></span>';
-    el.addEventListener('click', () => { el.classList.remove('on'); UI.openCos('wheel'); });
+    el.addEventListener('click', () => { el.classList.remove('on'); UI.openCos('shop'); });
     document.body.appendChild(el);
   }
   el.querySelector('b').textContent = a.name;
-  el.querySelector('em').textContent = 'Belohnung: 1× Glücksrad 🎡 (hier tippen)';
+  el.querySelector('em').textContent = 'Belohnung: 🏆 1 Erfolgspunkt für den Kosmetik-Shop (hier tippen)';
   el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
   SFX.unlock && SFX.unlock();
   setTimeout(() => { el.classList.remove('on'); setTimeout(() => { _achQ.shift(); achShowNext(); }, 450); }, 4600);
@@ -26347,33 +26401,35 @@ UI.openCos = function (tab, from) {
   if (from === 'pause') $('mdlPause').hidden = true;
   else if (G.state === 'playing') { if (document.pointerLockElement) document.exitPointerLock(); INPUT.clear(); G.state = 'inv'; }
   $('mdlCos').hidden = false;
-  cosTab(tab || (cosSpins() ? 'wheel' : 'ach'));
+  cosTab(tab || (cosSpins() > 0 ? 'shop' : 'ach'));
   SFX.ui();
 };
 function cosTab(tab) {
+  if (tab === 'wheel') tab = 'shop';
   COS.tab = tab;
   for (const b of document.querySelectorAll('#cosTabs .tab')) b.setAttribute('aria-selected', String(b.dataset.tab === tab));
-  for (const id of ['ach', 'wheel', 'items']) $('cosP_' + id).hidden = id !== tab;
-  $('cosSpinsN').textContent = cosSpins();
+  for (const id of ['ach', 'shop', 'items']) $('cosP_' + id).hidden = id !== tab;
   if (tab === 'ach') cosRenderAch();
+  if (tab === 'shop') cosRenderShop();
   if (tab === 'items') cosRenderItems();
-  if (tab === 'wheel') { cosWheelDraw(); cosWheelLoop(); }
+  $('cosWheelN').textContent = cosSpins() ? cosSpins() : '';
   cosBadge();
 }
 function cosRenderAch() {
   const box = $('cosAch'); box.innerHTML = '';
   const done = ACH.filter((a) => COS.a[a.id]).length;
   $('cosAchN').textContent = done + ' / ' + ACH.length;
+  $('cosStreak').textContent = 'Deine Serie: ' + COS.st.streak + (COS.st.streak === 1 ? ' Tag' : ' Tage') + ' ohne Tod (Rekord ' + COS.st.best + ') · Blood Moons am Stück: ' + COS.st.bstreak + ' (Rekord ' + COS.st.bestBlood + ')';
   for (const a of ACH) {
     const ok = !!COS.a[a.id];
     const row = document.createElement('div'); row.className = 'ach-row' + (ok ? ' ok' : '');
     let prog = '';
-    if (!ok && a.n) { const n = Math.min(a.goal, Math.floor(a.n())); prog = n + ' / ' + a.goal; }
+    if (!ok && a.n) { const n = Math.min(a.goal, Math.floor(a.n())); prog = n.toLocaleString('de-DE') + ' / ' + a.goal.toLocaleString('de-DE'); }
     row.innerHTML = '<span class="ach-chk"></span><div class="grow"><b></b><small></small></div><span class="ach-prog"></span>';
     row.querySelector('.ach-chk').textContent = ok ? '✓' : '';
     row.querySelector('b').textContent = a.name;
     row.querySelector('small').textContent = a.desc;
-    row.querySelector('.ach-prog').textContent = ok ? '🎡 +1' : prog;
+    row.querySelector('.ach-prog').textContent = ok ? '🏆 +1' : prog;
     if (!ok && a.n) { const bar = document.createElement('i'); bar.className = 'ach-bar'; bar.style.setProperty('--p', Math.min(1, a.n() / a.goal).toFixed(3)); row.appendChild(bar); }
     box.appendChild(row);
   }
@@ -26401,102 +26457,239 @@ function cosRenderItems() {
     box.appendChild(g);
   }
 }
-/* das Rad */
-function cosWheelDraw() {
-  const cv = $('cosWheel'); if (!cv) return;
-  const ctx = cv.getContext('2d'), S = cv.width, R = S / 2 - 8, n = COS_WHEEL.length, seg = TAU / n, t = performance.now() / 1000;
-  ctx.clearRect(0, 0, S, S);
-  ctx.save(); ctx.translate(S / 2, S / 2); ctx.rotate(COS.wheel.a);
-  for (let i = 0; i < n; i++) {
-    const r = COS_WHEEL[i], a0 = -Math.PI / 2 + i * seg - seg / 2, a1 = a0 + seg;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a0, a1); ctx.closePath();
-    if (r === 'l') {
-      const g = ctx.createLinearGradient(Math.cos(a0) * R, Math.sin(a0) * R, Math.cos(a1) * R, Math.sin(a1) * R);
-      const s = (t * 0.8) % 1.6 - 0.3;
-      g.addColorStop(0, '#c98a10'); g.addColorStop(Math.max(0, Math.min(1, s - 0.15)), '#ffc531'); g.addColorStop(Math.max(0, Math.min(1, s)), '#fff7c8'); g.addColorStop(Math.max(0, Math.min(1, s + 0.15)), '#ffc531'); g.addColorStop(1, '#c98a10');
-      ctx.fillStyle = g;
-    } else ctx.fillStyle = COS_RAR[r].col;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.save(); ctx.rotate(a0 + seg / 2); ctx.fillStyle = r === 'l' ? '#5a3a00' : 'rgba(255,255,255,0.92)'; ctx.font = '900 ' + Math.round(S * 0.04) + 'px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.fillText(COS_RAR[r].name.toUpperCase(), R - 10, 0); ctx.restore();
-    if (r === 'l') { // Glitzer
-      for (let k = 0; k < 3; k++) { const q = a0 + seg * (0.25 + k * 0.25), rr = R * (0.45 + ((t * 0.7 + k * 0.37) % 0.5)); const al = 0.5 + 0.5 * Math.sin(t * 6 + k * 2); ctx.fillStyle = 'rgba(255,255,255,' + al.toFixed(2) + ')'; ctx.beginPath(); ctx.arc(Math.cos(q) * rr, Math.sin(q) * rr, 2.2, 0, TAU); ctx.fill(); }
-    }
+/* ---------- Shop: Kosmetik-Boxen für Erfolgspunkte ---------- */
+const COS_BOX = [
+  { id: 'b1', name: 'Kosmetik-Box', sub: 'Common oder besser', cost: 1, col: '#3f9bff', w: { c: 48, r: 27, e: 14, m: 7, l: 4 } },
+  { id: 'b2', name: 'Super-Box', sub: 'Rare oder besser', cost: 3, col: '#a24dff', w: { r: 50, e: 27, m: 15, l: 8 } },
+  { id: 'b3', name: 'Mega-Box', sub: 'Epic oder besser', cost: 6, col: '#ffb020', w: { e: 52, m: 32, l: 16 } },
+];
+function cosRenderShop() {
+  $('cosPts').textContent = cosSpins();
+  const box = $('cosShop'); box.innerHTML = '';
+  for (const bx of COS_BOX) {
+    const can = cosSpins() >= bx.cost;
+    const el = document.createElement('div'); el.className = 'cos-box' + (can ? '' : ' poor'); el.style.setProperty('--bc', bx.col);
+    el.innerHTML = '<canvas width="160" height="160"></canvas><b></b><small></small><div class="cos-box-r"></div><button class="btn primary" type="button"></button>';
+    cosDrawBox(el.querySelector('canvas').getContext('2d'), bx, 160);
+    el.querySelector('b').textContent = bx.name;
+    el.querySelector('small').textContent = bx.sub;
+    const rr = el.querySelector('.cos-box-r');
+    for (const r of ['c', 'r', 'e', 'm', 'l']) if (bx.w[r]) { const t = document.createElement('span'); t.className = 'r-' + r; t.textContent = COS_RAR[r].name; rr.appendChild(t); }
+    const btn = el.querySelector('button');
+    btn.textContent = '🏆 ' + bx.cost + ' · Öffnen';
+    btn.disabled = !can;
+    btn.addEventListener('click', () => cosBuyBox(bx));
+    box.appendChild(el);
   }
+}
+/* eine Geschenk-Box als Bild */
+function cosDrawBox(ctx, bx, S) {
+  ctx.save(); ctx.clearRect(0, 0, S, S); ctx.scale(S / 64, S / 64);
+  const g = ctx.createRadialGradient(32, 34, 2, 32, 34, 30); g.addColorStop(0, cosAlpha(bx.col, 0.55)); g.addColorStop(1, cosAlpha(bx.col, 0));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  ctx.fillStyle = cosShade(bx.col, -0.25); ctx.fillRect(12, 28, 40, 26);
+  ctx.fillStyle = bx.col; ctx.fillRect(10, 20, 44, 10);
+  ctx.fillStyle = '#fff'; ctx.fillRect(29, 20, 6, 34);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(10, 24, 44, 3);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(25, 16, 7, 4.5, -0.5, 0, TAU); ctx.ellipse(39, 16, 7, 4.5, 0.5, 0, TAU); ctx.fill();
+  ctx.fillStyle = cosShade(bx.col, 0.3); ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText('?', 32, 48);
   ctx.restore();
-  // Mitte und Zeiger
-  ctx.fillStyle = '#16181c'; ctx.beginPath(); ctx.arc(S / 2, S / 2, S * 0.08, 0, TAU); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(S / 2, S / 2, R, 0, TAU); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(S / 2 - 13, 2); ctx.lineTo(S / 2 + 13, 2); ctx.lineTo(S / 2, 30); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
-  // Vorschau neben dem Rad
-  const pv = $('cosPrev');
-  if (pv && COS.wheel.prize) drawCosIcon(pv.getContext('2d'), COS.wheel.prize, pv.width, t);
 }
-function cosWheelLoop() {
-  if (COS.wheel.raf) return;
+function cosBuyBox(bx) {
+  if (COS.reel && COS.reel.run) return;
+  if (cosSpins() < bx.cost) { SFX.deny(); UI.toast('Dafür brauchst du ' + bx.cost + ' Erfolgspunkte. Schaff mehr Erfolge!', 'warn', 3000, 'cos'); return; }
+  COS.used += bx.cost; cosSave(true);
+  cosReelOpen(bx);
+}
+
+/* ---------- Glücksdreh im Vollbild (eine gebogene Reihe großer Karten, Pin oben) ---------- */
+function cosPickRarity(w) {
+  let sum = 0; for (const k in w) sum += w[k];
+  let x = Math.random() * sum;
+  for (const k in w) { x -= w[k]; if (x < 0) return k; }
+  return 'c';
+}
+function cosPickItem(r, prefer) {
+  const pool = COS_LIST.filter((c) => c.r === r);
+  const fresh = prefer ? pool.filter((c) => !COS.o[c.id]) : [];
+  const from = fresh.length ? fresh : pool;
+  return from[Math.floor(Math.random() * from.length)];
+}
+function cosReelOpen(bx) {
+  const N = 64, T = 52;   // so viele Karten, Karte T ist das Ziel
+  const cards = [];
+  for (let i = 0; i < N; i++) {
+    let r = cosPickRarity(bx.w);
+    if (Math.abs(i - T) === 1 && r === 'l') r = Object.keys(bx.w)[0];   // neben dem Ziel kein Legendary
+    cards.push({ r, c: cosPickItem(r, false) });
+  }
+  // das Ziel
+  let tr = cosPickRarity(bx.w);
+  cards[T] = { r: tr, c: cosPickItem(tr, true) };
+  let stop = T;
+  // Legendary: heimlich noch einmal 50 %, sonst bleibt der Pin eine Karte davor oder danach stehen
+  if (tr === 'l' && Math.random() < 0.5) {
+    stop = T + (Math.random() < 0.5 ? -1 : 1);
+    cards[stop] = { r: cards[stop].r, c: cosPickItem(cards[stop].r, true) };
+  }
+  // ein paar Legendaries kurz vor dem Ziel machen es spannend
+  for (const k of [T - 4, T - 7, T + 3]) if (Math.random() < 0.45 && bx.w.l) cards[k] = { r: 'l', c: cosPickItem('l', false) };
+  COS.reel = { bx, cards, stop, run: true, pos: 0, t0: 0, dur: 7600, last: -1, done: false };
+  const fs = $('cosFs'); fs.hidden = false; COS.fsOpen = true;
+  fs.style.setProperty('--bc', bx.col);
+  $('cosReveal').hidden = true; $('cosReveal').classList.remove('in');
+  $('cosFsTitle').textContent = 'GLÜCKSDREH';
+  $('cosFsSub').textContent = bx.name + ' · ' + bx.sub;
+  const strip = $('cosStrip'); strip.innerHTML = '';
+  cards.forEach((k, i) => {
+    const el = document.createElement('div'); el.className = 'reel-card r-' + k.r;
+    el.innerHTML = '<span class="reel-rar"></span><canvas width="200" height="200"></canvas><b></b>';
+    el.firstChild.textContent = COS_RAR[k.r].name;
+    el.querySelector('b').textContent = k.c.name;
+    drawCosIcon(el.querySelector('canvas').getContext('2d'), k.c, 200, 1 + i);
+    strip.appendChild(el);
+    k.el = el;
+  });
+  cosFxSize();
+  const R = COS.reel;
+  R.t0 = performance.now() + 650;   // kurz die Karten zeigen, dann geht es los
+  R.off = (Math.random() - 0.5) * 0.7;   // wo genau auf der Karte der Pin landet
+  cosReelLoop();
+  SFX.whoosh && SFX.whoosh();
+}
+function cosFxSize() { const fx = $('cosFx'); fx.width = Math.round(window.innerWidth * 0.5); fx.height = Math.round(window.innerHeight * 0.5); }
+function cosReelLayout() {
+  const R = COS.reel; if (!R) return;
+  const vw = window.innerWidth, cw = R.cards[0].el.offsetWidth || 220, gap = cw * 0.08, step = cw + gap;
+  const cx = vw / 2;
+  for (let i = 0; i < R.cards.length; i++) {
+    const el = R.cards[i].el;
+    const x = (i - R.pos) * step;   // Abstand der Kartenmitte zur Bildmitte
+    if (Math.abs(x) > vw * 0.85) { if (el.style.visibility !== 'hidden') el.style.visibility = 'hidden'; continue; }
+    if (el.style.visibility) el.style.visibility = '';
+    const k = Math.max(-1, Math.min(1, x / (vw * 0.75)));
+    const ry = -k * 38, tz = -Math.abs(k) * cw * 0.9, ty = Math.abs(k) * Math.abs(k) * cw * 0.25;
+    el.style.transform = 'translate(' + (cx + x - cw / 2).toFixed(1) + 'px,' + ty.toFixed(1) + 'px) translateZ(' + tz.toFixed(1) + 'px) rotateY(' + ry.toFixed(2) + 'deg)';
+    el.style.zIndex = String(1000 - Math.round(Math.abs(x)));
+  }
+}
+function cosReelLoop() {
+  if (COS.reel && COS.reel.raf) return;
+  let last = performance.now();
   const step = () => {
-    COS.wheel.raf = 0;
-    if ($('mdlCos').hidden || COS.tab !== 'wheel') return;
-    const w = COS.wheel, now = performance.now();
-    if (w.spin) {
-      const k = Math.min(1, (now - w.spin.t0) / w.spin.dur), e = 1 - Math.pow(1 - k, 4);
-      const a = w.spin.a0 + (w.spin.a1 - w.spin.a0) * e;
-      const seg = TAU / COS_WHEEL.length, idx = Math.floor((a + seg / 2) / seg);
-      if (idx !== w.spin.last) { w.spin.last = idx; SFX.pop && SFX.pop(); }
-      w.a = a;
-      if (k >= 1) { const s = w.spin; w.spin = null; cosWheelDone(s); }
+    const R = COS.reel; if (!R) return;
+    R.raf = 0;
+    if ($('cosFs').hidden) return;
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (R.run) {
+      const k = Math.max(0, Math.min(1, (now - R.t0) / R.dur));
+      const e = 1 - Math.pow(1 - k, 4.5);
+      R.pos = e * (R.stop + R.off);
+      const idx = Math.round(R.pos);
+      if (idx !== R.last) { R.last = idx; R.flick = 1; if (SFX.pop && k > 0) SFX.pop(); }
+      if (k >= 1) { R.run = false; R.pos = R.stop + R.off; setTimeout(cosReelDone, 380); }
     }
-    cosWheelDraw();
-    COS.wheel.raf = requestAnimationFrame(step);
+    R.flick = Math.max(0, (R.flick || 0) - dt * 6);
+    $('cosPin').style.transform = 'translateX(-50%) rotate(' + (R.flick * 16).toFixed(1) + 'deg)';
+    cosReelLayout();
+    cosFxDraw(dt);
+    if (COS.wheel.reveal && COS.wheel.prize) { const pv = $('cosRevIc'); if (pv) drawCosIcon(pv.getContext('2d'), COS.wheel.prize, pv.width, now / 1000); }
+    R.raf = requestAnimationFrame(step);
   };
-  COS.wheel.raf = requestAnimationFrame(step);
+  COS.reel.raf = requestAnimationFrame(step);
 }
-function cosSpin() {
-  if (COS.wheel.spin) return;
-  if (cosSpins() <= 0) { UI.toast('Keine Drehung übrig. Schaff einen Erfolg, dann darfst du wieder drehen.', 'warn', 3200, 'cos'); SFX.deny(); return; }
-  COS.used++; cosSave(true);
-  const n = COS_WHEEL.length;
-  let i = Math.floor(Math.random() * n);
-  // Legendary: heimlich noch einmal 50 %, sonst ein Feld davor oder danach
-  if (COS_WHEEL[i] === 'l' && Math.random() < 0.5) i = (i + (Math.random() < 0.5 ? -1 : 1) + n) % n;
-  const seg = TAU / n;
-  // Feld i steht oben, wenn das Rad um -i*seg gedreht ist; dazu ein paar volle Runden und eine Stelle im Feld
-  const cur = COS.wheel.a, off = (Math.random() - 0.5) * seg * 0.7;
-  let a1 = -i * seg + off;
-  while (a1 > cur - TAU * 5) a1 -= TAU;
-  COS.wheel.prize = null;
-  $('cosPrevName').textContent = '…'; $('cosPrevRar').textContent = ''; $('cosPrevBox').className = 'cos-prev';
-  { const pv = $('cosPrev'); pv.getContext('2d').clearRect(0, 0, pv.width, pv.height); }
-  COS.wheel.spin = { a0: cur, a1, t0: performance.now(), dur: 5200, i, last: null };
-  $('cosSpinBtn').disabled = true;
-  $('cosSpinsN').textContent = cosSpins(); cosBadge();
-  cosWheelLoop();
-}
-function cosWheelDone(s) {
-  const r = COS_WHEEL[s.i];
-  const pool = COS_LIST.filter((c) => c.r === r), fresh = pool.filter((c) => !COS.o[c.id]);
-  const c = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length ? fresh.length : pool.length))];
-  const dup = !fresh.length;
-  COS.o[c.id] = 1;
-  if (!dup && !COS.e[c.slot]) { COS.e[c.slot] = c.id; cosEqChanged(); }
-  cosSave(true);
-  COS.wheel.a = ((COS.wheel.a % TAU) + TAU) % TAU;
-  COS.wheel.prize = c;
-  $('cosPrevName').textContent = c.name;
-  $('cosPrevRar').textContent = COS_RAR[r].name + ' · ' + COS_SLOT[c.slot] + (dup ? ' · hast du schon' : ' · neu!');
-  $('cosPrevBox').className = 'cos-prev show r-' + r;
-  $('cosSpinBtn').disabled = false;
-  $('cosSpinsN').textContent = cosSpins();
+function cosReelDone() {
+  const R = COS.reel; if (!R || R.done) return;
+  R.done = true;
+  const k = R.cards[R.stop], c = k.c, r = c.r;
+  const dup = !!COS.o[c.id];
+  COS.o[c.id] = 1; cosSave(true);
+  k.el.classList.add('win');
+  for (const o of R.cards) if (o !== k) o.el.classList.add('dim');
+  const w = COS.wheel;
+  w.prize = c; w.flash = r === 'l' ? 1.1 : r === 'm' ? 0.75 : 0.4; w.flashCol = r === 'l' ? '#fff3b0' : COS_RAR[r].col; w.col = COS_RAR[r].col;
+  cosConfetti(r);
   if (SFX.upgrade) SFX.upgrade();
-  if (r === 'l' || r === 'm') { const box = $('cosPrevBox'); box.classList.remove('boom'); void box.offsetWidth; box.classList.add('boom'); }
+  setTimeout(() => {
+    w.reveal = true;
+    const rv = $('cosReveal');
+    rv.className = 'cosfs-reveal r-' + r; rv.hidden = false;
+    $('cosRevRar').textContent = { c: 'COMMON', r: 'RARE!', e: 'EPIC!', m: 'MYTHIC!!', l: 'LEGENDARY!!!' }[r];
+    $('cosRevName').textContent = c.name;
+    $('cosRevSlot').textContent = COS_SLOT[c.slot] + (dup ? ' · hast du schon' : ' · NEU!');
+    $('cosRevWear').hidden = false;
+    $('cosRevWear').textContent = COS.e[c.slot] === c.id ? '✓ Trägst du' : '✨ Anziehen';
+    $('cosRevAgain').hidden = cosSpins() < R.bx.cost;
+    $('cosRevAgain').textContent = '🎁 Nochmal (🏆 ' + R.bx.cost + ')';
+    void rv.offsetWidth; rv.classList.add('in');
+    if (r === 'l' && SFX.unlock) SFX.unlock();
+    if (r === 'l' || r === 'm') cosConfetti(r);
+  }, 900);
+}
+function cosFsClose() {
+  if (COS.reel && COS.reel.run) return;   // erst fertig drehen lassen
+  $('cosFs').hidden = true; $('cosReveal').hidden = true; COS.fsOpen = false;
+  COS.wheel.reveal = false; COS.wheel.conf = [];
+  if (COS.reel) { cancelAnimationFrame(COS.reel.raf); COS.reel = null; }
+  if (!$('mdlCos').hidden) cosTab(COS.tab || 'shop');
+}
+function cosRevWear() {
+  const c = COS.wheel.prize; if (!c) return;
+  COS.e[c.slot] = c.id; cosEqChanged(); cosSave(true);
+  $('cosRevWear').textContent = '✓ Trägst du';
+  SFX.ui();
+}
+function cosShade(hex, k) {
+  const c = hexToRgb(hex).map((v) => (k > 0 ? v + (1 - v) * k : v * (1 + k)));
+  return 'rgb(' + c.map((v) => Math.round(v * 255)).join(',') + ')';
+}
+function cosAlpha(hex, a) { const c = hexToRgb(hex); return 'rgba(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ',' + a.toFixed(3) + ')'; }
+/* Hintergrund (halbe Auflösung): weiche Strahlen, Lichtblitz, Konfetti */
+function cosFxDraw(dt) {
+  const cv = $('cosFx'); if (!cv) return;
+  const ctx = cv.getContext('2d'), Wd = cv.width, H = cv.height, t = performance.now() / 1000, w = COS.wheel;
+  ctx.clearRect(0, 0, Wd, H);
+  const dpr = Wd / window.innerWidth, cx = Wd / 2, cy = H * 0.52;
+  const col = w.reveal || (COS.reel && COS.reel.done) ? w.col || '#ffffff' : (COS.reel ? COS.reel.bx.col : '#ffffff');
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.15);
+  const L = Math.hypot(Wd, H);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, L * 0.6); g.addColorStop(0, cosAlpha(col, 0.28)); g.addColorStop(1, cosAlpha(col, 0));
+  ctx.fillStyle = g; ctx.beginPath();
+  for (let k = 0; k < 14; k++) { const q = k * TAU / 14; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(q - 0.1) * L, Math.sin(q - 0.1) * L); ctx.lineTo(Math.cos(q + 0.1) * L, Math.sin(q + 0.1) * L); ctx.closePath(); }
+  ctx.fill();
+  ctx.restore();
+  if (w.flash > 0) { ctx.fillStyle = cosAlpha(w.flashCol, Math.min(0.55, w.flash)); ctx.fillRect(0, 0, Wd, H); w.flash -= dt * 1.4; }
+  for (let i = w.conf.length - 1; i >= 0; i--) {
+    const p = w.conf[i]; p.t += dt;
+    if (p.t > p.life) { w.conf.splice(i, 1); continue; }
+    p.vy += 900 * dpr * dt * (p.g || 1); p.vx *= 1 - dt * 0.8; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, (p.life - p.t) * 2);
+    ctx.fillStyle = p.c; if (p.star) { ctx.beginPath(); for (let k = 0; k < 8; k++) { const q = k * Math.PI / 4, rr = k % 2 ? p.s * 0.35 : p.s; ctx.lineTo(Math.cos(q) * rr, Math.sin(q) * rr); } ctx.fill(); } else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+    ctx.restore();
+  }
+}
+function cosConfetti(r) {
+  const cv = $('cosFx'), dpr = cv.width / window.innerWidth, w = COS.wheel;
+  const cols = r === 'l' ? ['#ffc531', '#fff3b0', '#ffe066', '#ffffff', '#ff9f1a'] : [COS_RAR[r].col, '#ffffff', cosShade(COS_RAR[r].col, 0.4)];
+  const n = { c: 30, r: 60, e: 90, m: 130, l: 200 }[r];
+  for (let k = 0; k < n; k++) {
+    const side = k % 2 ? 1 : -1;
+    w.conf.push({ x: side > 0 ? cv.width * 0.02 : cv.width * 0.98, y: cv.height * (0.6 + Math.random() * 0.3), vx: side * (500 + Math.random() * 900) * dpr, vy: -(700 + Math.random() * 900) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 14, s: (7 + Math.random() * 9) * dpr, c: cols[k % cols.length], t: 0, life: 2.2 + Math.random() * 1.6, star: r === 'l' && k % 3 === 0, g: 0.7 });
+  }
 }
 
 function bindCosmetics() {
   cosLoad();
   for (const b of document.querySelectorAll('#cosTabs .tab')) b.addEventListener('click', () => cosTab(b.dataset.tab));
-  $('cosSpinBtn').addEventListener('click', cosSpin);
+  $('cosFsX').addEventListener('click', cosFsClose);
+  $('cosRevWear').addEventListener('click', cosRevWear);
+  $('cosRevAgain').addEventListener('click', () => { const R = COS.reel; const bx = R && R.bx; cosFsClose(); if (bx) cosBuyBox(bx); });
+  $('cosRevOk').addEventListener('click', cosFsClose);
+  window.addEventListener('resize', () => { if (!$('cosFs').hidden) cosFxSize(); });
+  window.addEventListener('keydown', (e) => {
+    if ($('cosFs').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cosFsClose(); }
+  }, true);
   $('btnCos').addEventListener('click', () => UI.openCos(null, 'menu'));
   $('btnPauseCos').addEventListener('click', () => UI.openCos(null, 'pause'));
   cosBadge();
