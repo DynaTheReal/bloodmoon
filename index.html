@@ -617,6 +617,32 @@ select.field { appearance: auto; }
 .cos-card.locked { opacity: 0.45; border-style: dashed; cursor: default; }
 .cos-card.on { background: rgba(255, 255, 255, 0.12); box-shadow: 0 0 0 2px #fff inset; }
 .cos-card.r-l:not(.locked) { background: linear-gradient(120deg, rgba(255, 197, 49, 0.06), rgba(255, 247, 200, 0.2), rgba(255, 197, 49, 0.06)); background-size: 200% 100%; animation: cosShine 2.2s linear infinite; }
+.skin-tabs { padding: 0 18px 8px; }
+.tab-badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #ff2f4a; color: #fff; font-size: 11px; }
+.tab-badge:empty { display: none; }
+.cos-pts-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 14px; background: linear-gradient(90deg, rgba(255, 197, 49, 0.16), rgba(255, 197, 49, 0.04)); border: 1px solid rgba(255, 197, 49, 0.35); font-weight: 800; margin-bottom: 6px; }
+.cos-pts-row b { color: #ffc531; font-size: 18px; }
+.cos-pts-hint { margin: 0 0 10px; font-size: 12px; color: var(--muted); font-weight: 700; }
+#skinPaneCos .cos-shop { grid-template-columns: 1fr; gap: 10px; }
+#skinPaneCos .cos-box { grid-template-columns: 96px 1fr; grid-template-rows: auto auto auto auto; justify-items: start; text-align: left; padding: 0 12px 0 0; gap: 2px 12px; }
+#skinPaneCos .cos-box-art { grid-row: 1 / 5; width: 96px; height: 100%; min-height: 128px; margin: 0; }
+#skinPaneCos .cos-box-gift { font-size: 54px; }
+#skinPaneCos .cos-box b { margin-top: 10px; }
+#skinPaneCos .cos-box-r { justify-content: flex-start; margin: 2px 0 4px; }
+#skinPaneCos .cos-box .btn { margin-bottom: 10px; }
+.cos-empty { padding: 14px; border-radius: 12px; border: 1px dashed var(--line); color: var(--muted); font-weight: 700; font-size: 13px; text-align: center; }
+.pause-sheet { overflow: hidden; }
+.pause-head { display: flex; gap: 12px; align-items: center; padding: 18px 20px 6px; }
+.pause-head h2 { margin: 0; font-size: 24px; } .pause-head p { margin: 2px 0 0; color: var(--muted); font-weight: 700; font-size: 13px; }
+.pause-ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 20px; background: linear-gradient(135deg, var(--ember), #ff7a3d); color: #1b0f08; box-shadow: 0 6px 18px rgba(255, 140, 60, 0.35); }
+.pause-resume { width: 100%; height: 54px; font-size: 17px; margin-bottom: 12px; }
+.pause-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.pause-tile { position: relative; display: grid; justify-items: center; gap: 6px; padding: 16px 8px 14px; border-radius: 16px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text); font-weight: 800; font-size: 14px; transition: background 0.15s, transform 0.15s, border-color 0.15s; }
+.pause-tile:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.22); transform: translateY(-2px); }
+.pause-tile i { font-style: normal; font-size: 28px; line-height: 1; }
+.pause-tile .badge { position: absolute; top: 8px; right: 10px; }
+.pause-quit { width: 100%; }
+.set-keys { margin-top: 6px; }
 .cos-wheel-tab b { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #ff2f4a; color: #fff; font-size: 11px; }
 .cos-wheel-tab b:empty { display: none; }
 .cos-streak { color: #ffc531 !important; }
@@ -671,6 +697,21 @@ select.field { appearance: auto; }
 .cosfs-card b { font-size: clamp(22px, 3.4vh, 30px); }
 .cosfs-card small { font-weight: 800; color: rgba(255,255,255,0.75); }
 .cosfs-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+.reel-card.r-r { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 26px rgba(63, 125, 255, 0.7); }
+.reel-card.r-e { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 32px rgba(162, 77, 255, 0.8); }
+.reel-card.r-m { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 38px rgba(255, 47, 74, 0.85); }
+.reel-card.r-l { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 46px rgba(255, 197, 49, 0.95); animation: cosLegGlow 1.2s ease-in-out infinite alternate; }
+@keyframes cosLegGlow { from { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 30px rgba(255, 197, 49, 0.7); } to { box-shadow: 0 10px 0 rgba(0,0,0,0.2), 0 0 70px rgba(255, 215, 90, 1); } }
+.reel-card canvas { filter: drop-shadow(0 0 14px rgba(255,255,255,0.45)) drop-shadow(0 8px 10px rgba(0,0,0,0.35)); }
+.reel-card.win { animation: cosWin 0.6s ease-in-out infinite alternate; box-shadow: 0 0 0 6px #fff, 0 0 90px 20px var(--rc); }
+@keyframes cosWin { from { filter: brightness(1.05); } to { filter: brightness(1.4); } }
+.reel-pin { filter: drop-shadow(0 0 14px rgba(255, 170, 80, 0.9)); }
+.cosfs.shake { animation: cosQuake 0.55s cubic-bezier(.36,.07,.19,.97); }
+@keyframes cosQuake { 10%, 90% { transform: translate(-3px, 1px); } 20%, 80% { transform: translate(6px, -2px); } 30%, 50%, 70% { transform: translate(-10px, 3px); } 40%, 60% { transform: translate(10px, -3px); } }
+.cosfs-card { animation: cosCardGlow 1.4s ease-in-out infinite alternate; }
+.cosfs-reveal.in .cosfs-card { animation: cosCardIn 0.7s cubic-bezier(.2, 1.5, .4, 1), cosCardGlow 1.4s 0.7s ease-in-out infinite alternate; }
+@keyframes cosCardGlow { from { box-shadow: 0 0 40px var(--rc), 0 30px 80px rgba(0,0,0,0.7); } to { box-shadow: 0 0 110px 10px var(--rc), 0 30px 80px rgba(0,0,0,0.7); } }
+.cosfs-reveal { background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.15), rgba(0,0,0,0.6)); }
 #signtags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .signtag { position: absolute; left: 0; top: 0; width: 180px; margin-left: -90px; margin-top: -52px; height: 104px; display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre-wrap; word-break: break-word; font: 800 19px/1.2 system-ui, sans-serif; color: #2a1a0b; transform-origin: 50% 50%; }
 .sign-ta { width: 100%; min-height: 120px; resize: none; text-align: center; font: 700 18px/1.3 system-ui, sans-serif; background: #b98a55; color: #2a1a0b; border: 4px solid #7f5a33; border-radius: 8px; padding: 10px; }
@@ -1438,8 +1479,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       <button id="btnPlay" class="btn primary" type="button">Spielen</button>
       <button id="btnWorlds" class="btn" type="button">Welten</button>
       <button id="btnFriends" class="btn" type="button">Sozial<span class="badge" id="friendBadge" hidden>1</span></button>
-      <button id="btnSkins" class="btn" type="button">Skins</button>
-      <button id="btnCos" class="btn" type="button">🏆 Erfolge<span class="badge" id="cosBadge" hidden>1</span></button>
+      <button id="btnSkins" class="btn" type="button">Skins<span class="badge" id="cosBadge" hidden>1</span></button>
       <button id="btnMods" class="btn" type="button">Mods</button>
       <button id="btnSrvToggle" class="btn tgl-btn" type="button" aria-pressed="true" title="Serverliste ein- oder ausblenden">Server</button>
       <button id="btnDownload" class="btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>App herunterladen</button>
@@ -1452,7 +1492,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
     </dl>
     <div class="menu-links">
       <button id="btnMenuSettings" class="link" type="button">Einstellungen</button>
-      <button id="btnControls" class="link" type="button">Steuerung</button>
+      <button id="btnControls" class="link" type="button" hidden>Steuerung</button>
       <button id="btnSupport" class="link" type="button">Support<span class="badge" id="supportBadge" hidden>1</span></button>
       <button id="btnAdmin" class="link admin-link" type="button" hidden>Admin</button>
     </div>
@@ -1462,7 +1502,20 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 <section id="scrSkins" class="screen skins" hidden>
   <div class="skins-panel panel">
     <div class="sheet-h"><div class="grow"><h2>Skins</h2><p id="skinSub">Wähle, wie du in der Welt aussiehst.</p></div><button class="x" id="skinsClose" type="button" aria-label="Zurück"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+    <div class="tabs skin-tabs" role="tablist">
+      <button class="tab" role="tab" data-st="skins" aria-selected="true" type="button">👕 Skins</button>
+      <button class="tab" role="tab" data-st="cos" aria-selected="false" type="button">✨ Kosmetik <b class="tab-badge" id="cosTabBadge"></b></button>
+    </div>
     <div class="sheet-b">
+      <div id="skinPaneCos" hidden>
+        <div class="cos-pts-row"><span>Deine Erfolgspunkte</span><b>🏆 <span id="cosPts">0</span></b></div>
+        <p class="cos-pts-hint">Punkte gibt es für Erfolge (im Spiel: Pause → Erfolge).</p>
+        <p class="sec-t">🎁 Kosmetik-Boxen</p>
+        <div class="cos-shop" id="cosShop"></div>
+        <p class="sec-t">✨ Deine Kosmetik <small id="cosItemsN"></small></p>
+        <div id="cosItems"></div>
+      </div>
+      <div id="skinPaneSkins">
       <div class="my-skin" id="mySkinCard">
         <canvas id="mySkinCv" width="64" height="128"></canvas>
         <div class="my-skin-t"><b>Dein eigener Skin</b><span id="mySkinTxt">Pixel dir deinen eigenen Look, wie in Minecraft. Mit zweiter Schicht für Haare, Jacken und Hüte.</span>
@@ -1470,6 +1523,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
       </div>
       <p class="sec-t">Fertige Skins</p>
       <div class="skin-grid" id="skinGrid"></div>
+      </div>
     </div>
     <div class="sheet-f"><div class="skin-sel"><b id="skinName">Waldläufer</b><small id="skinNote"></small></div><button class="btn primary" id="skinsDone" type="button">Fertig</button></div>
   </div>
@@ -1608,6 +1662,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
             <div class="row"><div class="lbl">Y-Achse umkehren</div><button class="tgl" id="setInvert" role="switch" aria-label="Y-Achse umkehren" type="button"></button></div>
             <div class="row ctl-row"><div class="lbl">Meldungen<small>Größe der Hinweise und Texte in der Mitte. Auto: am Handy kleiner</small></div><div class="seg" id="setMsg"><button data-v="auto" type="button">Auto</button><button data-v="s" type="button">Klein</button><button data-v="m" type="button">Normal</button><button data-v="l" type="button">Groß</button></div></div>
           </div>
+          <div class="set-card">
+            <p class="set-ct">⌨️ Tasten</p>
+            <div class="controls set-keys" id="setKeys"></div>
+          </div>
         </section>
         <section class="set-pane" data-sec="game" hidden>
           <div class="set-card rows">
@@ -1643,18 +1701,20 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlPause" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
-  <div class="sheet narrow panel">
-    <div class="sheet-h"><div class="grow"><h2 id="pauseTitle">Pause</h2><p id="pauseSub">Tag 1</p></div></div>
-    <div class="sheet-b"><div class="stack">
-      <button class="btn primary" id="btnResume" type="button">Weiterspielen</button>
-      <button class="btn" id="btnInv" type="button">Inventar</button>
-      <button class="btn" id="btnPauseCos" type="button">🏆 Erfolge &amp; Kosmetik<span class="badge" id="cosBadgeP" hidden>1</span></button>
-      <button class="btn" id="btnPauseFriends" type="button">Sozial<span class="badge" id="pauseFriendBadge" hidden>1</span></button>
-      <button class="btn" id="btnPauseSettings" type="button">Einstellungen</button>
-      <button class="btn" id="btnPauseVoice" type="button" hidden>🎙️ Sprachchat</button>
-      <button class="btn" id="btnHelp" type="button">Steuerung</button>
-      <button class="btn ghost" id="btnQuit" type="button">Speichern und zum Hauptmenü</button>
-    </div></div>
+  <div class="sheet narrow panel pause-sheet">
+    <div class="pause-head"><span class="pause-ic"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.6" height="12" rx="1.2"></rect><rect x="9.4" y="2" width="3.6" height="12" rx="1.2"></rect></svg></span><div class="grow"><h2 id="pauseTitle">Pause</h2><p id="pauseSub">Tag 1</p></div></div>
+    <div class="sheet-b">
+      <button class="btn primary pause-resume" id="btnResume" type="button">▶ Weiterspielen</button>
+      <div class="pause-grid">
+        <button class="pause-tile" id="btnInv" type="button"><i>🎒</i><span>Inventar</span></button>
+        <button class="pause-tile" id="btnPauseCos" type="button"><i>🏆</i><span>Erfolge</span><span class="badge" id="cosBadgeP" hidden>1</span></button>
+        <button class="pause-tile" id="btnPauseFriends" type="button"><i>👥</i><span>Sozial</span><span class="badge" id="pauseFriendBadge" hidden>1</span></button>
+        <button class="pause-tile" id="btnPauseSettings" type="button"><i>⚙️</i><span>Einstellungen</span></button>
+        <button class="pause-tile" id="btnPauseVoice" type="button" hidden><i>🎙️</i><span>Sprachchat</span></button>
+      </div>
+      <button class="btn" id="btnHelp" type="button" hidden>Steuerung</button>
+      <button class="btn ghost pause-quit" id="btnQuit" type="button">💾 Speichern und zum Hauptmenü</button>
+    </div>
   </div>
 </div>
 
@@ -2077,16 +2137,10 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 
 <div id="mdlCos" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="cosTitle">
   <div class="sheet panel cos-sheet">
-    <div class="sheet-h"><div class="grow"><h2 id="cosTitle">🏆 Erfolge &amp; Kosmetik</h2><p>Sehr schwer, zählt in allen Welten. Jeder Erfolg gibt 🏆 1 Erfolgspunkt für den Shop. Kreativ und Unsterblichkeit zählen nicht.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
-    <div class="tabs" id="cosTabs" role="tablist">
-      <button class="tab" role="tab" data-tab="ach" aria-selected="true" type="button">🏆 Erfolge <small id="cosAchN"></small></button>
-      <button class="tab cos-wheel-tab" role="tab" data-tab="shop" aria-selected="false" type="button">🎁 Shop <b id="cosWheelN"></b></button>
-      <button class="tab" role="tab" data-tab="items" aria-selected="false" type="button">✨ Kosmetik <small id="cosItemsN"></small></button>
-    </div>
+    <div class="sheet-h"><div class="grow"><h2 id="cosTitle">🏆 Erfolge <small id="cosAchN"></small></h2><p>Sehr schwer, zählt in allen Welten. Jeder Erfolg gibt 🏆 1 Punkt für Kosmetik-Boxen (Hauptmenü → Skins → Kosmetik).</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <div id="cosP_ach"><div id="cosAch"></div></div>
-      <div id="cosP_shop" hidden><p class="cos-pts">Deine Erfolgspunkte: <b>🏆 <span id="cosPts">0</span></b></p><div class="cos-shop" id="cosShop"></div><p class="shop-tip">Öffne eine Box und dreh am Glücksdreh. Was du schon hast, kann doppelt kommen.</p></div>
-      <div id="cosP_items" hidden><p class="shop-tip">Tipp etwas an, um es zu tragen (nochmal: ablegen). Andere Spieler sehen es auch.</p><div id="cosItems"></div></div>
+      <div class="cos-pts-row"><span>Deine Erfolgspunkte</span><b>🏆 <span id="cosPtsA">0</span></b></div>
+      <div id="cosAch"></div>
     </div>
   </div>
 </div>
@@ -2247,8 +2301,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.49.2';
+const GAME_VERSION = '2.50.0';
 const GAME_NOTES = [
+  ['2.50.0', 'Aufgeräumt: Die Kosmetik-Boxen gibt es jetzt unter Skins → Kosmetik, darunter nur deine freigeschalteten Sachen zum An- und Ausschalten (die Figur daneben zeigt sie gleich). Der Knopf Erfolge im Hauptmenü ist weg, die Erfolge findest du im Spiel im Pausenmenü. Das Pausenmenü ist neu gestaltet (Weiterspielen, dann Kacheln für Inventar, Erfolge, Sozial, Einstellungen). Die Tastenübersicht steht jetzt in den Einstellungen unter Steuerung. Glücksdreh mit viel mehr Glow: leuchtende Karten, Funken am Pin, und je seltener der Gewinn, desto krasser: Druckwellen, Funkenregen, kreisende Sterne bei Epic, Flammen und Wackeln bei Mythic, Feuerwerk und Goldsterne-Regen bei Legendary.'],
   ['2.49.2', 'Fehler behoben: Für einen geschafften Erfolg gab es manchmal keinen Erfolgspunkt, weil die Drehungen vom alten Glücksrad noch abgezogen wurden. Jetzt zählt jeder Erfolg wieder 1 Punkt. Das Geschenk auf den Boxen hat wieder seine echten Farben, die gelbe Serien-Zeile über den Erfolgen ist weg.'],
   ['2.49.1', 'Die Tage-Erfolge (50, 100, 250) zählen jetzt auch, wenn du in einer Welt oder auf einem Server bist, die schon so weit ist, z. B. auf einem Server an Tag 60. Kreativ und Unsterblichkeit zählen weiter nicht. Die Kosmetik-Boxen im Shop sehen neu aus: großes Geschenk 🎁 in der Farbe der Box, das wippt, mit drehenden Strahlen und Glanz; die Mega-Box leuchtet golden.'],
   ['2.49.0', 'Erfolge sind jetzt sehr schwer: z. B. 50, 100 oder 250 Tage am Stück überleben, ohne zu sterben, 10 oder 25 Blood Moons hintereinander, 10.000 Zombies, 200 Stunden Spielzeit, alle vier Rubin-Werkzeuge gleichzeitig. Kreativ und Unsterblichkeit zählen nicht. Jeder Erfolg gibt 1 Erfolgspunkt. Neu im Menü Erfolge: der Shop mit Kosmetik-Boxen (Kosmetik-Box 1 Punkt, Super-Box 3, Mega-Box 6). Beim Öffnen kommt im Vollbild der Glücksdreh: eine gebogene Reihe großer Karten saust unter dem Pin durch und bleibt langsam stehen, danach kommt die große Meldung COMMON, RARE!, EPIC!, MYTHIC!! oder LEGENDARY!!! mit Konfetti, direkt anziehen oder nochmal öffnen.'],
@@ -14640,6 +14695,7 @@ UI.openSettings = function (from) {
   if (from === 'pause') $('mdlPause').hidden = true;
   if (from === 'game') G.state = 'settings';
   UI.settingsRefresh();
+  $('setKeys').innerHTML = UI.controlsHtml();
   $('mdlSettings').hidden = false;
 };
 
@@ -14954,6 +15010,7 @@ UI.openSkins = function () {
     }
   }
   UI.skinsRefresh();
+  skinTab(COS.skinTab || 'skins');
 };
 UI.skinsRefresh = function () {
   for (const b of $('skinGrid').children) b.setAttribute('aria-pressed', String(b.dataset.id === SETTINGS.skin));
@@ -26238,11 +26295,11 @@ function achShowNext() {
   if (!el) {
     el = document.createElement('button'); el.id = 'achPop'; el.type = 'button'; el.className = 'ach-pop panel';
     el.innerHTML = '<span class="ach-chk">✓</span><span class="grow"><small>🏆 Erfolg geschafft</small><b></b><em></em></span>';
-    el.addEventListener('click', () => { el.classList.remove('on'); UI.openCos('shop'); });
+    el.addEventListener('click', () => { el.classList.remove('on'); if (G.state !== 'menu') UI.openCos('ach'); });
     document.body.appendChild(el);
   }
   el.querySelector('b').textContent = a.name;
-  el.querySelector('em').textContent = 'Belohnung: 🏆 1 Erfolgspunkt für den Kosmetik-Shop (hier tippen)';
+  el.querySelector('em').textContent = 'Belohnung: 🏆 1 Punkt · einlösen unter Skins → Kosmetik';
   el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
   SFX.unlock && SFX.unlock();
   setTimeout(() => { el.classList.remove('on'); setTimeout(() => { _achQ.shift(); achShowNext(); }, 450); }, 4600);
@@ -26250,7 +26307,8 @@ function achShowNext() {
 }
 function cosBadge() {
   const n = cosSpins();
-  for (const id of ['cosBadge', 'cosBadgeP']) { const b = $(id); if (b) { b.hidden = !n; b.textContent = n; } }
+  const b = $('cosBadge'); if (b) { b.hidden = !n; b.textContent = n; }
+  const t = $('cosTabBadge'); if (t) t.textContent = n ? n : '';
 }
 
 /* ---------- 2D-Bildchen ---------- */
@@ -26413,30 +26471,29 @@ function cosMySwing() {
   cosSwingFx(PL.x, PL.y, PL.z, yaw, c, PL.atkSide || 1);
 }
 
-/* ---------- Menü: Erfolge, Glücksrad, Kosmetik ---------- */
+/* ---------- Erfolge (Pausenmenü) ---------- */
 UI.openCos = function (tab, from) {
   UI._cosFrom = from || null;
   if (from === 'pause') $('mdlPause').hidden = true;
   else if (G.state === 'playing') { if (document.pointerLockElement) document.exitPointerLock(); INPUT.clear(); G.state = 'inv'; }
   $('mdlCos').hidden = false;
-  cosTab(tab || (cosSpins() > 0 ? 'shop' : 'ach'));
+  cosRenderAch(); cosBadge();
   SFX.ui();
 };
-function cosTab(tab) {
-  if (tab === 'wheel') tab = 'shop';
-  COS.tab = tab;
-  for (const b of document.querySelectorAll('#cosTabs .tab')) b.setAttribute('aria-selected', String(b.dataset.tab === tab));
-  for (const id of ['ach', 'shop', 'items']) $('cosP_' + id).hidden = id !== tab;
-  if (tab === 'ach') cosRenderAch();
-  if (tab === 'shop') cosRenderShop();
-  if (tab === 'items') cosRenderItems();
-  $('cosWheelN').textContent = cosSpins() ? cosSpins() : '';
-  cosBadge();
+/* ---------- Skins → Kosmetik: Boxen und was du schon hast ---------- */
+function skinTab(t) {
+  for (const b of document.querySelectorAll('.skin-tabs .tab')) b.setAttribute('aria-selected', String(b.dataset.st === t));
+  $('skinPaneSkins').hidden = t !== 'skins';
+  $('skinPaneCos').hidden = t !== 'cos';
+  COS.skinTab = t;
+  if (t === 'cos') cosSkinRefresh();
 }
+function cosSkinRefresh() { if ($('skinPaneCos').hidden) { cosBadge(); return; } cosRenderShop(); cosRenderItems(); cosBadge(); }
 function cosRenderAch() {
   const box = $('cosAch'); box.innerHTML = '';
   const done = ACH.filter((a) => COS.a[a.id]).length;
   $('cosAchN').textContent = done + ' / ' + ACH.length;
+  $('cosPtsA').textContent = cosSpins();
   for (const a of ACH) {
     const ok = !!COS.a[a.id];
     const row = document.createElement('div'); row.className = 'ach-row' + (ok ? ' ok' : '');
@@ -26453,22 +26510,25 @@ function cosRenderAch() {
 }
 function cosRenderItems() {
   const box = $('cosItems'); box.innerHTML = '';
-  const n = Object.keys(COS.o).length;
-  $('cosItemsN').textContent = n + ' / ' + COS_LIST.length;
+  const n = Object.keys(COS.o).filter((k) => COS_BY[k]).length;
+  $('cosItemsN').textContent = n ? n + ' / ' + COS_LIST.length : '';
+  if (!n) { const p = document.createElement('p'); p.className = 'cos-empty'; p.textContent = 'Noch nichts freigeschaltet. Öffne oben eine Box!'; box.appendChild(p); return; }
   for (const slot in COS_SLOT) {
+    const mine = COS_LIST.filter((x) => x.slot === slot && COS.o[x.id]);
+    if (!mine.length) continue;
     const g = document.createElement('div'); g.className = 'cos-g';
     g.innerHTML = '<h4></h4><div class="cos-grid"></div>';
     g.querySelector('h4').textContent = COS_SLOT[slot];
     const grid = g.lastChild;
-    for (const c of COS_LIST.filter((x) => x.slot === slot)) {
-      const own = !!COS.o[c.id], on = COS.e[slot] === c.id;
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'cos-card r-' + c.r + (own ? '' : ' locked') + (on ? ' on' : '');
+    for (const c of mine) {
+      const on = COS.e[slot] === c.id;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'cos-card r-' + c.r + (on ? ' on' : '');
+      b.setAttribute('aria-pressed', String(on));
       b.innerHTML = '<canvas width="96" height="96"></canvas><b></b><small></small>';
-      b.querySelector('b').textContent = own ? c.name : '???';
-      b.querySelector('small').textContent = COS_RAR[c.r].name + (on ? ' · an' : '');
-      const cv = b.querySelector('canvas');
-      if (own) drawCosIcon(cv.getContext('2d'), c, 96, 1); else { const x = cv.getContext('2d'); x.fillStyle = 'rgba(255,255,255,0.14)'; x.font = '900 48px system-ui'; x.textAlign = 'center'; x.fillText('?', 48, 64); }
-      if (own) b.addEventListener('click', () => { if (COS.e[slot] === c.id) delete COS.e[slot]; else COS.e[slot] = c.id; cosEqChanged(); cosSave(true); cosRenderItems(); SFX.ui(); });
+      b.querySelector('b').textContent = c.name;
+      b.querySelector('small').textContent = on ? '✓ An' : COS_RAR[c.r].name;
+      drawCosIcon(b.querySelector('canvas').getContext('2d'), c, 96, 1);
+      b.addEventListener('click', () => { if (COS.e[slot] === c.id) delete COS.e[slot]; else COS.e[slot] = c.id; cosEqChanged(); cosSave(true); cosRenderItems(); SFX.ui(); });
       grid.appendChild(b);
     }
     box.appendChild(g);
@@ -26589,12 +26649,13 @@ function cosReelLoop() {
       const e = 1 - Math.pow(1 - k, 4.5);
       R.pos = e * (R.stop + R.off);
       const idx = Math.round(R.pos);
-      if (idx !== R.last) { R.last = idx; R.flick = 1; if (SFX.pop && k > 0) SFX.pop(); }
+      if (idx !== R.last) { R.last = idx; R.flick = 1; if (SFX.pop && k > 0) SFX.pop(); if (k > 0) cosPinSparks(1 - k); }
       if (k >= 1) { R.run = false; R.pos = R.stop + R.off; setTimeout(cosReelDone, 380); }
     }
     R.flick = Math.max(0, (R.flick || 0) - dt * 6);
     $('cosPin').style.transform = 'translateX(-50%) rotate(' + (R.flick * 16).toFixed(1) + 'deg)';
     cosReelLayout();
+    cosAmbient(dt);
     cosFxDraw(dt);
     if (COS.wheel.reveal && COS.wheel.prize) { const pv = $('cosRevIc'); if (pv) drawCosIcon(pv.getContext('2d'), COS.wheel.prize, pv.width, now / 1000); }
     R.raf = requestAnimationFrame(step);
@@ -26611,7 +26672,7 @@ function cosReelDone() {
   for (const o of R.cards) if (o !== k) o.el.classList.add('dim');
   const w = COS.wheel;
   w.prize = c; w.flash = r === 'l' ? 1.1 : r === 'm' ? 0.75 : 0.4; w.flashCol = r === 'l' ? '#fff3b0' : COS_RAR[r].col; w.col = COS_RAR[r].col;
-  cosConfetti(r);
+  cosWinFx(r);
   if (SFX.upgrade) SFX.upgrade();
   setTimeout(() => {
     w.reveal = true;
@@ -26626,15 +26687,15 @@ function cosReelDone() {
     $('cosRevAgain').textContent = '🎁 Nochmal (🏆 ' + R.bx.cost + ')';
     void rv.offsetWidth; rv.classList.add('in');
     if (r === 'l' && SFX.unlock) SFX.unlock();
-    if (r === 'l' || r === 'm') cosConfetti(r);
+    cosRevealFx(r);
   }, 900);
 }
 function cosFsClose() {
   if (COS.reel && COS.reel.run) return;   // erst fertig drehen lassen
   $('cosFs').hidden = true; $('cosReveal').hidden = true; COS.fsOpen = false;
-  COS.wheel.reveal = false; COS.wheel.conf = [];
+  COS.wheel.reveal = false; COS.wheel.conf = []; COS.wheel.rays = 1;
   if (COS.reel) { cancelAnimationFrame(COS.reel.raf); COS.reel = null; }
-  if (!$('mdlCos').hidden) cosTab(COS.tab || 'shop');
+  cosSkinRefresh();
 }
 function cosRevWear() {
   const c = COS.wheel.prize; if (!c) return;
@@ -26647,43 +26708,136 @@ function cosShade(hex, k) {
   return 'rgb(' + c.map((v) => Math.round(v * 255)).join(',') + ')';
 }
 function cosAlpha(hex, a) { const c = hexToRgb(hex); return 'rgba(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ',' + a.toFixed(3) + ')'; }
-/* Hintergrund (halbe Auflösung): weiche Strahlen, Lichtblitz, Konfetti */
+/* ---------- Effekte (halbe Auflösung, leuchtend mit 'lighter') ---------- */
+const COS_GLOW = {};
+function cosGlow(col) {
+  if (COS_GLOW[col]) return COS_GLOW[col];
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.18, cosAlpha(col, 1)); g.addColorStop(0.5, cosAlpha(col, 0.35)); g.addColorStop(1, cosAlpha(col, 0));
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  return (COS_GLOW[col] = c);
+}
+function cosFxCenter() { const cv = $('cosFx'); return [cv.width / 2, cv.height * 0.52, cv.width / window.innerWidth]; }
+function cosAddP(p) { const w = COS.wheel; if (w.conf.length > 900) w.conf.shift(); p.t = 0; w.conf.push(p); }
+/* Funken am Pin, solange die Karten sausen */
+function cosPinSparks(speed) {
+  const cv = $('cosFx'), k = cv.width / window.innerWidth, pin = $('cosPin').getBoundingClientRect();
+  const x = (pin.left + pin.width / 2) * k, y = (pin.bottom - 6) * k;
+  const n = 2 + Math.round(speed * 5), col = COS.reel ? COS.reel.bx.col : '#fff';
+  for (let i = 0; i < n; i++) cosAddP({ k: 'spark', x, y, vx: (Math.random() - 0.5) * 500 * k, vy: (Math.random() * -260 - 60) * k, g: 0.9, life: 0.4 + Math.random() * 0.4, s: (14 + Math.random() * 14) * k, c: Math.random() < 0.5 ? '#ffe7a0' : col });
+}
+/* der große Moment: je seltener, desto krasser */
+function cosWinFx(r) {
+  const [cx, cy, k] = cosFxCenter(), col = r === 'l' ? '#ffc531' : COS_RAR[r].col, w = COS.wheel;
+  const big = { c: 0, r: 1, e: 2, m: 3, l: 4 }[r];
+  // Druckwellen
+  for (let i = 0; i <= Math.min(2, big); i++) cosAddP({ k: 'ring', x: cx, y: cy, r0: 30 * k, r1: (380 + i * 180) * k, life: 0.7 + i * 0.25, delay: i * 0.12, c: col, lw: (16 - i * 4) * k });
+  // Funkenregen in alle Richtungen
+  const n = [26, 50, 80, 110, 160][big];
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * TAU, v = (250 + Math.random() * (500 + big * 220)) * k;
+    cosAddP({ k: 'spark', x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.25, drag: 1.6, life: 0.7 + Math.random() * (0.6 + big * 0.2), s: (18 + Math.random() * (16 + big * 6)) * k, c: Math.random() < 0.3 ? '#ffffff' : col });
+  }
+  if (r === 'e' || r === 'l') for (let i = 0; i < 14; i++) cosAddP({ k: 'orbit', cx, cy, a: i / 14 * TAU, rad: (140 + Math.random() * 120) * k, va: 2.5 + Math.random() * 1.5, life: 1.8 + Math.random(), s: (18 + Math.random() * 10) * k, c: r === 'l' ? '#fff3b0' : '#d6a8ff', star: true });
+  if (r === 'm' || r === 'l') {
+    const fs = $('cosFs'); fs.classList.remove('shake'); void fs.offsetWidth; fs.classList.add('shake');
+  }
+  if (r === 'm') for (let i = 0; i < 70; i++) cosAddP({ k: 'spark', x: Math.random() * $('cosFx').width, y: $('cosFx').height + 10, vx: (Math.random() - 0.5) * 60 * k, vy: -(300 + Math.random() * 500) * k, g: -0.15, life: 1 + Math.random(), s: (24 + Math.random() * 20) * k, c: Math.random() < 0.5 ? '#ff4a1a' : '#ffb020', delay: Math.random() * 0.5 });
+  if (r === 'l') {
+    // Feuerwerk über mehrere Sekunden und ein Regen aus Goldsternen
+    for (let f = 0; f < 7; f++) {
+      const fx = (0.15 + Math.random() * 0.7) * $('cosFx').width, fy = (0.12 + Math.random() * 0.4) * $('cosFx').height, fc = ['#ffc531', '#fff3b0', '#ff9f1a', '#ffffff'][f % 4];
+      for (let i = 0; i < 40; i++) { const a = i / 40 * TAU, v = (180 + Math.random() * 140) * k; cosAddP({ k: 'spark', x: fx, y: fy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.35, drag: 1.2, life: 1.1 + Math.random() * 0.4, s: 16 * k, c: fc, delay: 0.3 + f * 0.38 }); }
+    }
+    for (let i = 0; i < 90; i++) cosAddP({ k: 'conf', star: true, x: Math.random() * $('cosFx').width, y: -20 * k, vx: (Math.random() - 0.5) * 80 * k, vy: (100 + Math.random() * 200) * k, r: Math.random() * 6, vr: (Math.random() - 0.5) * 8, s: (8 + Math.random() * 8) * k, c: ['#ffc531', '#fff3b0', '#ffe066'][i % 3], g: 0.15, life: 3.5, delay: Math.random() * 2 });
+  }
+  w.flash = [0.3, 0.45, 0.6, 0.8, 1.2][big]; w.flashCol = r === 'l' ? '#fff3b0' : col; w.col = col;
+  w.rays = 1 + big * 0.5;
+  cosConfetti(r);
+}
+function cosRevealFx(r) {
+  const [cx, cy, k] = cosFxCenter(), col = r === 'l' ? '#ffc531' : COS_RAR[r].col;
+  cosAddP({ k: 'ring', x: cx, y: cy * 0.96, r0: 40 * k, r1: 520 * k, life: 0.8, c: col, lw: 14 * k });
+  if (r === 'l' || r === 'm') cosConfetti(r);
+}
+/* während die große Karte offen ist: Glitzer um sie herum (Epic und besser) */
+function cosAmbient(dt) {
+  const w = COS.wheel; if (!w.reveal || !w.prize) return;
+  const r = w.prize.r, rate = { c: 0, r: 6, e: 14, m: 22, l: 40 }[r]; if (!rate) return;
+  const [cx, cy, k] = cosFxCenter(), col = r === 'l' ? '#ffc531' : COS_RAR[r].col;
+  w.amb = (w.amb || 0) + dt * rate;
+  while (w.amb >= 1) {
+    w.amb -= 1;
+    const a = Math.random() * TAU, rr = (180 + Math.random() * 120) * k;
+    cosAddP({ k: 'spark', x: cx + Math.cos(a) * rr * 1.2, y: cy * 0.96 + Math.sin(a) * rr, vx: 0, vy: (r === 'm' ? -120 : -40) * k, g: r === 'm' ? -0.1 : 0.02, life: 0.8 + Math.random() * 0.8, s: (12 + Math.random() * 16) * k, c: Math.random() < 0.35 ? '#ffffff' : col });
+  }
+}
 function cosFxDraw(dt) {
   const cv = $('cosFx'); if (!cv) return;
   const ctx = cv.getContext('2d'), Wd = cv.width, H = cv.height, t = performance.now() / 1000, w = COS.wheel;
   ctx.clearRect(0, 0, Wd, H);
   const dpr = Wd / window.innerWidth, cx = Wd / 2, cy = H * 0.52;
   const col = w.reveal || (COS.reel && COS.reel.done) ? w.col || '#ffffff' : (COS.reel ? COS.reel.bx.col : '#ffffff');
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.15);
+  w.rays = Math.max(1, (w.rays || 1) - dt * 0.15);
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * (0.15 + (w.rays - 1) * 0.1));
   const L = Math.hypot(Wd, H);
-  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, L * 0.6); g.addColorStop(0, cosAlpha(col, 0.28)); g.addColorStop(1, cosAlpha(col, 0));
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, L * 0.6); g.addColorStop(0, cosAlpha(col, Math.min(0.6, 0.28 * w.rays))); g.addColorStop(1, cosAlpha(col, 0));
   ctx.fillStyle = g; ctx.beginPath();
-  for (let k = 0; k < 14; k++) { const q = k * TAU / 14; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(q - 0.1) * L, Math.sin(q - 0.1) * L); ctx.lineTo(Math.cos(q + 0.1) * L, Math.sin(q + 0.1) * L); ctx.closePath(); }
+  for (let kk = 0; kk < 14; kk++) { const q = kk * TAU / 14; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(q - 0.1) * L, Math.sin(q - 0.1) * L); ctx.lineTo(Math.cos(q + 0.1) * L, Math.sin(q + 0.1) * L); ctx.closePath(); }
   ctx.fill();
   ctx.restore();
-  if (w.flash > 0) { ctx.fillStyle = cosAlpha(w.flashCol, Math.min(0.55, w.flash)); ctx.fillRect(0, 0, Wd, H); w.flash -= dt * 1.4; }
+  if (w.flash > 0) { ctx.fillStyle = cosAlpha(w.flashCol, Math.min(0.6, w.flash)); ctx.fillRect(0, 0, Wd, H); w.flash -= dt * 1.4; }
   for (let i = w.conf.length - 1; i >= 0; i--) {
-    const p = w.conf[i]; p.t += dt;
+    const p = w.conf[i];
+    if (p.delay > 0) { p.delay -= dt; continue; }
+    p.t += dt;
     if (p.t > p.life) { w.conf.splice(i, 1); continue; }
-    p.vy += 900 * dpr * dt * (p.g || 1); p.vx *= 1 - dt * 0.8; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, (p.life - p.t) * 2);
-    ctx.fillStyle = p.c; if (p.star) { ctx.beginPath(); for (let k = 0; k < 8; k++) { const q = k * Math.PI / 4, rr = k % 2 ? p.s * 0.35 : p.s; ctx.lineTo(Math.cos(q) * rr, Math.sin(q) * rr); } ctx.fill(); } else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+    const fade = Math.min(1, (p.life - p.t) * 2.5);
+    if (p.k === 'ring') {
+      const q = p.t / p.life, e = 1 - Math.pow(1 - q, 3), rr = p.r0 + (p.r1 - p.r0) * e;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = cosAlpha(p.c, (1 - q) * 0.9); ctx.lineWidth = Math.max(1, p.lw * (1 - q));
+      ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, TAU); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+      continue;
+    }
+    if (p.k === 'orbit') {
+      p.a += p.va * dt; const rr = p.rad * (1 + p.t * 0.15);
+      const x = p.cx + Math.cos(p.a) * rr * 1.25, y = p.cy + Math.sin(p.a) * rr * 0.75;
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = fade;
+      ctx.drawImage(cosGlow(p.c), x - p.s, y - p.s, p.s * 2, p.s * 2);
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      continue;
+    }
+    p.vy += 900 * dpr * dt * (p.g === undefined ? 1 : p.g);
+    if (p.drag) { p.vx *= 1 - dt * p.drag; p.vy *= 1 - dt * p.drag * 0.6; } else p.vx *= 1 - dt * 0.8;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.k === 'spark') {
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = fade;
+      ctx.drawImage(cosGlow(p.c), p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      continue;
+    }
+    p.r += p.vr * dt;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = fade;
+    ctx.fillStyle = p.c; if (p.star) { ctx.beginPath(); for (let kk = 0; kk < 8; kk++) { const q = kk * Math.PI / 4, rr = kk % 2 ? p.s * 0.35 : p.s; ctx.lineTo(Math.cos(q) * rr, Math.sin(q) * rr); } ctx.fill(); } else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
     ctx.restore();
   }
 }
 function cosConfetti(r) {
-  const cv = $('cosFx'), dpr = cv.width / window.innerWidth, w = COS.wheel;
+  const cv = $('cosFx'), dpr = cv.width / window.innerWidth;
   const cols = r === 'l' ? ['#ffc531', '#fff3b0', '#ffe066', '#ffffff', '#ff9f1a'] : [COS_RAR[r].col, '#ffffff', cosShade(COS_RAR[r].col, 0.4)];
   const n = { c: 30, r: 60, e: 90, m: 130, l: 200 }[r];
   for (let k = 0; k < n; k++) {
     const side = k % 2 ? 1 : -1;
-    w.conf.push({ x: side > 0 ? cv.width * 0.02 : cv.width * 0.98, y: cv.height * (0.6 + Math.random() * 0.3), vx: side * (500 + Math.random() * 900) * dpr, vy: -(700 + Math.random() * 900) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 14, s: (7 + Math.random() * 9) * dpr, c: cols[k % cols.length], t: 0, life: 2.2 + Math.random() * 1.6, star: r === 'l' && k % 3 === 0, g: 0.7 });
+    cosAddP({ k: 'conf', x: side > 0 ? cv.width * 0.02 : cv.width * 0.98, y: cv.height * (0.6 + Math.random() * 0.3), vx: side * (500 + Math.random() * 900) * dpr, vy: -(700 + Math.random() * 900) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 14, s: (7 + Math.random() * 9) * dpr, c: cols[k % cols.length], life: 2.2 + Math.random() * 1.6, star: r === 'l' && k % 3 === 0, g: 0.7 });
   }
 }
 
 function bindCosmetics() {
   cosLoad();
-  for (const b of document.querySelectorAll('#cosTabs .tab')) b.addEventListener('click', () => cosTab(b.dataset.tab));
+  for (const b of document.querySelectorAll('.skin-tabs .tab')) b.addEventListener('click', () => { skinTab(b.dataset.st); SFX.ui(); });
   $('cosFsX').addEventListener('click', cosFsClose);
   $('cosRevWear').addEventListener('click', cosRevWear);
   $('cosRevAgain').addEventListener('click', () => { const R = COS.reel; const bx = R && R.bx; cosFsClose(); if (bx) cosBuyBox(bx); });
@@ -26693,7 +26847,6 @@ function bindCosmetics() {
     if ($('cosFs').hidden) return;
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cosFsClose(); }
   }, true);
-  $('btnCos').addEventListener('click', () => UI.openCos(null, 'menu'));
   $('btnPauseCos').addEventListener('click', () => UI.openCos(null, 'pause'));
   cosBadge();
 }
