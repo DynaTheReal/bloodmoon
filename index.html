@@ -516,6 +516,7 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .chest-ic i { position: absolute; left: 50%; top: 34%; width: 10px; height: 12px; margin-left: -5px; background: #e8c45a; border: 2px solid #5a3a12; border-radius: 2px; }
 .mc-grid.chest { padding: 10px; border-radius: 12px; background: rgba(60, 38, 18, 0.45); border: 1px solid rgba(201, 140, 70, 0.3); }
 @media (max-width: 520px) { .mc-grid.hot { grid-template-columns: repeat(10, calc(var(--ms) * 0.86)); gap: 3px; } }
+.md-full-note { margin: 6px 0 8px; font-size: 12px; font-weight: 700; color: var(--muted); line-height: 1.4; } .md-full-note code { background: rgba(0,0,0,0.35); padding: 0 4px; border-radius: 4px; }
 .md-full { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255, 90, 90, 0.4); background: rgba(255, 60, 60, 0.08); cursor: pointer; }
 .md-full input { margin-top: 3px; width: 18px; height: 18px; accent-color: #ff5a5a; flex: none; }
 .md-full span { display: grid; gap: 2px; } .md-full small { color: var(--muted); font-weight: 700; font-size: 12px; line-height: 1.4; }
@@ -1923,7 +1924,6 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <div class="ai-box">
           <div class="ai-h"><b>🤖 Mod mit einer KI bauen</b><span>Beschreib deine Idee, kopier den Prompt und füg ihn in eine KI ein (z. B. Claude). Den Code, den sie dir gibt, kopierst du unten ins Feld „Code“. Der Prompt enthält immer alle aktuellen Mod-Befehle und deinen bisherigen Code.</span></div>
           <textarea class="field area" id="mdIdea" rows="3" maxlength="4000" placeholder="z. B. Ein Scharfschützengewehr: Zielen-Knopf neben Springen, Zielfernrohr-Bild mit Zoom, Tippen zum Schießen, die Kamera wackelt beim Schuss …"></textarea>
-          <label class="md-full"><input type="checkbox" id="mdFull"><span><b>🔓 Experten-Mod (voller Zugriff)</b><small>Die KI darf alles im Spiel ändern, nicht nur die Mod-API. Der Code beginnt dann mit <code>// @full</code>. Bevor andere sie bekommen, prüft DynaTheReal sie genau. In deiner eigenen Welt und Testwelt läuft sie sofort.</small></span></label>
           <div class="btnrow"><button class="btn primary" id="mdPrompt" type="button">📋 KI-Prompt kopieren</button><button class="btn ghost" id="mdPromptShow" type="button">Prompt ansehen</button></div>
           <textarea class="field area" id="mdPromptOut" rows="8" readonly hidden></textarea>
         </div>
@@ -2344,8 +2344,11 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.51.0';
+const GAME_VERSION = '2.52.1';
 const GAME_NOTES = [
+  ['2.52.1', 'Anfänger-Hinweise (WASD zum Laufen, Baum fällen, Tipps oben) kommen nur noch in der allerersten Welt, die man je macht. Die Ziele bleiben. Im Mod-Editor steht kein Hinweis mehr zu Experten-Mods.'],
+  ['2.52.0', 'Im Mod-Editor gibt es nur noch Experten-Mods: der KI-Prompt ist immer der Experten-Prompt, und jeder Code bekommt beim Speichern, Testen und Einreichen automatisch // @full als erste Zeile. Ältere normale Mods aus der Bibliothek und die eingebauten laufen weiter wie bisher.'],
+  ['2.51.1', 'Experten-Mods (@full) haben jetzt zusätzlich die komplette normale Mod-API (mod.item, mod.block, mod.shop, mod.ui …), damit Items und Blöcke echte Items mit eigener Textur sind. Der KI-Prompt für Experten-Mods ist viel genauer: echte Items mit Pixel-Textur statt Knöpfen am Rand, echte eigene Blöcke statt Wolle, keine Test-Knöpfe, cleane Fenster, dazu ein komplettes Beispiel und eine Checkliste.'],
   ['2.51.0', 'Inventar und Truhen wie in Minecraft: Linksklick nimmt den ganzen Stapel, Rechtsklick den halben (mit etwas an der Maus: einzeln ablegen), Ziehen verteilt gleichmäßig (rechts: je eins), Shift+Klick schiebt rüber (Tasche ↔ Hotbar, Inventar ↔ Truhe, Rüstung zieht man so an), Doppelklick sammelt alles Gleiche, Q wirft weg, 1–0 legt auf die Hotbar, Rüstung zieht man direkt auf die Plätze, Linke Hand hat einen eigenen Platz. Stapel kann man teilen, das bleibt gespeichert. Am Handy: Tippen nimmt und legt ab, lange drücken nimmt den halben Stapel oder legt einzeln ab. Neue Truhe im Holz-Look mit 27 Plätzen, Alles nehmen, Alles einlagern und Sortieren. Experten-Mods: Mit // @full in der ersten Zeile (Häkchen im Mod-Editor) darf eine Mod alles im Spiel ändern, nicht nur die Mod-API. Sie läuft in deiner Testwelt und deiner eigenen Welt sofort, bei anderen erst, wenn DynaTheReal sie geprüft hat (in der Prüfung rot markiert).'],
   ['2.50.0', 'Aufgeräumt: Die Kosmetik-Boxen gibt es jetzt unter Skins → Kosmetik, darunter nur deine freigeschalteten Sachen zum An- und Ausschalten (die Figur daneben zeigt sie gleich). Der Knopf Erfolge im Hauptmenü ist weg, die Erfolge findest du im Spiel im Pausenmenü. Das Pausenmenü ist neu gestaltet (Weiterspielen, dann Kacheln für Inventar, Erfolge, Sozial, Einstellungen). Die Tastenübersicht steht jetzt in den Einstellungen unter Steuerung. Glücksdreh mit viel mehr Glow: leuchtende Karten, Funken am Pin, und je seltener der Gewinn, desto krasser: Druckwellen, Funkenregen, kreisende Sterne bei Epic, Flammen und Wackeln bei Mythic, Feuerwerk und Goldsterne-Regen bei Legendary.'],
   ['2.49.2', 'Fehler behoben: Für einen geschafften Erfolg gab es manchmal keinen Erfolgspunkt, weil die Drehungen vom alten Glücksrad noch abgezogen wurden. Jetzt zählt jeder Erfolg wieder 1 Punkt. Das Geschenk auf den Boxen hat wieder seine echten Farben, die gelbe Serien-Zeile über den Erfolgen ist weg.'],
@@ -16000,7 +16003,7 @@ function startPlaying() {
   if (CAMC.mode === 'fp' && !touchUI()) INPUT.lockSoft = true;
   if (G._migratedMsg && WORLDS.current) { const m = G._migratedMsg; G._migratedMsg = null; saveGame(true); setTimeout(() => UI.toast(m, 'good', 9000), 2400); }
   if (DEVICE.opera && !touchUI() && !UI._operaHint) { UI._operaHint = true; setTimeout(() => UI.toast(OPERA_HINT, 'warn', 11000, 'opera'), 800); }
-  if (G.playTime < 2 && !MP.isClient()) {
+  if (G.tips && G.playTime < 2 && !MP.isClient()) {
     setTimeout(() => UI.toast(touchUI() ? 'Links ziehen zum Laufen, rechts ziehen für die Kamera.' : 'WASD zum Laufen, rechte Maustaste ziehen zum Drehen.', 'info', 5200), 1400);
     setTimeout(() => UI.toast('Stell dich neben einen Baum. Du fällst ihn automatisch.', 'info', 5200), 6200);
   }
@@ -16038,7 +16041,7 @@ async function createAndPlay(name, mode, mods) {
   if (MP.isClient()) await MP.leave(true);
   if (MP.isHost()) await MP.closeRoom();
   G.server = null;
-  const first = WORLDS.visible().length === 0;
+  const first = tutFirstWorld(WORLDS.visible().length);
   const e = WORLDS.newEntry(name, null, mode);
   if (mods && mods.length) { e.mods = mods.slice(); WORLDS.saveIndex(); }
   WORLDS.current = e;
@@ -16056,7 +16059,7 @@ async function playLast() {
   if (!G.loadedWorld && !MP.active()) {
     const n = WORLDS.newEntry(WORLDS.defaultName(), W.seed, W.mode);
     WORLDS.current = n; G.loadedWorld = n.id;
-    G.tips = WORLDS.visible().length === 1;
+    G.tips = tutFirstWorld(WORLDS.visible().length - 1);
     WORLDS.ls(LAST_WORLD_KEY, n.id);
     startPlaying();
     saveGame(true);
@@ -19930,9 +19933,9 @@ async function modsBegin() {
   if (updated.length) setTimeout(() => UI.toast('Aktualisiert: ' + updated.slice(0, 3).join(', ') + (updated.length > 3 ? ' und ' + (updated.length - 3) + ' mehr' : '') + '.', 'good', 3600, 'modsUpd'), 1400);
   if (updated.length && G.server && MP.isHost()) SERVER.save(true);
 }
-function startModWorker(m) {
-  let worker;
-  try { worker = new Worker(modWorkerURL()); } catch (err) { UI.toast('Mods laufen hier nicht: ' + (err && err.message), 'warn', 5000); return null; }
+function startModWorker(m, fake) {
+  let worker = fake || null;
+  if (!worker) try { worker = new Worker(modWorkerURL()); } catch (err) { UI.toast('Mods laufen hier nicht: ' + (err && err.message), 'warn', 5000); return null; }
   const rec = { m, worker, n: 0, t: performance.now(), errs: 0 };
   worker.onmessage = (ev) => modCmd(rec, ev.data);
   worker.onerror = (ev) => console.warn('Mod "' + m.name + '":', ev.message);
@@ -20635,7 +20638,7 @@ function closeModWorld() {
 /* ---------- Testwelt für eine Mod im Editor ---------- */
 async function modTestWorld() {
   const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
-  const code = $('mdCode').value; if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
+  const code = modEdCode(); if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
   msg('Prüfe …', true);
   const r = await MODS.test(code); if (!r.ok) { msg(r.msg); return; }
   const draft = { id: '__test', name: ($('mdName').value.trim() || 'Meine Mod').slice(0, 30), icon: $('mdIcon').value.trim() || '🧩', desc: $('mdDesc').value.trim(), cat: $('mdCat').value, code };
@@ -20680,7 +20683,7 @@ function bindModsUI() {
   if (!sel.children.length) for (const [k, n] of MOD_CATS) { if (k === 'all') continue; const o = document.createElement('option'); o.value = k; o.textContent = n; sel.appendChild(o); }
   const msg = (t, ok) => { const m = $('mdMsg'); m.hidden = false; m.className = 'form-msg' + (ok ? ' ok' : ''); m.textContent = t; };
   $('mdTest').addEventListener('click', async () => {
-    const code = $('mdCode').value; if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
+    const code = modEdCode(); if (code.trim().length < 5) { msg('Schreib zuerst Code.'); return; }
     msg('Teste …', true); const r = await MODS.test(code); msg(r.msg, r.ok);
   });
   $('mdPlay').addEventListener('click', () => modTestWorld());
@@ -22239,7 +22242,8 @@ mod.on('playerkill', (e) => ...)        // ein Spieler wurde von einem Spieler b
 // ==================== EXPERTEN-MODS (voller Zugriff) ====================
 // Erste Zeile im Code: // @full
 // Dann läuft die Mod NICHT im Worker, sondern direkt im Spiel und kann ALLES ändern.
-// Es gibt dann kein mod.set/mod.block usw., sondern das Objekt game und alle Teile des Spiels.
+// ALLE mod.*-Befehle von oben gibt es auch hier (mod.item, mod.block, mod.shop, mod.ui, mod.element ...),
+// dazu das Objekt game und alle Teile des Spiels für das, was die Mod-API nicht kann.
 // Sie läuft nur, wenn sie geprüft ist (Bibliothek), in deiner Testwelt oder als deine eigene Mod in deiner Welt.
 game.on('start', () => ...)             // beim Betreten der Welt
 game.on('tick', (dt) => ...)            // jeden Frame, dt in Sekunden
@@ -22308,6 +22312,27 @@ function buildModPrompt(d) {
   L.push('WICHTIG: Schreib sauberen, funktionierenden Code, der sofort läuft. Prüfe, dass jeder benutzte Befehl oben steht.');
   return L.join('\n');
 }
+const FULL_MOD_EXAMPLE = `// @full
+// Funkgerät (Item) und Funkmast (Block)
+const ICON = { pixels: [
+  '....kk....', '....kk....', '..kkkkkk..', '.kggggggk.', '.kgwwwwgk.',
+  '.kgwbbwgk.', '.kgwwwwgk.', '.kggggggk.', '.kgrgrggk.', '..kkkkkk..'],
+  palette: { k: '#111318', g: '#3a3f4a', w: '#9fe7ff', b: '#2a6fd6', r: '#ff4a4a' } };
+mod.item('funk', { name: 'Funkgerät', desc: 'Rechtsklick: Funkmast-Liste', texture: ICON, use: true });
+mod.shop('funk', { iron: 2, crystal: 1 }, 1, 'Funkgerät', 'survive');
+mod.block('mast', { name: 'Funkmast', hardness: 1, drop: 'self', interact: true,
+  side: { pattern: 'stripes', color: '#9aa3ad', color2: '#5b636d', base: '#7d858f' },
+  top: { pixels: ['rrrr', 'rwwr', 'rwwr', 'rrrr'], palette: { r: '#ff4a4a', w: '#ffffff' } } });
+mod.item('mastitem', { name: 'Funkmast', texture: { pattern: 'stripes', color: '#9aa3ad', color2: '#5b636d' }, place: 'mast' });
+mod.shop('mastitem', { iron: 3 }, 1, 'Funkmast', 'build');
+mod.on('place', (e) => { if (e.block === mod.key('mast')) { (mod.data.masten = mod.data.masten || []).push([e.x, e.y, e.z]); mod.save(); } });
+mod.on('break', (e) => { if (e.block === mod.key('mast')) { mod.data.masten = (mod.data.masten || []).filter((p) => p[0] !== e.x || p[1] !== e.y || p[2] !== e.z); mod.save(); } });
+mod.on('use', (e) => {
+  if (e.key !== mod.key('funk')) return;
+  const l = mod.data.masten || [];
+  mod.ui('funk', { title: '📻 Funkgerät', text: l.length ? 'Deine Funkmasten:' : 'Noch keine Funkmasten aufgestellt.',
+    rows: l.map((p, i) => ({ icon: 'iron', label: 'Mast ' + (i + 1), value: p.join(' / ') })), buttons: [{ id: 'zu', label: 'Schließen', close: true }] });
+});`;
 /* Prompt für eine Experten-Mod (@full): darf alles im Spiel ändern */
 function buildFullModPrompt(d) {
   const idea = String(d.idea || '').trim() || String(d.desc || '').trim() || '[HIER DEINE IDEE EINTRAGEN]';
@@ -22321,20 +22346,34 @@ function buildFullModPrompt(d) {
   if (code) { L.push('MEIN BISHERIGER CODE (verbessere ihn nach meiner Idee, gib den kompletten neuen Code zurück):'); L.push('```js'); L.push(code); L.push('```'); L.push(''); }
   L.push('Gib mir zuerst den kompletten JavaScript-Code in EINEM Codeblock. Danach kurz: Name, Symbol (ein Emoji), Beschreibung (max. 140 Zeichen), Kategorie (' + MOD_CATS.filter((c) => c[0] !== 'all').map((c) => c[0]).join(', ') + ').');
   L.push('');
-  L.push('REGELN');
+  L.push('REGELN (bitte genau einhalten)');
   L.push('- Die ERSTE Zeile ist genau: // @full');
-  L.push('- Der Code läuft direkt im Spiel als new Function(\'game\', \'mod\', code)(game, game). Er sieht alle globalen Variablen und Funktionen des Spiels (Liste unten) und darf das DOM benutzen. Die normalen mod.*-Befehle gibt es hier NICHT.');
-  L.push('- Ändere das Spiel über game.patch (Funktionen umschreiben und orig aufrufen), game.on (Ereignisse), game.html/game.css (eigene Oberfläche), game.every/game.later (Timer). Alles davon wird beim Verlassen der Welt automatisch zurückgesetzt. Was du sonst anlegst (z. B. Einträge in ITEMS oder SHOP), räumst du in game.onUnload wieder weg.');
-  L.push('- Wenn du eine Funktion brauchst, die nicht in der Liste steht: nimm an, dass es sie NICHT gibt, und schreib sie selbst. Prüfe mit typeof, bevor du etwas Unsicheres benutzt.');
-  L.push('- Mehrspieler: Die Mod läuft bei JEDEM Spieler in der Welt. Was nur einmal pro Welt passieren soll, nur wenn game.isHost. Abgleich mit game.send / game.onNet.');
+  L.push('- Der Code läuft direkt im Spiel. Es gibt ZWEI Werkzeuge: (1) das Objekt mod mit der KOMPLETTEN normalen Mod-API (unten) und (2) das Objekt game plus alle Teile des Spiels (ganz unten, Abschnitt EXPERTEN-MODS).');
+  L.push('- Benutze für alles, was die Mod-API kann, die mod.*-Befehle: Items (mod.item), Blöcke (mod.block), Shop (mod.shop), Kreaturen, Fenster (mod.ui), Bildschirm-Elemente (mod.element), Töne. game.* und das Umschreiben von Spielfunktionen (game.patch) nur für das, was die API nicht kann.');
+  L.push('');
+  L.push('SO MUSS ES AUSSEHEN UND SICH ANFÜHLEN (wie ein echter Teil des Spiels):');
+  L.push('- Alles, was man in der Hand hat und benutzt (Handy, Fernbedienung, Funkgerät, Waffe …), ist ein ECHTES Item: mod.item mit eigener Pixel-Art-Textur ({ pixels, palette }, 16x16 bis 32x32, sauber gezeichnet, mit dunklem Umriss, sofort erkennbar, z. B. ein Handy = schwarzes abgerundetes Rechteck mit hellem Bildschirm und kleinen App-Symbolen), use: true, und mod.shop, damit man es beim Händler kaufen kann. Benutzt wird es mit Rechtsklick (mod.on(\'use\') und e.key === mod.key(\'id\')), also nur, wenn man es in der Hand hält.');
+  L.push('- NIEMALS ein Item durch einen dauerhaften Knopf am Bildschirmrand ersetzen. Knöpfe (mod.button/mod.element) nur, wenn sie wirklich nötig sind, und nur solange etwas offen ist.');
+  L.push('- Alles, was man in die Welt stellt (Kamera, Sirene, Lampe, Maschine …), ist ein ECHTER eigener Block: mod.block mit eigener Textur pro Seite (texture/top/side/bottom als Pixel-Art, die genau so aussieht wie das Ding), interact: true wenn man ihn bedienen kann, plus ein Item mit place: \'<blockid>\' und mod.shop, das man kauft und mit Rechtsklick hinstellt. NIEMALS einen vorhandenen Block (Wolle, Stein, Holz …) als Ersatz setzen und nie Blöcke per Code irgendwo hinsetzen, statt den Spieler sie platzieren zu lassen.');
+  L.push('- KEINE Test-, Debug- oder Abkürzungs-Knöpfe (z. B. „Sirene testen“, „Block platzieren“, „Item geben“). Alles läuft wie im echten Spiel: kaufen, in die Hand nehmen, platzieren, Rechtsklick, Ereignisse (break, place, interact, use, tick, day, night).');
+  L.push('- Fenster und Bildschirme (z. B. ein Handy-Bildschirm): modern und clean wie eine echte App: dunkles Design, abgerundete Ecken, klare Schrift, Abstände, passende Symbole, Schließen-Knopf, am PC und Handy bedienbar (Escape schließt). Einfache Fenster mit mod.ui, aufwendige mit game.html + game.css.');
+  L.push('- Zustand (z. B. Positionen platzierter Kameras) in mod.data speichern und mod.save() aufrufen. Wird ein eigener Block abgebaut (mod.on(\'break\') mit e.block === mod.key(\'id\')), auch aus den Daten entfernen.');
+  L.push('- Wenn du eine Spielfunktion brauchst, die nicht in der Liste steht: nimm an, dass es sie NICHT gibt, und schreib sie selbst. Prüfe mit typeof, bevor du etwas Unsicheres benutzt.');
+  L.push('- Mehrspieler: Die Mod läuft bei JEDEM Spieler in der Welt. Was nur einmal pro Welt passieren soll, nur wenn mod.isHost. Abgleich mit mod.broadcast / mod.on(\'message\') oder game.send / game.onNet.');
   L.push('- VERBOTEN: NET.db oder Firebase, Konten, Passwörter, fetch/XMLHttpRequest/WebSocket, fremde localStorage-Daten, eval von Text. Die Mod wird vom Owner geprüft und sonst abgelehnt.');
-  L.push('- Max. ' + MOD_CODE_MAX.toLocaleString('de-DE') + ' Zeichen. Bilder als data:-URL. Alles für den Spieler auf Deutsch, Kommentare auf Deutsch.');
-  L.push('- Am PC UND am Handy spielbar (eigene Knöpfe mit game.html für das Handy).');
+  L.push('- Max. ' + MOD_CODE_MAX.toLocaleString('de-DE') + ' Zeichen. Bilder als Pixel-Art oder data:-URL. Alles für den Spieler auf Deutsch, Kommentare auf Deutsch.');
   L.push('- Leistung: in tick nur das Nötigste, nichts pro Frame neu anlegen.');
   L.push('');
-  L.push('==================== DAS OBJEKT game UND DIE TEILE DES SPIELS ====================');
+  L.push('BEISPIEL FÜR DEN AUFBAU (ein Item mit Textur, das man kauft und mit Rechtsklick benutzt, und ein eigener Block):');
+  L.push('```js');
+  L.push(FULL_MOD_EXAMPLE);
+  L.push('```');
   L.push('');
-  L.push(MOD_API_DOC.slice(MOD_API_DOC.indexOf(MOD_FULL_MARK)));
+  L.push('PRÜFE VOR DEINER ANTWORT: Hat jedes Item und jeder Block eine eigene, schöne Textur? Kann man alles im Shop kaufen? Wird alles über Items in der Hand, platzierte Blöcke und Rechtsklick benutzt statt über dauerhafte Knöpfe? Gibt es keine Test-Knöpfe? Steht jeder benutzte mod.*-Befehl unten in der Liste?');
+  L.push('');
+  L.push('==================== DIE KOMPLETTE API (mod.* und game.*) ====================');
+  L.push('');
+  L.push(MOD_API_DOC);
   L.push('');
   L.push('WICHTIG: Sauberer Code, der sofort läuft und sich beim Verlassen der Welt komplett zurücksetzt.');
   return L.join('\n');
@@ -22488,7 +22527,6 @@ function myModEdit(id, temp) {
   MYMODS.cur = d.id; MYMODS.temp = temp || null;
   for (const [el, k] of MY_FIELDS) $(el).value = d[k] || (k === 'cat' ? 'fun' : '');
   $('mdMsg').hidden = true; $('mdPromptOut').hidden = true;
-  $('mdFull').checked = isFullCode(d.code);
   myModStateLine(d);
   modsTab('up');
 }
@@ -22502,6 +22540,7 @@ function myModFromForm() {
   if (!MYMODS.cur) { MYMODS.temp = newMyMod(); MYMODS.cur = MYMODS.temp.id; }
   const d = Object.assign({}, MYMODS.get(MYMODS.cur) || MYMODS.temp || Object.assign(newMyMod(), { id: MYMODS.cur }));
   for (const [el, k] of MY_FIELDS) d[k] = $(el).value;
+  d.code = modEdCode();
   return d;
 }
 let MY_SAVE_T = null;
@@ -22594,7 +22633,7 @@ function bindMyMods() {
   $('myNew').addEventListener('click', () => { myModLeave(); myModEdit(null, newMyMod()); $('mdIdea').focus(); });
   $('mdBack').addEventListener('click', async () => { if (!(await myModLeaveAsk())) return; myModLeave(); modsTab('mine'); });
   for (const [el] of MY_FIELDS) $(el).addEventListener(el === 'mdCat' ? 'change' : 'input', myModChanged);
-  const prompt = () => buildModPrompt(Object.assign(myModFromForm(), { full: $('mdFull').checked }));
+  const prompt = () => buildModPrompt(Object.assign(myModFromForm(), { full: true }));
   $('mdPrompt').addEventListener('click', async () => {
     const p = prompt();
     const ok = await copyText(p);
@@ -23045,7 +23084,7 @@ async function fullModTrusted(m) {
 async function startFullMod(m, token) {
   const ok = await fullModTrusted(m);
   if (token !== MODRT.begin || G.state === 'menu') return false;
-  if (!ok) { UI.toast('„' + (m.name || m.id) + '“ hat vollen Zugriff und ist noch nicht geprüft. Sie läuft hier nicht.', 'warn', 5000, 'fullno'); return false; }
+  if (!ok) { UI.toast('„' + (m.name || m.id) + '“ ist noch nicht geprüft und läuft hier noch nicht.', 'warn', 5000, 'fullno'); return false; }
   const id = modSlug(m.id);
   const ctx = { m, id, on: {}, patches: [], unload: [], els: [], timers: [] };
   const err = (e) => { console.warn('Mod "' + (m.name || m.id) + '":', e); if (!ctx.errShown) { ctx.errShown = true; UI.toast('Fehler in „' + (m.name || m.id) + '“: ' + String(e && e.message || e).slice(0, 140), 'warn', 6000, 'fullerr'); } };
@@ -23081,9 +23120,32 @@ async function startFullMod(m, token) {
   };
   ctx.game = game;
   FULLMODS.set(m.id, ctx);
-  try { (new Function('game', 'mod', String(m.code)))(game, game); } catch (e) { err(e); }
+  // dieselbe Mod-API wie normale Mods (mod.item, mod.block, mod.shop ...), nur im Spiel statt im Worker, dazu game
+  try { startModWorker(m, fullFakeWorker(game, err)); } catch (e) { err(e); }
   fullEmitOne(ctx, 'start', modState());
   return true;
+}
+/* der Worker-Code der Mod-API, ohne die Netz-Sperren (die gelten im Spiel nicht) und mit game */
+let FULL_SRC = null;
+function fullWorkerSrc() {
+  if (FULL_SRC) return FULL_SRC;
+  let s = MOD_WORKER_SRC;
+  const a = s.indexOf('(function () {\n  const bad'), b = a >= 0 ? s.indexOf('})();', a) : -1;
+  if (a >= 0 && b > a) s = s.slice(0, a) + s.slice(b + 5);
+  s = s.replace("(new Function('mod', m.code))(mod)", "(new Function('mod', 'game', m.code))(mod, self.game)");
+  return (FULL_SRC = s);
+}
+/* ein „Worker“, der im Spiel läuft: Nachrichten gehen asynchron hin und her wie bei einem echten */
+function fullFakeWorker(game, err) {
+  const fs = { game, onmessage: null, onunhandledrejection: null };
+  const w = {
+    dead: false, onmessage: null, onerror: null,
+    postMessage(msg) { if (w.dead) return; queueMicrotask(() => { if (w.dead || !fs.onmessage) return; try { fs.onmessage({ data: msg }); } catch (e) { err(e); } }); },
+    terminate() { w.dead = true; },
+  };
+  const post = (msg) => { if (!w.dead) queueMicrotask(() => { if (!w.dead && w.onmessage) w.onmessage({ data: msg }); }); };
+  (new Function('self', 'postMessage', fullWorkerSrc()))(fs, post);
+  return w;
 }
 function fullEmitOne(ctx, ev, d, d2) {
   const l = ctx.on[ev]; if (!l) return;
@@ -23109,6 +23171,9 @@ function fullModsEnd() {
 function fullModSyntax(code) {
   try { new Function('game', 'mod', String(code)); return { ok: true, n: 0, msg: 'Experten-Mod (@full): der Code ist in Ordnung. Ausprobieren kannst du sie in der Testwelt.' }; } catch (e) { return { ok: false, msg: String(e && e.message || e) }; }
 }
+/* Es gibt nur noch Experten-Mods: Code aus dem Editor bekommt immer // @full als erste Zeile */
+function ensureFullCode(code) { code = String(code || ''); return !code.trim() || isFullCode(code) ? code : '// @full\n' + code; }
+function modEdCode() { const el = $('mdCode'); const c = ensureFullCode(el.value); if (c !== el.value) el.value = c; return c; }
 
 /* ---- 19u_dims.js ---- */
 /* =========================================================================
@@ -26747,7 +26812,7 @@ function cosFair() { return !G.spectator && !MODFX.godmode && !(typeof creativeO
 
 const COS_KEY = 'bloodmoon-cos';
 const COS = {
-  a: {}, o: {}, e: {}, spent: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0, maxDay: 0 },
+  a: {}, o: {}, e: {}, spent: 0, st: { days: 0, blood: 0, kills: 0, trees: 0, place: 0, apple: 0, cart: 0, sign: 0, time: 0, streak: 0, best: 0, bstreak: 0, bestBlood: 0, maxDay: 0, tut: 0 },
   base: null, t: 0, saveT: 0, cloudT: 0, eqObj: null, eqStr: '',
   wheel: { prize: null, reveal: false, conf: [], flash: 0, flashCol: '#fff', col: '#fff' }, reel: null, fsOpen: false,
 };
@@ -27402,6 +27467,16 @@ function bindCosmetics() {
   }, true);
   $('btnPauseCos').addEventListener('click', () => UI.openCos(null, 'pause'));
   cosBadge();
+}
+
+/* Anfänger-Hinweise (WASD, Baum fällen, Tipps oben) nur in der allerersten Welt, die man je macht */
+function tutFirstWorld(older) {
+  let done = !!COS.st.tut || older > 0;   // wer schon Welten hat, ist kein Anfänger mehr
+  try { if (localStorage.getItem('bloodmoon-tut') === '1') done = true; } catch (e) { /* egal */ }
+  if (done) return false;
+  COS.st.tut = 1; cosSave(true);
+  try { localStorage.setItem('bloodmoon-tut', '1'); } catch (e) { /* egal */ }
+  return true;
 }
 
 /* ---- 19z_modfly.js ---- */
