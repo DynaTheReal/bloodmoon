@@ -210,6 +210,17 @@
           }
         }
       }
+    },
+    "push": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users/' + $uid + '/friends/' + auth.uid).exists() || root.child('users/' + $uid + '/requests/' + auth.uid).exists())",
+        ".write": "auth != null && auth.uid === $uid",
+        "$k": { ".validate": "!newData.exists() || (newData.child('sub').isString() && newData.child('sub').val().length <= 2000)" }
+      }
+    },
+    "pushcfg": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('usernames/dynathereal').val() === auth.uid"
     }
   }
 }
@@ -522,6 +533,7 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .md-full span { display: grid; gap: 2px; } .md-full small { color: var(--muted); font-weight: 700; font-size: 12px; line-height: 1.4; }
 .md-full code { background: rgba(0,0,0,0.35); padding: 0 4px; border-radius: 4px; }
 .li.mod.full { border-color: rgba(255, 70, 70, 0.6); background: rgba(255, 50, 50, 0.08); }
+.push-url { display: flex; gap: 6px; min-width: min(320px, 100%); } .push-url .field { flex: 1; min-width: 0; }
 #invGhost { position: fixed; z-index: 9999; width: 52px; height: 52px; margin: -26px 0 0 -26px; pointer-events: none; display: grid; place-items: center; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55)); color: var(--text); }
 #invGhost[hidden] { display: none; }
 #invGhost canvas { width: 100%; height: 100%; image-rendering: pixelated; }
@@ -1721,6 +1733,11 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
             <div class="row"><div class="lbl">Bau-Vorschau<small>Graues Hologramm, wo der Block hinkommt</small></div><button class="tgl" id="setGhost" role="switch" aria-label="Bau-Vorschau" type="button"></button></div>
             <div class="row"><div class="lbl">Kamera-Wackeln<small>Schritte, Treffer, fallende Bäume</small></div><button class="tgl" id="setShake" role="switch" aria-label="Kamera-Wackeln" type="button"></button></div>
           </div>
+          <div class="set-card rows">
+            <p class="set-ct">🔔 Benachrichtigungen</p>
+            <div class="row"><div class="lbl">Aufs Handy und den PC<small id="setPushTxt">Neue Nachrichten, Freundschaftsanfragen und Einladungen, auch wenn das Spiel zu ist.</small></div><button class="tgl" id="setPush" role="switch" aria-checked="false" aria-label="Benachrichtigungen" type="button"></button></div>
+            <div class="row" id="setPushOwner" hidden><div class="lbl">Push-Server (nur du)<small>Adresse deines Cloudflare-Workers, gilt für alle Spieler</small></div><div class="push-url"><input class="field" id="setPushUrl" placeholder="https://….workers.dev" autocomplete="off" spellcheck="false"><button class="btn" id="setPushSave" type="button">Speichern</button></div></div>
+          </div>
         </section>
         <section class="set-pane" data-sec="ver" hidden>
           <div class="set-card"><div class="ver"><b id="verNow"></b><ul id="verNotes"></ul></div></div>
@@ -2344,8 +2361,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.52.1';
+const GAME_VERSION = '2.53.0';
 const GAME_NOTES = [
+  ['2.53.0', 'Benachrichtigungen aufs Handy und den PC (Einstellungen → Allgemein → 🔔): neue Chat-Nachrichten, Freundschaftsanfragen und Einladungen kommen auch, wenn das Spiel zu ist. Antippen öffnet den passenden Chat. Auf dem iPhone nur über „Zum Home-Bildschirm“.'],
   ['2.52.1', 'Anfänger-Hinweise (WASD zum Laufen, Baum fällen, Tipps oben) kommen nur noch in der allerersten Welt, die man je macht. Die Ziele bleiben. Im Mod-Editor steht kein Hinweis mehr zu Experten-Mods.'],
   ['2.52.0', 'Im Mod-Editor gibt es nur noch Experten-Mods: der KI-Prompt ist immer der Experten-Prompt, und jeder Code bekommt beim Speichern, Testen und Einreichen automatisch // @full als erste Zeile. Ältere normale Mods aus der Bibliothek und die eingebauten laufen weiter wie bisher.'],
   ['2.51.1', 'Experten-Mods (@full) haben jetzt zusätzlich die komplette normale Mod-API (mod.item, mod.block, mod.shop, mod.ui …), damit Items und Blöcke echte Items mit eigener Textur sind. Der KI-Prompt für Experten-Mods ist viel genauer: echte Items mit Pixel-Textur statt Knöpfen am Rand, echte eigene Blöcke statt Wolle, keine Test-Knöpfe, cleane Fenster, dazu ein komplettes Beispiel und eine Checkliste.'],
@@ -15080,6 +15098,7 @@ UI.openSettings = function (from) {
   if (from === 'game') G.state = 'settings';
   UI.settingsRefresh();
   $('setKeys').innerHTML = UI.controlsHtml();
+  pushUi();
   $('mdlSettings').hidden = false;
 };
 
@@ -15583,7 +15602,7 @@ function bindUI() {
   const ta = $('tAct');
   ta.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); INPUT.interactPressed = true; }, { passive: false });
   ta.addEventListener('click', () => { INPUT.interactPressed = true; });
-  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods(); bindVlobby(); bindSigns(); bindCosmetics();
+  bindSettingsUI(); bindFlyDown(); bindCreative(); bindChat(); bindWaypoints(); bindWorldMap(); bindVoice(); bindFarSettings(); bindModPacks(); bindPing(); bindWarp(); bindClientMods(); bindVlobby(); bindSigns(); bindCosmetics(); bindPush();
   $('campBuy').addEventListener('click', () => { const c = UI._camp; if (c && upgradeCampfire(c[0], c[1], c[2])) UI.campRefresh(); });
   drawResChips();
 }
@@ -16766,6 +16785,7 @@ const NET = {
     this.pendingName = null;
     this.name = p.name;
     try { cosFromCloud(p.cos); } catch (e) { console.warn('cos', e); }
+    pushInit();
     if (p.skin && SKIN_BY_ID[p.skin] && p.skin !== SETTINGS.skin) { SETTINGS.skin = p.skin; saveSettings(); }
     // ein eigener Skin von einem anderen Gerät: das Bild kommt aus dem Profil
     else if (isCustomSkin(p.skin) && p.skin !== SETTINGS.skin && typeof p.skin64 === 'string' && p.skin64.startsWith('data:image/png')) {
@@ -16927,7 +16947,7 @@ const NET = {
     if (this.friends[fid]) throw new Error((this.friends[fid].name || name) + ' ist schon in deiner Liste.');
     const fname = (await withTimeout(this.db.ref('users/' + fid + '/profile/name').once('value'), 15000)).val() || name.trim();
     await withTimeout(this.db.ref('users/' + this.uid() + '/friends/' + fid).set({ name: fname, at: this.TS() }), 15000);
-    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS(), srv: srv ? srv.name : null, srvOwner: srv ? srv.owner : null, srvWid: srv ? srv.wid : null }).catch(() => { });
+    this.db.ref('users/' + fid + '/requests/' + this.uid()).set({ name: this.name, at: this.TS(), srv: srv ? srv.name : null, srvOwner: srv ? srv.owner : null, srvWid: srv ? srv.wid : null }).then(() => pushSend(fid, 'friend', '')).catch(() => { });
     this.lastFid = fid;
     return fname;
   },
@@ -18288,6 +18308,7 @@ const INVITES = {
     const inv = { name: NET.name, at: NET.TS(), world: srv ? srv.name : (WORLDS.current ? WORLDS.current.name : 'meine Welt') };
     if (srv) { inv.srvOwner = srv.owner; inv.srvWid = srv.wid; inv.srvName = srv.name; }
     await withTimeout(NET.db.ref('users/' + fid + '/invites/' + NET.uid()).set(inv), 15000);
+    pushSend(fid, 'invite', inv.srvName || inv.world);
   },
 };
 UI.showInvite = function (from, r) {
@@ -19093,7 +19114,7 @@ const CHAT = {
     const upd = {};
     upd['chats/' + this.cid(uid, fid) + '/' + k] = { f: uid, t: text, at: NET.TS() };
     upd['chatin/' + fid + '/' + k] = { f: uid, n: NET.name || '', t: text.slice(0, 160), at: NET.TS() };
-    try { await withTimeout(NET.db.ref().update(upd), 15000); return true; }
+    try { await withTimeout(NET.db.ref().update(upd), 15000); pushSend(fid, 'chat', text); return true; }
     catch (e) { UI.toast(/PERMISSION/i.test(String(e && (e.code || e.message))) ? 'Die Nachricht ging nicht raus. Seid ihr beide Freunde?' : 'Die Nachricht ging nicht raus. ' + netMsg(e), 'warn', 4200, 'chat'); return false; }
   },
 };
@@ -25897,6 +25918,118 @@ function bindVlobby() {
     }
     if (LOB.id && !voiceInstalled()) lobLeave();
   }, 1000);
+}
+
+/* ---- 19xh_push.js ---- */
+/* =========================================================================
+   Benachrichtigungen aufs Handy/PC (Web Push), auch wenn das Spiel zu ist.
+   - sw.js liegt neben index.html (Service Worker).
+   - Die Push-Adresse des Geräts steht in push/<uid>/<k> = { sub, at }.
+   - Absenden über den Cloudflare-Worker (URL in pushcfg/url, setzt der Owner),
+     mit dem Firebase-Login des Absenders: nur Freunde können sich schreiben.
+   ========================================================================= */
+const PUSH = { url: '', key: '', on: false, state: '' };
+const PUSH_KEY = 'bloodmoon-push';
+try { const s = JSON.parse(localStorage.getItem(PUSH_KEY) || '{}'); PUSH.on = !!s.on; PUSH.url = s.url || ''; } catch (e) { /* neu */ }
+function pushSaveLocal() { try { localStorage.setItem(PUSH_KEY, JSON.stringify({ on: PUSH.on, url: PUSH.url })); } catch (e) { /* voll */ } }
+function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:'; }
+function pushIOSNeedsHome() { return /iPhone|iPad|iPod/.test(navigator.userAgent) && !(window.navigator.standalone || matchMedia('(display-mode: standalone)').matches); }
+function pushB64ToBytes(s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), o = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) o[i] = b.charCodeAt(i); return o; }
+function pushSubKey(sub) { return String(sub.endpoint || '').replace(/[^A-Za-z0-9]/g, '').slice(-28) || 'x'; }
+
+/* nach dem Anmelden: Adresse des Push-Servers holen, die Anmeldung auffrischen */
+async function pushInit() {
+  if (!NET.db || !NET.uid()) return;
+  try { const u = (await withTimeout(NET.db.ref('pushcfg/url').once('value'), 10000)).val(); if (typeof u === 'string') { PUSH.url = u.replace(/\/+$/, ''); pushSaveLocal(); } } catch (e) { /* alter Wert */ }
+  if (PUSH.on && pushSupported() && Notification.permission === 'granted') pushSubscribe(true).catch(() => { });
+  pushUi();
+}
+async function pushServerKey() {
+  if (PUSH.key) return PUSH.key;
+  if (!PUSH.url) throw new Error('Der Push-Server ist noch nicht eingerichtet.');
+  const r = await withTimeout(fetch(PUSH.url + '/key'), 10000);
+  const k = (await r.json()).key;
+  if (!k) throw new Error('Der Push-Server hat noch keine Schlüssel.');
+  return (PUSH.key = k);
+}
+async function pushSubscribe(quiet) {
+  if (!pushSupported()) throw new Error(pushIOSNeedsHome() ? 'Auf dem iPhone geht das nur, wenn du Blood Moon über „Teilen → Zum Home-Bildschirm“ hinzufügst und von dort öffnest.' : 'Dein Browser kann keine Benachrichtigungen.');
+  if (!NET.uid()) throw new Error('Melde dich zuerst an.');
+  const perm = quiet ? Notification.permission : await Notification.requestPermission();
+  if (perm !== 'granted') throw new Error('Benachrichtigungen sind im Browser nicht erlaubt.');
+  const reg = await navigator.serviceWorker.register('sw.js');
+  await navigator.serviceWorker.ready;
+  const key = await pushServerKey();
+  let sub = await reg.pushManager.getSubscription();
+  if (sub && sub.options && sub.options.applicationServerKey) {
+    const a = new Uint8Array(sub.options.applicationServerKey), b = pushB64ToBytes(key);
+    if (a.length !== b.length || a.some((v, i) => v !== b[i])) { await sub.unsubscribe(); sub = null; }
+  }
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pushB64ToBytes(key) });
+  const j = sub.toJSON();
+  await withTimeout(NET.db.ref('push/' + NET.uid() + '/' + pushSubKey(j)).set({ sub: JSON.stringify({ endpoint: j.endpoint, keys: j.keys }), at: NET.TS() }), 12000);
+  PUSH.on = true; pushSaveLocal();
+}
+async function pushUnsubscribe() {
+  PUSH.on = false; pushSaveLocal();
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg && await reg.pushManager.getSubscription();
+    if (sub) { const j = sub.toJSON(); if (NET.uid()) await NET.db.ref('push/' + NET.uid() + '/' + pushSubKey(j)).remove(); await sub.unsubscribe(); }
+  } catch (e) { /* egal */ }
+}
+/* jemandem Bescheid geben (Chat, Anfrage, Einladung); geht still schief, wenn etwas fehlt */
+async function pushSend(to, kind, text) {
+  try {
+    if (!PUSH.url || !to || !NET.user || typeof NET.user.getIdToken !== 'function') return;
+    const token = await NET.user.getIdToken();
+    await fetch(PUSH.url + '/send', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ to, kind, text: String(text || '').slice(0, 140) }) });
+  } catch (e) { /* offline oder nicht eingerichtet */ }
+}
+/* auf eine Benachrichtigung getippt: passendes Fenster öffnen */
+function pushOpenFrom(url) {
+  let q; try { q = new URL(url, location.href).searchParams; } catch (e) { return; }
+  const what = q.get('open'); if (!what) return;
+  const go = () => {
+    if (!NET.uid()) return false;
+    if (UI.openFriends) UI.openFriends();
+    if (what === 'chat' && q.get('with') && NET.friends && NET.friends[q.get('with')]) { CHAT.setTab('chats'); CHAT.open(q.get('with')); }
+    else if (what === 'friends') CHAT.setTab('friends');
+    return true;
+  };
+  let n = 0; const tick = () => { if (go() || ++n > 40) return; setTimeout(tick, 500); }; tick();
+}
+
+/* ---------- Einstellungen ---------- */
+function pushUi() {
+  const t = $('setPush'); if (!t) return;
+  t.setAttribute('aria-checked', String(PUSH.on && pushSupported() && typeof Notification !== 'undefined' && Notification.permission === 'granted'));
+  const s = $('setPushTxt');
+  if (s) s.textContent = !pushSupported() ? (pushIOSNeedsHome() ? 'iPhone: erst über „Teilen → Zum Home-Bildschirm“ hinzufügen und von dort öffnen.' : 'Geht in diesem Browser leider nicht.')
+    : !PUSH.url ? 'Kommt bald (der Push-Server ist noch nicht eingerichtet).'
+      : 'Neue Nachrichten, Freundschaftsanfragen und Einladungen, auch wenn das Spiel zu ist.';
+  const own = $('setPushOwner'); if (own) own.hidden = !(typeof isOwner === 'function' && isOwner());
+  const inp = $('setPushUrl'); if (inp && document.activeElement !== inp) inp.value = PUSH.url;
+}
+function bindPush() {
+  const t = $('setPush'); if (!t) return;
+  t.addEventListener('click', async () => {
+    const on = t.getAttribute('aria-checked') === 'true';
+    try {
+      if (on) { await pushUnsubscribe(); UI.toast('Benachrichtigungen aus.', 'info', 2000, 'push'); }
+      else { await pushSubscribe(false); UI.toast('🔔 Benachrichtigungen an.', 'good', 2400, 'push'); }
+    } catch (e) { UI.toast(String(e && e.message || e), 'warn', 5200, 'push'); PUSH.on = false; pushSaveLocal(); }
+    pushUi();
+  });
+  $('setPushSave').addEventListener('click', async () => {
+    const u = $('setPushUrl').value.trim().replace(/\/+$/, '');
+    if (u && !/^https:\/\/[\w.-]+(\/.*)?$/.test(u)) { UI.toast('Bitte eine https-Adresse eintragen.', 'warn', 3000, 'push'); return; }
+    try { await withTimeout(NET.db.ref('pushcfg/url').set(u), 12000); PUSH.url = u; PUSH.key = ''; pushSaveLocal(); UI.toast('Push-Server gespeichert. Gilt für alle Spieler.', 'good', 3000, 'push'); } catch (e) { UI.toast(netMsg(e), 'warn', 4000, 'push'); }
+    pushUi();
+  });
+  if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.t === 'push-open') pushOpenFrom(e.data.url); });
+  if (/[?&]open=/.test(location.search)) { pushOpenFrom(location.href); try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } }
+  pushUi();
 }
 
 /* ---- 19y_creative.js ---- */
