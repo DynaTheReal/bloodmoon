@@ -486,6 +486,41 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .islot b { position: absolute; right: 4px; bottom: 2px; font-family: var(--font-display); font-weight: 400; font-size: 13px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
 .islot.held { border-color: var(--ember); background: rgba(255, 177, 92, 0.16); }
 .islot.lifted canvas, .islot.lifted b { opacity: 0.22; }
+.mc-sheet { width: min(640px, 96vw); }
+.mc-sheet .sheet-h { align-items: center; }
+.mc-sort { padding: 6px 12px; font-size: 13px; margin-right: 6px; }
+.mc-top { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; }
+.mc-col { display: grid; gap: 4px; }
+.mc-lbl { margin: 8px 0 6px; font-size: 11.5px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mc-col .mc-lbl { margin-top: 0; }
+.mc-arm { display: grid; grid-template-columns: repeat(4, var(--ms)); gap: 6px; }
+.mc-off { display: grid; grid-template-columns: var(--ms); }
+.mc-armtxt { font-size: 12px; font-weight: 800; color: var(--muted); }
+.mc-sheet { --ms: clamp(40px, calc((min(640px, 96vw) - 40px - 8 * 5px) / 9), 58px); }
+.mc-grid { display: grid; grid-template-columns: repeat(9, var(--ms)); gap: 5px; justify-content: center; }
+.mc-grid.hot { grid-template-columns: repeat(10, calc(var(--ms) * 0.92)); margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.12); }
+.mslot { position: relative; aspect-ratio: 1; padding: 0; display: grid; place-items: center; border-radius: 8px; color: var(--text); cursor: pointer; background: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.22)); border: 1px solid rgba(255,255,255,0.07); box-shadow: inset 0 2px 4px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.05); transition: background 0.1s, border-color 0.1s; touch-action: none; user-select: none; -webkit-user-select: none; }
+.mslot:hover { background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08)); border-color: rgba(255,255,255,0.3); }
+.mslot canvas { width: 76%; height: 76%; image-rendering: pixelated; pointer-events: none; }
+.mslot b { position: absolute; right: 3px; bottom: 1px; font-family: var(--font-display); font-weight: 400; font-size: 14px; line-height: 1; text-shadow: 1px 1px 0 #000, 0 0 3px rgba(0,0,0,0.8); pointer-events: none; }
+.mslot.sel { border-color: var(--ember); box-shadow: inset 0 0 0 2px var(--ember); }
+.mslot.spread { background: rgba(255, 177, 92, 0.25); border-color: var(--ember); }
+.mslot.arm.off canvas { opacity: 0.2; }
+.mc-tip { margin: 12px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--muted); font-weight: 700; text-align: center; }
+.mc-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.mc-bar .btn { padding: 8px 12px; font-size: 13px; }
+.mc-sep { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.chest-sheet { background: linear-gradient(180deg, rgba(92, 60, 30, 0.55), rgba(20, 16, 12, 0.92) 40%), var(--glass-hi); border-color: rgba(201, 140, 70, 0.45); }
+.chest-h { gap: 12px; }
+.chest-ic { width: 46px; height: 40px; border-radius: 8px; position: relative; background: linear-gradient(180deg, #a8682f 0 42%, #3a2512 42% 48%, #8c5424 48%); border: 2px solid #3a2512; box-shadow: 0 4px 12px rgba(0,0,0,0.45); flex: none; }
+.chest-ic i { position: absolute; left: 50%; top: 34%; width: 10px; height: 12px; margin-left: -5px; background: #e8c45a; border: 2px solid #5a3a12; border-radius: 2px; }
+.mc-grid.chest { padding: 10px; border-radius: 12px; background: rgba(60, 38, 18, 0.45); border: 1px solid rgba(201, 140, 70, 0.3); }
+@media (max-width: 520px) { .mc-grid.hot { grid-template-columns: repeat(10, calc(var(--ms) * 0.86)); gap: 3px; } }
+.md-full { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255, 90, 90, 0.4); background: rgba(255, 60, 60, 0.08); cursor: pointer; }
+.md-full input { margin-top: 3px; width: 18px; height: 18px; accent-color: #ff5a5a; flex: none; }
+.md-full span { display: grid; gap: 2px; } .md-full small { color: var(--muted); font-weight: 700; font-size: 12px; line-height: 1.4; }
+.md-full code { background: rgba(0,0,0,0.35); padding: 0 4px; border-radius: 4px; }
+.li.mod.full { border-color: rgba(255, 70, 70, 0.6); background: rgba(255, 50, 50, 0.08); }
 #invGhost { position: fixed; z-index: 9999; width: 52px; height: 52px; margin: -26px 0 0 -26px; pointer-events: none; display: grid; place-items: center; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55)); color: var(--text); }
 #invGhost[hidden] { display: none; }
 #invGhost canvas { width: 100%; height: 100%; image-rendering: pixelated; }
@@ -1719,14 +1754,18 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlInv" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle">
-  <div class="sheet panel inv-sheet">
-    <div class="sheet-h"><div class="grow"><h2 id="invTitle">Inventar</h2><p id="invSub">Tippe ein Ding an und dann einen Platz, um es dorthin zu legen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+  <div class="sheet panel inv-sheet mc-sheet">
+    <div class="sheet-h"><div class="grow"><h2 id="invTitle">🎒 Inventar</h2></div><button class="btn ghost mc-sort" id="invSort" type="button" title="Tasche aufräumen">⇅ Sortieren</button><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <div class="inv-armor"><div class="inv-arm" id="invArmor"></div><span id="invArmorTxt">Keine Rüstung</span></div>
-      <div class="inv-slots" id="invBag"></div>
-      <p class="sec-t">Hotbar</p>
-      <div class="inv-slots hot" id="invHot"></div>
-      <div class="btnrow inv-acts"><button class="btn" id="invDrop1" type="button" disabled>1 wegwerfen</button><button class="btn" id="invDropAll" type="button" disabled>Alles davon wegwerfen</button></div>
+      <div class="mc-top">
+        <div class="mc-col"><p class="mc-lbl">Rüstung</p><div class="mc-arm" id="invArmor"></div><small class="mc-armtxt" id="invArmorTxt"></small></div>
+        <div class="mc-col"><p class="mc-lbl">Linke Hand</p><div class="mc-off" id="invOff"></div></div>
+      </div>
+      <p class="mc-lbl">Tasche</p>
+      <div class="mc-grid" id="invBag"></div>
+      <p class="mc-lbl">Hotbar</p>
+      <div class="mc-grid hot" id="invHot"></div>
+      <p class="mc-tip" id="invSub"></p>
     </div>
   </div>
 </div>
@@ -1750,12 +1789,15 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
 </div>
 
 <div id="mdlChest" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="chestTitle">
-  <div class="sheet panel">
-    <div class="sheet-h"><div class="grow"><h2 id="chestTitle">Truhe</h2><p id="chestFill">0 Sachen in der Truhe</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
+  <div class="sheet panel mc-sheet chest-sheet">
+    <div class="sheet-h chest-h"><span class="chest-ic" aria-hidden="true"><i></i></span><div class="grow"><h2 id="chestTitle">Truhe</h2><p id="chestFill">Die Truhe ist leer</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <div class="btnrow chest-acts"><button class="btn" id="chestPutAll" type="button">Alles einlagern</button><button class="btn" id="chestTakeAll" type="button">Alles nehmen</button><button class="btn ghost" id="chestOne" type="button" aria-pressed="false">Nur 1 pro Klick</button></div>
-      <p class="sec-t">In der Truhe</p><div class="inv-grid" id="chestGrid"></div>
-      <p class="sec-t">Dein Inventar <small>(Klick legt es in die Truhe)</small></p><div class="inv-grid" id="chestInvGrid"></div>
+      <div class="mc-bar"><button class="btn" id="chestTakeAll" type="button">⬇ Alles nehmen</button><button class="btn" id="chestPutAll" type="button">⬆ Alles einlagern</button><button class="btn ghost" id="chestSort" type="button">⇅ Sortieren</button></div>
+      <div class="mc-grid chest" id="chestGrid"></div>
+      <div class="mc-sep"><p class="mc-lbl">Dein Inventar</p><button class="btn ghost mc-sort" id="chestInvSort" type="button">⇅ Sortieren</button></div>
+      <div class="mc-grid" id="chestBag"></div>
+      <div class="mc-grid hot" id="chestHot"></div>
+      <p class="mc-tip" id="chestTip"></p>
     </div>
   </div>
 </div>
@@ -1881,6 +1923,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
         <div class="ai-box">
           <div class="ai-h"><b>🤖 Mod mit einer KI bauen</b><span>Beschreib deine Idee, kopier den Prompt und füg ihn in eine KI ein (z. B. Claude). Den Code, den sie dir gibt, kopierst du unten ins Feld „Code“. Der Prompt enthält immer alle aktuellen Mod-Befehle und deinen bisherigen Code.</span></div>
           <textarea class="field area" id="mdIdea" rows="3" maxlength="4000" placeholder="z. B. Ein Scharfschützengewehr: Zielen-Knopf neben Springen, Zielfernrohr-Bild mit Zoom, Tippen zum Schießen, die Kamera wackelt beim Schuss …"></textarea>
+          <label class="md-full"><input type="checkbox" id="mdFull"><span><b>🔓 Experten-Mod (voller Zugriff)</b><small>Die KI darf alles im Spiel ändern, nicht nur die Mod-API. Der Code beginnt dann mit <code>// @full</code>. Bevor andere sie bekommen, prüft DynaTheReal sie genau. In deiner eigenen Welt und Testwelt läuft sie sofort.</small></span></label>
           <div class="btnrow"><button class="btn primary" id="mdPrompt" type="button">📋 KI-Prompt kopieren</button><button class="btn ghost" id="mdPromptShow" type="button">Prompt ansehen</button></div>
           <textarea class="field area" id="mdPromptOut" rows="8" readonly hidden></textarea>
         </div>
@@ -2301,8 +2344,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.50.0';
+const GAME_VERSION = '2.51.0';
 const GAME_NOTES = [
+  ['2.51.0', 'Inventar und Truhen wie in Minecraft: Linksklick nimmt den ganzen Stapel, Rechtsklick den halben (mit etwas an der Maus: einzeln ablegen), Ziehen verteilt gleichmäßig (rechts: je eins), Shift+Klick schiebt rüber (Tasche ↔ Hotbar, Inventar ↔ Truhe, Rüstung zieht man so an), Doppelklick sammelt alles Gleiche, Q wirft weg, 1–0 legt auf die Hotbar, Rüstung zieht man direkt auf die Plätze, Linke Hand hat einen eigenen Platz. Stapel kann man teilen, das bleibt gespeichert. Am Handy: Tippen nimmt und legt ab, lange drücken nimmt den halben Stapel oder legt einzeln ab. Neue Truhe im Holz-Look mit 27 Plätzen, Alles nehmen, Alles einlagern und Sortieren. Experten-Mods: Mit // @full in der ersten Zeile (Häkchen im Mod-Editor) darf eine Mod alles im Spiel ändern, nicht nur die Mod-API. Sie läuft in deiner Testwelt und deiner eigenen Welt sofort, bei anderen erst, wenn DynaTheReal sie geprüft hat (in der Prüfung rot markiert).'],
   ['2.50.0', 'Aufgeräumt: Die Kosmetik-Boxen gibt es jetzt unter Skins → Kosmetik, darunter nur deine freigeschalteten Sachen zum An- und Ausschalten (die Figur daneben zeigt sie gleich). Der Knopf Erfolge im Hauptmenü ist weg, die Erfolge findest du im Spiel im Pausenmenü. Das Pausenmenü ist neu gestaltet (Weiterspielen, dann Kacheln für Inventar, Erfolge, Sozial, Einstellungen). Die Tastenübersicht steht jetzt in den Einstellungen unter Steuerung. Glücksdreh mit viel mehr Glow: leuchtende Karten, Funken am Pin, und je seltener der Gewinn, desto krasser: Druckwellen, Funkenregen, kreisende Sterne bei Epic, Flammen und Wackeln bei Mythic, Feuerwerk und Goldsterne-Regen bei Legendary.'],
   ['2.49.2', 'Fehler behoben: Für einen geschafften Erfolg gab es manchmal keinen Erfolgspunkt, weil die Drehungen vom alten Glücksrad noch abgezogen wurden. Jetzt zählt jeder Erfolg wieder 1 Punkt. Das Geschenk auf den Boxen hat wieder seine echten Farben, die gelbe Serien-Zeile über den Erfolgen ist weg.'],
   ['2.49.1', 'Die Tage-Erfolge (50, 100, 250) zählen jetzt auch, wenn du in einer Welt oder auf einem Server bist, die schon so weit ist, z. B. auf einem Server an Tag 60. Kreativ und Unsterblichkeit zählen weiter nicht. Die Kosmetik-Boxen im Shop sehen neu aus: großes Geschenk 🎁 in der Farbe der Box, das wippt, mit drehenden Strahlen und Glanz; die Mega-Box leuchtet golden.'],
@@ -9016,25 +9060,111 @@ const BAG_N = 27;
 /* wood and wool can also be built with: they become logs and wool blocks */
 const PLACE_RES = { wood: { name: 'Holz', block: B.OAK_LOG, place: 'block' }, wool: { name: 'Wolle', block: B.WOOL_WHITE, place: 'block' } };
 function placeDef(k) { return ITEMS[k] || PLACE_RES[k] || null; }
-/* everything you have sits in one slot: the hotbar first, then the bag (Tab) */
+/* Plätze: Hotbar (h, 10), Tasche (b, 27), linke Hand (o).
+   Die Gesamtzahl eines Dings steht in G.inv; normalerweise liegt alles auf EINEM Platz.
+   Teilt man einen Stapel (wie in Minecraft), merkt sich G.sn für die zusätzlichen Plätze ihre Anzahl
+   ({k, n}); der Hauptplatz (ohne Eintrag) hat den Rest. */
+function snInit() {
+  if (!G.sn || typeof G.sn !== 'object') G.sn = { h: [], b: [], o: null };
+  if (!Array.isArray(G.sn.h)) G.sn.h = [];
+  if (!Array.isArray(G.sn.b)) G.sn.b = [];
+}
+function snArr(w) { return w === 'h' ? G.hotbar : w === 'b' ? G.bag : null; }
+function snKey(w, i) { return w === 'o' ? G.offhand : (snArr(w) || [])[i] || null; }
+/* eigene Anzahl eines Zusatz-Platzes (0 = Hauptplatz oder leer) */
+function snOwn(w, i) {
+  snInit();
+  const e = w === 'o' ? G.sn.o : G.sn[w][i], k = snKey(w, i);
+  return e && k && e.k === k && e.n > 0 ? e.n : 0;
+}
+function snSet(w, i, k, n) {
+  snInit();
+  const v = k && n > 0 ? { k, n } : null;
+  if (w === 'o') G.sn.o = v; else G.sn[w][i] = v;
+}
+function snEach(f) {
+  if (G.offhand) f('o', 0, G.offhand);
+  for (let i = 0; i < G.hotbar.length; i++) if (G.hotbar[i]) f('h', i, G.hotbar[i]);
+  for (let i = 0; i < (G.bag || []).length; i++) if (G.bag[i]) f('b', i, G.bag[i]);
+}
+function snExtras(k) { let n = 0; snEach((w, i, kk) => { if (kk === k) n += snOwn(w, i); }); return n; }
+/* wie viel auf diesem Platz liegt */
+function slotCount(w, i) {
+  const k = snKey(w, i); if (!k) return 0;
+  const own = snOwn(w, i);
+  return own > 0 ? own : Math.max(0, itemCount(k) - snExtras(k));
+}
+/* gerade benutzt (gebaut, gegessen, weggeworfen): ein geteilter Stapel in der Hand wird kleiner */
+function slotSpend(k, n) {
+  if (G.sel < 0 || G.hotbar[G.sel] !== k) return;
+  const own = snOwn('h', G.sel); if (!own) return;
+  if (own - n <= 0) { snSet('h', G.sel, null, 0); G.hotbar[G.sel] = null; }
+  else snSet('h', G.sel, k, own - n);
+}
 function syncSlots() {
   if (!Array.isArray(G.bag)) G.bag = [];
   while (G.bag.length < BAG_N) G.bag.push(null);
   if (G.bag.length > BAG_N) G.bag.length = BAG_N;
-  const seen = new Set();
-  // the offhand (F) holds one kind of thing; it never shows up in the hotbar or the bag at the same time
-  if (G.offhand && (itemCount(G.offhand) <= 0 || (!RES_NAME[G.offhand] && !ITEMS[G.offhand]))) G.offhand = null;
-  if (G.offhand) seen.add(G.offhand);
-  const clean = (arr) => { for (let i = 0; i < arr.length; i++) { const k = arr[i]; if (!k || itemCount(k) <= 0 || seen.has(k)) arr[i] = null; else seen.add(k); } };
-  clean(G.hotbar); clean(G.bag);
+  snInit();
+  const bad = (k) => itemCount(k) <= 0 || (!RES_NAME[k] && !ITEMS[k]);
+  if (G.offhand && bad(G.offhand)) { G.offhand = null; G.sn.o = null; }
+  // pro Ding: ein Hauptplatz, dazu vielleicht geteilte Stapel
+  const info = new Map();
+  const visit = (w, i, k) => {
+    let r = info.get(k); if (!r) info.set(k, r = { main: null, ex: [] });
+    const own = snOwn(w, i);
+    if (own > 0) r.ex.push([w, i, own]);
+    else if (!r.main) { r.main = [w, i]; snSet(w, i, null, 0); }
+    else return false;   // ein zweiter Hauptplatz: der fällt weg (die Anzahl bleibt beim ersten)
+    return true;
+  };
+  if (G.offhand) visit('o', 0, G.offhand);
+  for (const w of ['h', 'b']) {
+    const arr = snArr(w);
+    for (let i = 0; i < arr.length; i++) {
+      const k = arr[i];
+      if (!k || bad(k)) { arr[i] = null; G.sn[w][i] = null; continue; }
+      if (!visit(w, i, k)) { arr[i] = null; G.sn[w][i] = null; }
+    }
+  }
+  for (const [k, r] of info) {
+    if (!r.main && r.ex.length) { const e = r.ex.shift(); r.main = [e[0], e[1]]; snSet(e[0], e[1], null, 0); }
+    // die geteilten Stapel dürfen zusammen nicht mehr sein, als da ist (der Hauptplatz behält mindestens 1)
+    let over = r.ex.reduce((a, e) => a + e[2], 0) - (itemCount(k) - 1);
+    for (let j = r.ex.length - 1; j >= 0 && over > 0; j--) {
+      const [w, i, n] = r.ex[j];
+      if (n <= over) { over -= n; snSet(w, i, null, 0); if (w === 'o') G.offhand = null; else snArr(w)[i] = null; }
+      else { snSet(w, i, k, n - over); over = 0; }
+    }
+  }
+  // was noch keinen Platz hat: in die Hotbar, sonst in die Tasche
+  const held = typeof MCI !== 'undefined' && MCI.cur ? MCI.cur.k : null;
   const want = [...RES_KEYS, ...Object.keys(G.inv.items)];
   for (const k of want) {
-    if (seen.has(k) || itemCount(k) <= 0 || (!RES_NAME[k] && !ITEMS[k])) continue;
+    if (info.has(k) || k === held || bad(k)) continue;
     let s = G.hotbar.indexOf(null);
-    if (s >= 0) G.hotbar[s] = k;
-    else { s = G.bag.indexOf(null); if (s < 0) continue; G.bag[s] = k; }
-    seen.add(k);
+    if (s >= 0) { G.hotbar[s] = k; G.sn.h[s] = null; }
+    else { s = G.bag.indexOf(null); if (s < 0) continue; G.bag[s] = k; G.sn.b[s] = null; }
+    info.set(k, null);
   }
+}
+/* fürs Speichern: nur die geteilten Stapel ("h3": "wood:12") */
+function snPack() {
+  snInit(); const o = {};
+  for (const w of ['h', 'b']) G.sn[w].forEach((e, i) => { if (e && e.n > 0 && snKey(w, i) === e.k) o[w + i] = e.k + ':' + e.n; });
+  if (G.sn.o && G.sn.o.k === G.offhand && G.sn.o.n > 0) o.o = G.sn.o.k + ':' + G.sn.o.n;
+  return o;
+}
+function snUnpack(o) {
+  const r = { h: [], b: [], o: null };
+  if (o && typeof o === 'object') for (const key in o) {
+    const m = /^([hbo])(\d*)$/.exec(key), v = typeof o[key] === 'string' ? o[key] : '', j = v.lastIndexOf(':');
+    if (!m || j <= 0) continue;
+    const e = { k: v.slice(0, j), n: Math.max(0, parseInt(v.slice(j + 1), 10) || 0) };
+    if (!e.n) continue;
+    if (m[1] === 'o') r.o = e; else r[m[1]][parseInt(m[2], 10) || 0] = e;
+  }
+  return r;
 }
 function addItem(k, n) {
   // an old tool drop ('axe' with its tier as the count) becomes the new tool item
@@ -9049,6 +9179,7 @@ function addItem(k, n) {
 }
 function takeItem(k, n = 1) {
   const c = G.inv.items[k] || 0; if (c < n) return false;
+  slotSpend(k, n);
   G.inv.items[k] = c - n;
   if (G.inv.items[k] <= 0) { delete G.inv.items[k]; const s = G.hotbar.indexOf(k); if (s >= 0) G.hotbar[s] = null; }
   UI.hotbar();
@@ -9233,7 +9364,7 @@ function makeSave() {
   return {
     v: 2, gen: W.gen, wy: WY, g3: [...W.gen3], cv: W.cave, c4: [...W.cave4], g5w: W.gen5 ? 1 : 0, g5: W.gen5 ? [] : [...W.g5], g6w: W.gen6 ? 1 : 0, g6: W.gen6 ? [] : [...W.g6], g7w: W.gen7 ? 1 : 0, g7: W.gen7 ? [] : [...W.g7], seed: W.seed, mode: W.mode, playTime: G.playTime, time: { ...G.time },
     pl: savePos(), cam: [CAMC.yaw, CAMC.pitch, CAMC.dist, CAMC.mode],
-    inv: realInv().inv, tools: realInv().tools, hotbar: realInv().hotbar, bag: realInv().bag, off: realInv().offhand || null, sel: G.sel,
+    inv: realInv().inv, tools: realInv().tools, hotbar: realInv().hotbar, bag: realInv().bag, off: realInv().offhand || null, sn: CRE_SHADOW ? {} : snPack(), sel: G.sel,
     drops: keptDrops(), goal: G.goal, stats: G.stats, bed: G.bedSpawn,
     ch, mc, trees, sheep, camp: W.campLv, clr: [...W.cleared], ex: [...W.explored], msn: mapSeenPack(),
     gv: 2, old: [...W.genOld], rules: W.rules, tips: G.tips ? Object.keys(G.tipsSeen || {}) : null,
@@ -9262,7 +9393,7 @@ function normalizePlayerData(d) {
     bag,
     inv: normalizeInv(d.inv),
     tools: Object.assign({}, d.tools || {}),
-    hotbar: hb, off: d.off && (ITEMS[d.off] || RES_NAME[d.off]) ? d.off : null, stats: d.stats || null, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
+    hotbar: hb, off: d.off && (ITEMS[d.off] || RES_NAME[d.off]) ? d.off : null, sn: snUnpack(d.sn), stats: d.stats || null, pos: d.pos || null, hp: d.hp || 100, bed: d.bed || null,
   };
 }
 function normalizeInv(inv) {
@@ -9326,7 +9457,7 @@ function applySave(s, convert) {
     W.gen5 = !!s.g5w; W.g5 = new Set(Array.isArray(s.g5) ? s.g5 : []); V5W.clear(); WORM5_CACHE.clear(); STRUCT_CACHE.clear();
     W.gen6 = !!s.g6w; W.g6 = new Set(Array.isArray(s.g6) ? s.g6 : []); V6W.clear(); V6CELL.clear();
     if (s.rules) W.rules = Object.assign({ fall: true }, s.rules);
-    for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}) });
+    for (const [i, c] of s.chests || []) if (c) W.chests.set(i, { res: Object.assign({}, c.res || {}), items: Object.assign({}, c.items || {}), s: Array.isArray(c.s) ? c.s.slice(0, 54) : undefined });
     restoreCarts(s.carts);
   }
   Object.assign(G.time, s.time);
@@ -9338,6 +9469,7 @@ function applySave(s, convert) {
   G.bag = new Array(BAG_N).fill(null);
   if (s.bag) for (let i = 0; i < BAG_N; i++) { const v = s.bag[i]; if (v && (ITEMS[v] || RES_NAME[v])) G.bag[i] = v; }
   G.offhand = s.off && (ITEMS[s.off] || RES_NAME[s.off]) ? s.off : null;
+  G.sn = snUnpack(s.sn);
   restoreDrops(s.drops);
   G.sel = typeof s.sel === 'number' ? s.sel : -1; G.goal = s.goal | 0; G.stats = s.stats || G.stats;
   ensureTools();
@@ -9576,15 +9708,15 @@ function swapOffhand() {
   const sel = G.sel >= 0 ? G.hotbar[G.sel] : null;
   const off = G.offhand || null;
   if (!sel && !off) { UI.toast('Nimm etwas in die Hand (Hotbar) und drück F, dann hältst du es in der linken Hand.', 'info', 3200, 'off'); return; }
-  if (G.sel >= 0) { G.hotbar[G.sel] = off; G.offhand = sel; }
-  else G.offhand = null;   // nothing selected: the offhand thing goes back into the hotbar
+  if (G.sel >= 0) { snInit(); const t = G.sn.h[G.sel]; G.sn.h[G.sel] = G.sn.o; G.sn.o = t; G.hotbar[G.sel] = off; G.offhand = sel; }
+  else { G.offhand = null; if (G.sn) G.sn.o = null; }   // nothing selected: the offhand thing goes back into the hotbar
   syncSlots(); UI.hotbar(); SFX.ui();
   if (G.offhand) UI.toast(itemName(G.offhand) + ' in der linken Hand.', 'info', 1400, 'off');
 }
 function dropSelected(all) {
   const k = selectedItem(); if (!k || PL.dead) return false;
-  const n = all ? itemCount(k) : 1;
-  if (RES_NAME[k]) G.inv[k] -= n; else takeItem(k, n);
+  const n = all ? slotCount('h', G.sel) : 1;
+  if (RES_NAME[k]) { slotSpend(k, n); G.inv[k] -= n; } else takeItem(k, n);
   if (!n) return false;
   const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw + Math.PI;
   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
@@ -13211,10 +13343,10 @@ function initInput() {
     INPUT.keys.add(e.code);
     if ((e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') && PL.dead && !$('scrDeath').hidden) { e.preventDefault(); doRespawn(); return; }
     if (e.code === 'Escape') { if (UI.closeTop()) return; if (G.state === 'playing') UI.pause(true); else if (G.state === 'paused') UI.pause(false); return; }
-    if ((e.code === 'KeyE' || e.code === 'KeyF') && !$('mdlChest').hidden) { UI.closeModal('mdlChest'); return; }
-    if ((e.code === 'Tab' || e.code === 'KeyI') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
-    if (e.code === 'KeyQ' && !$('mdlInv').hidden) { e.preventDefault(); UI.invDropKey(e.ctrlKey || e.metaKey || e.shiftKey); return; }
-    if (e.code.startsWith('Digit') && !$('mdlInv').hidden) { UI.invHotkey(e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1); return; }
+    if ((e.code === 'KeyE' || e.code === 'Tab' || e.code === 'KeyI') && !$('mdlChest').hidden) { e.preventDefault(); UI.closeModal('mdlChest'); return; }
+    if ((e.code === 'Tab' || e.code === 'KeyI' || e.code === 'KeyE') && !$('mdlInv').hidden) { e.preventDefault(); UI.closeModal('mdlInv'); return; }
+    if (e.code === 'KeyQ' && MCI.open) { e.preventDefault(); UI.invDropKey(e.ctrlKey || e.metaKey || e.shiftKey); return; }
+    if (e.code.startsWith('Digit') && MCI.open) { UI.invHotkey(e.code === 'Digit0' ? 9 : parseInt(e.code.slice(5), 10) - 1); return; }
     if (!playing()) return;
     if (e.code.startsWith('Key')) modKeyDown(e.code);
     if (e.code === 'Space') flyTap();
@@ -13737,7 +13869,7 @@ UI.hotbar = function () {
   for (let i = 0; i < 10; i++) {
     const b = hb.children[i];
     const key = G.hotbar[i];
-    const cnt = key ? itemCount(key) : 0;
+    const cnt = key ? slotCount('h', i) : 0;
     const icon = key;
     const sig = (icon || '') + ':' + cnt + ':' + TEX.res + ':' + (G.sel === i);
     if (b.dataset.sig === sig) continue;
@@ -13752,7 +13884,7 @@ UI.hotbar = function () {
   // the offhand slot (left of the hotbar)
   const os = $('offSlot');
   if (os) {
-    const ok = G.offhand || '', on = ok ? itemCount(ok) : 0, sig = ok + ':' + on + ':' + TEX.res + ':' + touchUI();
+    const ok = G.offhand || '', on = ok ? slotCount('o', 0) : 0, sig = ok + ':' + on + ':' + TEX.res + ':' + touchUI();
     if (os.dataset.sig !== sig) {
       os.dataset.sig = sig;
       drawItemIcon(os.querySelector('canvas'), ok || null);
@@ -14181,183 +14313,6 @@ UI.campRefresh = function () {
   $('campNote').textContent = ok ? (W.mode === 'island' ? 'Größerer Schutzkreis, größerer Kreis, in dem du beim Tod deine Sachen behältst, und beim Blood Moon brennt es ein bisschen länger.' : 'Größerer Schutzkreis, größerer Kreis, in dem du beim Tod deine Sachen behältst, der Nebel weicht weiter zurück, und beim Blood Moon brennt es ein bisschen länger.') : 'Dir fehlt noch: ' + missingText(N.cost) + '.' + resHint(N.cost);
 };
 
-/* ---------- inventory ---------- */
-UI.openInventory = function () {
-  if (document.pointerLockElement) document.exitPointerLock();
-  INPUT.clear();
-  G.state = 'inv';
-  UI._invHeld = null;
-  $('mdlInv').hidden = false;
-  UI.invRefresh();
-};
-/* the bag (27 places) and the hotbar (10): pick a thing up, put it somewhere else (like Minecraft) */
-UI.invRefresh = function () {
-  syncSlots();
-  const held = UI._invHeld;
-  const fill = (el, arr, where) => {
-    if (el.children.length !== arr.length) {
-      el.innerHTML = '';
-      for (let i = 0; i < arr.length; i++) {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'islot';
-        b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>';
-        b.addEventListener('pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); UI.invPress(where, i, e); });
-        b.addEventListener('mouseenter', () => { UI._invHover = { where, i }; });
-        b.addEventListener('mouseleave', () => { if (UI._invHover && UI._invHover.where === where && UI._invHover.i === i) UI._invHover = null; });
-        el.appendChild(b);
-      }
-    }
-    for (let i = 0; i < arr.length; i++) {
-      const b = el.children[i], k = arr[i];
-      const icon = k;
-      if (b.dataset.key !== (icon || '')) { drawItemIcon(b.firstChild, icon); b.dataset.key = icon || ''; }
-      const n = itemCount(k);
-      b.querySelector('b').textContent = k && n > 1 ? n : '';
-      b.title = k ? itemName(k) + ' (' + n + ')' : 'Leer';
-      b.classList.toggle('held', !!held && held.where === where && held.i === i);
-      b.classList.toggle('lifted', !!held && held.where === where && held.i === i);
-    }
-  };
-  // what you wear
-  const arm = $('invArmor');
-  if (arm.children.length !== 4) {
-    arm.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-      const b = document.createElement('div'); b.className = 'islot'; b.innerHTML = '<canvas width="64" height="64"></canvas>'; arm.appendChild(b);
-      // ein Rüstungsteil in der Hand hierher legen: anziehen; ohne etwas in der Hand: ausziehen
-      b.addEventListener('pointerup', () => UI.armorSlotClick(ARMOR_SLOTS[i]));
-    }
-  }
-  ARMOR_SLOTS.forEach((sl, i) => {
-    const b = arm.children[i], lv = G.tools[sl] | 0, key = sl + Math.max(1, lv);
-    if (b.dataset.key !== key + lv) { drawItemIcon(b.firstChild, key); b.dataset.key = key + lv; }
-    b.classList.toggle('off', !lv);
-    b.title = lv ? ARMOR_NAMES[sl][lv] + ' (anklicken zum Ausziehen)' : ARMOR_NAMES[sl][0] + ': ein Teil aus dem Inventar hierher legen';
-  });
-  const red = Math.round(armorReduce() * 100);
-  $('invArmorTxt').textContent = red ? 'Rüstung: ' + red + ' % weniger Schaden' : 'Keine Rüstung an. Leg Rüstung aus dem Inventar auf diese Plätze.';
-  fill($('invBag'), G.bag, 'bag');
-  fill($('invHot'), G.hotbar, 'hot');
-  const hk = held ? (held.where === 'bag' ? G.bag : G.hotbar)[held.i] : null;
-  $('invDrop1').disabled = $('invDropAll').disabled = !hk;
-  $('invSub').textContent = hk ? itemName(hk) + ' hast du in der Hand. Klick einen Platz an, um es dort hinzulegen.' : 'Klick ein Ding an, um es hochzuheben, oder zieh es auf einen anderen Platz.' + (touchUI() ? '' : ' Maus drüber: 1–0 legt es auf die Hotbar, Q wirft eins weg, Strg+Q den ganzen Stapel.');
-  invGhost(hk);
-};
-/* a slot of what you wear: put on what you hold, or take off what is there */
-UI.armorSlotClick = function (sl) {
-  const held = UI._invHeld;
-  if (held) {
-    const k = (held.where === 'bag' ? G.bag : G.hotbar)[held.i];
-    const it = k && ITEMS[k];
-    if (!it || !it.wear) { UI.toast('Hier passt nur Rüstung hin.', 'warn', 2000, 'armor'); return; }
-    if (it.wear !== sl) { UI.toast(it.name + ' gehört auf den Platz für ' + ARMOR_NAMES[it.wear][0] + '.', 'warn', 2400, 'armor'); return; }
-    UI._invHeld = null; UI._invDrag = null;
-    wearArmor(k);
-  } else unwearArmor(sl);
-  UI.invRefresh();
-};
-UI.invClick = function (where, i) {
-  const arr = where === 'bag' ? G.bag : G.hotbar;
-  const held = UI._invHeld;
-  if (!held) { if (arr[i]) UI._invHeld = { where, i }; }
-  else {
-    const src = held.where === 'bag' ? G.bag : G.hotbar;
-    const t = src[held.i]; src[held.i] = arr[i]; arr[i] = t;
-    UI._invHeld = null;
-    UI.hotbar();
-  }
-  SFX.ui();
-  UI.invRefresh();
-};
-/* pressing a slot lifts the thing up: it hangs at the mouse (or finger) until you click a place,
-   or you drag it there and let go */
-UI.invPress = function (where, i, e) {
-  const arr = where === 'bag' ? G.bag : G.hotbar;
-  UI._invPtr = [e.clientX, e.clientY];
-  if (!UI._invHeld) {
-    if (!arr[i]) return;
-    UI._invHeld = { where, i }; UI._invDrag = { where, i, x: e.clientX, y: e.clientY, moved: false };
-    SFX.ui(); UI.invRefresh();
-    return;
-  }
-  UI._invDrag = null;
-  UI.invClick(where, i);
-};
-function invSlotAt(x, y) {
-  const el = document.elementFromPoint(x, y);
-  const b = el && el.closest && el.closest('.islot');
-  if (!b || !b.parentElement) return null;
-  const where = b.parentElement.id === 'invBag' ? 'bag' : b.parentElement.id === 'invHot' ? 'hot' : null;
-  if (!where) return null;
-  return { where, i: [...b.parentElement.children].indexOf(b) };
-}
-function invPointerMove(e) {
-  if ($('mdlInv').hidden) return;
-  UI._invPtr = [e.clientX, e.clientY];
-  const d = UI._invDrag;
-  if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8) d.moved = true;
-  const g = $('invGhost'); if (g && !g.hidden) { g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px'; }
-  // touch: hover follows the finger, so Q-like buttons know the slot
-  if (e.pointerType === 'touch' && d) { const s = invSlotAt(e.clientX, e.clientY); if (s) UI._invHover = s; }
-}
-function invPointerUp(e) {
-  const d = UI._invDrag; UI._invDrag = null;
-  if (!d || !d.moved || $('mdlInv').hidden || !UI._invHeld) return;
-  const s = invSlotAt(e.clientX, e.clientY);
-  if (s && !(s.where === d.where && s.i === d.i)) UI.invClick(s.where, s.i);
-  // dragged out of the window: thrown away (all of it)
-  else if (!s && !e.target.closest('.inv-sheet')) invDropSlot(UI._invHeld.where, UI._invHeld.i, true);
-}
-/* the lifted thing drawn at the pointer */
-function invGhost(k) {
-  let g = $('invGhost');
-  if (!g) { g = document.createElement('div'); g.id = 'invGhost'; g.innerHTML = '<canvas width="64" height="64"></canvas><b></b>'; document.body.appendChild(g); }
-  if (!k || $('mdlInv').hidden) { g.hidden = true; return; }
-  const icon = k;
-  if (g.dataset.key !== icon) { drawItemIcon(g.firstChild, icon); g.dataset.key = icon; }
-  const n = itemCount(k);
-  g.querySelector('b').textContent = n > 1 ? n : '';
-  const p = UI._invPtr || [innerWidth / 2, innerHeight / 2];
-  g.style.left = p[0] + 'px'; g.style.top = p[1] + 'px';
-  g.hidden = false;
-}
-window.addEventListener('pointermove', invPointerMove);
-window.addEventListener('pointerup', invPointerUp);
-/* Q over a slot (like Minecraft): one away, with Ctrl (or Shift) the whole stack */
-UI.invDropKey = function (all) {
-  const h = UI._invHover;
-  const arr = h ? (h.where === 'bag' ? G.bag : G.hotbar) : null;
-  if (h && arr[h.i]) { invDropSlot(h.where, h.i, all); return true; }
-  if (UI._invHeld) { invDropSlot(UI._invHeld.where, UI._invHeld.i, all); return true; }
-  return false;
-};
-/* number key over a slot (like Minecraft): swap that slot with hotbar place n */
-UI.invHotkey = function (n) {
-  const h = UI._invHover; if (!h) return false;
-  const arr = h.where === 'bag' ? G.bag : G.hotbar;
-  if (h.where === 'hot' && h.i === n) return true;
-  const t = arr[h.i]; arr[h.i] = G.hotbar[n]; G.hotbar[n] = t;
-  UI._invHeld = null;
-  SFX.ui(); UI.hotbar(); UI.invRefresh();
-  return true;
-};
-function invDropHeld(all) { const h = UI._invHeld; if (h) invDropSlot(h.where, h.i, all); }
-function invDropSlot(where, i, all) {
-  const arr = where === 'bag' ? G.bag : G.hotbar;
-  const k = arr[i]; if (!k) return;
-  // drop it as if it were in the hand
-  const keepSel = G.sel, slot = G.hotbar.indexOf(k);
-  let tmp = -1;
-  if (slot < 0) { tmp = G.hotbar.indexOf(null); if (tmp < 0) tmp = 9; G._swap = G.hotbar[tmp]; G.hotbar[tmp] = k; G.sel = tmp; }
-  else G.sel = slot;
-  dropSelected(all);
-  // the rest stays where it was
-  if (tmp >= 0) G.hotbar[tmp] = G._swap || null;
-  G._swap = null;
-  if (itemCount(k) > 0) { for (const a of [G.hotbar, G.bag]) { const j = a.indexOf(k); if (j >= 0) a[j] = null; } arr[i] = k; }
-  G.sel = keepSel;
-  if (!itemCount(k) && UI._invHeld && UI._invHeld.where === where && UI._invHeld.i === i) UI._invHeld = null;
-  UI.hotbar(); UI.invRefresh();
-}
 /* inventory: put something on the selected hotbar slot (or the first free one) */
 UI.putInHotbar = function (k) {
   const slot = G.sel >= 0 ? G.sel : Math.max(0, G.hotbar.indexOf(null));
@@ -14419,7 +14374,7 @@ function chestChanged(i) {
 }
 /* another player changed a chest */
 function applyChestEvent(v) {
-  if (v.c && chestCount(v.c)) W.chests.set(v.i, { res: Object.assign({}, v.c.res || {}), items: Object.assign({}, v.c.items || {}) });
+  if (v.c && chestCount(v.c)) W.chests.set(v.i, { res: Object.assign({}, v.c.res || {}), items: Object.assign({}, v.c.items || {}), s: Array.isArray(v.c.s) ? v.c.s.slice(0, 54) : undefined });
   else W.chests.delete(v.i);
   if (UI._chest && UI._chest.i === v.i) UI.chestRefresh();
 }
@@ -14448,62 +14403,488 @@ function spillChest(c, x, y, z) {
   for (const k in c.items) drop(k, c.items[k]);
 }
 
-/* ---------- the chest window ---------- */
+/* das Fenster: 12k_mcinv.js */
+
+/* ---- 12k_mcinv.js ---- */
+/* =========================================================================
+   Inventar und Truhen wie in Minecraft.
+   - Linksklick: ganzen Stapel nehmen / ablegen / tauschen / zusammenlegen
+   - Rechtsklick: halben Stapel nehmen, mit etwas in der Hand: einzeln ablegen
+   - Ziehen mit etwas in der Hand: gleichmäßig verteilen (rechts: je eins)
+   - Shift+Klick: rüberschieben (Tasche <-> Hotbar, Inventar <-> Truhe)
+   - Doppelklick: alle gleichen Sachen auf die Maus sammeln
+   - Q über einem Platz: eins wegwerfen (Strg+Q: alles), 1-0: auf die Hotbar
+   - Handy: Tippen = Linksklick, lange drücken = Rechtsklick
+   Während das Fenster offen ist, liegen die Plätze in MCI.S (je {k, n}),
+   das Ding an der Maus in MCI.cur (es gehört dir). Jede Änderung wird
+   sofort zurückgeschrieben (mciCommit): Anzahlen, Plätze, Truhe.
+   ========================================================================= */
+const MCI = { open: null, S: null, cur: null, chest: null, sum: null, drag: null, press: null, hover: null, last: null };
+const MCI_ARM = ['helmet', 'chestplate', 'leggings', 'boots'];
+
+/* ---------- aus dem Spielstand lesen ---------- */
+function mciBuild() {
+  syncSlots();
+  const cur = MCI.cur;
+  const S = { h: [], b: [], o: null, c: MCI.S && MCI.S.c ? MCI.S.c : null };
+  const read = (w, i) => {
+    const k = snKey(w, i); if (!k) return null;
+    let n = slotCount(w, i);
+    if (cur && cur.k === k && !snOwn(w, i)) n -= cur.n;   // der Hauptplatz zählt das an der Maus mit
+    return n > 0 ? { k, n } : null;
+  };
+  for (let i = 0; i < 10; i++) S.h[i] = read('h', i);
+  for (let i = 0; i < BAG_N; i++) S.b[i] = read('b', i);
+  S.o = read('o', 0);
+  MCI.S = S;
+  MCI.sum = mciPlayerSums();
+  if (MCI.chest) mciBuildChest();
+}
+function mciPlayerSums() {
+  const t = {}, S = MCI.S, add = (e) => { if (e) t[e.k] = (t[e.k] || 0) + e.n; };
+  S.h.forEach(add); S.b.forEach(add); add(S.o); add(MCI.cur);
+  return t;
+}
+/* die Truhe als Plätze: so wie zuletzt angeordnet, Neues in freie Plätze */
+function mciBuildChest() {
+  const ch = MCI.chest, c = chestData(ch.i, false) || { res: {}, items: {} };
+  const rem = Object.assign({}, c.res, c.items);
+  for (const k in rem) if (!(rem[k] > 0) || !storable(k)) delete rem[k];
+  const kinds = Object.keys(rem).length;
+  let N = Math.max(27, Array.isArray(c.s) ? Math.ceil(c.s.length / 9) * 9 : 27);
+  const slots = new Array(N).fill(null);
+  if (Array.isArray(c.s)) c.s.forEach((v, j) => {
+    if (typeof v !== 'string' || j >= N) return;
+    const p = v.lastIndexOf(':'), k = v.slice(0, p), n = Math.min(parseInt(v.slice(p + 1), 10) || 0, rem[k] || 0);
+    if (n > 0) { slots[j] = { k, n }; rem[k] -= n; }
+  });
+  for (const k in rem) {
+    if (!(rem[k] > 0)) continue;
+    const same = slots.find((e) => e && e.k === k);
+    if (same) { same.n += rem[k]; continue; }
+    let j = slots.indexOf(null);
+    if (j < 0) { for (let q = 0; q < 9; q++) slots.push(null); j = slots.indexOf(null); }
+    slots[j] = { k, n: rem[k] };
+  }
+  if (kinds > N) while (slots.length % 9) slots.push(null);
+  MCI.S.c = slots;
+}
+
+/* ---------- zurückschreiben ---------- */
+function mciCommit() {
+  const S = MCI.S; if (!S) return;
+  // deine Anzahlen: nur der Unterschied seit dem letzten Mal (was nicht zu sehen ist, bleibt)
+  const now = mciPlayerSums(), before = MCI.sum || {};
+  const keys = new Set([...Object.keys(now), ...Object.keys(before)]);
+  for (const k of keys) {
+    const d = (now[k] || 0) - (before[k] || 0); if (!d) continue;
+    if (RES_NAME[k]) G.inv[k] = Math.max(0, (G.inv[k] || 0) + d);
+    else { const n = Math.max(0, (G.inv.items[k] || 0) + d); if (n > 0) G.inv.items[k] = n; else delete G.inv.items[k]; }
+  }
+  MCI.sum = now;
+  // die Plätze: der erste Platz eines Dings ist der Hauptplatz, weitere merken sich ihre Anzahl
+  G.hotbar = S.h.map((e) => (e ? e.k : null));
+  G.bag = S.b.map((e) => (e ? e.k : null));
+  G.offhand = S.o ? S.o.k : null;
+  G.sn = { h: [], b: [], o: null };
+  const main = new Set();
+  const lay = (w, i, e) => { if (!e) return; if (main.has(e.k)) snSet(w, i, e.k, e.n); else main.add(e.k); };
+  lay('o', 0, S.o);
+  S.h.forEach((e, i) => lay('h', i, e));
+  S.b.forEach((e, i) => lay('b', i, e));
+  // die Truhe
+  const ch = MCI.chest;
+  if (ch && S.c && getB(ch.x, ch.y, ch.z) === B.CHEST) {
+    const c = chestData(ch.i, true);
+    c.res = {}; c.items = {};
+    for (const e of S.c) if (e) { const bag = RES_NAME[e.k] ? c.res : c.items; bag[e.k] = (bag[e.k] || 0) + e.n; }
+    c.s = S.c.map((e) => (e ? e.k + ':' + e.n : 0));
+    MCI.skipChestRefresh = true;
+    chestChanged(ch.i);
+    MCI.skipChestRefresh = false;
+  }
+  syncSlots(); UI.hotbar(); UI.res();
+}
+function mciChange() { mciCommit(); mciRender(); }
+
+/* ---------- die Regeln ---------- */
+function mciGet(w, i) { const S = MCI.S; return w === 'o' ? S.o : (S[w] || [])[i] || null; }
+function mciSet(w, i, e) { const S = MCI.S; if (e && e.n <= 0) e = null; if (w === 'o') S.o = e; else S[w][i] = e; }
+function mciOk(w, k) { return w !== 'c' || storable(k); }
+function mciClick(w, i, btn) {
+  const slot = mciGet(w, i), cur = MCI.cur;
+  if (!cur) {
+    if (!slot) return false;
+    if (btn === 2 && slot.n > 1) { const half = Math.ceil(slot.n / 2); MCI.cur = { k: slot.k, n: half }; slot.n -= half; }
+    else { MCI.cur = slot; mciSet(w, i, null); }
+    return true;
+  }
+  if (!mciOk(w, cur.k)) { UI.toast('Das passt nicht in die Truhe.', 'warn', 2200, 'mci'); SFX.deny(); return false; }
+  if (!slot) {
+    if (btn === 2) { mciSet(w, i, { k: cur.k, n: 1 }); cur.n--; }
+    else { mciSet(w, i, cur); MCI.cur = null; }
+  } else if (slot.k === cur.k) {
+    if (btn === 2) { slot.n++; cur.n--; } else { slot.n += cur.n; cur.n = 0; }
+  } else { mciSet(w, i, cur); MCI.cur = slot; }
+  if (MCI.cur && MCI.cur.n <= 0) MCI.cur = null;
+  return true;
+}
+/* in andere Plätze schieben: erst zu gleichen Stapeln, dann in freie */
+function mciMoveInto(e, targets) {
+  for (const w of targets) {
+    const arr = MCI.S[w]; if (!arr || !mciOk(w, e.k)) continue;
+    for (const t of arr) if (t && t.k === e.k) { t.n += e.n; e.n = 0; return; }
+  }
+  for (const w of targets) {
+    const arr = MCI.S[w]; if (!arr || !mciOk(w, e.k)) continue;
+    const j = arr.indexOf(null); if (j >= 0) { arr[j] = { k: e.k, n: e.n }; e.n = 0; return; }
+  }
+}
+function mciShift(w, i) {
+  const e = mciGet(w, i); if (!e) return false;
+  if (!MCI.chest && ITEMS[e.k] && ITEMS[e.k].wear && (G.tools[ITEMS[e.k].wear] | 0) === 0) { mciWearFrom(w, i); return true; }
+  const to = MCI.chest ? (w === 'c' ? ['h', 'b'] : ['c']) : (w === 'h' ? ['b'] : ['h', 'b']);
+  const before = e.n;
+  mciMoveInto(e, to);
+  if (e.n <= 0) mciSet(w, i, null);
+  return e.n !== before;
+}
+function mciCollect() {
+  const cur = MCI.cur; if (!cur) return;
+  for (const w of MCI.chest ? ['c', 'b', 'h'] : ['b', 'h']) for (let i = 0; i < MCI.S[w].length; i++) { const e = MCI.S[w][i]; if (e && e.k === cur.k) { cur.n += e.n; MCI.S[w][i] = null; } }
+  if (MCI.S.o && MCI.S.o.k === cur.k) { cur.n += MCI.S.o.n; MCI.S.o = null; }
+}
+function mciSpread(slots, btn) {
+  const cur = MCI.cur; if (!cur) return;
+  const ok = slots.filter(({ w, i }) => { const s = mciGet(w, i); return mciOk(w, cur.k) && (!s || s.k === cur.k); });
+  if (!ok.length) return;
+  const per = btn === 2 ? 1 : Math.max(1, Math.floor(cur.n / ok.length));
+  for (const { w, i } of ok) {
+    if (cur.n <= 0) break;
+    const n = Math.min(per, cur.n), s = mciGet(w, i);
+    if (s) s.n += n; else mciSet(w, i, { k: cur.k, n });
+    cur.n -= n;
+  }
+  if (cur.n <= 0) MCI.cur = null;
+}
+/* aufräumen: gleiche Sachen zusammen, sortiert nach Art und Name */
+function mciSortOrder(k) {
+  const it = ITEMS[k];
+  const g = it && it.tool ? 0 : it && it.wear ? 1 : RES_NAME[k] ? 3 : it && it.food ? 4 : 2;
+  return g + ':' + itemName(k);
+}
+function mciSort(w) {
+  const arr = MCI.S[w]; if (!arr) return;
+  const tot = {};
+  for (const e of arr) if (e) tot[e.k] = (tot[e.k] || 0) + e.n;
+  const keys = Object.keys(tot).sort((a, b) => mciSortOrder(a).localeCompare(mciSortOrder(b)));
+  for (let j = 0; j < arr.length; j++) arr[j] = j < keys.length ? { k: keys[j], n: tot[keys[j]] } : null;
+}
+/* Rüstung */
+function mciWearFrom(w, i) {
+  const e = mciGet(w, i); if (!e) return;
+  e.n--; if (e.n <= 0) mciSet(w, i, null);
+  mciCommit();
+  mciWear(e.k);
+}
+function mciWear(k) {
+  const it = ITEMS[k], sl = it.wear, old = G.tools[sl] | 0;
+  G.tools[sl] = it.level;
+  if (old) addItem(armorKey(sl, old), 1);
+  UI.tools(); SFX.ui();
+  UI.toast(it.name + ' angezogen. Rüstung: ' + Math.round(armorReduce() * 100) + ' % weniger Schaden.', 'good', 2600, 'armor');
+  mciBuild(); mciRender();
+}
+function mciArmor(sl) {
+  const cur = MCI.cur;
+  if (cur) {
+    const it = ITEMS[cur.k];
+    if (!it || !it.wear) { UI.toast('Hier passt nur Rüstung hin.', 'warn', 2000, 'armor'); SFX.deny(); return; }
+    if (it.wear !== sl) { UI.toast(it.name + ' gehört auf den Platz für ' + ARMOR_NAMES[it.wear][0] + '.', 'warn', 2400, 'armor'); SFX.deny(); return; }
+    const k = cur.k;
+    cur.n--; if (cur.n <= 0) MCI.cur = null;
+    mciCommit();
+    mciWear(k);
+    return;
+  }
+  const lv = G.tools[sl] | 0; if (!lv) return;
+  // ausziehen: an die Maus, wie in Minecraft
+  const k = armorKey(sl, lv);
+  G.tools[sl] = 0;
+  MCI.cur = { k, n: 1 };
+  addItem(k, 1);
+  UI.tools(); SFX.ui();
+  mciBuild(); mciRender();
+}
+/* wegwerfen (aus einem Platz oder von der Maus) */
+function mciThrow(k, n) {
+  if (!k || n <= 0) return;
+  const yaw = CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw + Math.PI;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  const d = dropItem(k, n, PL.x + fx * 0.6, PL.y + 1.3, PL.z + fz * 0.6, fx * 4.5, 2.5, fz * 4.5);
+  if (d) { d.life = DROP_LIFE; d.delay = 2.2; }
+  sendDrop(d);
+  SFX.ui();
+  saveGame();
+}
+function mciThrowSlot(w, i, all) {
+  const e = mciGet(w, i); if (!e) return;
+  const n = all ? e.n : 1;
+  e.n -= n; if (e.n <= 0) mciSet(w, i, null);
+  mciCommit(); mciThrow(e.k, n); mciRender();
+}
+function mciThrowCur(all) {
+  const c = MCI.cur; if (!c) return;
+  const n = all ? c.n : 1;
+  c.n -= n; if (c.n <= 0) MCI.cur = null;
+  mciCommit(); mciThrow(c.k, n); mciRender();
+}
+
+/* ---------- öffnen und schließen ---------- */
+UI.openInventory = function () {
+  if (document.pointerLockElement) document.exitPointerLock();
+  INPUT.clear();
+  G.state = 'inv';
+  MCI.open = 'inv'; MCI.chest = null; MCI.cur = null; MCI.S = null;
+  $('mdlInv').hidden = false;
+  mciBuild(); mciRender();
+};
 UI.openStore = function (x, y, z) {
   if (document.pointerLockElement) document.exitPointerLock();
   INPUT.clear();
-  UI._chest = { i: I(x, y, z), x, y, z };
+  MCI.open = 'chest'; MCI.chest = { i: I(x, y, z), x, y, z }; MCI.cur = null; MCI.S = null;
+  UI._chest = MCI.chest;
   $('mdlChest').hidden = false;
   G.state = 'chest';
   SFX.chest();
-  UI.chestRefresh();
+  mciBuild(); mciRender();
 };
+UI.invRefresh = function () { if (MCI.open && !MCI.busy) { mciBuild(); mciRender(); } };
 UI.chestRefresh = function () {
-  const ch = UI._chest; if (!ch) return;
-  if (getB(ch.x, ch.y, ch.z) !== B.CHEST) { UI.closeModal('mdlChest'); return; }
-  const c = chestData(ch.i, false) || { res: {}, items: {} };
-  const one = UI._chestOne;
-  $('chestOne').setAttribute('aria-pressed', String(!!one));
-  const fill = (el, entries, toChest) => {
+  if (MCI.open !== 'chest' || MCI.skipChestRefresh) return;
+  const ch = MCI.chest;
+  if (!ch || getB(ch.x, ch.y, ch.z) !== B.CHEST) { UI.closeModal('mdlChest'); return; }
+  MCI.S.c = null; mciBuildChest(); mciRender();
+};
+/* beim Schließen: was an der Maus hängt, kommt zurück ins Inventar (kein Platz: es fällt auf den Boden) */
+function mciClose() {
+  if (!MCI.open) return;
+  const c = MCI.cur;
+  if (c && MCI.S) {
+    const e = { k: c.k, n: c.n };
+    MCI.cur = null;
+    mciMoveInto(e, ['h', 'b']);
+    mciCommit();
+    if (e.n > 0) mciDropLeft(e);   // schon abgezogen: es fällt nur noch vor dir auf den Boden
+  }
+  MCI.open = null; MCI.chest = null; MCI.cur = null; MCI.S = null; MCI.drag = null; MCI.press = null; MCI.hover = null;
+  UI._chest = null;
+  mciGhost();
+  syncSlots(); UI.hotbar();
+}
+/* kein Platz mehr: die Sachen fallen vor dir auf den Boden */
+function mciDropLeft(e) {
+  mciThrow(e.k, e.n);
+  UI.toast('Kein Platz mehr im Inventar: ' + itemName(e.k) + ' liegt vor dir.', 'warn', 2600, 'mci');
+}
+
+/* ---------- zeichnen ---------- */
+function mciSlotsInto(el, w, n) {
+  if (!el) return;
+  if (el.children.length !== n) {
     el.innerHTML = '';
-    if (!entries.length) { el.innerHTML = '<p class="hint">' + (toChest ? 'Nichts zum Einlagern.' : 'Die Truhe ist leer.') + '</p>'; return; }
-    for (const [k, n] of entries) {
-      const b = document.createElement('button'); b.className = 'inv-it'; b.type = 'button';
-      b.innerHTML = '<canvas width="80" height="80"></canvas><b></b><span></span>';
-      drawItemIcon(b.firstChild, k); b.querySelector('b').textContent = n;
-      b.querySelector('span').textContent = RES_NAME[k] ? RES_NAME[k] : ITEMS[k].name;
-      b.title = toChest ? 'In die Truhe legen' : 'Herausnehmen';
-      b.addEventListener('click', () => { chestMove(ch.i, k, toChest, UI._chestOne ? 1 : n); SFX.ui(); });
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'mslot'; b.dataset.w = w; b.dataset.i = i;
+      b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>';
       el.appendChild(b);
     }
-  };
-  const inChest = [...Object.entries(c.res), ...Object.entries(c.items)].filter(([, n]) => n > 0);
-  const mine = [];
-  for (const k of RES_KEYS) if ((G.inv[k] || 0) > 0) mine.push([k, G.inv[k]]);
-  for (const k in G.inv.items) if (G.inv.items[k] > 0 && storable(k)) mine.push([k, G.inv.items[k]]);
-  fill($('chestGrid'), inChest, false);
-  fill($('chestInvGrid'), mine, true);
-  $('chestFill').textContent = chestCount(c) + ' Sachen in der Truhe';
-};
-function chestAll(toChest) {
-  const ch = UI._chest; if (!ch) return;
-  const c = chestData(ch.i, true);
-  if (toChest) {
-    for (const k of RES_KEYS) { const n = G.inv[k] || 0; if (n > 0) { G.inv[k] = 0; c.res[k] = (c.res[k] || 0) + n; } }
-    for (const k of Object.keys(G.inv.items)) { const n = G.inv.items[k]; if (n > 0 && storable(k)) { takeItem(k, n); c.items[k] = (c.items[k] || 0) + n; } }
-    UI.res();
-  } else {
-    for (const k of Object.keys(c.res)) { G.inv[k] = (G.inv[k] || 0) + c.res[k]; delete c.res[k]; }
-    for (const k of Object.keys(c.items)) { addItem(k, c.items[k]); delete c.items[k]; }
-    UI.res();
   }
-  SFX.ui();
-  chestChanged(ch.i);
+  for (let i = 0; i < n; i++) {
+    const b = el.children[i], e = w === 'o' ? MCI.S.o : MCI.S[w][i];
+    const k = e ? e.k : '', sig = k + ':' + (e ? e.n : 0) + ':' + TEX.res;
+    if (b.dataset.sig !== sig) {
+      if ((b.dataset.key || '') !== k || b.dataset.res !== String(TEX.res)) { drawItemIcon(b.firstChild, k || null); b.dataset.key = k; b.dataset.res = TEX.res; }
+      b.lastChild.textContent = e && e.n > 1 ? e.n : '';
+      b.title = e ? itemName(k) + ' (' + e.n + ')' : '';
+      b.classList.toggle('empty', !e);
+      b.dataset.sig = sig;
+    }
+    b.classList.toggle('sel', w === 'h' && G.sel === i);
+  }
 }
-function bindChestUI() {
+function mciArmorInto(el) {
+  if (!el) return;
+  if (el.children.length !== 4) {
+    el.innerHTML = '';
+    MCI_ARM.forEach((sl, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'mslot arm'; b.dataset.w = 'a'; b.dataset.i = i;
+      b.innerHTML = '<canvas width="64" height="64"></canvas><b></b>'; el.appendChild(b);
+    });
+  }
+  MCI_ARM.forEach((sl, i) => {
+    const b = el.children[i], lv = G.tools[sl] | 0, key = sl + Math.max(1, lv);
+    if (b.dataset.key !== key + lv) { drawItemIcon(b.firstChild, key); b.dataset.key = key + lv; }
+    b.classList.toggle('off', !lv);
+    b.title = lv ? ARMOR_NAMES[sl][lv] + ' (anklicken zum Ausziehen)' : ARMOR_NAMES[sl][0] + ': Rüstung hierher legen';
+  });
+}
+function mciRender() {
+  if (!MCI.open || !MCI.S) return;
+  if (MCI.open === 'inv') {
+    mciArmorInto($('invArmor'));
+    mciSlotsInto($('invOff'), 'o', 1);
+    mciSlotsInto($('invBag'), 'b', BAG_N);
+    mciSlotsInto($('invHot'), 'h', 10);
+    const red = Math.round(armorReduce() * 100);
+    $('invArmorTxt').textContent = red ? '🛡️ ' + red + ' % weniger Schaden' : 'Keine Rüstung an';
+  } else {
+    const c = MCI.S.c || [];
+    mciSlotsInto($('chestGrid'), 'c', c.length);
+    mciSlotsInto($('chestBag'), 'b', BAG_N);
+    mciSlotsInto($('chestHot'), 'h', 10);
+    const n = c.reduce((a, e) => a + (e ? e.n : 0), 0), used = c.filter(Boolean).length;
+    $('chestFill').textContent = n ? n + ' Sachen · ' + used + ' von ' + c.length + ' Plätzen belegt' : 'Die Truhe ist leer';
+  }
+  const tip = touchUI() ? 'Tippen: nehmen und ablegen · lange drücken: halber Stapel oder einzeln ablegen · ziehen: verteilen' : 'Linksklick: Stapel · Rechtsklick: halber Stapel / einzeln ablegen · Shift+Klick: rüberschieben · Doppelklick: sammeln · Ziehen: verteilen · Q: wegwerfen';
+  for (const id of ['invSub', 'chestTip']) { const el = $(id); if (el && el.textContent !== tip) el.textContent = tip; }
+  mciGhost();
+}
+function mciGhost() {
+  let g = $('invGhost');
+  if (!g) { g = document.createElement('div'); g.id = 'invGhost'; g.innerHTML = '<canvas width="64" height="64"></canvas><b></b>'; document.body.appendChild(g); }
+  const c = MCI.open ? MCI.cur : null;
+  if (!c) { g.hidden = true; return; }
+  if (g.dataset.key !== c.k) { drawItemIcon(g.firstChild, c.k); g.dataset.key = c.k; }
+  g.lastChild.textContent = c.n > 1 ? c.n : '';
+  const p = MCI.ptr || [innerWidth / 2, innerHeight / 2];
+  g.style.left = p[0] + 'px'; g.style.top = p[1] + 'px';
+  g.hidden = false;
+}
+
+/* ---------- Maus und Finger ---------- */
+function mciSlotAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  const b = el && el.closest && el.closest('.mslot');
+  return b ? { w: b.dataset.w, i: +b.dataset.i, el: b } : null;
+}
+function mciDown(e) {
+  if (!MCI.open) return;
+  MCI.ptr = [e.clientX, e.clientY];
+  const b = e.target.closest('.mslot');
+  if (!b) {
+    // daneben geklickt (außerhalb des Fensters): was an der Maus hängt, wird weggeworfen
+    if (MCI.cur && !e.target.closest('.sheet')) { e.preventDefault(); mciThrowCur(e.button !== 2); }
+    return;
+  }
+  e.preventDefault();
+  const w = b.dataset.w, i = +b.dataset.i, btn = e.button === 2 ? 2 : 0;
+  if (w === 'a') { mciArmor(MCI_ARM[i]); return; }
+  if (e.pointerType === 'touch') {
+    MCI.press = { w, i, x: e.clientX, y: e.clientY, long: false, moved: false };
+    MCI.press.t = setTimeout(() => {
+      const p = MCI.press; if (!p || p.moved) return;
+      p.long = true;
+      if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) { /* egal */ }
+      if (mciClick(w, i, 2)) { SFX.ui(); mciChange(); }
+    }, 420);
+    return;
+  }
+  if (e.shiftKey && btn === 0) { if (mciShift(w, i)) { SFX.ui(); mciChange(); } return; }
+  // Doppelklick: alles Gleiche auf die Maus
+  const now = performance.now(), L = MCI.last;
+  MCI.last = { w, i, t: now };
+  if (btn === 0 && L && L.w === w && L.i === i && now - L.t < 320 && MCI.cur) { mciCollect(); MCI.last = null; SFX.ui(); mciChange(); return; }
+  if (MCI.cur) { MCI.drag = { btn, slots: [{ w, i }], spread: true }; b.classList.add('spread'); return; }
+  if (mciClick(w, i, btn)) { SFX.ui(); mciChange(); MCI.drag = { pick: true, from: { w, i }, x: e.clientX, y: e.clientY, moved: false, btn }; }
+}
+function mciMove(e) {
+  if (!MCI.open) return;
+  MCI.ptr = [e.clientX, e.clientY];
+  const g = $('invGhost'); if (g && !g.hidden) { g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px'; }
+  const s = mciSlotAt(e.clientX, e.clientY);
+  MCI.hover = s && s.w !== 'a' ? { w: s.w, i: s.i } : null;
+  const p = MCI.press;
+  if (p && !p.moved && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10) {
+    p.moved = true; clearTimeout(p.t);
+    if (!p.long) {
+      // mit dem Finger ziehen: ohne etwas an der Maus nimmt es den Stapel mit, sonst wird verteilt
+      if (!MCI.cur) { if (mciClick(p.w, p.i, 0)) { SFX.ui(); mciChange(); MCI.drag = { pick: true, from: { w: p.w, i: p.i }, moved: true, btn: 0 }; } }
+      else MCI.drag = { btn: 0, slots: [{ w: p.w, i: p.i }], spread: true };
+      MCI.press = null;
+    }
+  }
+  const d = MCI.drag;
+  if (d && d.pick && !d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8) d.moved = true;
+  if (d && d.spread && s && s.w !== 'a' && !d.slots.some((q) => q.w === s.w && q.i === s.i)) {
+    const cur = MCI.cur, t = mciGet(s.w, s.i);
+    if (cur && mciOk(s.w, cur.k) && (!t || t.k === cur.k) && d.slots.length < cur.n) { d.slots.push({ w: s.w, i: s.i }); s.el.classList.add('spread'); }
+  }
+}
+function mciUp(e) {
+  if (!MCI.open) return;
+  for (const el of document.querySelectorAll('.mslot.spread')) el.classList.remove('spread');
+  const p = MCI.press; MCI.press = null;
+  if (p) {
+    clearTimeout(p.t);
+    if (!p.long && !p.moved) { if (mciClick(p.w, p.i, 0)) { SFX.ui(); mciChange(); } }
+    return;
+  }
+  const d = MCI.drag; MCI.drag = null;
+  if (!d) return;
+  if (d.spread) {
+    if (d.slots.length <= 1) { const q = d.slots[0]; if (mciClick(q.w, q.i, d.btn)) { SFX.ui(); mciChange(); } }
+    else { mciSpread(d.slots, d.btn); SFX.ui(); mciChange(); }
+    return;
+  }
+  if (d.pick && d.moved && MCI.cur) {
+    const s = mciSlotAt(e.clientX, e.clientY);
+    if (s && s.w !== 'a' && !(s.w === d.from.w && s.i === d.from.i)) { if (mciClick(s.w, s.i, 0)) { SFX.ui(); mciChange(); } }
+    else if (s && s.w === 'a') mciArmor(MCI_ARM[s.i]);
+    else if (!s && !(e.target.closest && e.target.closest('.sheet'))) mciThrowCur(true);
+  }
+}
+/* Q über einem Platz: eins weg, Strg+Q: der ganze Stapel */
+UI.invDropKey = function (all) {
+  const h = MCI.hover;
+  if (h && mciGet(h.w, h.i)) { mciThrowSlot(h.w, h.i, all); return true; }
+  if (MCI.cur) { mciThrowCur(all); return true; }
+  return false;
+};
+/* 1-0 über einem Platz: mit dem Hotbar-Platz tauschen */
+UI.invHotkey = function (n) {
+  const h = MCI.hover; if (!h || !MCI.S) return false;
+  if (h.w === 'h' && h.i === n) return true;
+  const a = mciGet(h.w, h.i), b = MCI.S.h[n];
+  if (h.w === 'c' && b && !storable(b.k)) return true;
+  mciSet(h.w, h.i, b); MCI.S.h[n] = a;
+  SFX.ui(); mciChange();
+  return true;
+};
+function invDropHeld(all) { if (MCI.cur) mciThrowCur(all); }
+function chestAll(toChest) {
+  if (MCI.open !== 'chest') return;
+  if (toChest) {
+    for (const w of ['b', 'h']) MCI.S[w].forEach((e, i) => { if (e && storable(e.k)) { mciMoveInto(e, ['c']); if (e.n <= 0) MCI.S[w][i] = null; } });
+  } else {
+    MCI.S.c.forEach((e, i) => { if (e) { mciMoveInto(e, ['h', 'b']); if (e.n <= 0) MCI.S.c[i] = null; } });
+  }
+  SFX.ui(); mciChange();
+}
+function bindMcInv() {
+  for (const id of ['mdlInv', 'mdlChest']) {
+    const m = $(id);
+    m.addEventListener('pointerdown', mciDown);
+    m.addEventListener('contextmenu', (e) => { if (e.target.closest('.mslot') || MCI.cur) e.preventDefault(); });
+    m.addEventListener('dblclick', (e) => e.preventDefault());
+  }
+  window.addEventListener('pointermove', mciMove);
+  window.addEventListener('pointerup', mciUp);
+  window.addEventListener('pointercancel', () => { MCI.press = null; MCI.drag = null; });
   $('chestPutAll').addEventListener('click', () => chestAll(true));
   $('chestTakeAll').addEventListener('click', () => chestAll(false));
-  $('chestOne').addEventListener('click', () => { UI._chestOne = !UI._chestOne; UI.chestRefresh(); });
+  $('chestSort').addEventListener('click', () => { mciSort('c'); SFX.ui(); mciChange(); });
+  $('invSort').addEventListener('click', () => { mciSort('b'); SFX.ui(); mciChange(); });
+  $('chestInvSort').addEventListener('click', () => { mciSort('b'); SFX.ui(); mciChange(); });
 }
 
 /* ---- 12m_menus.js ---- */
@@ -14520,7 +14901,7 @@ UI.closeTop = function () {
   }
   return false;
 };
-UI.closeAll = function () { for (const id of MODALS) $(id).hidden = true; UI._modPick = null; UI._friendsFrom = null; UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; };
+UI.closeAll = function () { mciClose(); for (const id of MODALS) $(id).hidden = true; UI._modPick = null; UI._friendsFrom = null; if ($('invGhost')) $('invGhost').hidden = true; };
 UI.closeModal = function (id) {
   if (id === 'mdlModPick') { closeModPick(); return; }
   if (id === 'mdlModUi') { modCloseUi(false); return; }
@@ -14531,7 +14912,7 @@ UI.closeModal = function (id) {
   if (id === 'mdlCos') { $(id).hidden = true; if (UI._cosFrom === 'pause') { UI._cosFrom = null; $('mdlPause').hidden = false; return; } UI._cosFrom = null; }
   if (id === 'mdlMods' && MODUI.world) { closeModWorld(); return; }
   $(id).hidden = true;
-  if (id === 'mdlInv') { UI._invHeld = null; UI._invDrag = null; if ($('invGhost')) $('invGhost').hidden = true; }
+  if (id === 'mdlInv' || id === 'mdlChest') mciClose();
   if (id === 'mdlConfirm' && UI._cf) { const r = UI._cf; UI._cf = null; r(false); }
   if ((id === 'mdlSettings' || id === 'mdlControls') && UI._from === 'pause') { $('mdlPause').hidden = false; return; }
   if (id === 'mdlFriends' && UI._friendsFrom === 'pause') { UI._friendsFrom = null; if (G.state === 'paused') { $('mdlPause').hidden = false; return; } }
@@ -15065,7 +15446,7 @@ UI.refreshIcons = function () {
 };
 
 function bindUI() {
-  bindChestUI(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI(); bindAdminUI(); bindModsUI();
+  bindMcInv(); bindServerUI(); bindSupportUI(); bindWorldEditUI(); bindBackupUI(); bindAdminUI(); bindModsUI();
   $('verNow').textContent = 'Blood Moon ' + GAME_VERSION;
   $('verNotes').innerHTML = GAME_NOTES.map(([v, t]) => '<li><span>' + v + '</span>' + t + '</li>').join('');
   // start screen: the server list can be switched off and on
@@ -15178,8 +15559,6 @@ function bindUI() {
   const td = $('tDrop');
   td.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); dropSelected(false); }, { passive: false });
   td.addEventListener('click', () => dropSelected(false));
-  $('invDrop1').addEventListener('click', () => invDropHeld(false));
-  $('invDropAll').addEventListener('click', () => invDropHeld(true));
   const tsn = $('tSneak');
   const sneakT = () => { INPUT.sneakBtn = !INPUT.sneakBtn; tsn.setAttribute('aria-pressed', String(INPUT.sneakBtn)); };
   tsn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); calmTouches(); sneakT(); }, { passive: false });
@@ -15501,7 +15880,7 @@ async function loadWorld(seed, save, opts = {}) {
     const you = opts.you ? normalizePlayerData(opts.you) : null;
     G.inv = you ? you.inv : emptyInv();
     G.tools = you ? you.tools : {};
-    G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.bag = you ? you.bag : new Array(BAG_N).fill(null); G.offhand = you && you.off ? you.off : null; G.sel = -1;
+    G.hotbar = you ? you.hotbar : new Array(10).fill(null); G.bag = you ? you.bag : new Array(BAG_N).fill(null); G.offhand = you && you.off ? you.off : null; G.sn = you ? you.sn : null; G.sel = -1;
     G.bedSpawn = you ? you.bed : null; G.goal = 7; G.stats = you && you.stats ? Object.assign({ trees: 0, zombies: 0 }, you.stats) : { trees: 0, zombies: 0 }; G.visitors = opts.server && save && save.vis ? save.vis : {};
     ensureTools();
     PL.hp = you ? clamp(you.hp, 20, 100) : 100; PL.dead = false;
@@ -17060,7 +17439,7 @@ const MP = {
   sendPdata(bye) {
     if (!this.isClient() || !this.ready || this.spec) return;
     const ri = realInv();
-    this.ref('pdata/' + NET.uid()).set({ inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), off: ri.offhand || '', stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
+    this.ref('pdata/' + NET.uid()).set({ inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), off: ri.offhand || '', sn: CRE_SHADOW ? {} : snPack(), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null, bye: bye ? true : null }).catch(() => { });
   },
   sendMobs() {
     const r2 = (v) => Math.round(v * 100) / 100;
@@ -17255,6 +17634,7 @@ function applyNetEvent(v) {
     case 'wp': applyWpEvent(v); break;
     case 'sign': applySignEvent(v); break;
     case 'cos': applyCosEvent(v); break;
+    case 'fmod': applyFullModNet(v); break;
     case 'brk': if (getB(v.x, v.y, v.z) !== B.AIR) breakBlockAt(v.x, v.y, v.z, false, true); break;
     case 'plc': {
       if (!inWorld(v.x, v.y, v.z)) break;
@@ -17349,7 +17729,7 @@ function srvRoomPath(s) { return srvPath(s) + '/room'; }
 /* what a player carries: inventory, tools, hotbar, position, health, bed */
 function myPlayerData() {
   const ri = realInv();
-  return { inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), off: ri.offhand || '', stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
+  return { inv: ri.inv, tools: ri.tools, hotbar: ri.hotbar.map((k) => k || ''), bag: (ri.bag || []).map((k) => k || ''), off: ri.offhand || '', sn: CRE_SHADOW ? {} : snPack(), stats: G.stats, pos: [PL.x, PL.y, PL.z, PL.yaw], hp: Math.round(PL.hp), bed: G.bedSpawn || null };
 }
 /* every save of a server world gets a stamp (who, how long the world has run, when). A host only
    overwrites the save it loaded itself: when somebody else saved in the meantime (two people ran
@@ -19468,6 +19848,7 @@ function modsEnd() {
   if (typeof modApi2End === 'function') modApi2End();
   for (const rec of MODRT.workers.values()) { try { rec.worker.terminate(); } catch (e) { /* ignore */ } themeDrop('w:' + rec.m.id); }
   MODRT.workers.clear();
+  fullModsEnd();
   if (typeof modUiEnd === 'function') modUiEnd();
   Object.assign(MODFX, MODFX_DEF);
   if (!G.spectator) creativeEnd();
@@ -19538,7 +19919,9 @@ async function modsBegin() {
   if (!list.length) return;
   if (!(e && e.temp)) modRecentAdd(list.filter((m) => !isClientMod(m)).map((m) => m.id));
   let n = 0;
-  for (const m of list) if (startModWorker(m)) n++;
+  for (const m of list) {
+    if (isFullMod(m)) { if (MODRT.srvPublic && modServerMode()) continue; startFullMod(m, token); n++; } else if (startModWorker(m)) n++;
+  }
   // messages from other players that came before the mods were running (e.g. right when joining)
   const wait = MODRT.netWait || []; MODRT.netWait = [];
   if (n) setTimeout(() => { for (const [t, v] of wait) if (performance.now() - t < 15000) modNetEvent(v); }, 800);
@@ -19565,6 +19948,7 @@ function modState() {
   return { x: +PL.x.toFixed(2), y: +PL.y.toFixed(2), z: +PL.z.toFixed(2), hp: Math.round(PL.hp), maxHp: PL.maxHp, day: T.day, night: T.night, phase: T.phase, blood: !!T.blood, t: Math.round(T.t), weather: WEATHER.kind, dim: CURDIM ? CURDIM.id : null, held: selectedItem() || null, sneak: !!PL.sneak, flying: !!PL.flying, server: modServerMode(), host: !MP.isClient(), trees: G.stats.trees | 0, kills: G.stats.zombies | 0, yaw: +(CAMC.mode === 'fp' ? CAMC.fpYaw : PL.yaw || 0).toFixed(3) };
 }
 function modEmit(ev, d) {
+  fullModsEmit(ev, d);
   if (!MODRT.workers.size) return;
   for (const rec of MODRT.workers.values()) rec.worker.postMessage({ t: 'ev', ev, d });
 }
@@ -19890,6 +20274,7 @@ function creativeTopUp() {
 }
 function updateMods(dt) {
   applyMaxHp();
+  fullModsTick(dt);
   if (!MODFX.fly && PL.flying) PL.flying = false;
   if (MODFX.regen > 0 && !PL.dead && PL.hp < PL.maxHp) PL.hp = Math.min(PL.maxHp, PL.hp + MODFX.regen * dt);
   updatePortals(dt);
@@ -19991,6 +20376,7 @@ const MODS = {
   },
   /* Probelauf in einem Wegwerf-Worker: Syntaxfehler, Endlosschleifen */
   test(code) {
+    if (isFullCode(code)) return Promise.resolve(fullModSyntax(code));
     return new Promise((res) => {
       let w; try { w = new Worker(modWorkerURL()); } catch (e) { res({ ok: false, msg: 'Dein Browser kann hier keine Mods testen.' }); return; }
       let err = null, pong = false, n = 0;
@@ -20323,8 +20709,9 @@ async function renderAdminMods() {
     const li = document.createElement('div'); li.className = 'li mod';
     li.innerHTML = '<div class="li-ico mod-ico"></div><div class="li-main"><b></b><span></span></div><div class="li-act"></div>';
     li.querySelector('.mod-ico').textContent = m.icon || '🧩';
-    li.querySelector('b').textContent = m.name || '?';
-    li.querySelector('span').textContent = 'von ' + (m.author || '?') + (MOD_CAT_NAME[m.cat] ? ' · ' + MOD_CAT_NAME[m.cat] : '') + (m.desc ? ' · ' + m.desc : '');
+    li.querySelector('b').textContent = (isFullCode(m.code) ? '⚠️ VOLLER ZUGRIFF · ' : '') + (m.name || '?');
+    if (isFullCode(m.code)) li.classList.add('full');
+    li.querySelector('span').textContent = (isFullCode(m.code) ? 'Experten-Mod: kann alles im Spiel ändern und läuft bei allen Spielern. Code genau lesen! · ' : '') + 'von ' + (m.author || '?') + (MOD_CAT_NAME[m.cat] ? ' · ' + MOD_CAT_NAME[m.cat] : '') + (m.desc ? ' · ' + m.desc : '');
     const pre = document.createElement('pre'); pre.className = 'mod-code'; pre.hidden = true; pre.textContent = m.code || '';
     const act = li.querySelector('.li-act');
     const see = document.createElement('button'); see.className = 'btn'; see.type = 'button'; see.textContent = 'Code';
@@ -21847,10 +22234,44 @@ mod.on('playerkill', (e) => ...)        // ein Spieler wurde von einem Spieler b
 // mod.shoot({ hurtsPlayer: true, ... }) trifft auch andere Spieler; 'hit' liefert dann {type: 'player', name}
 // Alles an andere Spieler (givePlayer, hurtPlayer, teleportPlayer, sendDimension, broadcast, Treffer):
 //   max. 12 Nachrichten pro Sekunde pro Mod.
-// mod.player().server ist true auf einem Server, mod.player().host wie mod.isHost.`;
+// mod.player().server ist true auf einem Server, mod.player().host wie mod.isHost.
+
+// ==================== EXPERTEN-MODS (voller Zugriff) ====================
+// Erste Zeile im Code: // @full
+// Dann läuft die Mod NICHT im Worker, sondern direkt im Spiel und kann ALLES ändern.
+// Es gibt dann kein mod.set/mod.block usw., sondern das Objekt game und alle Teile des Spiels.
+// Sie läuft nur, wenn sie geprüft ist (Bibliothek), in deiner Testwelt oder als deine eigene Mod in deiner Welt.
+game.on('start', () => ...)             // beim Betreten der Welt
+game.on('tick', (dt) => ...)            // jeden Frame, dt in Sekunden
+game.on('break' | 'place' | 'kill' | 'day' | 'night' | 'death' | 'respawn' | 'join' | 'leave' | 'hurt' | 'use' | 'interact', (e) => ...)
+game.patch('hurtPlayer', (orig) => function (dmg, ...rest) { return orig.call(this, dmg * 0.5, ...rest); })
+                                        // eine Funktion des Spiels umschreiben (wird beim Verlassen zurückgesetzt)
+game.patch('toast', (orig) => function (...a) { return orig.apply(this, a); }, UI)   // Methode eines Objekts
+game.css('.meinding { color: red }')    // eigenes CSS
+const box = game.html('<div class="meinding">Hallo</div>')   // eigenes Element (auf document.body)
+game.every(1000, () => ...)  game.later(500, () => ...)       // Timer (werden beim Verlassen gestoppt)
+game.onUnload(() => ...)                // aufräumen, wenn die Mod endet
+game.send('typ', daten)  game.onNet('typ', (daten, {from, name}) => ...)   // an alle anderen Spieler mit dieser Mod
+game.data.punkte = 5; game.save()       // Daten, die mit der Welt gespeichert werden
+game.isHost  game.me  game.id  game.toast('Text')
+// Wichtige Teile des Spiels (alle direkt erreichbar):
+// PL: Spieler {x, y, z, vx, vy, vz, yaw, hp, maxHp, dead, onGround, sprint, flying}
+// G: Spielstand {time: {phase, t, day, night, blood}, inv (Rohstoffe + inv.items), tools (Rüstung), hotbar, bag, sel, zombies[], sheep[], stats}
+// W: Welt {seed, mode, chests, trees, meta}   B: Block-IDs (B.STONE, B.GRASS, B.OAK_LOG, B.PLANKS, B.TORCH ...)   ITEMS: alle Items   SHOP: Händler-Angebot
+// getB(x, y, z)  setBlock(x, y, z, id, meta)  breakBlockAt(x, y, z, byPlayer)
+// addItem(key, n)  takeItem(key, n)  itemCount(key)  selectedItem()
+// spawnZombie(x, y, z)  hurtBy(grund, schaden, fromX, fromZ)  hurtPlayer(schaden)  isNight()
+// burst(x, y, z, anzahl, [r, g, b], {speed, up, life, size})  spawnPart({x, y, z, vx, vy, vz, life, size, r, g, b, em, grav})
+// dropItem(key, n, x, y, z, vx, vy, vz)  UI.toast(text, 'good'|'info'|'warn')  UI.banner(titel, untertitel)  SFX.ui()  SFX.upgrade()
+// MP.active()  MP.isClient()  REMOTE (andere Spieler {name, x, y, z})  NET.name  WEATHER.kind  CAMC (Kamera)
+// Zeichnen: game.patch('drawObject', ...) oder eigene Elemente/Canvas mit game.html.
+// VERBOTEN (wird bei der Prüfung abgelehnt): NET.db / Firebase, Konten, Passwörter, localStorage fremder Daten, fetch oder anderes Netz, eval von fremdem Text.`;
 
 /* the full prompt for an AI: rules, the idea, the code so far, all commands */
+const MOD_FULL_MARK = '// ==================== EXPERTEN-MODS';
+function modDocNormal() { const i = MOD_API_DOC.indexOf(MOD_FULL_MARK); return i > 0 ? MOD_API_DOC.slice(0, i).trimEnd() : MOD_API_DOC; }
 function buildModPrompt(d) {
+  if (d.full || isFullCode(d.code)) return buildFullModPrompt(d);
   const idea = String(d.idea || '').trim() || String(d.desc || '').trim() || '[HIER DEINE IDEE EINTRAGEN]';
   const code = String(d.code || '').trim();
   const L = [];
@@ -21882,9 +22303,40 @@ function buildModPrompt(d) {
   L.push('');
   L.push('==================== DIE KOMPLETTE API ====================');
   L.push('');
-  L.push(MOD_API_DOC);
+  L.push(modDocNormal());
   L.push('');
   L.push('WICHTIG: Schreib sauberen, funktionierenden Code, der sofort läuft. Prüfe, dass jeder benutzte Befehl oben steht.');
+  return L.join('\n');
+}
+/* Prompt für eine Experten-Mod (@full): darf alles im Spiel ändern */
+function buildFullModPrompt(d) {
+  const idea = String(d.idea || '').trim() || String(d.desc || '').trim() || '[HIER DEINE IDEE EINTRAGEN]';
+  const code = String(d.code || '').trim();
+  const L = [];
+  L.push('Du schreibst eine EXPERTEN-MOD (voller Zugriff) für mein Browser-Voxelspiel „Blood Moon“ (Survival im Minecraft-Stil, deutsch, ein einziges HTML mit WebGL). Spielversion ' + GAME_VERSION + '.');
+  L.push('');
+  L.push('MEINE MOD-IDEE: ' + idea);
+  if (d.name) L.push('Name der Mod: ' + d.name);
+  L.push('');
+  if (code) { L.push('MEIN BISHERIGER CODE (verbessere ihn nach meiner Idee, gib den kompletten neuen Code zurück):'); L.push('```js'); L.push(code); L.push('```'); L.push(''); }
+  L.push('Gib mir zuerst den kompletten JavaScript-Code in EINEM Codeblock. Danach kurz: Name, Symbol (ein Emoji), Beschreibung (max. 140 Zeichen), Kategorie (' + MOD_CATS.filter((c) => c[0] !== 'all').map((c) => c[0]).join(', ') + ').');
+  L.push('');
+  L.push('REGELN');
+  L.push('- Die ERSTE Zeile ist genau: // @full');
+  L.push('- Der Code läuft direkt im Spiel als new Function(\'game\', \'mod\', code)(game, game). Er sieht alle globalen Variablen und Funktionen des Spiels (Liste unten) und darf das DOM benutzen. Die normalen mod.*-Befehle gibt es hier NICHT.');
+  L.push('- Ändere das Spiel über game.patch (Funktionen umschreiben und orig aufrufen), game.on (Ereignisse), game.html/game.css (eigene Oberfläche), game.every/game.later (Timer). Alles davon wird beim Verlassen der Welt automatisch zurückgesetzt. Was du sonst anlegst (z. B. Einträge in ITEMS oder SHOP), räumst du in game.onUnload wieder weg.');
+  L.push('- Wenn du eine Funktion brauchst, die nicht in der Liste steht: nimm an, dass es sie NICHT gibt, und schreib sie selbst. Prüfe mit typeof, bevor du etwas Unsicheres benutzt.');
+  L.push('- Mehrspieler: Die Mod läuft bei JEDEM Spieler in der Welt. Was nur einmal pro Welt passieren soll, nur wenn game.isHost. Abgleich mit game.send / game.onNet.');
+  L.push('- VERBOTEN: NET.db oder Firebase, Konten, Passwörter, fetch/XMLHttpRequest/WebSocket, fremde localStorage-Daten, eval von Text. Die Mod wird vom Owner geprüft und sonst abgelehnt.');
+  L.push('- Max. ' + MOD_CODE_MAX.toLocaleString('de-DE') + ' Zeichen. Bilder als data:-URL. Alles für den Spieler auf Deutsch, Kommentare auf Deutsch.');
+  L.push('- Am PC UND am Handy spielbar (eigene Knöpfe mit game.html für das Handy).');
+  L.push('- Leistung: in tick nur das Nötigste, nichts pro Frame neu anlegen.');
+  L.push('');
+  L.push('==================== DAS OBJEKT game UND DIE TEILE DES SPIELS ====================');
+  L.push('');
+  L.push(MOD_API_DOC.slice(MOD_API_DOC.indexOf(MOD_FULL_MARK)));
+  L.push('');
+  L.push('WICHTIG: Sauberer Code, der sofort läuft und sich beim Verlassen der Welt komplett zurücksetzt.');
   return L.join('\n');
 }
 async function copyText(t) {
@@ -22036,6 +22488,7 @@ function myModEdit(id, temp) {
   MYMODS.cur = d.id; MYMODS.temp = temp || null;
   for (const [el, k] of MY_FIELDS) $(el).value = d[k] || (k === 'cat' ? 'fun' : '');
   $('mdMsg').hidden = true; $('mdPromptOut').hidden = true;
+  $('mdFull').checked = isFullCode(d.code);
   myModStateLine(d);
   modsTab('up');
 }
@@ -22141,7 +22594,7 @@ function bindMyMods() {
   $('myNew').addEventListener('click', () => { myModLeave(); myModEdit(null, newMyMod()); $('mdIdea').focus(); });
   $('mdBack').addEventListener('click', async () => { if (!(await myModLeaveAsk())) return; myModLeave(); modsTab('mine'); });
   for (const [el] of MY_FIELDS) $(el).addEventListener(el === 'mdCat' ? 'change' : 'input', myModChanged);
-  const prompt = () => buildModPrompt(myModFromForm());
+  const prompt = () => buildModPrompt(Object.assign(myModFromForm(), { full: $('mdFull').checked }));
   $('mdPrompt').addEventListener('click', async () => {
     const p = prompt();
     const ok = await copyText(p);
@@ -22555,6 +23008,106 @@ function bindClientMods() {
   MODS.install = function (m) { const r = inst(m); clientModsSync(); return r; };
   MODS.uninstall = function (id, q) { const r = un(id, q); clientModsSync(); return r; };
   clientModsSync();
+}
+
+/* ---- 19tg_fullmods.js ---- */
+/* =========================================================================
+   Mods mit vollem Zugriff („Experten-Mods“). Erste Zeile im Code: // @full
+   Normale Mods laufen abgeschottet in einem Web Worker und können nur die
+   Mod-API benutzen. Eine @full-Mod läuft direkt im Spiel und kann ALLES
+   ändern (jede Funktion umschreiben, eigene Fenster, eigene Grafik).
+   Weil das gefährlich sein kann, läuft sie nur:
+   - in deiner Testwelt (Editor oder Admin-Prüfung),
+   - wenn ihr Code genau so in der Bibliothek steht (vom Owner geprüft),
+   - oder als deine eigene Mod in deiner eigenen Welt (nicht bei Gästen,
+     nicht auf Servern).
+   Andere Spieler führen sie nur aus, wenn sie geprüft ist.
+   ========================================================================= */
+const FULLMODS = new Map();   // id -> ctx
+function isFullCode(code) { return /^\s*(\/\/\s*@full\b|\/\*\s*@full\b)/.test(String(code || '')); }
+function isFullMod(m) { return !!m && isFullCode(m.code); }
+/* darf diese @full-Mod hier laufen? */
+async function fullModTrusted(m) {
+  const e = WORLDS.current;
+  if (e && e.temp) return true;   // Testwelt: du hast sie selbst gestartet
+  // deine eigene Mod, in deiner eigenen Welt (nicht als Gast, nicht auf einem Server)
+  const mine = typeof MYMODS !== 'undefined' && MYMODS.list().some((d) => d.code === m.code);
+  if (mine && !MP.isClient() && !modServerMode()) return true;
+  // sonst nur, was der Owner geprüft hat: genau dieser Code in der Bibliothek
+  await modsFreshLib();
+  const lib = (MODS.lib || []).find((q) => q.id === m.id);
+  if (lib && lib.code === m.code) return true;
+  if (NET.db && NET.uid()) {
+    try { const r = (await withTimeout(NET.db.ref('mods/approved/' + m.id).once('value'), 8000)).val(); if (r && r.code === m.code) return true; } catch (er) { /* offline */ }
+  }
+  return false;
+}
+async function startFullMod(m, token) {
+  const ok = await fullModTrusted(m);
+  if (token !== MODRT.begin || G.state === 'menu') return false;
+  if (!ok) { UI.toast('„' + (m.name || m.id) + '“ hat vollen Zugriff und ist noch nicht geprüft. Sie läuft hier nicht.', 'warn', 5000, 'fullno'); return false; }
+  const id = modSlug(m.id);
+  const ctx = { m, id, on: {}, patches: [], unload: [], els: [], timers: [] };
+  const err = (e) => { console.warn('Mod "' + (m.name || m.id) + '":', e); if (!ctx.errShown) { ctx.errShown = true; UI.toast('Fehler in „' + (m.name || m.id) + '“: ' + String(e && e.message || e).slice(0, 140), 'warn', 6000, 'fullerr'); } };
+  ctx.err = err;
+  const game = {
+    id, name: m.name || m.id,
+    get isHost() { return !MP.isClient(); },
+    get me() { return NET.name || 'Spieler'; },
+    /* Ereignisse: tick (dt), start, und alle der normalen Mods (break, place, kill, day, night, join, ...) */
+    on(ev, fn) { if (typeof fn === 'function') (ctx.on[ev] = ctx.on[ev] || []).push(fn); return game; },
+    /* eine Spielfunktion umschreiben: game.patch('hurtPlayer', (orig) => function (dmg, ...r) { return orig.call(this, dmg / 2, ...r); }) */
+    patch(name, wrap, obj) {
+      const o = obj || window, orig = o[name];
+      if (typeof orig !== 'function') throw new Error('Funktion „' + name + '“ gibt es nicht');
+      const nf = wrap(orig);
+      if (typeof nf !== 'function') throw new Error('patch braucht eine Funktion zurück');
+      o[name] = nf; ctx.patches.push([o, name, orig, nf]);
+      return nf;
+    },
+    css(text) { const s = document.createElement('style'); s.textContent = String(text); document.head.appendChild(s); ctx.els.push(s); return s; },
+    html(text, parent) { const d = document.createElement('div'); d.className = 'fullmod-' + id; d.innerHTML = String(text); (parent || document.body).appendChild(d); ctx.els.push(d); return d; },
+    el(node) { ctx.els.push(node); return node; },
+    every(ms, fn) { const t = setInterval(() => { try { fn(); } catch (e) { err(e); } }, Math.max(16, ms | 0)); ctx.timers.push(t); return t; },
+    later(ms, fn) { const t = setTimeout(() => { try { fn(); } catch (e) { err(e); } }, Math.max(0, ms | 0)); ctx.timers.push(t); return t; },
+    onUnload(fn) { if (typeof fn === 'function') ctx.unload.push(fn); },
+    toast(msg, kind) { UI.toast(String(msg), kind || 'info', 3000); },
+    /* Nachrichten an dieselbe Mod bei allen anderen Spielern */
+    send(type, data) { if (MP.active()) MP.send({ t: 'fmod', m: id, y: String(type).slice(0, 40), d: data === undefined ? null : data }); },
+    onNet(type, fn) { return game.on('net:' + type, fn); },
+    /* Daten, die mit der Welt gespeichert werden */
+    get data() { if (!ctx.data) { try { ctx.data = W.modData && W.modData[id] ? JSON.parse(W.modData[id]) : {}; } catch (e) { ctx.data = {}; } } return ctx.data; },
+    save() { if (!W.modData) W.modData = {}; try { W.modData[id] = JSON.stringify(game.data); } catch (e) { err(e); } },
+  };
+  ctx.game = game;
+  FULLMODS.set(m.id, ctx);
+  try { (new Function('game', 'mod', String(m.code)))(game, game); } catch (e) { err(e); }
+  fullEmitOne(ctx, 'start', modState());
+  return true;
+}
+function fullEmitOne(ctx, ev, d, d2) {
+  const l = ctx.on[ev]; if (!l) return;
+  for (const fn of l) { try { fn(d, d2); } catch (e) { ctx.err(e); } }
+}
+function fullModsEmit(ev, d) { if (FULLMODS.size) for (const ctx of FULLMODS.values()) fullEmitOne(ctx, ev, d); }
+function fullModsTick(dt) { if (FULLMODS.size) for (const ctx of FULLMODS.values()) fullEmitOne(ctx, 'tick', dt); }
+function applyFullModNet(v) {
+  for (const ctx of FULLMODS.values()) if (ctx.id === v.m) fullEmitOne(ctx, 'net:' + v.y, v.d, { from: v.u, name: (REMOTE[v.u] && REMOTE[v.u].name) || '' });
+}
+/* aufhören: alles zurück, was die Mods geändert haben */
+function fullModsEnd() {
+  const all = [...FULLMODS.values()].reverse();
+  FULLMODS.clear();
+  for (const ctx of all) {
+    for (const fn of ctx.unload) { try { fn(); } catch (e) { console.warn(e); } }
+    for (const t of ctx.timers) { clearInterval(t); clearTimeout(t); }
+    for (let j = ctx.patches.length - 1; j >= 0; j--) { const [o, name, orig, nf] = ctx.patches[j]; if (o[name] === nf) o[name] = orig; }
+    for (const el of ctx.els) { try { el.remove(); } catch (e) { /* weg */ } }
+  }
+}
+/* Probelauf im Editor: nur, ob der Code sich übersetzen lässt */
+function fullModSyntax(code) {
+  try { new Function('game', 'mod', String(code)); return { ok: true, n: 0, msg: 'Experten-Mod (@full): der Code ist in Ordnung. Ausprobieren kannst du sie in der Testwelt.' }; } catch (e) { return { ok: false, msg: String(e && e.message || e) }; }
 }
 
 /* ---- 19u_dims.js ---- */
