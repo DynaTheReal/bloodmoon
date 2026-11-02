@@ -541,6 +541,12 @@ button, .btn, a, label, input, textarea, select { touch-action: manipulation; }
 .md-full code { background: rgba(0,0,0,0.35); padding: 0 4px; border-radius: 4px; }
 .li.mod.full { border-color: rgba(255, 70, 70, 0.6); background: rgba(255, 50, 50, 0.08); }
 .push-url { display: flex; gap: 6px; min-width: min(320px, 100%); } .push-url .field { flex: 1; min-width: 0; }
+.push-ask { position: fixed; z-index: 95; left: 50%; bottom: calc(18px + var(--safe-b, 0px)); width: min(520px, calc(100vw - 24px)); transform: translate(-50%, 160%); display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; transition: transform 0.4s cubic-bezier(.2, 1.3, .4, 1); box-shadow: 0 14px 40px rgba(0,0,0,0.55); flex-wrap: wrap; }
+.push-ask.on { transform: translate(-50%, 0); }
+.push-ask-ic { font-size: 28px; }
+.push-ask b { display: block; font-size: 15px; } .push-ask small { display: block; color: var(--muted); font-weight: 700; font-size: 12px; line-height: 1.35; }
+.push-ask .grow { flex: 1; min-width: 180px; }
+.push-ask-btns { display: flex; gap: 6px; margin-left: auto; }
 #invGhost { position: fixed; z-index: 9999; width: 52px; height: 52px; margin: -26px 0 0 -26px; pointer-events: none; display: grid; place-items: center; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55)); color: var(--text); }
 #invGhost[hidden] { display: none; }
 #invGhost canvas { width: 100%; height: 100%; image-rendering: pixelated; }
@@ -768,8 +774,9 @@ select.field { appearance: auto; }
 @keyframes cosCardGlow { from { box-shadow: 0 0 40px var(--rc), 0 30px 80px rgba(0,0,0,0.7); } to { box-shadow: 0 0 110px 10px var(--rc), 0 30px 80px rgba(0,0,0,0.7); } }
 .cosfs-reveal { background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.15), rgba(0,0,0,0.6)); }
 #signtags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.signtag { position: absolute; left: 0; top: 0; width: 180px; margin-left: -90px; margin-top: -52px; height: 104px; display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre-wrap; word-break: break-word; font: 800 19px/1.2 system-ui, sans-serif; color: #2a1a0b; transform-origin: 50% 50%; }
-.sign-ta { width: 100%; min-height: 120px; resize: none; text-align: center; font: 700 18px/1.3 system-ui, sans-serif; background: #b98a55; color: #2a1a0b; border: 4px solid #7f5a33; border-radius: 8px; padding: 10px; }
+.signtag { position: absolute; left: 0; top: 0; width: 180px; margin-left: -90px; margin-top: -52px; height: 104px; padding: 4px 8px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre-wrap; word-break: break-word; font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; line-height: 1.08; color: #3a220c; text-shadow: 0 1px 0 rgba(255, 225, 175, 0.45); transform-origin: 50% 50%; }
+.sign-ta { display: block; width: min(360px, 100%); aspect-ratio: 180 / 104; margin: 0 auto; box-sizing: border-box; padding: 10px 16px; resize: none; overflow: hidden; text-align: center; font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; line-height: 1.08; color: #3a220c; background: linear-gradient(180deg, #c99a62, #b4834c); border: 6px solid #6e4a26; border-radius: 10px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.25), 0 10px 26px rgba(0,0,0,0.45); outline: none; caret-color: #3a220c; display: flex; }
+.sign-ta::placeholder { color: rgba(58, 34, 12, 0.45); }
 #wptags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .wptag { margin-left: -80px; width: 160px; display: grid; justify-items: center; gap: 1px; transform-origin: 50% 100%; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
 .wptag i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 8px var(--wc, #fff); order: 3; margin-top: 2px; }
@@ -2231,7 +2238,7 @@ kbd { font-family: var(--font-ui); font-weight: 900; font-size: 12px; min-width:
   <div class="sheet narrow panel">
     <div class="sheet-h"><div class="grow"><h2 id="signTitle">🪧 Schild beschriften</h2><p>Bis zu 4 Zeilen, alle in der Welt können es lesen.</p></div><button class="x" data-close aria-label="Schließen" type="button"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button></div>
     <div class="sheet-b">
-      <textarea class="sign-ta" id="signTxt" rows="4" maxlength="64" spellcheck="false" aria-label="Text auf dem Schild"></textarea>
+      <textarea class="sign-ta" id="signTxt" rows="4" maxlength="64" spellcheck="false" placeholder="Text …" aria-label="Text auf dem Schild"></textarea>
       <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="signOk" type="button">Fertig</button></div>
     </div>
   </div>
@@ -2368,8 +2375,9 @@ function showBlocked() {
 
 /* ---- 01_util.js ---- */
 /* version of the game: raised with every update (shown in the settings) */
-const GAME_VERSION = '2.54.1';
+const GAME_VERSION = '2.54.2';
 const GAME_NOTES = [
+  ['2.54.2', 'Beim Start fragt jetzt ein kleines Fenster unten „Benachrichtigungen erlauben?“, solange sie noch nicht erlaubt sind (sind sie im Browser blockiert, steht dort, wie man sie wieder erlaubt). Schilder: die Schrift passt sich an, ein Buchstabe ist riesig, langer Text kleiner, in einer runden Spiele-Schrift. Das Schreib-Fenster sieht aus wie das Schild selbst und zeigt die Größe gleich beim Tippen; Esc speichert, und der Klick beim Hinstellen schließt es nicht mehr aus Versehen.'],
   ['2.54.1', 'Das App-Symbol steckt jetzt direkt im Spiel, man muss keine Extra-Dateien hochladen.'],
   ['2.54.0', 'App-Symbol (Blutmond) für den Home-Bildschirm auf dem iPhone und Android, Blood Moon öffnet sich dort wie eine App im Vollbild. Beim Start fragt das Spiel beim ersten Tippen direkt nach der Erlaubnis für Benachrichtigungen (solange sie noch nicht erlaubt sind); man muss sie nicht erst in den Einstellungen einschalten.'],
   ['2.53.0', 'Benachrichtigungen aufs Handy und den PC (Einstellungen → Allgemein → 🔔): neue Chat-Nachrichten, Freundschaftsanfragen und Einladungen kommen auch, wenn das Spiel zu ist. Antippen öffnet den passenden Chat. Auf dem iPhone nur über „Zum Home-Bildschirm“.'],
@@ -26041,21 +26049,39 @@ function bindPush() {
   if (/[?&]open=/.test(location.search)) { pushOpenFrom(location.href); try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } }
   pushUi();  pushAutoAsk();
 }
-/* beim Start: noch nicht gefragt? Beim ersten Tippen/Klick fragt der Browser nach der Erlaubnis
-   (ohne Tippen fragen Handys nicht). Wer es in den Einstellungen ausgeschaltet hat, wird nicht gefragt. */
+/* beim Start: noch nicht erlaubt? Ein kleines Fenster fragt (der Knopf zählt als Tippen, ohne das fragen Handys nicht).
+   Wer es in den Einstellungen ausgeschaltet hat, wird nicht gefragt. */
 function pushAutoAsk() {
-  if (!pushSupported() || Notification.permission !== 'default' || PUSH.off || PUSH.asking) return;
-  PUSH.asking = true;
-  const ask = () => {
-    window.removeEventListener('pointerdown', ask, true); window.removeEventListener('keydown', ask, true);
-    let p; try { p = Notification.requestPermission(); } catch (e) { return; }
-    Promise.resolve(p).then((r) => {
-      if (r === 'granted') { PUSH.on = true; PUSH.off = false; pushSaveLocal(); if (NET.uid()) pushSubscribe(true).catch(() => { }); }
+  if (!pushSupported() || PUSH.off || PUSH.asked) return;
+  const perm = Notification.permission;
+  if (perm === 'granted') return;
+  PUSH.asked = true;
+  setTimeout(() => pushAskCard(perm === 'denied'), 1400);
+}
+function pushAskCard(denied) {
+  let c = $('pushAsk');
+  if (!c) {
+    c = document.createElement('div'); c.id = 'pushAsk'; c.className = 'push-ask panel'; c.setAttribute('role', 'dialog');
+    c.innerHTML = '<span class="push-ask-ic">🔔</span><div class="grow"><b></b><small></small></div><div class="push-ask-btns"><button class="btn primary" type="button" data-a="yes"></button><button class="btn ghost" type="button" data-a="no">Später</button></div>';
+    document.body.appendChild(c);
+    c.addEventListener('click', async (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      c.classList.remove('on');
+      if (b.dataset.a !== 'yes' || c.dataset.denied === '1') return;
+      let r; try { r = await Notification.requestPermission(); } catch (er) { r = Notification.permission; }
+      if (r === 'granted') {
+        PUSH.on = true; PUSH.off = false; pushSaveLocal();
+        if (NET.uid()) pushSubscribe(true).then(() => UI.toast('🔔 Benachrichtigungen an.', 'good', 2400, 'push')).catch(() => { });
+      } else if (r === 'denied') UI.toast('Benachrichtigungen sind jetzt im Browser blockiert. Du kannst sie über das Schloss-Symbol neben der Adresse wieder erlauben.', 'warn', 6000, 'push');
       pushUi();
-    }).catch(() => { });
-  };
-  window.addEventListener('pointerdown', ask, true);
-  window.addEventListener('keydown', ask, true);
+    });
+  }
+  c.dataset.denied = denied ? '1' : '';
+  c.querySelector('b').textContent = denied ? 'Benachrichtigungen sind blockiert' : 'Benachrichtigungen erlauben?';
+  c.querySelector('small').textContent = denied ? 'Erlaube sie im Browser (Schloss-Symbol neben der Adresse → Benachrichtigungen), dann bekommst du Nachrichten von Freunden, auch wenn das Spiel zu ist.' : 'Dann bekommst du Nachrichten, Freundschaftsanfragen und Einladungen, auch wenn das Spiel zu ist.';
+  c.querySelector('[data-a="yes"]').textContent = denied ? 'OK' : 'Erlauben';
+  c.querySelector('[data-a="no"]').hidden = denied;
+  void c.offsetWidth; c.classList.add('on');
 }
 
 /* ---- 19y_creative.js ---- */
@@ -26782,12 +26808,14 @@ function cleanSigns(o) {
 UI.openSign = function (x, y, z) {
   if (getB(x, y, z) !== B.SIGN) return;
   if (G.state !== 'playing') return;
+  SIGN.openT = performance.now();
   if (document.pointerLockElement) document.exitPointerLock();
   INPUT.clear();
   G.state = 'inv';
   SIGN.at = [x, y, z];
   $('signTxt').value = signText(x, y, z);
   $('mdlSign').hidden = false;
+  signEdFit();
   SFX.ui();
   setTimeout(() => { $('signTxt').focus(); }, 30);
 };
@@ -26843,7 +26871,7 @@ function updateSignTags(dt) {
       if (!el) { el = document.createElement('div'); el.className = 'signtag'; box.appendChild(el); }
       el.hidden = false;
       const txt = W.signs[k];
-      if (el.textContent !== txt) el.textContent = txt;
+      if (el.textContent !== txt || el.dataset.v !== String(SIGN_FIT_V)) { el.textContent = txt; el.style.fontSize = signFit(txt) + 'px'; el.dataset.v = SIGN_FIT_V; }
       const sc = wpx / 180, rot = Math.atan2(_sp1[1] - _sp0[1], _sp1[0] - _sp0[0]);
       el.style.transform = 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px) rotate(' + rot.toFixed(3) + 'rad) scale(' + sc.toFixed(3) + ')';
       el.style.opacity = dist > 13 ? ((16 - dist) / 3).toFixed(2) : '';
@@ -26867,13 +26895,69 @@ function bindSigns() {
   $('signOk').addEventListener('click', signSave);
   $('signTxt').addEventListener('keydown', (e) => {
     e.stopPropagation();
+    if (e.key === 'Escape') { e.preventDefault(); signSave(); return; }
     if (e.key === 'Enter' && !e.shiftKey && $('signTxt').value.split('\n').length >= 4) { e.preventDefault(); signSave(); }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); signSave(); }
   });
   $('signTxt').addEventListener('input', () => {
     const t = $('signTxt'); const lines = t.value.split('\n');
-    if (lines.length > 4) t.value = lines.slice(0, 4).join('\n');
+    if (lines.length > 4) { const p = t.selectionStart; t.value = lines.slice(0, 4).join('\n'); t.selectionStart = t.selectionEnd = Math.min(p, t.value.length); }
+    signEdFit();
   });
+  // der Klick, der das Schild hingestellt hat, soll das Fenster nicht gleich wieder schließen
+  $('mdlSign').addEventListener('pointerdown', (e) => { if (e.target === $('mdlSign') && performance.now() - (SIGN.openT || 0) < 600) e.stopImmediatePropagation(); }, true);
+}
+
+/* Schriftgröße, damit der Text das Schild füllt: ein Buchstabe ganz groß, viel Text kleiner */
+const SIGN_FIT = new Map();
+let SIGN_FIT_V = 0;
+/* erst wenn die Schrift geladen ist, stimmen die Maße */
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { SIGN_FIT.clear(); SIGN_FIT_V++; });
+let _signCv = null;
+function signWrap(ctx, text, maxW) {
+  const out = [];
+  for (const para of String(text).split('\n')) {
+    const words = para.split(/(\s+)/).filter((w) => w.length);
+    let line = '';
+    for (const w of words) {
+      const t = line + w;
+      if (!line || ctx.measureText(t).width <= maxW) { line = t; continue; }
+      out.push(line.trimEnd()); line = w.trimStart();
+    }
+    out.push(line);
+  }
+  return out;
+}
+function signFit(text, w, h, max) {
+  w = w || 164; h = h || 92; max = max || 78;
+  const key = text + '|' + w + '|' + h;
+  if (SIGN_FIT.has(key)) return SIGN_FIT.get(key);
+  if (!_signCv) _signCv = document.createElement('canvas');
+  const ctx = _signCv.getContext('2d');
+  let size = 9;
+  for (let s = max; s >= 9; s -= 1) {
+    ctx.font = '400 ' + s + 'px "Lilita One", system-ui, sans-serif';
+    const lines = signWrap(ctx, text, w);
+    if (lines.length * s * 1.08 > h) continue;
+    if (lines.some((l) => ctx.measureText(l).width > w)) continue;
+    size = s; break;
+  }
+  if (SIGN_FIT.size > 400) SIGN_FIT.clear();
+  SIGN_FIT.set(key, size);
+  return size;
+}
+/* im Schreib-Fenster: genauso groß wie später auf dem Schild */
+function signEdFit() {
+  const t = $('signTxt'); if (!t) return;
+  const k = (t.clientWidth || 360) / 180;
+  const v = t.value.trim() ? t.value : 'A';
+  const px = signFit(v, 164, 92);
+  t.style.fontSize = Math.round(px * k) + 'px';
+  // senkrecht mittig wie auf dem Schild
+  const ctx = _signCv.getContext('2d'); ctx.font = '400 ' + px + 'px "Lilita One", system-ui, sans-serif';
+  const n = signWrap(ctx, v, 164).length, hText = n * px * 1.08;
+  t.style.paddingTop = Math.max(4, ((104 - hText) / 2) * k) + 'px';
+  t.style.paddingBottom = '0px';
 }
 
 /* ---- 19yd_cosmetics.js ---- */
